@@ -1,0 +1,334 @@
+import SwiftUI
+import Combine
+import CoreLocation
+
+@MainActor
+final class HomeViewModel: ObservableObject {
+
+    // MARK: - Published State
+
+    @Published var currentMode: AppMode = AppMode.current()
+    @Published var currentVerse: Verse?
+    @Published var currentImage: VerseImage?
+    @Published var weather: WeatherData?
+    @Published var isLoading: Bool = false
+    @Published var showAlarmCTA: Bool = false
+    @Published var toastMessage: String?
+
+    // MARK: - Private State
+
+    private var modeCheckTimer: AnyCancellable?
+    private var toastDismissTask: Task<Void, Never>?
+
+    // MARK: - Dependencies
+
+    private let verseRepository: VerseRepository
+    private let weatherService: WeatherServiceProtocol
+    private let cacheManager: DailyCacheManager
+    private let alarmRepository: AlarmRepository
+    private let authManager: AuthManager
+    private let subscriptionManager: SubscriptionManager
+    private let upsellManager: UpsellManager
+
+    // MARK: - Init
+
+    init(
+        verseRepository: VerseRepository = VerseRepository(),
+        weatherService: WeatherServiceProtocol = WeatherService(),
+        cacheManager: DailyCacheManager = DailyCacheManager.shared,
+        alarmRepository: AlarmRepository = AlarmRepository(),
+        authManager: AuthManager,
+        subscriptionManager: SubscriptionManager,
+        upsellManager: UpsellManager
+    ) {
+        self.verseRepository = verseRepository
+        self.weatherService = weatherService
+        self.cacheManager = cacheManager
+        self.alarmRepository = alarmRepository
+        self.authManager = authManager
+        self.subscriptionManager = subscriptionManager
+        self.upsellManager = upsellManager
+
+        startModeCheckTimer()
+        evaluateAlarmCTA()
+    }
+
+    deinit {
+        modeCheckTimer?.cancel()
+        toastDismissTask?.cancel()
+    }
+
+    // MARK: - Public Methods
+
+    /// 앱 진입/포그라운드 복귀 시 전체 데이터 로드
+    func loadData() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        // 모드 갱신
+        let latestMode = AppMode.current()
+        if latestMode != currentMode {
+            currentMode = latestMode
+        }
+
+        // 날씨 로드 (위치 권한이 있을 때만)
+        await loadWeatherIfPermitted()
+
+        // 말씀 로드
+        await loadVerse(for: currentMode)
+
+        // 이미지 로드
+        await loadImage(for: currentMode)
+
+        // 알람 CTA 재평가
+        evaluateAlarmCTA()
+    }
+
+    /// 포그라운드 복귀 시 날씨만 갱신
+    func refreshWeather() async {
+        await loadWeatherIfPermitted()
+    }
+
+    /// 말씀 저장
+    func saveVerse() {
+        guard let verse = currentVerse else { return }
+
+        // 비로그인 상태: pendingSave 설정 후 로그인 유도는 View 레이어에서 처리
+        guard authManager.isLoggedIn, let userId = authManager.userId else {
+            // pendingSave를 AuthManager에 예약
+            let pending = makeSavedVerse(from: verse)
+            authManager.setPendingSave(pending)
+            // 로그인 시트 표시는 View에서 authManager.isLoggedIn 관찰로 처리
+            return
+        }
+
+        let savedVerse = makeSavedVerse(from: verse)
+        Task {
+            do {
+                let repo = SavedVerseRepository()
+                try await repo.save(savedVerse, userId: userId)
+                showToast("저장되었습니다")
+            } catch {
+                showToast("저장에 실패했습니다. 다시 시도해주세요")
+            }
+        }
+    }
+
+    /// 다음 말씀 로드
+    /// - Free 유저: 업셀 트리거
+    /// - Premium 유저: 실제 다음 말씀 로드
+    func nextVerse() async {
+        guard subscriptionManager.isPremium else {
+            upsellManager.show(trigger: .nextVerse)
+            return
+        }
+
+        guard let currentId = currentVerse?.id else { return }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        if let next = await verseRepository.nextVerse(
+            excluding: currentId,
+            for: currentMode,
+            weather: weather
+        ) {
+            currentVerse = next
+        } else {
+            showToast("더 이상 표시할 말씀이 없어요")
+        }
+    }
+
+    // MARK: - Private: Data Loading
+
+    private func loadVerse(for mode: AppMode) async {
+        let verse = await verseRepository.currentVerse(for: mode, weather: weather)
+        currentVerse = verse
+    }
+
+    private func loadImage(for mode: AppMode) async {
+        guard let images = try? await verseRepository.fetchImages() else { return }
+        currentImage = selectImage(from: images, mode: mode)
+    }
+
+    private func loadWeatherIfPermitted() async {
+        // CLLocationManager 상태 확인 없이 최후 알려진 위치 사용
+        // PermissionManager는 View 레이어에서 EnvironmentObject로 주입되므로
+        // 여기서는 CLLocationManager를 직접 조회해 단순 처리
+        let locationManager = CLLocationManager()
+        let status = locationManager.authorizationStatus
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+
+        guard let location = locationManager.location else { return }
+
+        do {
+            weather = try await weatherService.fetchWeather(for: location)
+        } catch {
+            // 날씨 실패는 토스트 없이 조용히 처리 (말씀 경험이 핵심)
+            // 기존 캐시가 있으면 유지됨 (WeatherService 내부 처리)
+        }
+    }
+
+    // MARK: - Private: Image Selection
+
+    private func selectImage(from images: [VerseImage], mode: AppMode) -> VerseImage? {
+        let active = images.filter { $0.status == "active" }
+        guard !active.isEmpty else { return nil }
+
+        let season = currentSeasonTag()
+        let weatherCondition = weather?.condition ?? "any"
+        let currentThemes = mode.themes
+        let currentMoods = mode.moods
+
+        // 모드 필터 우선 적용
+        let modeFiltered = active.filter {
+            $0.mode.contains(mode.rawValue) || $0.mode.contains("all")
+        }
+        let pool = modeFiltered.isEmpty ? active : modeFiltered
+
+        // 스코어 산정 (CLAUDE.md 섹션 16 기준)
+        let scored = pool.map { image -> (VerseImage, Int) in
+            var score = 0
+            score += image.theme.filter { currentThemes.contains($0) }.count * 3
+            score += image.mood.filter { currentMoods.contains($0) }.count * 2
+            if image.weather.contains(weatherCondition) || image.weather.contains("any") { score += 2 }
+            if image.season.contains(season) || image.season.contains("all") { score += 1 }
+
+            // 톤 우선순위: 아침 → bright/mid, 저녁 → dark
+            switch mode {
+            case .morning, .afternoon:
+                if image.tone == "bright" { score += 2 }
+                else if image.tone == "mid" { score += 1 }
+            case .evening:
+                if image.tone == "dark" { score += 2 }
+                else if image.tone == "mid" { score += 1 }
+            }
+            return (image, score)
+        }
+
+        let maxScore = scored.map { $0.1 }.max() ?? 0
+        let topImages = scored.filter { $0.1 == maxScore }.map { $0.0 }
+        return topImages.randomElement()
+    }
+
+    private func currentSeasonTag() -> String {
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 3...5: return "spring"
+        case 6...8: return "summer"
+        case 9...11: return "autumn"
+        default: return "winter"
+        }
+    }
+
+    // MARK: - Private: Alarm CTA
+
+    /// 알람 0개 + 앱 설치 후 3일 이내일 때 CTA 노출
+    private func evaluateAlarmCTA() {
+        let alarmCount = alarmRepository.count()
+        guard alarmCount == 0 else {
+            showAlarmCTA = false
+            return
+        }
+
+        let installDate: Date
+        if let stored = UserDefaults.standard.object(forKey: "installDate") as? Date {
+            installDate = stored
+        } else {
+            // 최초 실행 시 설치일 기록
+            let now = Date()
+            UserDefaults.standard.set(now, forKey: "installDate")
+            installDate = now
+        }
+
+        let daysSinceInstall = Calendar.current.dateComponents(
+            [.day], from: installDate, to: Date()
+        ).day ?? 0
+
+        showAlarmCTA = daysSinceInstall <= 3
+    }
+
+    // MARK: - Private: Mode Timer
+
+    /// 매분 시간대 체크 — 모드가 바뀌면 말씀/이미지 재로드
+    private func startModeCheckTimer() {
+        modeCheckTimer = Timer.publish(every: 60, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                let newMode = AppMode.current()
+                guard newMode != self.currentMode else { return }
+                self.currentMode = newMode
+                Task { [weak self] in
+                    guard let self else { return }
+                    await self.loadVerse(for: newMode)
+                    await self.loadImage(for: newMode)
+                }
+            }
+    }
+
+    // MARK: - Private: SavedVerse Factory
+
+    private func makeSavedVerse(from verse: Verse) -> SavedVerse {
+        SavedVerse(
+            id: UUID().uuidString,
+            verseId: verse.id,
+            savedAt: Date(),
+            mode: currentMode.rawValue,
+            weatherTemp: weather?.temperature ?? 0,
+            weatherCondition: weather?.condition ?? "any",
+            weatherHumidity: weather?.humidity ?? 0,
+            locationName: weather?.cityName ?? ""
+        )
+    }
+
+    // MARK: - Private: Toast
+
+    private func showToast(_ message: String) {
+        toastDismissTask?.cancel()
+        toastMessage = message
+        toastDismissTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2초
+            guard !Task.isCancelled else { return }
+            // @MainActor 클래스 내 Task는 이미 MainActor 컨텍스트에서 실행됨
+            self?.toastMessage = nil
+        }
+    }
+}
+
+// MARK: - Preview Helper
+
+extension HomeViewModel {
+    static func preview() -> HomeViewModel {
+        let vm = HomeViewModel(
+            authManager: AuthManager(),
+            subscriptionManager: SubscriptionManager(),
+            upsellManager: UpsellManager()
+        )
+        vm.currentVerse = .fallbackMorning
+        vm.weather = .placeholder
+        return vm
+    }
+}
+
+#Preview {
+    let vm = HomeViewModel.preview()
+    return VStack(spacing: 12) {
+        Text(vm.currentMode.greeting)
+            .font(.headline)
+        if let verse = vm.currentVerse {
+            Text(verse.textKo)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
+            Text(verse.reference)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        if let weather = vm.weather {
+            Text("\(weather.cityName) \(weather.temperature)°C")
+                .font(.caption2)
+        }
+    }
+    .padding()
+}
