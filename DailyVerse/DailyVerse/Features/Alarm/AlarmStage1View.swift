@@ -21,10 +21,10 @@ struct AlarmStage1View: View {
                 if let verse = coordinator.activeVerse {
                     VStack(spacing: 16) {
                         Text(verse.textKo)
-                            .font(.dvStage1Verse)
+                            .font(.dvVerseHero)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
-                            .lineSpacing(6)
+                            .lineSpacing(8)
                             .padding(.horizontal, 32)
 
                         Text(verse.reference)

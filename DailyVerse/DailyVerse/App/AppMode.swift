@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum AppMode: String, CaseIterable {
     case morning = "morning"
@@ -50,6 +51,22 @@ enum AppMode: String, CaseIterable {
         case .morning: return ["bright", "dramatic"]
         case .afternoon: return ["calm", "warm"]
         case .evening: return ["serene", "cozy"]
+        }
+    }
+
+    var accentColor: Color {
+        switch self {
+        case .morning:   return .dvMorningGold
+        case .afternoon: return .dvNoonSky
+        case .evening:   return .dvEveningPurple
+        }
+    }
+
+    var secondaryAccent: Color {
+        switch self {
+        case .morning:   return .dvMorningAmber
+        case .afternoon: return .dvNoonTeal
+        case .evening:   return .dvEveningIndigo
         }
     }
 }

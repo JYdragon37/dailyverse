@@ -156,10 +156,45 @@ final class AlarmViewModel: ObservableObject {
     }
 
     private func showSavedToast(for alarm: Alarm) {
+        let fireDate = nextAlarmFireDate(for: alarm)
+        let isToday = Calendar.current.isDateInToday(fireDate)
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "hh:mm a"
+        formatter.locale = Locale(identifier: "ko_KR")
+        let timeStr = formatter.string(from: fireDate)
+
+        let mode = AppMode.fromTime(alarm.time)
+        let contextMsg: String
+        switch mode {
+        case .morning:   contextMsg = "새 날이 말씀과 함께 시작됩니다"
+        case .afternoon: contextMsg = "낮의 한 호흡, 말씀이 함께해요"
+        case .evening:   contextMsg = "하루를 말씀으로 마무리해요"
+        }
+
+        if isToday {
+            let totalSeconds = fireDate.timeIntervalSinceNow
+            let hours = Int(totalSeconds / 3600)
+            let minutes = Int(totalSeconds.truncatingRemainder(dividingBy: 3600) / 60)
+            if hours > 0 {
+                toastMessage = "오늘 \(hours)시간 \(minutes)분 뒤\n\(contextMsg)"
+            } else {
+                toastMessage = "오늘 \(minutes)분 뒤\n\(contextMsg)"
+            }
+        } else {
+            toastMessage = "내일 \(timeStr)\n\(contextMsg)"
+        }
+    }
+
+    /// 다음 알람 발동 시각 계산 — Calendar.nextDate 기반
+    private func nextAlarmFireDate(for alarm: Alarm) -> Date {
         let cal = Calendar.current
-        let hour = cal.component(.hour, from: alarm.time)
-        let minute = cal.component(.minute, from: alarm.time)
-        let timeString = String(format: "%02d:%02d", hour, minute)
-        toastMessage = "내일 \(timeString), 말씀이 함께할 거예요"
+        var components = cal.dateComponents([.hour, .minute], from: alarm.time)
+        components.second = 0
+        return cal.nextDate(
+            after: Date(),
+            matching: components,
+            matchingPolicy: .nextTime
+        ) ?? alarm.time
     }
 }

@@ -18,8 +18,9 @@ struct AlarmAddEditView: View {
     @State private var selectedTime: Date
     @State private var selectedDays: Set<Int>
     @State private var selectedTheme: String
-    @State private var showToast: Bool = false
-    @State private var toastMessage: String = ""
+    @State private var labelText: String
+    @State private var snoozeInterval: Int
+    @State private var isLabelAutoSet: Bool
 
     private let allThemes = [
         "hope", "courage", "strength", "renewal",
@@ -39,6 +40,9 @@ struct AlarmAddEditView: View {
             _selectedTime = State(initialValue: alarm.time)
             _selectedDays = State(initialValue: Set(alarm.repeatDays))
             _selectedTheme = State(initialValue: alarm.theme)
+            _labelText = State(initialValue: alarm.label)
+            _snoozeInterval = State(initialValue: alarm.snoozeInterval)
+            _isLabelAutoSet = State(initialValue: false)
         } else {
             // 추가 모드: 다음 정시로 초기화
             let nextHour = Calendar.current.date(
@@ -48,6 +52,9 @@ struct AlarmAddEditView: View {
             _selectedTime = State(initialValue: nextHour)
             _selectedDays = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
             _selectedTheme = State(initialValue: "hope")
+            _labelText = State(initialValue: Alarm.defaultLabel(for: nextHour))
+            _snoozeInterval = State(initialValue: 5)
+            _isLabelAutoSet = State(initialValue: true)
         }
     }
 
@@ -66,13 +73,48 @@ struct AlarmAddEditView: View {
                     .datePickerStyle(.wheel)
                     .labelsHidden()
                     .frame(maxWidth: .infinity, alignment: .center)
+                    .onChange(of: selectedTime) { newTime in
+                        // 라벨이 자동 설정 상태일 때만 시간 변경에 따라 갱신
+                        if isLabelAutoSet {
+                            labelText = Alarm.defaultLabel(for: newTime)
+                        }
+                    }
                 } header: {
                     Text("시간")
                         .font(.dvSectionTitle)
                 }
 
+                // 알람 이름
+                Section {
+                    HStack {
+                        Image(systemName: "tag.fill")
+                            .foregroundColor(.dvAccent)
+                            .frame(width: 20)
+                            .accessibilityHidden(true)
+                        TextField("알람 이름 (선택사항)", text: $labelText)
+                            .font(.dvBody)
+                            .onChange(of: labelText) { _ in
+                                // 유저가 직접 입력하면 자동 설정 모드 해제
+                                isLabelAutoSet = false
+                            }
+                    }
+                } header: {
+                    Text("알람 이름")
+                        .font(.dvSectionTitle)
+                }
+
                 // 반복 요일
                 Section {
+                    // 빠른 선택 Chip
+                    HStack(spacing: 8) {
+                        QuickDayChip(label: "매일", isSelected: isAllDays) { selectAllDays() }
+                        QuickDayChip(label: "주중", isSelected: isWeekdays) { selectWeekdays() }
+                        QuickDayChip(label: "주말", isSelected: isWeekends) { selectWeekends() }
+                        Spacer()
+                    }
+                    .padding(.vertical, 4)
+                    .listRowSeparator(.hidden)
+
                     WeekdaySelector(selectedDays: $selectedDays)
 
                     Text(repeatSummaryText)
@@ -133,6 +175,24 @@ struct AlarmAddEditView: View {
                         .font(.dvSectionTitle)
                 }
 
+                // 스누즈 설정
+                Section {
+                    Picker("스누즈 간격", selection: $snoozeInterval) {
+                        Text("5분").tag(5)
+                        Text("10분").tag(10)
+                        Text("15분").tag(15)
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityLabel("스누즈 간격 선택")
+                } header: {
+                    Text("스누즈 설정")
+                        .font(.dvSectionTitle)
+                } footer: {
+                    Text("말씀과의 약속을 지킬 수 있는 여유를 설정하세요")
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+                }
+
                 // 말씀 미리보기
                 Section {
                     let verse = previewVerse
@@ -174,14 +234,6 @@ struct AlarmAddEditView: View {
                     .accessibilityLabel(selectedDays.isEmpty ? "요일을 선택해야 저장할 수 있습니다" : "알람 저장하기")
                 }
             }
-            .overlay(alignment: .bottom) {
-                if showToast {
-                    ToastView(message: toastMessage)
-                        .padding(.bottom, 8)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .animation(.dvSheetAppear, value: showToast)
         }
         .sheet(isPresented: $upsellManager.shouldShow) {
             UpsellBottomSheet()
@@ -199,28 +251,25 @@ struct AlarmAddEditView: View {
             repeatDays: Array(selectedDays).sorted(),
             theme: subscriptionManager.isPremium ? selectedTheme : autoTheme,
             isEnabled: alarm?.isEnabled ?? true,
-            snoozeCount: 0
+            snoozeCount: 0,
+            label: labelText,
+            snoozeInterval: snoozeInterval
         )
 
         onSave(newAlarm)
-
-        let formatter = DateFormatter()
-        formatter.dateFormat = "hh:mm a"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        let timeStr = formatter.string(from: selectedTime)
-        toastMessage = "내일 \(timeStr), 말씀이 함께 울릴 거예요"
-
-        withAnimation(.dvSheetAppear) {
-            showToast = true
-        }
-
-        Task {
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            await MainActor.run {
-                dismiss()
-            }
-        }
+        // 토스트는 AlarmViewModel.showSavedToast(for:)에서 처리
+        dismiss()
     }
+
+    // MARK: - 빠른 요일 선택 헬퍼
+
+    private var isAllDays: Bool { selectedDays == Set(0...6) }
+    private var isWeekdays: Bool { selectedDays == Set(1...5) }
+    private var isWeekends: Bool { selectedDays == Set([0, 6]) }
+
+    private func selectAllDays()  { selectedDays = Set(0...6) }
+    private func selectWeekdays() { selectedDays = Set(1...5) }
+    private func selectWeekends() { selectedDays = Set([0, 6]) }
 
     // MARK: - 요일 요약
 
@@ -352,6 +401,31 @@ private struct DayToggleButton: View {
     }
 }
 
+// MARK: - QuickDayChip
+
+private struct QuickDayChip: View {
+    let label: String
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            Text(label)
+                .font(.dvCaption.weight(isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? .white : .secondary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.dvAccent : Color.secondary.opacity(0.10))
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(label) 선택 \(isSelected ? "됨" : "안됨")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
 // MARK: - Preview
 
 #Preview("추가 모드 — Free") {
@@ -373,7 +447,9 @@ private struct DayToggleButton: View {
         time: alarmTime,
         repeatDays: [1, 2, 3, 4, 5],
         theme: "courage",
-        isEnabled: true
+        isEnabled: true,
+        label: "아침의 말씀",
+        snoozeInterval: 10
     )
 
     return AlarmAddEditView(alarm: alarm) { _ in }

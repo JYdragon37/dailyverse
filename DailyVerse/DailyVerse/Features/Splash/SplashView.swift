@@ -4,6 +4,7 @@ import Combine
 struct SplashView: View {
     @State private var logoOpacity: Double = 0
     @State private var subtitleOpacity: Double = 0
+    @State private var isPulsing: Bool = false
 
     var body: some View {
         ZStack {
@@ -22,6 +23,8 @@ struct SplashView: View {
                     .font(.system(size: 64))
                     .foregroundColor(.white)
                     .opacity(logoOpacity)
+                    .scaleEffect(isPulsing ? 1.04 : 1.0)
+                    .animation(.dvBreathingPulse, value: isPulsing)
                     .accessibilityLabel("DailyVerse 앱 아이콘")
 
                 Text("DailyVerse")
@@ -42,6 +45,7 @@ struct SplashView: View {
             withAnimation(.dvSplashFadeIn.delay(0.2)) {
                 subtitleOpacity = 1.0
             }
+            isPulsing = true
         }
     }
 }

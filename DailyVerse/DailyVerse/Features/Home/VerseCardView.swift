@@ -6,32 +6,41 @@ struct VerseCardView: View {
     let onTap: () -> Void
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 16)
-            .fill(.ultraThinMaterial)
+        RoundedRectangle(cornerRadius: 20)
+            .fill(Color.dvCardFill)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.dvCardBorder, lineWidth: 0.5)
+            )
             .overlay {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verse.textKo)
-                        .font(.dvVerseText)
-                        .foregroundColor(.dvPrimary)
+                        .font(.dvVerseDisplay)
+                        .foregroundColor(.dvTextPrimary)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
 
                     HStack(spacing: 6) {
                         Text(verse.reference)
                             .font(.dvReference)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.dvTextSecondary)
 
                         if let firstTheme = verse.theme.first {
                             Text(firstTheme.capitalized)
                                 .font(.dvCaption)
-                                .foregroundColor(.dvAccent)
+                                .foregroundColor(.dvVerseGold)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.dvVerseGold.opacity(0.2))
+                                .clipShape(Capsule())
                         }
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.dvAccent)
+                            .foregroundColor(.dvTextMuted)
                     }
                 }
                 .padding(16)

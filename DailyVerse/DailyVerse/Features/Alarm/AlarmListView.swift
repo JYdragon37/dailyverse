@@ -68,9 +68,20 @@ struct AlarmListView: View {
 
     // MARK: - Alarm List
 
+    private var sortedAlarms: [Alarm] {
+        viewModel.alarms.sorted { a, b in
+            let cal = Calendar.current
+            let aH = cal.component(.hour, from: a.time)
+            let aM = cal.component(.minute, from: a.time)
+            let bH = cal.component(.hour, from: b.time)
+            let bM = cal.component(.minute, from: b.time)
+            return aH * 60 + aM < bH * 60 + bM
+        }
+    }
+
     private var alarmList: some View {
         List {
-            ForEach(viewModel.alarms) { alarm in
+            ForEach(sortedAlarms) { alarm in
                 AlarmCardRow(
                     alarm: alarm,
                     onToggle: { viewModel.toggleAlarm(id: alarm.id) }
@@ -180,19 +191,35 @@ private struct AlarmCardRow: View {
                     .font(.system(size: 36, weight: .thin, design: .default))
                     .foregroundColor(alarm.isEnabled ? .primary : .secondary)
 
-                Text(alarm.repeatSummary)
-                    .font(.dvCaption)
-                    .foregroundColor(.secondary)
+                if !alarm.label.isEmpty {
+                    Text(alarm.label)
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+                }
 
-                Text(alarm.theme.capitalized)
+                HStack(spacing: 6) {
+                    Text(alarm.repeatSummary)
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+
+                    Text("·")
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+
+                    Text(alarm.theme.capitalized)
+                        .font(.dvCaption)
+                        .foregroundColor(.dvAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(Color.dvAccent.opacity(0.12))
+                        )
+                }
+
+                Text(nextFireText(for: alarm))
                     .font(.dvCaption)
-                    .foregroundColor(.dvAccent)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(Color.dvAccent.opacity(0.12))
-                    )
+                    .foregroundColor(nextFireColor(for: alarm))
             }
 
             Spacer()
@@ -219,6 +246,40 @@ private struct AlarmCardRow: View {
         formatter.dateFormat = "hh:mm a"
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter.string(from: alarm.time)
+    }
+
+    private func nextFireText(for alarm: Alarm) -> String {
+        guard alarm.isEnabled else { return "꺼져 있음" }
+        let cal = Calendar.current
+        var comp = cal.dateComponents([.hour, .minute], from: alarm.time)
+        comp.second = 0
+        guard let fire = cal.nextDate(
+            after: Date(),
+            matching: comp,
+            matchingPolicy: .nextTime
+        ) else { return "" }
+
+        let interval = fire.timeIntervalSinceNow
+        if cal.isDateInToday(fire) {
+            let hours = Int(interval / 3600)
+            let mins = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
+            if hours > 0 { return "오늘 \(hours)시간 \(mins)분 뒤" }
+            return "오늘 \(mins)분 뒤"
+        }
+        return "내일"
+    }
+
+    private func nextFireColor(for alarm: Alarm) -> Color {
+        guard alarm.isEnabled else { return .secondary }
+        let cal = Calendar.current
+        var comp = cal.dateComponents([.hour, .minute], from: alarm.time)
+        comp.second = 0
+        guard let fire = cal.nextDate(
+            after: Date(),
+            matching: comp,
+            matchingPolicy: .nextTime
+        ) else { return .secondary }
+        return cal.isDateInToday(fire) ? .dvAccent : .secondary
     }
 }
 
@@ -321,11 +382,15 @@ private struct AlarmEmptyStateView: View {
         Alarm(time: calendar.date(from: comps6) ?? now,
               repeatDays: [1, 2, 3, 4, 5],
               theme: "hope",
-              isEnabled: true),
+              isEnabled: true,
+              label: "아침의 말씀",
+              snoozeInterval: 5),
         Alarm(time: calendar.date(from: comps22) ?? now,
               repeatDays: [0, 6],
               theme: "peace",
-              isEnabled: false)
+              isEnabled: false,
+              label: "저녁 묵상",
+              snoozeInterval: 10)
     ]
 
     return AlarmListView()

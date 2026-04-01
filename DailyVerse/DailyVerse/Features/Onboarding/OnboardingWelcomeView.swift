@@ -43,6 +43,7 @@ struct OnboardingWelcomeView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .tint(.dvMorningGold)
                 .accessibilityLabel("온보딩 시작하기")
                 .padding(.bottom, 60)
             }

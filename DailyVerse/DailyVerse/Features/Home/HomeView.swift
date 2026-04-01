@@ -57,26 +57,43 @@ struct HomeView: View {
 
     @ViewBuilder
     private var backgroundLayer: some View {
-        if let imageURL = viewModel.currentImage.map({ URL(string: $0.storageUrl) }) {
-            AsyncImage(url: imageURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure, .empty:
-                    fallbackBackground
-                @unknown default:
-                    fallbackBackground
+        ZStack {
+            if let imageURL = viewModel.currentImage.map({ URL(string: $0.storageUrl) }) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure, .empty:
+                        fallbackBackground
+                    @unknown default:
+                        fallbackBackground
+                    }
                 }
-            }
-            .ignoresSafeArea()
-            .transition(.opacity)
-            .animation(.dvModeTransition, value: viewModel.currentMode)
-        } else {
-            fallbackBackground
+                .ignoresSafeArea()
                 .transition(.opacity)
                 .animation(.dvModeTransition, value: viewModel.currentMode)
+            } else {
+                fallbackBackground
+                    .transition(.opacity)
+                    .animation(.dvModeTransition, value: viewModel.currentMode)
+            }
+
+            // 상하 그라데이션 오버레이 (단일 dvOverlay 대체)
+            ZStack {
+                LinearGradient(
+                    colors: [Color.black.opacity(0.5), .clear],
+                    startPoint: .top,
+                    endPoint: UnitPoint(x: 0.5, y: 0.4)
+                )
+                LinearGradient(
+                    colors: [.clear, Color.black.opacity(0.75)],
+                    startPoint: UnitPoint(x: 0.5, y: 0.5),
+                    endPoint: .bottom
+                )
+            }
+            .ignoresSafeArea()
         }
     }
 
@@ -153,7 +170,7 @@ struct HomeView: View {
 
             Text(currentTimeString)
                 .font(.dvCaption)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(.white.opacity(0.75))
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(viewModel.currentMode.greeting) \(currentTimeString)")
