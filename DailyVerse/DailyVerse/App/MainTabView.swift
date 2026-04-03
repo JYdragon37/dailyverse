@@ -39,12 +39,20 @@ struct MainTabView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                     .tag(4)
             }
-            // UITabBar.appearance().isHidden = true로 전역 숨김 (DailyVerseApp.init)
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 60)  // 커스텀 탭 바 공간 확보
+                Color.clear.frame(height: 60)
             }
 
-            // 커스텀 탭 바 오버레이
+            // 하단 그라데이션 페이드 (Calm 스타일 — 탭바 배경 역할)
+            LinearGradient(
+                colors: [.clear, Color.black.opacity(0.72)],
+                startPoint: .init(x: 0.5, y: 0.0),
+                endPoint: .bottom
+            )
+            .frame(height: 110)
+            .allowsHitTesting(false)   // 탭 등 터치 이벤트 통과
+
+            // 커스텀 탭 바 (배경 없음 — 그라데이션 위에 아이콘만 표시)
             DVTabBar(selectedTab: $selectedTab)
         }
         .onReceive(NotificationCenter.default.publisher(for: .dvSwitchToAlarmTab)) { _ in
@@ -79,35 +87,22 @@ private struct DVTabBar: View {
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: icon)
-                            .font(.system(size: 20, weight: selectedTab == tag ? .semibold : .regular))
-                            .scaleEffect(selectedTab == tag ? 1.08 : 1.0)
+                            .font(.system(size: 21, weight: selectedTab == tag ? .semibold : .light))
+                            .scaleEffect(selectedTab == tag ? 1.10 : 1.0)
                         Text(label)
                             .font(.system(size: 9.5, weight: .medium))
                     }
-                    .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.35))
+                    .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.45))
                     .frame(maxWidth: .infinity)
-                    .padding(.top, 10)
-                    .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom - 4 : 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom : 18)
                     .contentShape(Rectangle())
                 }
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)
                 .accessibilityLabel(label)
             }
         }
-        .background(
-            // 상단 미세 선 + 완전 투명 유리 효과
-            ZStack(alignment: .top) {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
-                Rectangle()
-                    .fill(Color.white.opacity(0.06))  // 매우 미묘한 오버레이
-                // 상단 미세 구분선
-                Rectangle()
-                    .fill(Color.white.opacity(0.12))
-                    .frame(height: 0.33)
-            }
-        )
+        .background(Color.clear)  // 배경 완전 투명 — 그라데이션이 배경 역할
     }
 
     private var safeAreaBottom: CGFloat {
