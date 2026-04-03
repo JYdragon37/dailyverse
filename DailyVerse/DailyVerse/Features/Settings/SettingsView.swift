@@ -3,19 +3,22 @@ import Combine
 import CoreLocation
 import UserNotifications
 
+// v5.1 — Settings 탭 (닉네임 추가, 단일 플랜, 외관 섹션)
+
 struct SettingsView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var permissionManager: PermissionManager
-    @EnvironmentObject private var upsellManager: UpsellManager
+    @ObservedObject private var nicknameManager = NicknameManager.shared
 
     @State private var showDeleteAccountAlert = false
     @State private var showSignOutAlert = false
     @State private var showLoginPrompt = false
-    @State private var showUpsell = false
+    @State private var showNicknameEdit = false
+    @State private var editingNickname = ""
 
     private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "v\(version) (build \(build))"
     }
@@ -26,139 +29,117 @@ struct SettingsView: View {
                 accountSection
                 subscriptionSection
                 permissionsSection
+                appearanceSection      // v5.1 신규
                 appInfoSection
                 feedbackSection
             }
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)
         }
-        .task {
-            await permissionManager.checkAll()
-        }
+        .task { await permissionManager.checkAll() }
         .alert("로그아웃", isPresented: $showSignOutAlert) {
-            Button("로그아웃", role: .destructive) {
-                authManager.signOut()
-            }
+            Button("로그아웃", role: .destructive) { authManager.signOut() }
             Button("취소", role: .cancel) {}
-        } message: {
-            Text("로그아웃 하시겠어요?")
-        }
+        } message: { Text("로그아웃 하시겠어요?") }
         .alert("계정을 탈퇴하시겠어요?", isPresented: $showDeleteAccountAlert) {
             Button("탈퇴하기", role: .destructive) {
                 Task { try? await authManager.deleteAccount(subscriptionManager: subscriptionManager) }
             }
             Button("취소", role: .cancel) {}
         } message: {
-            Text("구독 중이라면 App Store에서 별도로 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
+            Text("구독 중이라면 App Store에서 별도 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
         }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {
                 showLoginPrompt = false
                 Task { await authManager.signIn() }
-            } onDismiss: {
-                showLoginPrompt = false
+            } onDismiss: { showLoginPrompt = false }
+        }
+        .alert("닉네임 변경", isPresented: $showNicknameEdit) {
+            TextField("닉네임 (최대 10자)", text: $editingNickname)
+            Button("저장") {
+                Task {
+                    await nicknameManager.setNickname(
+                        editingNickname,
+                        userId: authManager.userId
+                    )
+                }
             }
-        }
-        .sheet(isPresented: $showUpsell) {
-            UpsellBottomSheet()
-                .environmentObject(subscriptionManager)
-                .environmentObject(upsellManager)
-        }
+            Button("취소", role: .cancel) {}
+        } message: { Text("새 닉네임을 입력해주세요") }
     }
 
-    // MARK: - Account Section
+    // MARK: - Account
 
     private var accountSection: some View {
         Section("계정") {
-            if authManager.isLoggedIn {
-                // 이메일 표시
-                HStack {
-                    Image(systemName: "person.circle.fill")
-                        .foregroundColor(.dvAccent)
-                        .accessibilityHidden(true)
-                    Text(authManager.user?.email ?? "Apple 계정")
+            // 닉네임 (v5.1)
+            HStack {
+                Image(systemName: "person.fill")
+                    .foregroundColor(.dvAccentGold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("닉네임")
+                        .font(.dvCaption).foregroundColor(.secondary)
+                    Text(nicknameManager.nickname)
                         .font(.dvBody)
+                }
+                Spacer()
+                Button("변경") {
+                    editingNickname = nicknameManager.nickname
+                    showNicknameEdit = true
+                }
+                .font(.dvCaption)
+                .foregroundColor(.dvAccentGold)
+            }
+
+            if authManager.isLoggedIn {
+                HStack {
+                    Image(systemName: "envelope.fill")
                         .foregroundColor(.secondary)
+                    Text(authManager.user?.email ?? "Apple 계정")
+                        .font(.dvBody).foregroundColor(.secondary)
                 }
-                .accessibilityLabel("로그인 계정: \(authManager.user?.email ?? "Apple 계정")")
 
-                Button("로그아웃") {
-                    showSignOutAlert = true
-                }
-                .foregroundColor(.primary)
-                .accessibilityLabel("로그아웃 버튼")
+                Button("로그아웃") { showSignOutAlert = true }
+                    .foregroundColor(.primary)
 
-                Button("계정 탈퇴", role: .destructive) {
-                    showDeleteAccountAlert = true
-                }
-                .accessibilityLabel("계정 탈퇴 버튼")
+                Button("계정 탈퇴", role: .destructive) { showDeleteAccountAlert = true }
             } else {
                 Button {
                     showLoginPrompt = true
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "apple.logo")
-                            .accessibilityHidden(true)
                         Text("Apple로 시작하기")
                     }
                 }
-                .foregroundColor(.dvAccent)
-                .accessibilityLabel("Apple 계정으로 로그인")
+                .foregroundColor(.dvAccentGold)
             }
         }
     }
 
-    // MARK: - Subscription Section
+    // MARK: - Subscription (v5.1: 단일 플랜 안내)
 
     private var subscriptionSection: some View {
         Section("구독") {
-            if subscriptionManager.isPremium {
-                Label("Premium 구독 중", systemImage: "crown.fill")
-                    .foregroundColor(.dvAccent)
-                    .accessibilityLabel("현재 Premium 구독 중")
+            HStack {
+                Label("현재 플랜", systemImage: "checkmark.seal.fill")
+                    .foregroundColor(.dvAccentGold)
+                Spacer()
+                Text("전체 기능 제공")
+                    .font(.dvCaption).foregroundColor(.secondary)
+            }
 
-                Button("구독 관리") {
-                    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                .foregroundColor(.primary)
-                .accessibilityLabel("App Store 구독 관리 페이지 열기")
-            } else {
-                // 현재 플랜
-                HStack {
-                    Text("현재 플랜")
-                        .font(.dvBody)
-                    Spacer()
-                    Text("Free")
-                        .font(.dvBody)
-                        .foregroundColor(.secondary)
-                }
-                .accessibilityLabel("현재 플랜 Free")
-
-                Button {
-                    upsellManager.show(trigger: .nextVerse)
-                    showUpsell = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "crown.fill")
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Premium 시작하기")
-                                .font(.dvBody)
-                            Text("₩24,500/월")
-                                .font(.dvCaption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .foregroundColor(.dvAccent)
-                .accessibilityLabel("Premium 구독 시작하기 월 24500원")
+            HStack {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.secondary)
+                Text("구독 기능은 향후 업데이트에서 도입됩니다")
+                    .font(.dvCaption).foregroundColor(.secondary)
             }
         }
     }
 
-    // MARK: - Permissions Section
+    // MARK: - Permissions
 
     private var permissionsSection: some View {
         Section("권한") {
@@ -169,7 +150,6 @@ struct SettingsView: View {
                 isGranted: permissionManager.locationAuthorized,
                 onOpenSettings: { permissionManager.openAppSettings() }
             )
-
             PermissionRow(
                 title: "알림",
                 icon: "bell.fill",
@@ -180,52 +160,51 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - App Info Section
+    // MARK: - Appearance (v5.1 신규)
+
+    private var appearanceSection: some View {
+        Section("외관") {
+            HStack {
+                Image(systemName: "moon.fill").foregroundColor(.dvAccentGold)
+                Text("다크 모드")
+                Spacer()
+                Text("시스템 따라가기")
+                    .font(.dvCaption).foregroundColor(.secondary)
+            }
+        }
+    }
+
+    // MARK: - App Info
 
     private var appInfoSection: some View {
         Section("앱 정보") {
             HStack {
                 Text("버전")
                 Spacer()
-                Text(appVersion)
-                    .font(.dvCaption)
-                    .foregroundColor(.secondary)
+                Text(appVersion).font(.dvCaption).foregroundColor(.secondary)
             }
-            .accessibilityLabel("앱 버전 \(appVersion)")
-
             Link("이용약관", destination: URL(string: "https://example.com/terms")!)
                 .foregroundColor(.primary)
-                .accessibilityLabel("이용약관 보기")
-
             Link("개인정보처리방침", destination: URL(string: "https://example.com/privacy")!)
                 .foregroundColor(.primary)
-                .accessibilityLabel("개인정보처리방침 보기")
-
-            Link("오픈소스 라이선스", destination: URL(string: "https://example.com/opensource")!)
-                .foregroundColor(.primary)
-                .accessibilityLabel("오픈소스 라이선스 보기")
         }
     }
 
-    // MARK: - Feedback Section
+    // MARK: - Feedback
 
     private var feedbackSection: some View {
         Section("피드백") {
             Button {
-                if let url = URL(string: "https://apps.apple.com/app/id0000000000?action=write-review") {
+                if let url = URL(string: "https://apps.apple.com/app/id0") {
                     UIApplication.shared.open(url)
                 }
             } label: {
-                HStack(spacing: 8) {
-                    Text("앱 리뷰 남기기")
-                }
+                Label("⭐ 앱 리뷰 남기기", systemImage: "star.fill")
             }
             .foregroundColor(.primary)
-            .accessibilityLabel("App Store 리뷰 남기기")
 
-            Link("문의하기", destination: URL(string: "mailto:support@dailyverse.app")!)
+            Link("📨 문의하기", destination: URL(string: "mailto:support@dailyverse.app")!)
                 .foregroundColor(.primary)
-                .accessibilityLabel("이메일로 문의하기")
         }
     }
 }
@@ -242,47 +221,25 @@ private struct PermissionRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(isGranted ? .dvAccent : .secondary)
-                .frame(width: 20)
-                .accessibilityHidden(true)
-
-            Text(title)
-                .font(.dvBody)
-
+                .foregroundColor(isGranted ? .dvAccentGold : .secondary)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.dvBody)
+                Text(statusText).font(.dvCaption).foregroundColor(.secondary)
+            }
             Spacer()
-
-            Text(statusText)
-                .font(.dvCaption)
-                .foregroundColor(isGranted ? .dvAccent : .secondary)
-
             if !isGranted {
-                Button("재설정") {
-                    onOpenSettings()
-                }
-                .font(.dvCaption)
-                .foregroundColor(.dvAccent)
-                .accessibilityLabel("\(title) 권한 설정 열기")
+                Button("설정 열기", action: onOpenSettings)
+                    .font(.dvCaption)
+                    .foregroundColor(.dvAccentGold)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title) 권한 상태: \(statusText)\(isGranted ? "" : ", 재설정 가능")")
     }
 }
 
-// MARK: - Preview
-
-#Preview("비로그인 + Premium") {
+#Preview {
     SettingsView()
         .environmentObject(AuthManager())
         .environmentObject(SubscriptionManager())
         .environmentObject(PermissionManager())
-        .environmentObject(UpsellManager())
-}
-
-#Preview("비로그인 + Free") {
-    SettingsView()
-        .environmentObject(AuthManager())
-        .environmentObject(SubscriptionManager())
-        .environmentObject(PermissionManager())
-        .environmentObject(UpsellManager())
 }

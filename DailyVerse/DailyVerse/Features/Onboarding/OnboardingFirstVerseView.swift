@@ -11,11 +11,14 @@ struct OnboardingFirstVerseView: View {
             Spacer()
 
             VStack(spacing: 8) {
-                Text("오늘의 말씀")
+                // v5.1: 닉네임 개인화 미리보기
+                let nickname = NicknameManager.shared.nickname
+                Text("Good Morning, \(nickname) ☀️")
                     .font(.dvTitle)
                     .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
 
-                Text("하나님의 말씀이 매일 당신과 함께합니다")
+                Text("매일 이런 말씀이 당신을 깨울 거예요")
                     .font(.dvBody)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
