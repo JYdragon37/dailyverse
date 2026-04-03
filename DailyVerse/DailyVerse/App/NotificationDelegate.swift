@@ -23,8 +23,19 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             object: nil,
             userInfo: userInfo as? [String: Any]
         )
-        // Edge Case 8: 포그라운드에서 배너는 숨기되 소리는 재생 — Stage 1 오버레이가 화면 담당
-        completionHandler([.sound])
+        // alertStyle에 따라 소리/진동 처리
+        let alertStyle = notification.request.content.userInfo["alert_style"] as? String ?? "soundAndVibration"
+        switch alertStyle {
+        case "vibration":
+            // 진동만: 시스템 배너 없이 햅틱만
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            completionHandler([])
+        case "sound":
+            completionHandler([.sound])
+        default: // soundAndVibration
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            completionHandler([.sound])
+        }
     }
 
     // MARK: - Background / Locked Screen Tap

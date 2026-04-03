@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import UIKit
 import Combine
 
 /// v5.1 — 알람 스케줄링 매니저 (듀얼 엔진 사용)
@@ -33,6 +34,24 @@ final class NotificationManager: NSObject {
         let av = DailyVerseAlarm(alarm: alarm, verse: verse)
         Task {
             try? await engine.schedule(alarm: av)
+        }
+    }
+
+    // MARK: - Vibration (포그라운드에서 진동 트리거)
+
+    func triggerVibration(for alertStyle: String) {
+        switch alertStyle {
+        case "vibration":
+            // 진동만: 경고 패턴
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            // 추가 진동 (0.5초 후)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            }
+        case "soundAndVibration":
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        default:
+            break // sound only — 소리는 UNNotification이 담당
         }
     }
 

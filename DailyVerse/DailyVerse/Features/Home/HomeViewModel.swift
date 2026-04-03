@@ -11,7 +11,6 @@ final class HomeViewModel: ObservableObject {
     @Published var currentMode: AppMode = AppMode.current()
     @Published var currentVerse: Verse?
     @Published var currentImage: VerseImage?
-    @Published var currentBackgroundImage: UIImage?   // SSL-bypass로 로드된 실제 이미지
     @Published var weather: WeatherData?
     @Published var isLoading: Bool = false
     @Published var showAlarmCTA: Bool = false
@@ -159,35 +158,11 @@ final class HomeViewModel: ObservableObject {
             #if DEBUG
             print("🖼️ [Image] Selected: \(currentImage?.id ?? "nil") | URL: \(currentImage?.storageUrl ?? "-")")
             #endif
-            // URL에서 실제 이미지 데이터 로드 (SSL-bypass 포함)
-            if let urlStr = currentImage?.storageUrl, let url = URL(string: urlStr) {
-                await fetchBackgroundImage(from: url)
-            }
         } catch {
             #if DEBUG
             print("🖼️ [Image] 로드 실패: \(error.localizedDescription)")
             #endif
         }
-    }
-
-    /// 배경 이미지를 URLSession으로 로드 (DEBUG: SSL 인증서 검증 우회)
-    private func fetchBackgroundImage(from url: URL) async {
-        #if DEBUG
-        let session = URLSession(configuration: .default, delegate: _ImageSSLBypass(), delegateQueue: nil)
-        #else
-        let session = URLSession.shared
-        #endif
-        guard let (data, _) = try? await session.data(from: url),
-              let img = UIImage(data: data) else {
-            #if DEBUG
-            print("🖼️ [fetchBackground] 실패: \(url)")
-            #endif
-            return
-        }
-        #if DEBUG
-        print("🖼️ [fetchBackground] 성공: \(url.lastPathComponent)")
-        #endif
-        currentBackgroundImage = img
     }
 
     private func loadWeatherIfPermitted() async {
@@ -368,20 +343,6 @@ final class HomeViewModel: ObservableObject {
         }
     }
 }
-
-// MARK: - SSL Bypass (DEBUG only)
-
-#if DEBUG
-private final class _ImageSSLBypass: NSObject, URLSessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
-                    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        guard let trust = challenge.protectionSpace.serverTrust else {
-            completionHandler(.performDefaultHandling, nil); return
-        }
-        completionHandler(.useCredential, URLCredential(trust: trust))
-    }
-}
-#endif
 
 // MARK: - Preview Helper
 

@@ -105,14 +105,26 @@ final class LegacyAlarmEngine: AlarmEngine {
         let content = UNMutableNotificationContent()
         content.title = "DailyVerse 🔔"
         content.body = "\"\(verse.textKo)\"\n\(verse.reference) • \(verse.theme.first?.capitalized ?? "")"
-        content.sound = .default
         content.interruptionLevel = .timeSensitive
+
+        // alertStyle에 따라 소리 설정
+        switch alarm.alertStyle {
+        case "vibration":
+            // 진동만: sound = nil (시스템이 진동만 울림)
+            content.sound = nil
+        case "sound":
+            content.sound = .default
+        default: // "soundAndVibration"
+            content.sound = .default
+        }
+
         content.userInfo = [
-            "alarm_id": alarm.id.uuidString,
-            "verse_id": verse.id,
-            "mode": AppMode.fromTime(alarm.time).rawValue,
-            "sound_id": alarm.soundId,
-            "volume": alarm.volume
+            "alarm_id":    alarm.id.uuidString,
+            "verse_id":    verse.id,
+            "mode":        AppMode.fromTime(alarm.time).rawValue,
+            "sound_id":    alarm.soundId,
+            "volume":      alarm.volume,
+            "alert_style": alarm.alertStyle
         ]
         return content
     }

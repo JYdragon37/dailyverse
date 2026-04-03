@@ -14,6 +14,7 @@ struct Alarm: Identifiable, Codable, Equatable {
     var wakeMission: String     // "none" | "shake" | "math" | "typing"
     var soundId: String         // "piano" | "nature" | "hymn"
     var volume: Float           // 0.0~1.0 (기본값: 0.8)
+    var alertStyle: String      // "sound" | "vibration" | "soundAndVibration"
 
     init(
         id: UUID = UUID(),
@@ -27,7 +28,8 @@ struct Alarm: Identifiable, Codable, Equatable {
         maxSnoozeCount: Int = 3,
         wakeMission: String = "none",
         soundId: String = "piano",
-        volume: Float = 0.8
+        volume: Float = 0.8,
+        alertStyle: String = "soundAndVibration"
     ) {
         self.id = id
         self.time = time
@@ -41,6 +43,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         self.wakeMission = wakeMission
         self.soundId = soundId
         self.volume = volume
+        self.alertStyle = alertStyle
     }
 
     // MARK: - Decodable (하위 호환: 기존 필드 없을 때 기본값 폴백)
@@ -60,6 +63,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         wakeMission      = try container.decodeIfPresent(String.self, forKey: .wakeMission)      ?? "none"
         soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "piano"
         volume           = try container.decodeIfPresent(Float.self,  forKey: .volume)           ?? 0.8
+        alertStyle       = try container.decodeIfPresent(String.self, forKey: .alertStyle)       ?? "soundAndVibration"
     }
 
     // MARK: - Computed Properties
@@ -124,5 +128,6 @@ struct Alarm: Identifiable, Codable, Equatable {
         case maxSnoozeCount  = "max_snooze_count"
         case wakeMission     = "wake_mission"
         case soundId         = "sound_id"
+        case alertStyle      = "alert_style"
     }
 }

@@ -22,6 +22,7 @@ struct AlarmAddEditView: View {
     @State private var wakeMission: String
     @State private var soundId: String
     @State private var volume: Float
+    @State private var alertStyle: String   // "sound" | "vibration" | "soundAndVibration"
     @State private var isLabelAutoSet: Bool
 
     private let allThemes = [
@@ -48,6 +49,7 @@ struct AlarmAddEditView: View {
             _wakeMission       = State(initialValue: alarm.wakeMission)
             _soundId           = State(initialValue: alarm.soundId)
             _volume            = State(initialValue: alarm.volume)
+            _alertStyle        = State(initialValue: alarm.alertStyle)
             _isLabelAutoSet    = State(initialValue: false)
         } else {
             let nextHour = Calendar.current.date(
@@ -63,6 +65,7 @@ struct AlarmAddEditView: View {
             _wakeMission       = State(initialValue: "none")
             _soundId           = State(initialValue: "piano")
             _volume            = State(initialValue: 0.8)
+            _alertStyle        = State(initialValue: "soundAndVibration")
             _isLabelAutoSet    = State(initialValue: true)
         }
     }
@@ -167,30 +170,37 @@ struct AlarmAddEditView: View {
                         .foregroundColor(.secondary)
                 }
 
-                // 알람 소리 & 볼륨 (v5.1 신규)
+                // 알람 소리 & 진동 선택 (v5.1)
                 Section {
-                    Picker("소리", selection: $soundId) {
-                        Text("은은한 피아노").tag("piano")
-                        Text("자연 소리").tag("nature")
-                        Text("찬양 멜로디").tag("hymn")
+                    // 알림 방식 선택
+                    Picker("알림 방식", selection: $alertStyle) {
+                        Label("소리 + 진동", systemImage: "bell.and.waveform.fill").tag("soundAndVibration")
+                        Label("소리만", systemImage: "bell.fill").tag("sound")
+                        Label("진동만", systemImage: "iphone.radiowaves.left.and.right").tag("vibration")
                     }
                     .pickerStyle(.navigationLink)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("볼륨")
-                                .font(.dvBody)
-                            Spacer()
-                            Text("\(Int(volume * 100))%")
-                                .font(.dvCaption)
-                                .foregroundColor(.secondary)
+                    // 소리가 포함된 경우만 소리 종류 + 볼륨 표시
+                    if alertStyle != "vibration" {
+                        Picker("소리 종류", selection: $soundId) {
+                            Text("은은한 피아노").tag("piano")
+                            Text("자연 소리").tag("nature")
+                            Text("찬양 멜로디").tag("hymn")
                         }
-                        Slider(value: $volume, in: 0.1...1.0, step: 0.1)
-                            .accentColor(.dvAccentGold)
+                        .pickerStyle(.navigationLink)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("볼륨").font(.dvBody)
+                                Spacer()
+                                Text("\(Int(volume * 100))%").font(.dvCaption).foregroundColor(.secondary)
+                            }
+                            Slider(value: $volume, in: 0.1...1.0, step: 0.1)
+                                .accentColor(.dvAccentGold)
+                        }
                     }
                 } header: {
-                    Text("알람 소리")
-                        .font(.dvSectionTitle)
+                    Text("알람 소리 / 진동").font(.dvSectionTitle)
                 }
 
                 // 스누즈 설정 (v5.1: 1/3/5/10분, 0~10회)
@@ -275,7 +285,8 @@ struct AlarmAddEditView: View {
             maxSnoozeCount: maxSnoozeCount,
             wakeMission: wakeMission,
             soundId: soundId,
-            volume: volume
+            volume: volume,
+            alertStyle: alertStyle
         )
 
         onSave(newAlarm)
