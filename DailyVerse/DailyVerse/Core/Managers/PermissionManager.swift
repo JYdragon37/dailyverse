@@ -4,11 +4,23 @@ import UserNotifications
 import CoreLocation
 
 @MainActor
-class PermissionManager: ObservableObject {
+class PermissionManager: NSObject, ObservableObject {
     @Published var notificationStatus: UNAuthorizationStatus = .notDetermined
     @Published var locationStatus: CLAuthorizationStatus = .notDetermined
+    @Published var currentLocation: CLLocation?
 
-    private let locationManager = CLLocationManager()
+    let locationManager = CLLocationManager()
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
+        locationStatus = locationManager.authorizationStatus
+        // 이미 권한이 있으면 앱 시작 즉시 위치 요청
+        if locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways {
+            locationManager.requestLocation()
+        }
+    }
 
     func checkAll() async {
         await checkNotification()
@@ -23,7 +35,7 @@ class PermissionManager: ObservableObject {
     func requestNotification() async {
         do {
             let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .badge, .sound])
+                .requestAuthorization(options: [.alert, .badge, .sound, .timeSensitive]) // iOS 15+
             notificationStatus = granted ? .authorized : .denied
         } catch {
             notificationStatus = .denied
@@ -32,6 +44,9 @@ class PermissionManager: ObservableObject {
 
     func checkLocation() {
         locationStatus = locationManager.authorizationStatus
+        if locationAuthorized && currentLocation == nil {
+            locationManager.requestLocation()
+        }
     }
 
     func requestLocation() {
@@ -41,8 +56,6 @@ class PermissionManager: ObservableObject {
     /// 온보딩용 async 위치 권한 요청 (결과를 기다리지 않고 요청만 발송)
     func requestLocationPermission() async {
         locationManager.requestWhenInUseAuthorization()
-        // CLLocationManager 콜백은 delegate 기반이므로 요청 발송 후 즉시 반환
-        // 실제 상태 업데이트는 checkLocation()으로 폴링하거나 delegate로 처리
     }
 
     /// 온보딩용 async 알림 권한 요청
@@ -76,5 +89,31 @@ class PermissionManager: ObservableObject {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension PermissionManager: CLLocationManagerDelegate {
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor in
+            self.locationStatus = manager.authorizationStatus
+            if self.locationAuthorized {
+                manager.requestLocation()
+            } else {
+                self.currentLocation = nil
+            }
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        Task { @MainActor in
+            self.currentLocation = location
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // 위치 실패 시 조용히 처리 — 기존 캐시 사용
     }
 }

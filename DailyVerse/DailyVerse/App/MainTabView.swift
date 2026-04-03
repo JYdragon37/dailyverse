@@ -4,6 +4,7 @@ struct MainTabView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var upsellManager: UpsellManager
+    @EnvironmentObject private var permissionManager: PermissionManager
 
     @State private var selectedTab = 0
 
@@ -12,7 +13,8 @@ struct MainTabView: View {
             HomeView(viewModel: HomeViewModel(
                 authManager: authManager,
                 subscriptionManager: subscriptionManager,
-                upsellManager: upsellManager
+                upsellManager: upsellManager,
+                permissionManager: permissionManager
             ))
                 .tabItem {
                     Label("Home", systemImage: "house.fill")

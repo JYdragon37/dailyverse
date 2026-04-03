@@ -42,10 +42,13 @@ class WeatherService: WeatherServiceProtocol {
         let current = weather.currentWeather
         let hourly = weather.hourlyForecast
 
-        let tomorrowForecast = hourly.first {
-            let components = Calendar.current.dateComponents([.hour], from: $0.date)
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
-            return Calendar.current.isDate($0.date, inSameDayAs: tomorrow) && (components.hour ?? 0) == 6
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())
+        let tomorrowForecast = tomorrow.flatMap { tomorrowDate in
+            hourly.first { forecast in
+                let components = Calendar.current.dateComponents([.hour], from: forecast.date)
+                return Calendar.current.isDate(forecast.date, inSameDayAs: tomorrowDate)
+                    && (components.hour ?? 0) == 6
+            }
         }
 
         let cityName = await reverseGeocode(location) ?? "현재 위치"
