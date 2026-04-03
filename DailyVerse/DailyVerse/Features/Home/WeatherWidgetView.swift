@@ -4,6 +4,7 @@ import Combine
 struct WeatherWidgetView: View {
     let weather: WeatherData?
     let mode: AppMode
+    var isLoading: Bool = false
 
     private var showTomorrowForecast: Bool {
         mode == .evening
@@ -15,8 +16,10 @@ struct WeatherWidgetView: View {
             .overlay {
                 if let weather {
                     loadedContent(weather: weather)
-                } else {
+                } else if isLoading {
                     placeholderContent
+                } else {
+                    unavailableContent
                 }
             }
             .frame(maxWidth: .infinity)
@@ -99,6 +102,21 @@ struct WeatherWidgetView: View {
                 .foregroundColor(.secondary)
         }
         .padding(12)
+    }
+
+    private var unavailableContent: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "location.slash")
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.4))
+                .accessibilityHidden(true)
+            Text("날씨 정보 없음  —")
+                .font(.dvCaption)
+                .foregroundColor(.white.opacity(0.45))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 
     private func weatherIconName(_ condition: String) -> String {

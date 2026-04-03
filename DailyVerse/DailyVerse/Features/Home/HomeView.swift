@@ -11,7 +11,6 @@ struct HomeView: View {
     @State private var showLoginPrompt = false
     @State private var showUpsell = false
 
-    // Preview 및 테스트에서 외부 주입 가능. 프로덕션에서는 항상 vm을 전달한다.
     init(viewModel: HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -19,194 +18,174 @@ struct HomeView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            backgroundLayer
-            contentLayer
-            toastLayer
-            CoachMarkOverlay()
-        }
-        .ignoresSafeArea(edges: .top)
-        .sheet(isPresented: $showVerseDetail) {
-            verseDetailSheet
-        }
-        .sheet(isPresented: $showLoginPrompt) {
-            LoginPromptSheet(
-                onLogin: {
-                    Task { await authManager.signIn() }
-                },
-                onDismiss: { showLoginPrompt = false }
-            )
-        }
-        .sheet(isPresented: $showUpsell) {
-            UpsellBottomSheet()
-                .environmentObject(subscriptionManager)
-                .environmentObject(upsellManager)
-        }
-        .task {
-            await viewModel.loadData()
-        }
-        .onChange(of: upsellManager.shouldShow) { newValue in
-            if newValue { showUpsell = true }
-        }
-        .onChange(of: showUpsell) { newValue in
-            if !newValue { upsellManager.shouldShow = false }
-        }
+        // 배경 이미지를 루트로 두고, 모든 콘텐츠를 overlay로 쌓음
+        backgroundView
+            // 그라데이션 오버레이
+            .overlay { gradientOverlay }
+            // 인사말: 상단 고정
+            .overlay(alignment: .topLeading) {
+                greetingHeader
+                    .padding(.top, 60)
+                    .padding(.horizontal, 20)
+            }
+            // 카드: 하단 고정
+            .overlay(alignment: .bottom) {
+                bottomCards
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 110)
+            }
+            // 토스트 + 코치마크
+            .overlay { toastLayer }
+            .overlay { CoachMarkOverlay() }
+            // 시트
+            .sheet(isPresented: $showVerseDetail) { verseDetailSheet }
+            .sheet(isPresented: $showLoginPrompt) {
+                LoginPromptSheet(
+                    onLogin: { Task { await authManager.signIn() } },
+                    onDismiss: { showLoginPrompt = false }
+                )
+            }
+            .sheet(isPresented: $showUpsell) {
+                UpsellBottomSheet()
+                    .environmentObject(subscriptionManager)
+                    .environmentObject(upsellManager)
+            }
+            .task { await viewModel.loadData() }
+            .onChange(of: upsellManager.shouldShow) { if $0 { showUpsell = true } }
+            .onChange(of: showUpsell) { if !$0 { upsellManager.shouldShow = false } }
     }
 
     // MARK: - Background
 
+    // Color.clear.ignoresSafeArea()를 wrapper로 써야 overlay 좌표계가 full-screen으로 설정됨
     @ViewBuilder
-    private var backgroundLayer: some View {
-        ZStack {
-            if let imageURL = viewModel.currentImage.map({ URL(string: $0.storageUrl) }) {
-                AsyncImage(url: imageURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
+    private var backgroundView: some View {
+        Color.clear
+            .ignoresSafeArea()
+            .background {
+                Group {
+                    if let bg = viewModel.currentBackgroundImage {
+                        Image(uiImage: bg)
                             .resizable()
                             .scaledToFill()
-                    case .failure, .empty:
-                        fallbackBackground
-                    @unknown default:
-                        fallbackBackground
+                    } else if let urlStr = viewModel.currentImage?.storageUrl,
+                              let url = URL(string: urlStr) {
+                        AsyncImage(url: url) { phase in
+                            if case .success(let img) = phase {
+                                img.resizable().scaledToFill()
+                            } else {
+                                fallbackGradient
+                            }
+                        }
+                    } else {
+                        fallbackGradient
                     }
                 }
                 .ignoresSafeArea()
-                .transition(.opacity)
-                .animation(.dvModeTransition, value: viewModel.currentMode)
-            } else {
-                fallbackBackground
-                    .transition(.opacity)
-                    .animation(.dvModeTransition, value: viewModel.currentMode)
             }
+    }
 
-            // 상하 그라데이션 오버레이 (단일 dvOverlay 대체)
-            ZStack {
-                LinearGradient(
-                    colors: [Color.black.opacity(0.5), .clear],
-                    startPoint: .top,
-                    endPoint: UnitPoint(x: 0.5, y: 0.4)
-                )
-                LinearGradient(
-                    colors: [.clear, Color.black.opacity(0.75)],
-                    startPoint: UnitPoint(x: 0.5, y: 0.5),
-                    endPoint: .bottom
-                )
-            }
+    private var fallbackGradient: some View {
+        let colors: [Color]
+        switch viewModel.currentMode {
+        case .morning:   colors = [Color(red:0.98,green:0.86,blue:0.60), Color(red:0.60,green:0.78,blue:0.95)]
+        case .afternoon: colors = [Color(red:0.53,green:0.81,blue:0.98), Color(red:0.35,green:0.55,blue:0.85)]
+        case .evening:   colors = [Color(red:0.10,green:0.10,blue:0.28), Color(red:0.05,green:0.05,blue:0.15)]
+        }
+        return LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
             .ignoresSafeArea()
-        }
     }
 
-    private var fallbackBackground: some View {
-        LinearGradient(
-            colors: gradientColors(for: viewModel.currentMode),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
-    }
+    // MARK: - Gradient Overlay
 
-    private func gradientColors(for mode: AppMode) -> [Color] {
-        switch mode {
-        case .morning:
-            return [Color(red: 0.98, green: 0.86, blue: 0.60), Color(red: 0.60, green: 0.78, blue: 0.95)]
-        case .afternoon:
-            return [Color(red: 0.53, green: 0.81, blue: 0.98), Color(red: 0.35, green: 0.55, blue: 0.85)]
-        case .evening:
-            return [Color(red: 0.10, green: 0.10, blue: 0.28), Color(red: 0.05, green: 0.05, blue: 0.15)]
-        }
-    }
-
-    // MARK: - Content
-
-    private var contentLayer: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 상단 인사말 + 시간
-            greetingHeader
-                .padding(.top, 60)
-                .padding(.horizontal, 20)
-
+    private var gradientOverlay: some View {
+        VStack(spacing: 0) {
+            // 상단 — 인사말 가독성
+            LinearGradient(
+                colors: [Color.black.opacity(0.70), .clear],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 220)
             Spacer()
-
-            // 하단 카드 영역
-            VStack(spacing: 12) {
-                WeatherWidgetView(
-                    weather: viewModel.weather,
-                    mode: viewModel.currentMode
-                )
-
-                if let verse = viewModel.currentVerse {
-                    VerseCardView(verse: verse) {
-                        showVerseDetail = true
-                    }
-                    .transition(.dvScaleAndFade)
-                    .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
-                }
-
-                if viewModel.showAlarmCTA {
-                    alarmCTABanner
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 100)
+            // 하단 — 카드 가독성
+            LinearGradient(
+                colors: [.clear, Color.black.opacity(0.85)],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 380)
         }
+        .ignoresSafeArea()
     }
 
     // MARK: - Greeting Header
 
     private var greetingHeader: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
+            // Good Evening — 큰 텍스트
+            HStack(spacing: 10) {
                 Image(systemName: viewModel.currentMode.greetingIcon)
+                    .font(.system(size: 28))
                     .foregroundColor(.white)
                 Text(viewModel.currentMode.greeting)
-                    .font(.dvTitle)
+                    .font(.system(size: 34, weight: .bold))
                     .foregroundColor(.white)
             }
-            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
-            .transition(.opacity)
-            .animation(.dvModeTransition, value: viewModel.currentMode)
-
-            Text(currentTimeString)
-                .font(.dvCaption)
-                .foregroundColor(.white.opacity(0.75))
+            // 시간 + 날씨 한 줄
+            HStack(spacing: 12) {
+                Text(currentTimeString)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                if let weather = viewModel.weather {
+                    Text("·")
+                        .foregroundColor(.white.opacity(0.5))
+                    Image(systemName: weatherIcon(weather.condition))
+                        .font(.system(size: 15))
+                        .foregroundColor(.white.opacity(0.85))
+                    Text("\(weather.cityName)  \(weather.temperature)°C")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                }
+            }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(viewModel.currentMode.greeting) \(currentTimeString)")
+        .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
+    }
+
+    private func weatherIcon(_ condition: String) -> String {
+        switch condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "sun.max.fill"
+        }
     }
 
     private var currentTimeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "hh:mm a"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: Date())
+        let f = DateFormatter()
+        f.dateFormat = "hh:mm a"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f.string(from: Date())
     }
 
-    // MARK: - Alarm CTA Banner
+    // MARK: - Bottom Cards
 
-    private var alarmCTABanner: some View {
-        Button {
-            // 알람 탭으로 이동 — 부모 TabView에서 처리 (Notification 또는 바인딩)
-            NotificationCenter.default.post(name: .dvSwitchToAlarmTab, object: nil)
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "alarm.fill")
-                    .foregroundColor(.dvAccent)
-                Text("+ 알람 설정하기")
-                    .font(.dvBody)
-                    .foregroundColor(.dvPrimary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+    private var bottomCards: some View {
+        VStack(spacing: 10) {
+            if let verse = viewModel.currentVerse {
+                VerseCardView(verse: verse, image: viewModel.currentImage) {
+                    showVerseDetail = true
+                }
+                .transition(.dvScaleAndFade)
+                .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(.ultraThinMaterial)
-            .cornerRadius(12)
+
+            WeatherWidgetView(
+                weather: viewModel.weather,
+                mode: viewModel.currentMode,
+                isLoading: viewModel.isLoading
+            )
+
         }
-        .accessibilityLabel("알람 설정하기")
     }
 
     // MARK: - Verse Detail Sheet
@@ -224,18 +203,13 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Actions
-
     private func handleSave() {
         guard let verse = viewModel.currentVerse else { return }
         if authManager.isLoggedIn {
             viewModel.saveVerse()
         } else {
-            // pendingSave 예약
             let pending = SavedVerse(
-                id: UUID().uuidString,
-                verseId: verse.id,
-                savedAt: Date(),
+                id: UUID().uuidString, verseId: verse.id, savedAt: Date(),
                 mode: viewModel.currentMode.rawValue,
                 weatherTemp: viewModel.weather?.temperature ?? 0,
                 weatherCondition: viewModel.weather?.condition ?? "any",
@@ -247,14 +221,9 @@ struct HomeView: View {
         }
     }
 
-    private func handleNext() {
-        Task {
-            await viewModel.nextVerse()
-            // upsellManager.shouldShow 변화는 onChange에서 감지
-        }
-    }
+    private func handleNext() { Task { await viewModel.nextVerse() } }
 
-    // MARK: - Toast Layer
+    // MARK: - Toast
 
     private var toastLayer: some View {
         VStack {
@@ -269,39 +238,10 @@ struct HomeView: View {
 
 // MARK: - Preview
 
-#Preview("아침 모드") {
-    let auth = AuthManager()
-    let sub = SubscriptionManager()
-    let upsell = UpsellManager()
-    let vm = HomeViewModel(authManager: auth, subscriptionManager: sub, upsellManager: upsell)
-    vm.currentVerse = .fallbackMorning
-    vm.weather = .placeholder
-    return HomeView(viewModel: vm)
-        .environmentObject(auth)
-        .environmentObject(sub)
-        .environmentObject(upsell)
-}
-
-#Preview("저녁 모드 + 날씨") {
-    let auth = AuthManager()
-    let sub = SubscriptionManager()
-    let upsell = UpsellManager()
-    let vm = HomeViewModel(authManager: auth, subscriptionManager: sub, upsellManager: upsell)
-    vm.currentVerse = .fallbackEvening
-    vm.weather = WeatherData(
-        temperature: 15,
-        condition: "cloudy",
-        conditionKo: "흐림",
-        humidity: 70,
-        dustGrade: "보통",
-        cityName: "서울",
-        cachedAt: Date(),
-        tomorrowMorningTemp: 13,
-        tomorrowMorningCondition: "rainy",
-        tomorrowMorningConditionKo: "비"
-    )
-    return HomeView(viewModel: vm)
-        .environmentObject(auth)
-        .environmentObject(sub)
-        .environmentObject(upsell)
+#Preview("홈") {
+    HomeView(viewModel: HomeViewModel.preview())
+        .environmentObject(AuthManager())
+        .environmentObject(SubscriptionManager())
+        .environmentObject(UpsellManager())
+        .environmentObject(PermissionManager())
 }

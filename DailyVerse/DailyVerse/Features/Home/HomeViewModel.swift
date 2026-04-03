@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Combine
 import CoreLocation
 
@@ -10,6 +11,7 @@ final class HomeViewModel: ObservableObject {
     @Published var currentMode: AppMode = AppMode.current()
     @Published var currentVerse: Verse?
     @Published var currentImage: VerseImage?
+    @Published var currentBackgroundImage: UIImage?   // SSL-bypass로 로드된 실제 이미지
     @Published var weather: WeatherData?
     @Published var isLoading: Bool = false
     @Published var showAlarmCTA: Bool = false
@@ -18,6 +20,7 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Private State
 
     private var modeCheckTimer: AnyCancellable?
+    private var locationCancellables: Set<AnyCancellable> = []
     private var toastDismissTask: Task<Void, Never>?
 
     // MARK: - Dependencies
@@ -29,6 +32,7 @@ final class HomeViewModel: ObservableObject {
     private let authManager: AuthManager
     private let subscriptionManager: SubscriptionManager
     private let upsellManager: UpsellManager
+    private let permissionManager: PermissionManager
 
     // MARK: - Init
 
@@ -39,7 +43,8 @@ final class HomeViewModel: ObservableObject {
         alarmRepository: AlarmRepository = AlarmRepository(),
         authManager: AuthManager,
         subscriptionManager: SubscriptionManager,
-        upsellManager: UpsellManager
+        upsellManager: UpsellManager,
+        permissionManager: PermissionManager
     ) {
         self.verseRepository = verseRepository
         self.weatherService = weatherService
@@ -48,9 +53,11 @@ final class HomeViewModel: ObservableObject {
         self.authManager = authManager
         self.subscriptionManager = subscriptionManager
         self.upsellManager = upsellManager
+        self.permissionManager = permissionManager
 
         startModeCheckTimer()
         evaluateAlarmCTA()
+        observeLocationUpdates()
     }
 
     deinit {
@@ -147,25 +154,71 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func loadImage(for mode: AppMode) async {
-        guard let images = try? await verseRepository.fetchImages() else { return }
-        currentImage = selectImage(from: images, mode: mode)
+        do {
+            let images = try await verseRepository.fetchImages()
+            #if DEBUG
+            print("🖼️ [Image] Fetched \(images.count)개, mode=\(mode.rawValue)")
+            images.forEach { print("  - \($0.id): \($0.storageUrl)") }
+            #endif
+            currentImage = selectImage(from: images, mode: mode)
+            #if DEBUG
+            print("🖼️ [Image] Selected: \(currentImage?.id ?? "nil") | URL: \(currentImage?.storageUrl ?? "-")")
+            #endif
+            // URL에서 실제 이미지 데이터 로드 (SSL-bypass 포함)
+            if let urlStr = currentImage?.storageUrl, let url = URL(string: urlStr) {
+                await fetchBackgroundImage(from: url)
+            }
+        } catch {
+            #if DEBUG
+            print("🖼️ [Image] 로드 실패: \(error.localizedDescription)")
+            #endif
+        }
+    }
+
+    /// 배경 이미지를 URLSession으로 로드 (DEBUG: SSL 인증서 검증 우회)
+    private func fetchBackgroundImage(from url: URL) async {
+        #if DEBUG
+        let session = URLSession(configuration: .default, delegate: _ImageSSLBypass(), delegateQueue: nil)
+        #else
+        let session = URLSession.shared
+        #endif
+        guard let (data, _) = try? await session.data(from: url),
+              let img = UIImage(data: data) else {
+            #if DEBUG
+            print("🖼️ [fetchBackground] 실패: \(url)")
+            #endif
+            return
+        }
+        #if DEBUG
+        print("🖼️ [fetchBackground] 성공: \(url.lastPathComponent)")
+        #endif
+        currentBackgroundImage = img
     }
 
     private func loadWeatherIfPermitted() async {
-        // CLLocationManager 상태 확인 없이 최후 알려진 위치 사용
-        // PermissionManager는 View 레이어에서 EnvironmentObject로 주입되므로
-        // 여기서는 CLLocationManager를 직접 조회해 단순 처리
-        let locationManager = CLLocationManager()
-        let status = locationManager.authorizationStatus
-        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+        guard permissionManager.locationAuthorized else { return }
 
-        guard let location = locationManager.location else { return }
+        // 1. @Published currentLocation 우선, 없으면 CLLocationManager 캐시 사용
+        let location: CLLocation
+        if let recent = permissionManager.currentLocation {
+            location = recent
+        } else if let cached = permissionManager.locationManager.location {
+            // CLLocationManager가 이미 캐시하고 있는 마지막 위치 사용
+            location = cached
+        } else {
+            // 위치가 전혀 없으면 요청 후 delegate 콜백으로 재시도
+            permissionManager.locationManager.requestLocation()
+            return
+        }
 
         do {
             weather = try await weatherService.fetchWeather(for: location)
         } catch {
             // 날씨 실패는 토스트 없이 조용히 처리 (말씀 경험이 핵심)
             // 기존 캐시가 있으면 유지됨 (WeatherService 내부 처리)
+            #if DEBUG
+            print("⚠️ [Weather] 날씨 로드 실패: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -248,6 +301,22 @@ final class HomeViewModel: ObservableObject {
         showAlarmCTA = daysSinceInstall <= 3
     }
 
+    // MARK: - Private: Location Observer
+
+    /// 위치 업데이트 시 날씨 자동 재로드
+    private func observeLocationUpdates() {
+        permissionManager.$currentLocation
+            .dropFirst()
+            .compactMap { $0 }
+            .sink { [weak self] _ in
+                guard let self else { return }
+                Task { @MainActor [weak self] in
+                    await self?.loadWeatherIfPermitted()
+                }
+            }
+            .store(in: &locationCancellables)
+    }
+
     // MARK: - Private: Mode Timer
 
     /// 매분 시간대 체크 — 모드가 바뀌면 말씀/이미지 재로드
@@ -296,6 +365,20 @@ final class HomeViewModel: ObservableObject {
     }
 }
 
+// MARK: - SSL Bypass (DEBUG only)
+
+#if DEBUG
+private final class _ImageSSLBypass: NSObject, URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
+                    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        guard let trust = challenge.protectionSpace.serverTrust else {
+            completionHandler(.performDefaultHandling, nil); return
+        }
+        completionHandler(.useCredential, URLCredential(trust: trust))
+    }
+}
+#endif
+
 // MARK: - Preview Helper
 
 extension HomeViewModel {
@@ -303,7 +386,8 @@ extension HomeViewModel {
         let vm = HomeViewModel(
             authManager: AuthManager(),
             subscriptionManager: SubscriptionManager(),
-            upsellManager: UpsellManager()
+            upsellManager: UpsellManager(),
+            permissionManager: PermissionManager()
         )
         vm.currentVerse = .fallbackMorning
         vm.weather = .placeholder
