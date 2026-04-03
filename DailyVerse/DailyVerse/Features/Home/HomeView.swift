@@ -65,18 +65,8 @@ struct HomeView: View {
                 Group {
                     if let urlStr = viewModel.currentImage?.storageUrl,
                        let url = URL(string: urlStr) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .success(let img):
-                                img
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .clipped()
-                            default:
-                                fallbackGradient
-                            }
-                        }
+                        // AsyncImage 대신 User-Agent 포함 URLSession 사용 (Genspark URL 호환)
+                        RemoteImageView(url: url) { fallbackGradient }
                     } else {
                         fallbackGradient
                     }

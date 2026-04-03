@@ -18,6 +18,7 @@
 		1FF7C326A5C192FB8BE58500 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BB2A3C4EB162E8A4F48B7C /* WeatherService.swift */; };
 		25EEDED136C353240D8A4432 /* AppMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5578E4E0DA59AB3E8705A6 /* AppMode.swift */; };
 		26C2724E4E900CC2FA4F7272 /* LoginPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B924F0588DBB8BA9303DF22 /* LoginPromptSheet.swift */; };
+		BA7472EBF63048E7B88A7B811BB96468 /* RemoteImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A536BBCDA94E4E3888BCCB7EAC388DEB /* RemoteImageView.swift */; };
 		274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2887A4186DE41DB9975868C3 /* Assets.xcassets */; };
 		2B661F0350764A885C968D0B /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC5DCA569D0C1CE12E3C454 /* HomeViewModel.swift */; };
 		2D9B45A27985A88D21366BE7 /* Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3664800DCA8F54718AE0379 /* Alarm.swift */; };
@@ -142,6 +143,7 @@
 		603F5A66AF244485140B6999 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		63B9D4ADFCF4CE1BB50A4FBD /* OnboardingFirstVerseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFirstVerseView.swift; sourceTree = "<group>"; };
 		6B924F0588DBB8BA9303DF22 /* LoginPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPromptSheet.swift; sourceTree = "<group>"; };
+		A536BBCDA94E4E3888BCCB7EAC388DEB /* RemoteImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageView.swift; sourceTree = "<group>"; };
 		6CCAE0832E8DD982979CF5FA /* DailyVerseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseCache.swift; sourceTree = "<group>"; };
 		6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseDetailBottomSheet.swift; sourceTree = "<group>"; };
@@ -297,6 +299,7 @@
 			isa = PBXGroup;
 			children = (
 				6B924F0588DBB8BA9303DF22 /* LoginPromptSheet.swift */,
+				A536BBCDA94E4E3888BCCB7EAC388DEB /* RemoteImageView.swift */,
 				A73D43781D887A90FC6FD043 /* ToastView.swift */,
 				8FF6B9D4FD3198F96F2C9EAC /* UpsellBottomSheet.swift */,
 				7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */,
@@ -652,6 +655,7 @@
 				2B661F0350764A885C968D0B /* HomeViewModel.swift in Sources */,
 				0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */,
 				26C2724E4E900CC2FA4F7272 /* LoginPromptSheet.swift in Sources */,
+				BA7472EBF63048E7B88A7B811BB96468 /* RemoteImageView.swift in Sources */,
 				FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */,
 				AB12CD34EF56789012345678 /* NicknameManager.swift in Sources */,
 				446F5FB870F94520B3E3D15D /* Notification+DailyVerse.swift in Sources */,

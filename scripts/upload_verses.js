@@ -229,12 +229,19 @@ const verses = [
 
 // ─── 이미지 데이터 (v5.1: text_position, text_color, is_sacred_safe, avoid_themes 필드 추가) ───
 
+// ─── 이미지 URL 안내 ───────────────────────────────────────────────────────────
+// Genspark API는 비브라우저 클라이언트(iOS)의 직접 접근을 차단합니다 (Access denied).
+// 해결책 A (임시): Unsplash CC0 직접 이미지 URL 사용 — 인증 불필요, iOS에서 직접 로드 가능
+// 해결책 B (권장): Firebase Storage에 이미지 업로드 후 storage_url을 Storage URL로 교체
+// 아래는 해결책 A 적용 (성지/자연 테마 유지)
+
 const images = [
   {
     image_id: "img_001",
-    filename: "jerusalem_old_city_golden_hour.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/9fcHEYI5",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
+    filename: "mountain_sunrise_golden.jpg",
+    // 황금빛 산 일출 — 아침/저녁 분위기
+    storage_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/mountain-during-golden-hour", license: "CC0",
     mode: ["morning", "evening"],
     theme: ["wisdom", "reflection", "peace"],
     mood: ["serene", "calm"],
@@ -248,9 +255,10 @@ const images = [
   },
   {
     image_id: "img_002",
-    filename: "petra_treasury_sandstone.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/cyTs8D6H",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
+    filename: "desert_canyon_dramatic.jpg",
+    // 협곡/사막 — 용기/힘 분위기
+    storage_url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/grand-canyon", license: "CC0",
     mode: ["morning", "evening"],
     theme: ["wisdom", "strength", "courage"],
     mood: ["dramatic", "calm"],
@@ -264,9 +272,10 @@ const images = [
   },
   {
     image_id: "img_003",
-    filename: "mount_sinai_desert_dawn.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/1H3Wui9E",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
+    filename: "desert_dawn_peaceful.jpg",
+    // 새벽 사막 — 고요함/새벽 분위기
+    storage_url: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/desert-sand-dunes", license: "CC0",
     mode: ["morning", "dawn"],
     theme: ["hope", "peace", "stillness"],
     mood: ["serene", "calm"],
@@ -280,14 +289,15 @@ const images = [
   },
   {
     image_id: "img_004",
-    filename: "proverbs_9_10_jerusalem.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/gGN5jjea",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
+    filename: "foggy_mountain_forest.jpg",
+    // 안개 낀 산숲 — 저녁/반영 분위기
+    storage_url: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/misty-forest", license: "CC0",
     mode: ["morning", "evening"],
     theme: ["wisdom", "reflection"],
     mood: ["serene", "calm"],
-    season: ["all"], weather: ["any"],
-    tone: "mid",
+    season: ["all"], weather: ["cloudy", "any"],
+    tone: "dark",
     text_position: "bottom",
     text_color: "light",
     is_sacred_safe: true,
@@ -296,12 +306,13 @@ const images = [
   },
   {
     image_id: "img_005",
-    filename: "proverbs_2_6_petra.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/3MVXcyVu",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
+    filename: "sea_cliff_bright.jpg",
+    // 밝은 해안절벽 — 오전/낮 분위기
+    storage_url: "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/ocean-cliffs", license: "CC0",
     mode: ["morning", "afternoon"],
-    theme: ["wisdom", "focus"],
-    mood: ["dramatic", "calm"],
+    theme: ["wisdom", "focus", "courage"],
+    mood: ["dramatic", "bright"],
     season: ["all"], weather: ["sunny", "any"],
     tone: "bright",
     text_position: "bottom",
@@ -312,14 +323,15 @@ const images = [
   },
   {
     image_id: "img_006",
-    filename: "proverbs_3_5_6_sinai.jpg",
-    storage_url: "https://www.genspark.ai/api/files/s/8XGfJg8H",
-    source: "AI Generated (Genspark Pro)", source_url: "", license: "Commercial",
-    mode: ["morning"],
-    theme: ["hope", "wisdom", "courage"],
+    filename: "night_stars_mountain.jpg",
+    // 별하늘 산 — 새벽/저녁 분위기
+    storage_url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&q=80",
+    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/night-sky-stars", license: "CC0",
+    mode: ["dawn", "evening"],
+    theme: ["stillness", "hope", "grace"],
     mood: ["serene", "calm"],
     season: ["all"], weather: ["any"],
-    tone: "mid",
+    tone: "dark",
     text_position: "center",
     text_color: "light",
     is_sacred_safe: true,

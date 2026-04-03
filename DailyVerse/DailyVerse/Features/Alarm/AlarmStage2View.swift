@@ -78,16 +78,10 @@ struct AlarmStage2View: View {
 
     @ViewBuilder
     private var backgroundView: some View {
-        if let imageURL = coordinator.activeImage.flatMap({ URL(string: $0.storageUrl) }) {
-            AsyncImage(url: imageURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                default:
-                    fallbackGradient
-                }
-            }
-            .ignoresSafeArea()
+        if let urlStr = coordinator.activeImage?.storageUrl,
+           let url = URL(string: urlStr) {
+            RemoteImageView(url: url) { fallbackGradient }
+                .ignoresSafeArea()
         } else {
             fallbackGradient
         }

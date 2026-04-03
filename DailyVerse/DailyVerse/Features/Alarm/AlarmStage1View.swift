@@ -6,36 +6,31 @@ struct AlarmStage1View: View {
 
     var body: some View {
         ZStack {
-            // 감성 이미지 배경 (없으면 다크 그라데이션 폴백)
-            if let imageURL = coordinator.activeImage.flatMap({ URL(string: $0.storageUrl) }) {
-                AsyncImage(url: imageURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    default:
-                        darkFallbackGradient
-                    }
-                }
-                .ignoresSafeArea()
+            // 배경 이미지 — RemoteImageView로 Genspark URL 호환
+            if let urlStr = coordinator.activeImage?.storageUrl,
+               let url = URL(string: urlStr) {
+                RemoteImageView(url: url) { darkFallbackGradient }
+                    .ignoresSafeArea()
             } else {
                 darkFallbackGradient
             }
 
-            // 말씀이 잘 보이도록 다크 오버레이
+            // 가독성 오버레이
             Color.black.opacity(0.55).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
 
-                // 말씀 영역 (중앙)
+                // 말씀 영역: text_full_ko 표시 (#3 수정)
                 if let verse = coordinator.activeVerse {
                     VStack(spacing: 16) {
-                        Text(verse.textKo)
-                            .font(.dvVerseHero)
+                        Text(verse.textFullKo)          // textKo → textFullKo
+                            .font(.dvStage1Verse)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .lineSpacing(8)
                             .padding(.horizontal, 32)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         Text(verse.reference)
                             .font(.dvReference)
@@ -45,16 +40,12 @@ struct AlarmStage1View: View {
 
                 Spacer()
 
-                // 하단 버튼 영역
+                // 하단 버튼
                 VStack(spacing: 12) {
                     if coordinator.canSnooze {
-                        // 스누즈 버튼
-                        Button {
-                            coordinator.snooze()
-                        } label: {
+                        Button { coordinator.snooze() } label: {
                             HStack(spacing: 8) {
-                                Image(systemName: "alarm")
-                                    .accessibilityHidden(true)
+                                Image(systemName: "alarm").accessibilityHidden(true)
                                 Text("스누즈 \(coordinator.activeSnoozeInterval)분")
                                     .font(.dvSubtitle)
                             }
@@ -64,9 +55,8 @@ struct AlarmStage1View: View {
                             .foregroundColor(.white)
                             .cornerRadius(14)
                         }
-                        .accessibilityLabel("5분 후 다시 알림")
+                        .accessibilityLabel("\(coordinator.activeSnoozeInterval)분 후 다시 알림")
                     } else {
-                        // Edge Case 7: 스누즈 3회 초과 — 버튼 비활성화 + 메시지
                         Text("더 이상 스누즈할 수 없어요")
                             .font(.dvBody)
                             .foregroundColor(.white.opacity(0.5))
@@ -74,19 +64,15 @@ struct AlarmStage1View: View {
                             .padding(.vertical, 16)
                             .background(Color.white.opacity(0.05))
                             .cornerRadius(14)
-                            .accessibilityLabel("스누즈 횟수를 초과했습니다")
                     }
 
-                    // 종료 버튼 → Stage 2 전환
-                    Button {
-                        coordinator.dismissToStage2()
-                    } label: {
+                    Button { coordinator.dismissToStage2() } label: {
                         Text("종료")
                             .font(.dvSubtitle)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(Color.dvAccent)
-                            .foregroundColor(.white)
+                            .background(Color.dvAccentGold)
+                            .foregroundColor(.dvPrimaryDeep)
                             .cornerRadius(14)
                     }
                     .accessibilityLabel("알람 종료 후 말씀 화면으로 이동")
@@ -95,7 +81,6 @@ struct AlarmStage1View: View {
                 .padding(.bottom, 48)
             }
         }
-        // TabBar, NavigationBar 완전 숨김
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
         .statusBarHidden(false)
@@ -104,8 +89,7 @@ struct AlarmStage1View: View {
     private var darkFallbackGradient: some View {
         LinearGradient(
             colors: [Color.black, Color(red: 0.05, green: 0.07, blue: 0.18)],
-            startPoint: .top,
-            endPoint: .bottom
+            startPoint: .top, endPoint: .bottom
         )
         .ignoresSafeArea()
     }
@@ -114,7 +98,5 @@ struct AlarmStage1View: View {
 #Preview {
     let coordinator = AlarmCoordinator()
     coordinator.activeVerse = .fallbackMorning
-
-    return AlarmStage1View()
-        .environmentObject(coordinator)
+    return AlarmStage1View().environmentObject(coordinator)
 }
