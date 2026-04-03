@@ -87,6 +87,15 @@ class FirestoreService {
             .delete()
     }
 
+    // MARK: - Background Images (#3 시간대별 배경)
+
+    func fetchBackgroundImage(for mode: AppMode) async throws -> BackgroundImage? {
+        let bgId = "bg_\(mode.rawValue)"
+        let doc = try await db.collection("background_images").document(bgId).getDocument()
+        guard doc.exists else { return nil }
+        return try? doc.data(as: BackgroundImage.self)
+    }
+
     // MARK: - Daily Word (오늘의 한마디 Gallery 저장)
 
     func saveDailyWord(_ entry: DailyWordEntry, userId: String) async throws {

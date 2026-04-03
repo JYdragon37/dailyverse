@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct VerseDetailBottomSheet: View {
     let verse: Verse
@@ -7,20 +6,30 @@ struct VerseDetailBottomSheet: View {
     let onNext: () -> Void
     let onClose: () -> Void
 
+    @ObservedObject private var nicknameManager = NicknameManager.shared
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // 말씀 전체 텍스트
-                    Text(verse.textFullKo)
-                        .font(.dvVerseFullText)
-                        .foregroundColor(.dvPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.top, 8)
+
+                    // #5 원문 섹션 타이틀 추가
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("원문")
+                            .font(.dvSectionTitle)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+
+                        Text(verse.textFullKo)
+                            .font(.dvVerseFullText)
+                            .foregroundColor(.dvPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 2)
+                    }
 
                     Text(verse.reference)
                         .font(.dvReference)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.dvAccentGold)
 
                     Divider()
 
@@ -37,14 +46,14 @@ struct VerseDetailBottomSheet: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    // 일상 적용
+                    // #5 일상 적용 — 닉네임 앞에 표시
                     VStack(alignment: .leading, spacing: 8) {
                         Text("일상 적용")
                             .font(.dvSectionTitle)
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
 
-                        Text(verse.application)
+                        Text(applicationWithNickname)
                             .font(.dvBody)
                             .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -53,14 +62,20 @@ struct VerseDetailBottomSheet: View {
                     Spacer(minLength: 80)
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 4)
+                .padding(.top, 8)
             }
-            .safeAreaInset(edge: .bottom) {
-                actionBar
-            }
+            .safeAreaInset(edge: .bottom) { actionBar }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    // #5 닉네임 + 일상 적용 텍스트
+    private var applicationWithNickname: String {
+        let nickname = nicknameManager.nickname
+        let text = verse.application
+        // 첫 문장 앞에 "{닉네임}, " 추가
+        return "\(nickname), \(text)"
     }
 
     private var actionBar: some View {

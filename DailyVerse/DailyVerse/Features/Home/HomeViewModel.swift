@@ -11,6 +11,7 @@ final class HomeViewModel: ObservableObject {
     @Published var currentMode: AppMode = AppMode.current()
     @Published var currentVerse: Verse?
     @Published var currentImage: VerseImage?
+    @Published var currentBackground: BackgroundImage?   // #3 시간대별 배경
     @Published var weather: WeatherData?
     @Published var isLoading: Bool = false
     @Published var showAlarmCTA: Bool = false
@@ -83,7 +84,9 @@ final class HomeViewModel: ObservableObject {
         // 말씀 로드
         await loadVerse(for: currentMode)
 
-        // 이미지 로드 (Bug C 수정: Firestore pinnedImages를 UserDefaults에 동기화)
+        // 배경 이미지 로드 (#3 시간대별 배경)
+        await loadBackground(for: currentMode)
+        // 말씀 이미지 로드
         await syncPinnedImagesIfNeeded()
         await loadImage(for: currentMode)
 
@@ -140,6 +143,16 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Private: Data Loading
+
+    /// #3 시간대별 배경 이미지 로드 (background_images 컬렉션)
+    private func loadBackground(for mode: AppMode) async {
+        do {
+            let bg = try await FirestoreService().fetchBackgroundImage(for: mode)
+            currentBackground = bg
+        } catch {
+            currentBackground = nil
+        }
+    }
 
     /// Bug C 수정: 로그인 유저의 Firestore pinnedImages를 UserDefaults에 동기화
     /// 다른 기기에서 설정한 핀이 반영되도록 최초 로드 시 1회 수행

@@ -63,9 +63,13 @@ struct HomeView: View {
             .ignoresSafeArea()
             .background {
                 Group {
-                    if let urlStr = viewModel.currentImage?.storageUrl,
+                    // #3 시간대별 배경 이미지 우선 (background_images 컬렉션)
+                    if let bgUrlStr = viewModel.currentBackground?.storageUrl,
+                       let bgUrl = URL(string: bgUrlStr) {
+                        RemoteImageView(url: bgUrl) { fallbackGradient }
+                    // 없으면 기존 말씀 이미지
+                    } else if let urlStr = viewModel.currentImage?.storageUrl,
                        let url = URL(string: urlStr) {
-                        // AsyncImage 대신 User-Agent 포함 URLSession 사용 (Genspark URL 호환)
                         RemoteImageView(url: url) { fallbackGradient }
                     } else {
                         fallbackGradient

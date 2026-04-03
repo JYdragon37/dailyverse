@@ -160,6 +160,7 @@ struct AlarmAddEditView: View {
                         Text("수학 문제").tag("math")
                         Text("타이핑 ✨").tag("typing")
                         Text("오늘의 한마디 ✨").tag("word")
+                        Text("아멘 입력 🙏").tag("amen")
                     }
                     .pickerStyle(.navigationLink)
                 } header: {

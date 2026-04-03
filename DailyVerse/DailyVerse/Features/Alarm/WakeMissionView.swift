@@ -64,8 +64,10 @@ struct WakeMissionView: View {
         case "typing":
             TypingMissionContent(verse: verse, onComplete: onComplete)
         case "word":
-            // #4 오늘의 한마디 — textKo 타이핑
             TypingMissionContent(verse: verse, onComplete: onComplete, useShortText: true)
+        case "amen":
+            // #1 아멘 입력 미션
+            AmenMissionContent(onComplete: onComplete)
         default:
             // "none" — 즉시 완료 버튼
             Button(action: onComplete) {
@@ -90,6 +92,7 @@ struct WakeMissionView: View {
         case "math":   return "간단한 수학 문제를 풀어요"
         case "typing": return "말씀을 직접 타이핑해요"
         case "word":   return "오늘의 한마디 ✨"
+        case "amen":   return "아멘으로 응답하세요"
         default:       return "준비되셨나요?"
         }
     }
@@ -100,6 +103,7 @@ struct WakeMissionView: View {
         case "math":   return "정답을 맞히면 오늘의 말씀을 만납니다"
         case "typing": return "손으로 직접 쓰며 말씀을 마음에 새겨요"
         case "word":   return "오늘의 한 문장을 그대로 따라 적어보세요"
+        case "amen":   return "'아멘'을 입력하면 말씀 화면으로 넘어갑니다"
         default:       return "오늘의 말씀이 기다리고 있어요 🌿"
         }
     }
@@ -326,6 +330,69 @@ private struct TypingMissionContent: View {
                 }
         }
         .onAppear { isFocused = true }
+    }
+}
+
+// MARK: - Amen Mission
+
+private struct AmenMissionContent: View {
+    let onComplete: () -> Void
+    @State private var amenInput = ""
+    @State private var isWrong = false
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Text("🙏")
+                .font(.system(size: 64))
+
+            VStack(spacing: 8) {
+                TextField("아멘", text: $amenInput)
+                    .font(.system(size: 28, weight: .medium, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .padding(.vertical, 14)
+                    .background(Color.white.opacity(isWrong ? 0.08 : 0.12))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isWrong ? Color.red.opacity(0.6) : Color.clear, lineWidth: 1.5)
+                    )
+                    .padding(.horizontal, 48)
+                    .focused($isFocused)
+                    .submitLabel(.done)
+                    .onSubmit { checkAmen() }
+
+                if isWrong {
+                    Text("다시 입력해주세요")
+                        .font(.dvCaption)
+                        .foregroundColor(.red.opacity(0.8))
+                }
+            }
+
+            Button(action: checkAmen) {
+                Text("확인")
+                    .font(.dvUISubtitle)
+                    .frame(width: 140)
+                    .padding(.vertical, 16)
+                    .background(Color.dvAccentGold)
+                    .foregroundColor(.dvPrimaryDeep)
+                    .cornerRadius(14)
+            }
+            .dvButtonEffect()
+        }
+        .onAppear { isFocused = true }
+    }
+
+    private func checkAmen() {
+        if amenInput.trimmingCharacters(in: .whitespacesAndNewlines) == "아멘" {
+            onComplete()
+        } else {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { isWrong = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                isWrong = false; amenInput = ""
+            }
+        }
     }
 }
 
