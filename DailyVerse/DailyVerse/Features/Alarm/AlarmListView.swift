@@ -27,11 +27,19 @@ struct AlarmListView: View {
                     }
 
                     if viewModel.alarms.isEmpty {
-                        AlarmEmptyStateView {
-                            viewModel.showAddEdit = true
+                        // 빈 상태에서도 날씨/말씀 표시
+                        VStack(spacing: 0) {
+                            alarmTopSection
+                            AlarmEmptyStateView {
+                                viewModel.showAddEdit = true
+                            }
                         }
                     } else {
-                        alarmList
+                        // 날씨+말씀 섹션 + 알람 리스트
+                        VStack(spacing: 0) {
+                            alarmTopSection
+                            alarmList
+                        }
                     }
                 }
             }
@@ -100,39 +108,47 @@ struct AlarmListView: View {
         }
     }
 
+    // MARK: - 날씨 + 말씀 상단 섹션 (List 밖 — 상태 변경 즉시 반영 보장)
+    @ViewBuilder
+    private var alarmTopSection: some View {
+        VStack(spacing: 10) {
+            // 시간별 일기예보 (캐시된 날씨 있을 때만)
+            if let weather = cachedWeather {
+                AlarmHourlyForecastCard(weather: weather)
+                    .padding(.horizontal, 16)
+            }
+            // 오늘의 말씀 (항상 표시 — 날씨 없어도 표시)
+            if let verse = todayVerse {
+                HStack {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(verse.textKo)
+                            .font(.custom("Georgia-BoldItalic", size: 17))
+                            .foregroundColor(.white.opacity(0.88))
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(verse.reference)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.dvGold)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                )
+                .padding(.horizontal, 16)
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+
     private var alarmList: some View {
         List {
-            // Fix 4: 상단 — 시간별 일기예보 카드
-            if let weather = cachedWeather {
-                Section {
-                    AlarmHourlyForecastCard(weather: weather)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
-                        .listRowSeparator(.hidden)
-                }
-
-                // Fix 4: 오늘의 말씀
-                if let verse = todayVerse {
-                    Section {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(verse.textKo)
-                                .font(.custom("Georgia-BoldItalic", size: 18))
-                                .foregroundColor(.white.opacity(0.9))
-                                .lineSpacing(4)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Text(verse.reference)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.dvGold)
-                        }
-                        .padding(.vertical, 8)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                    }
-                }
-            }
-
-            // 알람 카드들
+            // 알람 카드들만
             ForEach(sortedAlarms) { alarm in
                 AlarmCardRow(
                     alarm: alarm,
