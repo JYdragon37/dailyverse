@@ -149,7 +149,7 @@ function initFirebase() {
   const serviceAccount = require(path.resolve(SERVICE_ACCOUNT_PATH));
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: `${PROJECT_ID}.appspot.com`,
+    storageBucket: `${PROJECT_ID}.firebasestorage.app`,
   });
   return {
     db: admin.firestore(),
@@ -186,7 +186,7 @@ async function uploadImage(bucket, db, metadata, index) {
   // 공개 다운로드 URL 생성
   const file = bucket.file(storagePath);
   await file.makePublic();
-  const storageUrl = `https://storage.googleapis.com/${PROJECT_ID}.appspot.com/${storagePath}`;
+  const storageUrl = `https://storage.googleapis.com/${PROJECT_ID}.firebasestorage.app/${storagePath}`;
 
   // Firestore 등록
   const docData = {
