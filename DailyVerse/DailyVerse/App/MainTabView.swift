@@ -39,18 +39,19 @@ struct MainTabView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                     .tag(4)
             }
+            // #2 Fix: safeAreaInset을 실제 탭바 높이(~84pt)에 맞게 조정
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 60)
+                Color.clear.frame(height: 84)
             }
 
-            // 하단 그라데이션 페이드 (Calm 스타일 — 탭바 배경 역할)
+            // 하단 그라데이션 페이드 (Calm 스타일)
             LinearGradient(
-                colors: [.clear, Color.black.opacity(0.72)],
+                colors: [.clear, Color.black.opacity(0.68)],
                 startPoint: .init(x: 0.5, y: 0.0),
                 endPoint: .bottom
             )
-            .frame(height: 110)
-            .allowsHitTesting(false)   // 탭 등 터치 이벤트 통과
+            .frame(height: 120)
+            .allowsHitTesting(false)
 
             // 커스텀 탭 바 (배경 없음 — 그라데이션 위에 아이콘만 표시)
             DVTabBar(selectedTab: $selectedTab)
@@ -69,40 +70,50 @@ struct MainTabView: View {
 private struct DVTabBar: View {
     @Binding var selectedTab: Int
 
+    // #4 레이블 한국어 변경
     private let tabs: [(Int, String, String)] = [
-        (0, "Home",     "house.fill"),
-        (1, "Alarm",    "alarm.fill"),
-        (2, "Saved",    "bookmark.fill"),
-        (3, "Gallery",  "photo.on.rectangle"),
-        (4, "Settings", "gearshape.fill"),
+        (0, "홈",     "house.fill"),
+        (1, "알람",   "alarm.fill"),
+        (2, "말씀들", "bookmark.fill"),
+        (3, "갤러리", "photo.on.rectangle"),
+        (4, "프로필", "person.circle"),
     ]
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(tabs, id: \.0) { tag, label, icon in
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        selectedTab = tag
+        VStack(spacing: 0) {
+            // Calm 스타일 상단 미세 구분선
+            Rectangle()
+                .fill(Color.white.opacity(0.15))
+                .frame(height: 0.5)
+
+            HStack(spacing: 0) {
+                ForEach(tabs, id: \.0) { tag, label, icon in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedTab = tag
+                        }
+                    } label: {
+                        VStack(spacing: 4) {
+                            // #3 아이콘 24pt (Calm 레퍼런스 기준)
+                            Image(systemName: icon)
+                                .font(.system(size: 24, weight: selectedTab == tag ? .semibold : .light))
+                                .scaleEffect(selectedTab == tag ? 1.08 : 1.0)
+                                .frame(height: 28)  // 고정 높이로 정렬 보장
+                            Text(label)
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.45))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 10)
+                        .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom + 2 : 20)
+                        .contentShape(Rectangle())
                     }
-                } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: icon)
-                            .font(.system(size: 21, weight: selectedTab == tag ? .semibold : .light))
-                            .scaleEffect(selectedTab == tag ? 1.10 : 1.0)
-                        Text(label)
-                            .font(.system(size: 9.5, weight: .medium))
-                    }
-                    .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.45))
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-                    .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom : 18)
-                    .contentShape(Rectangle())
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)
+                    .accessibilityLabel(label)
                 }
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)
-                .accessibilityLabel(label)
             }
         }
-        .background(Color.clear)  // 배경 완전 투명 — 그라데이션이 배경 역할
+        .background(Color.clear)
     }
 
     private var safeAreaBottom: CGFloat {

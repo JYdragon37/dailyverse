@@ -484,18 +484,24 @@ private struct HourlyItem: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
+            // 시간 레이블 — 고정 높이
             Text(timeLabel)
                 .font(.system(size: 13, weight: isNow ? .semibold : .regular))
                 .foregroundColor(.white.opacity(0.8))
+                .frame(height: 18)
+            // 아이콘 — 고정 프레임으로 높이 통일 (Fix 1)
             Image(systemName: conditionIcon)
-                .font(.system(size: 22))
+                .font(.system(size: 20))
                 .foregroundColor(.white)
+                .frame(width: 28, height: 28)  // 고정 크기로 정렬
+            // 온도 — 항상 같은 위치에 표시
             Text("\(item.temperature)°")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
+                .frame(height: 20)
         }
-        .frame(width: 44)
+        .frame(width: 46)
     }
 }
 
