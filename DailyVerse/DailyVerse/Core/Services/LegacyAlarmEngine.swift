@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AudioToolbox
 import UserNotifications
 
 // MARK: - LegacyAlarmEngine (iOS 15–25)
@@ -18,8 +19,19 @@ final class LegacyAlarmEngine: AlarmEngine {
 
     static var audioPlayer: AVAudioPlayer?
 
-    /// 포그라운드 복귀 시 시스템 알림 사운드 대신 번들 오디오로 전환
+    // Bug 4 수정: 진동 전용 타이머
+    private static var vibrationTimer: Timer?
+
+    /// 포그라운드 진입 시 alertStyle에 따라 소리/진동 시작
+    /// Bug 5 수정: 번들 .caf 없으면 시스템 사운드 + AudioServices로 폴백
     static func startAudio(soundId: String, volume: Float = 0.8) {
+        // 진동 전용 모드
+        if soundId == "vibration" {
+            startVibrationLoop()
+            return
+        }
+
+        // 번들 오디오 파일 시도
         let filename: String
         switch soundId {
         case "nature": filename = "alarm_nature"
@@ -27,28 +39,59 @@ final class LegacyAlarmEngine: AlarmEngine {
         default:       filename = "alarm_piano"
         }
 
-        guard let url = Bundle.main.url(forResource: filename, withExtension: "caf") else {
-            // 번들 오디오 파일 없으면 시스템 소리 유지
-            return
-        }
-
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
-
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.numberOfLoops = -1   // 무한 반복
-            player.volume = volume
-            player.play()
-            audioPlayer = player
-        } catch {
-            #if DEBUG
-            print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 시작 실패: \(error)")
-            #endif
+        if let url = Bundle.main.url(forResource: filename, withExtension: "caf") {
+            // 번들 파일 있음 → AVAudioPlayer 루프
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                try AVAudioSession.sharedInstance().setActive(true)
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.numberOfLoops = -1
+                player.volume = volume
+                player.play()
+                audioPlayer = player
+            } catch {
+                #if DEBUG
+                print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 실패, 시스템 사운드로 폴백: \(error)")
+                #endif
+                startSystemSoundLoop()
+            }
+        } else {
+            // Bug 5 수정: 번들 파일 없음 → 시스템 알람 사운드 + 진동 루프로 폴백
+            startSystemSoundLoop()
         }
     }
 
+    /// Bug 5 폴백: 시스템 알람 사운드(1005) + 진동을 2초 간격으로 반복
+    private static func startSystemSoundLoop() {
+        stopAudio() // 기존 타이머 정리
+        // 즉시 1회 실행
+        playSystemAlarmSound()
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+            playSystemAlarmSound()
+        }
+        RunLoop.main.add(vibrationTimer!, forMode: .common)
+    }
+
+    /// Bug 4 수정: 진동 전용 — 1.5초 간격 햅틱 루프
+    private static func startVibrationLoop() {
+        stopAudio()
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        }
+        RunLoop.main.add(vibrationTimer!, forMode: .common)
+    }
+
+    private static func playSystemAlarmSound() {
+        // 시스템 사운드 1005 = 받은 메일 소리 (짧고 명확)
+        // 1007 = 클릭, 1016 = 트윗 수신음, 1057 = SMS 수신음
+        AudioServicesPlayAlertSoundWithCompletion(1005) { }
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+    }
+
     static func stopAudio() {
+        vibrationTimer?.invalidate()
+        vibrationTimer = nil
         audioPlayer?.stop()
         audioPlayer = nil
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
@@ -107,11 +150,13 @@ final class LegacyAlarmEngine: AlarmEngine {
         content.body = "\"\(verse.textKo)\"\n\(verse.reference) • \(verse.theme.first?.capitalized ?? "")"
         content.interruptionLevel = .timeSensitive
 
-        // alertStyle에 따라 소리 설정
+        // Bug 4 수정: alertStyle에 따른 올바른 sound 설정
+        // iOS에서 content.sound = nil이면 소리도 진동도 없음
+        // 진동 전용: 시스템 기본음 사용 (알람 앱 공통 방식 — 실제 진동은 포그라운드에서 AudioServices 처리)
         switch alarm.alertStyle {
         case "vibration":
-            // 진동만: sound = nil (시스템이 진동만 울림)
-            content.sound = nil
+            // 백그라운드: 최소한의 알림음(시스템이 진동 트리거) + 포그라운드에서 AudioServices 진동 루프
+            content.sound = .default
         case "sound":
             content.sound = .default
         default: // "soundAndVibration"

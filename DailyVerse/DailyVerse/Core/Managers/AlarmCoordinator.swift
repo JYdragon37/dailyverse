@@ -17,7 +17,10 @@ final class AlarmCoordinator: ObservableObject {
     @Published var activeImage: VerseImage?
     @Published var activeWeather: WeatherData?
     @Published var activeSnoozeInterval: Int = 5
-    @Published var activeMission: String = "none"   // v5.1
+    @Published var activeMission: String = "none"
+    @Published var activeAlertStyle: String = "soundAndVibration"  // Bug 3 수정
+    @Published var activeSoundId: String = "piano"
+    @Published var activeVolume: Float = 0.8
 
     private var snoozeCount: Int = 0
     private let notificationManager: NotificationManager
@@ -51,16 +54,34 @@ final class AlarmCoordinator: ObservableObject {
             let alarmId = UUID(uuidString: alarmIdString)
         else { return }
 
-        // mode가 있으면 오늘의 캐시된 말씀 우선 사용, 없으면 verse_id 폴백
-        let modeString = userInfo["mode"] as? String
-        let verseId = userInfo["verse_id"] as? String ?? ""
-        await handleNotification(alarmId: alarmId, modeString: modeString, fallbackVerseId: verseId)
+        let modeString   = userInfo["mode"] as? String
+        let verseId      = userInfo["verse_id"] as? String ?? ""
+        // Bug 3 수정: alertStyle, soundId, volume을 userInfo에서 읽기
+        let alertStyle   = userInfo["alert_style"] as? String ?? "soundAndVibration"
+        let soundId      = userInfo["sound_id"] as? String ?? "piano"
+        let volume       = (userInfo["volume"] as? NSNumber)?.floatValue ?? 0.8
+
+        await handleNotification(
+            alarmId: alarmId,
+            modeString: modeString,
+            fallbackVerseId: verseId,
+            alertStyle: alertStyle,
+            soundId: soundId,
+            volume: volume
+        )
     }
 
     /// alarmId + mode로 Stage 1을 표시합니다.
     /// 오늘의 캐시된 말씀 우선, 없으면 verseId → 번들 폴백 순으로 로드.
     /// Edge Case 6: 복수 알람 동시 발동 — stage != .none 이면 가장 최근 것만 유지
-    func handleNotification(alarmId: UUID, modeString: String?, fallbackVerseId: String) async {
+    func handleNotification(
+        alarmId: UUID,
+        modeString: String?,
+        fallbackVerseId: String,
+        alertStyle: String = "soundAndVibration",
+        soundId: String = "piano",
+        volume: Float = 0.8
+    ) async {
         guard stage == .none else { return }
 
         let mode = modeString.flatMap { AppMode(rawValue: $0) } ?? AppMode.current()
@@ -69,12 +90,18 @@ final class AlarmCoordinator: ObservableObject {
         activeVerse = verse
         activeImage = image
         activeAlarmId = alarmId
-        // 알람의 스누즈 간격 로드 (없으면 기본값 5분)
         let activeAlarm = alarmRepository.fetchAll().first(where: { $0.id == alarmId })
         activeSnoozeInterval = activeAlarm?.snoozeInterval ?? 5
-        activeMission = activeAlarm?.wakeMission ?? "none"   // v5.1
+        activeMission        = activeAlarm?.wakeMission    ?? "none"
+        // Bug 3 수정: 실제 알람 설정값 우선, 없으면 userInfo 값 사용
+        activeAlertStyle     = activeAlarm?.alertStyle     ?? alertStyle
+        activeSoundId        = activeAlarm?.soundId        ?? soundId
+        activeVolume         = activeAlarm?.volume         ?? volume
         snoozeCount = 0
         stage = .stage1
+
+        // Bug 1 수정: Stage 1 진입 시 소리/진동 시작
+        startAlarmFeedback()
     }
 
     // MARK: - Stage Transitions
@@ -82,6 +109,7 @@ final class AlarmCoordinator: ObservableObject {
     /// Stage 1 → Stage 1.5(미션) 또는 Stage 2
     /// v5.1: 미션이 "none"이 아니면 Stage 1.5를 거침
     func dismissToStage2() {
+        stopAlarmFeedback()  // Bug 2 수정
         if activeMission != "none" {
             stage = .stage1_5
         } else {
@@ -89,13 +117,12 @@ final class AlarmCoordinator: ObservableObject {
         }
     }
 
-    /// Stage 1.5 미션 완료 → Stage 2
     func completeMission() {
         stage = .stage2
     }
 
-    /// Stage 전체 해제 — 홈 탭 복귀
     func dismissAll() {
+        stopAlarmFeedback()  // Bug 2 수정
         stage = .none
         activeVerse = nil
         activeImage = nil
@@ -111,11 +138,31 @@ final class AlarmCoordinator: ObservableObject {
               let alarmId = activeAlarmId,
               let verse = activeVerse else { return }
 
+        stopAlarmFeedback()  // Bug 2 수정
         snoozeCount += 1
-        // Edge Case 3: rescheduleSnooze는 UNNotificationRequest를 시스템에 등록하므로
-        //              앱 강제 종료 후에도 자동 발동 보장
         notificationManager.rescheduleSnooze(alarmId: alarmId, verse: verse, minutes: activeSnoozeInterval)
         stage = .none
+    }
+
+    // MARK: - Alarm Feedback (Bug 1/2/4/5 수정)
+
+    /// Stage 1 진입 시 alertStyle에 따라 소리/진동 시작
+    private func startAlarmFeedback() {
+        switch activeAlertStyle {
+        case "vibration":
+            // Bug 4/5 수정: 진동 전용 → AudioServices 루프는 AlarmStage1View에서 처리
+            // AlarmCoordinator는 시작 신호만 발생 (notificationManager 통해 주기적 haptic)
+            notificationManager.startAlarmAudio(soundId: activeAlertStyle, volume: 0)
+        case "sound", "soundAndVibration":
+            // Bug 5 수정: 번들 오디오 없으면 시스템 사운드로 폴백
+            notificationManager.startAlarmAudio(soundId: activeSoundId, volume: activeVolume)
+        default:
+            notificationManager.startAlarmAudio(soundId: activeSoundId, volume: activeVolume)
+        }
+    }
+
+    private func stopAlarmFeedback() {
+        notificationManager.stopAlarmAudio()
     }
 
     // MARK: - Private Helpers
