@@ -39,7 +39,7 @@ struct MainTabView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                     .tag(4)
             }
-            .toolbar(.hidden, for: .tabBar)   // 네이티브 탭 바 숨김
+            // UITabBar.appearance().isHidden = true로 전역 숨김 (DailyVerseApp.init)
             .safeAreaInset(edge: .bottom) {
                 Color.clear.frame(height: 83)  // 커스텀 탭 바 공간 확보
             }

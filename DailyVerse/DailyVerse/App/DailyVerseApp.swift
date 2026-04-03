@@ -24,6 +24,10 @@ struct DailyVerseApp: App {
         Purchases.logLevel = .debug
         #endif
 
+        // Fix 4: 이중 탭바 방지 — UIKit 네이티브 탭바를 완전히 숨김
+        // 커스텀 DVTabBar가 모든 탭 네비게이션을 담당함
+        UITabBar.appearance().isHidden = true
+
         // AdMob 초기화는 AppDelegate.application(_:didFinishLaunchingWithOptions:)에서 메인스레드 처리
     }
 

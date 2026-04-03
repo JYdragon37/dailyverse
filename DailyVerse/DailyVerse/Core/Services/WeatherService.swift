@@ -150,23 +150,56 @@ class WeatherService: WeatherServiceProtocol {
         let apiKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
         guard !apiKey.isEmpty else { throw WeatherError.noApiKey }
 
-        let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric&lang=kr"
-        guard let url = URL(string: urlString) else { throw WeatherError.invalidURL }
+        // 현재 날씨
+        let currentUrl = "https://api.openweathermap.org/data/2.5/weather?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric"
+        guard let url = URL(string: currentUrl) else { throw WeatherError.invalidURL }
+        let (currentData, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode(OWMCurrentResponse.self, from: currentData)
+        let weatherId = response.weather.first?.id ?? 800
 
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(OWMCurrentResponse.self, from: data)
+        // Fix 2/3: Forecast API — 최고/최저 + 시간별 예보 (5일/3시간)
+        let forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric&cnt=16"
+        var highTemp: Int? = nil
+        var lowTemp: Int? = nil
+        var hourlyItems: [HourlyForecastItem] = []
 
-        // AQI도 함께 조회
+        if let fUrl = URL(string: forecastUrl),
+           let (fData, _) = try? await URLSession.shared.data(from: fUrl),
+           let fResponse = try? JSONDecoder().decode(OWMForecastResponse.self, from: fData) {
+
+            // 오늘 최고/최저 (다음 24시간 기준)
+            let todayItems = fResponse.list.prefix(8)  // 8 × 3h = 24h
+            highTemp = todayItems.map { Int($0.main.tempMax.rounded()) }.max()
+            lowTemp  = todayItems.map { Int($0.main.tempMin.rounded()) }.min()
+
+            // 시간별 예보 12개
+            let now = Date()
+            hourlyItems = fResponse.list
+                .filter { Date(timeIntervalSince1970: TimeInterval($0.dt)) >= now }
+                .prefix(12)
+                .map { item in
+                    HourlyForecastItem(
+                        time: Date(timeIntervalSince1970: TimeInterval(item.dt)),
+                        temperature: Int(item.main.temp.rounded()),
+                        condition: mapOWMId(item.weather.first?.id ?? 800),
+                        conditionKo: mapOWMIdKo(item.weather.first?.id ?? 800)
+                    )
+                }
+        }
+
         let (aqiVal, aqiDesc) = await fetchAQI(lat: lat, lon: lon, apiKey: apiKey)
 
         return WeatherData(
             temperature: Int(response.main.temp.rounded()),
-            condition: mapOWMId(response.weather.first?.id ?? 800),
-            conditionKo: response.weather.first?.description ?? "흐림",
+            condition: mapOWMId(weatherId),
+            conditionKo: mapOWMIdKo(weatherId),    // Fix 1: OWM 자체 한국어 사용 안 함
             humidity: response.main.humidity,
             dustGrade: aqiDesc ?? "보통",
             cityName: response.name,
             cachedAt: Date(),
+            highTemp: highTemp,
+            lowTemp: lowTemp,
+            hourlyForecast: hourlyItems,
             aqi: aqiVal,
             aqiDescription: aqiDesc
         )
@@ -179,6 +212,31 @@ class WeatherService: WeatherServiceProtocol {
         case 700...799: return "cloudy"
         case 800:       return "sunny"
         default:        return "cloudy"
+        }
+    }
+
+    /// Fix 1: OWM weather ID → 한국어 날씨 설명 (자체 매핑, API 한국어 응답 무시)
+    private func mapOWMIdKo(_ id: Int) -> String {
+        switch id {
+        case 200...232: return "뇌우"
+        case 300...321: return "이슬비"
+        case 500...531: return "비"
+        case 600...622: return "눈"
+        case 701:       return "안개"
+        case 711:       return "연기"
+        case 721:       return "박무"
+        case 731, 761:  return "먼지"
+        case 741:       return "안개"
+        case 751:       return "모래"
+        case 762:       return "화산재"
+        case 771:       return "돌풍"
+        case 781:       return "토네이도"
+        case 700...799: return "안개"
+        case 800:       return "맑음"
+        case 801:       return "구름 조금"
+        case 802:       return "구름 많음"
+        case 803, 804:  return "흐림"
+        default:        return "흐림"
         }
     }
 
@@ -204,6 +262,25 @@ private struct OWMCurrentResponse: Codable {
     let name: String
     struct OWMMain: Codable { let temp: Double; let humidity: Int }
     struct OWMWeather: Codable { let id: Int; let description: String }
+}
+
+private struct OWMForecastResponse: Codable {
+    let list: [ForecastItem]
+    struct ForecastItem: Codable {
+        let dt: Int
+        let main: ForecastMain
+        let weather: [OWMCurrentResponse.OWMWeather]
+    }
+    struct ForecastMain: Codable {
+        let temp: Double
+        let tempMax: Double
+        let tempMin: Double
+        enum CodingKeys: String, CodingKey {
+            case temp
+            case tempMax = "temp_max"
+            case tempMin = "temp_min"
+        }
+    }
 }
 
 private struct OWMAirPollutionResponse: Codable {
