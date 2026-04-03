@@ -19,3 +19,4 @@ DerivedData/
 scripts/serviceAccountKey.json
 scripts/images_to_upload/*.png
 scripts/images_to_upload/*.jpg
+scripts/dailyverse-*.json
