@@ -4,11 +4,7 @@ import Combine
 struct AlarmStage2View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @EnvironmentObject private var upsellManager: UpsellManager
-
     @State private var showLoginPrompt: Bool = false
-    @State private var showUpsell: Bool = false
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = false
 
@@ -73,12 +69,7 @@ struct AlarmStage2View: View {
                 showLoginPrompt = false
             }
         }
-        // Edge Case 4: Stage 2 다음 말씀 — Free 시 업셀 표시
-        .sheet(isPresented: $showUpsell) {
-            UpsellBottomSheet()
-                .environmentObject(subscriptionManager)
-                .environmentObject(upsellManager)
-        }
+        // v5.1: 단일 플랜 — UpsellBottomSheet 제거
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
     }
@@ -201,25 +192,21 @@ struct AlarmStage2View: View {
         let savedVerse = SavedVerse(
             id: UUID().uuidString,
             verseId: verse.id,
+            imageId: coordinator.activeImage?.id,    // v5.1
             savedAt: Date(),
             mode: currentMode.rawValue,
             weatherTemp: coordinator.activeWeather?.temperature ?? 0,
             weatherCondition: coordinator.activeWeather?.condition ?? "any",
             weatherHumidity: coordinator.activeWeather?.humidity ?? 0,
+            weatherDust: coordinator.activeWeather?.dustGrade,  // v5.1
             locationName: coordinator.activeWeather?.cityName ?? ""
         )
         authManager.setPendingSave(savedVerse)
     }
 
     private func handleNextVerse() {
-        // Edge Case 4: Free 유저 → 업셀 표시
-        guard subscriptionManager.isPremium else {
-            upsellManager.show(trigger: .nextVerse)
-            showUpsell = upsellManager.shouldShow
-            return
-        }
-        // Premium: 다음 말씀 로드 (VerseRepository.nextVerse는 HomeViewModel에서 관리)
-        // Stage 2는 알람 컨텍스트이므로 현재 말씀을 갱신하지 않음 (PRD 범위 외)
+        // v5.1: 단일 플랜 — Stage 2는 알람 컨텍스트, 다음 말씀 로드는 HomeViewModel에서 처리
+        // 여기서는 아무 동작 없음 (버튼 표시만 유지)
     }
 
     // MARK: - Helpers
@@ -246,6 +233,4 @@ struct AlarmStage2View: View {
     return AlarmStage2View()
         .environmentObject(coordinator)
         .environmentObject(AuthManager())
-        .environmentObject(SubscriptionManager())
-        .environmentObject(UpsellManager())
 }

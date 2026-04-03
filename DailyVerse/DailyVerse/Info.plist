@@ -18,23 +18,40 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<!-- 위치 -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>현재 날씨에 맞는 말씀을 전해드리기 위해 위치 정보가 필요합니다.</string>
+	<!-- 날씨 -->
 	<key>NSWeatherKitUsageDescription</key>
 	<string>현재 날씨에 맞는 말씀을 제공하기 위해 날씨 정보가 필요합니다.</string>
+	<!-- 카메라 (v5.1: 사진 촬영 미션) -->
+	<key>NSCameraUsageDescription</key>
+	<string>알람 미션에서 장소 사진을 촬영하기 위해 카메라 접근이 필요합니다.</string>
+	<!-- 모션 (v5.1: 흔들기 미션) -->
+	<key>NSMotionUsageDescription</key>
+	<string>알람 미션에서 기기 흔들기를 감지하기 위해 모션 센서 접근이 필요합니다.</string>
+	<!-- AlarmKit (v5.1: iOS 26+) -->
+	<key>NSAlarmKitUsageDescription</key>
+	<string>정해진 시간에 성경 말씀과 함께 알람을 울리기 위해 알람 권한이 필요합니다.</string>
+	<!-- AdMob (단일 플랜 MVP에서는 미사용, 향후 도입용) -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<!-- API 키 -->
 	<key>OPENWEATHER_API_KEY</key>
 	<string>1fd0b74dbc916987213ea8ac4b596376</string>
+	<!-- 네트워크 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<!-- 백그라운드 모드 (audio: AVAudioSession 알람 루프) -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>audio</string>
 	</array>
+	<!-- UI -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
