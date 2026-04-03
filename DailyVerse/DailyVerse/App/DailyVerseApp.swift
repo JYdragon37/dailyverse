@@ -18,8 +18,7 @@ struct DailyVerseApp: App {
         // Firebase 초기화
         FirebaseApp.configure()
 
-        // RevenueCat 초기화
-        // 출시 전 실제 API 키 입력 필요
+        // RevenueCat 초기화 (v5.1: 단일 플랜 MVP — 향후 구독 도입 시 실제 키 입력)
         Purchases.configure(withAPIKey: "")
         #if DEBUG
         Purchases.logLevel = .debug
@@ -38,9 +37,11 @@ struct DailyVerseApp: App {
                 .environmentObject(alarmCoordinator)
                 .environmentObject(loadingCoordinator)
                 .task {
-                    // 앱 시작 시 구독 상태 확인 + 광고 미리 로드
-                    await subscriptionManager.checkStatus()
-                    AdManager.shared.loadAd()
+                    // v5.1: 단일 플랜 — 구독 상태 확인 생략
+                    // 닉네임 동기화 (로그인 유저만)
+                    if let userId = authManager.userId {
+                        await NicknameManager.shared.syncWithFirestore(userId: userId)
+                    }
                 }
                 .onReceive(
                     NotificationCenter.default.publisher(
@@ -48,7 +49,9 @@ struct DailyVerseApp: App {
                     )
                 ) { _ in
                     Task {
-                        await subscriptionManager.checkStatus()
+                        if let userId = authManager.userId {
+                            await NicknameManager.shared.syncWithFirestore(userId: userId)
+                        }
                     }
                 }
         }

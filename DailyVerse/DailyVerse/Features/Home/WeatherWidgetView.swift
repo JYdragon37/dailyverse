@@ -6,8 +6,9 @@ struct WeatherWidgetView: View {
     let mode: AppMode
     var isLoading: Bool = false
 
+    // v5.1: 저녁/새벽 모드는 내일 아침 예보 표시
     private var showTomorrowForecast: Bool {
-        mode == .evening
+        mode.showsTomorrowForecast
     }
 
     var body: some View {

@@ -121,15 +121,8 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    /// 다음 말씀 로드
-    /// - Free 유저: 업셀 트리거
-    /// - Premium 유저: 실제 다음 말씀 로드
+    /// 다음 말씀 로드 (v5.1: 단일 플랜 — 모든 유저 사용 가능)
     func nextVerse() async {
-        guard subscriptionManager.isPremium else {
-            upsellManager.show(trigger: .nextVerse)
-            return
-        }
-
         guard let currentId = currentVerse?.id else { return }
 
         isLoading = true
@@ -224,9 +217,16 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - Private: Image Selection
 
-    private func selectImage(from images: [VerseImage], mode: AppMode) -> VerseImage? {
-        let active = images.filter { $0.status == "active" }
-        guard !active.isEmpty else { return nil }
+    private func selectImage(from images: [VerseImage], mode: AppMode, pinnedImageId: String? = nil) -> VerseImage? {
+        // v5.1: is_sacred_safe == true인 이미지만 홈/알람 배경 사용
+        let safe = images.filter { $0.status == "active" && $0.isHomeSafe }
+        guard !safe.isEmpty else { return nil }
+
+        // v5.1: Gallery 핀 이미지 우선 적용
+        if let pinnedId = pinnedImageId,
+           let pinned = safe.first(where: { $0.id == pinnedId }) {
+            return pinned
+        }
 
         let season = currentSeasonTag()
         let weatherCondition = weather?.condition ?? "any"
@@ -234,12 +234,12 @@ final class HomeViewModel: ObservableObject {
         let currentMoods = mode.moods
 
         // 모드 필터 우선 적용
-        let modeFiltered = active.filter {
+        let modeFiltered = safe.filter {
             $0.mode.contains(mode.rawValue) || $0.mode.contains("all")
         }
-        let pool = modeFiltered.isEmpty ? active : modeFiltered
+        let pool = modeFiltered.isEmpty ? safe : modeFiltered
 
-        // 스코어 산정 (CLAUDE.md 섹션 16 기준)
+        // 스코어 산정
         let scored = pool.map { image -> (VerseImage, Int) in
             var score = 0
             score += image.theme.filter { currentThemes.contains($0) }.count * 3
@@ -342,11 +342,13 @@ final class HomeViewModel: ObservableObject {
         SavedVerse(
             id: UUID().uuidString,
             verseId: verse.id,
+            imageId: currentImage?.id,           // v5.1: 저장 당시 배경 이미지 ID
             savedAt: Date(),
             mode: currentMode.rawValue,
             weatherTemp: weather?.temperature ?? 0,
             weatherCondition: weather?.condition ?? "any",
             weatherHumidity: weather?.humidity ?? 0,
+            weatherDust: weather?.dustGrade,      // v5.1: 미세먼지 등급
             locationName: weather?.cityName ?? ""
         )
     }

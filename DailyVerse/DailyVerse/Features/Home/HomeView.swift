@@ -6,6 +6,7 @@ struct HomeView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var upsellManager: UpsellManager
+    @ObservedObject private var nicknameManager = NicknameManager.shared
 
     @State private var showVerseDetail = false
     @State private var showLoginPrompt = false
@@ -45,14 +46,8 @@ struct HomeView: View {
                     onDismiss: { showLoginPrompt = false }
                 )
             }
-            .sheet(isPresented: $showUpsell) {
-                UpsellBottomSheet()
-                    .environmentObject(subscriptionManager)
-                    .environmentObject(upsellManager)
-            }
+            // v5.1: 단일 플랜 — UpsellBottomSheet 제거
             .task { await viewModel.loadData() }
-            .onChange(of: upsellManager.shouldShow) { if $0 { showUpsell = true } }
-            .onChange(of: showUpsell) { if !$0 { upsellManager.shouldShow = false } }
     }
 
     // MARK: - Background
@@ -122,27 +117,33 @@ struct HomeView: View {
 
     private var greetingHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Good Evening — 큰 텍스트
-            HStack(spacing: 10) {
+            // Good Morning, {nickname} ☀️ — 큰 텍스트 (v5.1 닉네임 개인화)
+            HStack(spacing: 8) {
                 Image(systemName: viewModel.currentMode.greetingIcon)
-                    .font(.system(size: 28))
+                    .font(.system(size: 26))
                     .foregroundColor(.white)
-                Text(viewModel.currentMode.greeting)
-                    .font(.system(size: 34, weight: .bold))
-                    .foregroundColor(.white)
+                // dawn 모드: "Still awake, {nickname}?" / 나머지: "{greeting}, {nickname}"
+                if viewModel.currentMode == .dawn {
+                    Text("Still awake, \(nicknameManager.nickname)?")
+                        .font(.dvLargeTitle)
+                        .foregroundColor(.white)
+                } else {
+                    Text("\(viewModel.currentMode.greeting), \(nicknameManager.nickname)")
+                        .font(.dvLargeTitle)
+                        .foregroundColor(.white)
+                }
             }
             // 시간 + 날씨 한 줄
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Text(currentTimeString)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.dvSubtitle)
                     .foregroundColor(.white.opacity(0.9))
                 if let weather = viewModel.weather {
-                    Text("·")
-                        .foregroundColor(.white.opacity(0.5))
+                    Text("·").foregroundColor(.white.opacity(0.4))
                     Image(systemName: weatherIcon(weather.condition))
-                        .font(.system(size: 15))
+                        .font(.system(size: 14))
                         .foregroundColor(.white.opacity(0.85))
-                    Text("\(weather.cityName)  \(weather.temperature)°C")
+                    Text("\(weather.cityName) \(weather.temperature)°C")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.white.opacity(0.85))
                 }

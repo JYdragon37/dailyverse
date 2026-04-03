@@ -42,11 +42,15 @@ class AuthManager: ObservableObject {
         errorMessage = nil
         do {
             let firebaseUser = try await authService.signInWithApple()
+            let currentNickname = NicknameManager.shared.nickname
             try await firestoreService.createUser(
                 uid: firebaseUser.uid,
                 email: firebaseUser.email ?? "",
-                displayName: firebaseUser.displayName ?? ""
+                displayName: firebaseUser.displayName ?? "",
+                nickname: currentNickname
             )
+            // v5.1: 로그인 후 닉네임 Firestore 동기화
+            await NicknameManager.shared.syncWithFirestore(userId: firebaseUser.uid)
             Analytics.logEvent("sign_in", parameters: ["method": "apple"])
         } catch let error as NSError {
             if error.code != ASAuthorizationError.canceled.rawValue {

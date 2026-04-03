@@ -85,6 +85,7 @@
 		FA5699AAD11898B968DE8EA3 /* OnboardingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54874B10A9BD5824B945E62 /* OnboardingKey.swift */; };
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
+		AB12CD34EF56789012345678 /* NicknameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD34EF5678901234AB12CD34 /* NicknameManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -181,6 +182,7 @@
 		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
+		CD34EF5678901234AB12CD34 /* NicknameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NicknameManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -341,6 +343,7 @@
 				243625CDCB337E4190D69BD9 /* AlarmCoordinator.swift */,
 				293F17253F05FCB2A946935F /* AuthManager.swift */,
 				2371090B1783F0C645407C54 /* DailyCacheManager.swift */,
+				CD34EF5678901234AB12CD34 /* NicknameManager.swift */,
 				08FC86AE7A2393C7D93F45FD /* OfflineFallbackManager.swift */,
 				267C4F08D42D76E708D0EE80 /* PermissionManager.swift */,
 				81782BC3F5931801D8A784E9 /* SubscriptionManager.swift */,
@@ -618,6 +621,7 @@
 				0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */,
 				26C2724E4E900CC2FA4F7272 /* LoginPromptSheet.swift in Sources */,
 				FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */,
+				AB12CD34EF56789012345678 /* NicknameManager.swift in Sources */,
 				446F5FB870F94520B3E3D15D /* Notification+DailyVerse.swift in Sources */,
 				F8EC3DE5C8741A605224254E /* NotificationDelegate.swift in Sources */,
 				F54CD4FEC2B931D7341EFF87 /* NotificationManager.swift in Sources */,

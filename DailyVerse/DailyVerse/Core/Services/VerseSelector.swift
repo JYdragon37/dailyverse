@@ -3,21 +3,48 @@ import Foundation
 class VerseSelector {
 
     /// 현재 모드 + 날씨 기반으로 최적 말씀 선택
+    /// v5.1: cooldown 필터 적용 (is_sacred_safe는 이미지에 적용, 말씀은 해당 없음)
     /// 스코어링: 테마 겹침 +3, 분위기 겹침 +2, 날씨 일치 +2, 계절 일치 +1
     func select(from verses: [Verse], mode: AppMode, weather: WeatherData?) -> Verse? {
         let filtered = verses.filter {
             $0.status == "active" &&
             $0.curated == true &&
-            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
+            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all")) &&
+            $0.isEligible  // v5.1: cooldown 필터
         }
-        guard !filtered.isEmpty else { return nil }
 
+        // cooldown 통과 구절이 없으면 제한 없이 전체에서 선택
+        let pool = filtered.isEmpty ? verses.filter {
+            $0.status == "active" &&
+            $0.curated == true &&
+            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
+        } : filtered
+
+        guard !pool.isEmpty else { return nil }
+        return score(pool, mode: mode, weather: weather)
+    }
+
+    /// [다음 말씀]: 현재 표시 중인 말씀 제외 후 선택
+    func selectNext(from verses: [Verse], excluding currentId: String, mode: AppMode, weather: WeatherData?) -> Verse? {
+        let remaining = verses.filter { $0.id != currentId }
+        return select(from: remaining, mode: mode, weather: weather)
+    }
+
+    /// 알람 테마에 맞는 말씀 선택
+    func selectForAlarm(from verses: [Verse], theme: String, mode: AppMode, weather: WeatherData?) -> Verse? {
+        let themeFiltered = verses.filter { $0.theme.contains(theme) }
+        return select(from: themeFiltered.isEmpty ? verses : themeFiltered, mode: mode, weather: weather)
+    }
+
+    // MARK: - Private
+
+    private func score(_ verses: [Verse], mode: AppMode, weather: WeatherData?) -> Verse? {
         let currentThemes = mode.themes
         let currentMoods = mode.moods
         let currentSeason = currentSeasonTag()
         let currentWeather = weather?.condition ?? "any"
 
-        let scored: [(Verse, Int)] = filtered.map { verse in
+        let scored: [(Verse, Int)] = verses.map { verse in
             var score = 0
             score += verse.theme.filter { currentThemes.contains($0) }.count * 3
             score += verse.mood.filter { currentMoods.contains($0) }.count * 2
@@ -30,20 +57,6 @@ class VerseSelector {
         let topVerses = scored.filter { $0.1 == maxScore }.map { $0.0 }
         return topVerses.randomElement()
     }
-
-    /// Premium [다음 말씀]: 현재 표시 중인 말씀 제외 후 선택
-    func selectNext(from verses: [Verse], excluding currentId: String, mode: AppMode, weather: WeatherData?) -> Verse? {
-        let remaining = verses.filter { $0.id != currentId }
-        return select(from: remaining, mode: mode, weather: weather)
-    }
-
-    /// 알람 테마에 맞는 말씀 선택
-    func selectForAlarm(from verses: [Verse], theme: String, mode: AppMode, weather: WeatherData?) -> Verse? {
-        let themeFiltered = verses.filter { $0.theme.contains(theme) }
-        return select(from: themeFiltered.isEmpty ? verses : themeFiltered, mode: mode, weather: weather)
-    }
-
-    // MARK: - Helpers
 
     private func currentSeasonTag() -> String {
         let month = Calendar.current.component(.month, from: Date())
