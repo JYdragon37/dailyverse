@@ -229,40 +229,22 @@ const verses = [
 
 // ─── 이미지 데이터 (v5.1: text_position, text_color, is_sacred_safe, avoid_themes 필드 추가) ───
 
-// ─── 이미지 URL 안내 ───────────────────────────────────────────────────────────
-// Genspark API는 비브라우저 클라이언트(iOS)의 직접 접근을 차단합니다 (Access denied).
-// 해결책 A (임시): Unsplash CC0 직접 이미지 URL 사용 — 인증 불필요, iOS에서 직접 로드 가능
-// 해결책 B (권장): Firebase Storage에 이미지 업로드 후 storage_url을 Storage URL로 교체
-// 아래는 해결책 A 적용 (성지/자연 테마 유지)
+// ─── 이미지 URL: Google Drive 직접 다운로드 URL ───────────────────────────────
+// Google Drive 공유 파일을 직접 이미지로 서브하는 URL 형식:
+// https://drive.google.com/uc?export=view&id=FILE_ID
+// - 파일을 "링크가 있는 모든 사용자" 공유 설정 필요
+// - iOS URLSession에서 직접 JPEG 로드 확인 완료
 
 const images = [
   {
     image_id: "img_001",
-    filename: "mountain_sunrise_golden.jpg",
-    // 황금빛 산 일출 — 아침/저녁 분위기
-    storage_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/mountain-during-golden-hour", license: "CC0",
-    mode: ["morning", "evening"],
-    theme: ["wisdom", "reflection", "peace"],
-    mood: ["serene", "calm"],
+    filename: "gdrive_img_001.jpg",
+    storage_url: "https://drive.google.com/uc?export=view&id=1PUe_LgBqgmpPwf70wgkJXg7g9DTKXyFA",
+    source: "Google Drive (Genspark Pro)", source_url: "", license: "Commercial",
+    mode: ["morning", "afternoon", "evening"],
+    theme: ["hope", "courage", "wisdom"],
+    mood: ["bright", "dramatic"],
     season: ["all"], weather: ["any"],
-    tone: "mid",
-    text_position: "bottom",
-    text_color: "light",
-    is_sacred_safe: true,
-    avoid_themes: [],
-    status: "active"
-  },
-  {
-    image_id: "img_002",
-    filename: "desert_canyon_dramatic.jpg",
-    // 협곡/사막 — 용기/힘 분위기
-    storage_url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/grand-canyon", license: "CC0",
-    mode: ["morning", "evening"],
-    theme: ["wisdom", "strength", "courage"],
-    mood: ["dramatic", "calm"],
-    season: ["all"], weather: ["sunny", "any"],
     tone: "bright",
     text_position: "bottom",
     text_color: "light",
@@ -271,16 +253,31 @@ const images = [
     status: "active"
   },
   {
-    image_id: "img_003",
-    filename: "desert_dawn_peaceful.jpg",
-    // 새벽 사막 — 고요함/새벽 분위기
-    storage_url: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/desert-sand-dunes", license: "CC0",
-    mode: ["morning", "dawn"],
-    theme: ["hope", "peace", "stillness"],
+    image_id: "img_002",
+    filename: "gdrive_img_002.jpg",
+    storage_url: "https://drive.google.com/uc?export=view&id=1Jv38mELMaL9kFwVC2o7F9vToMPtlrSgp",
+    source: "Google Drive (Genspark Pro)", source_url: "", license: "Commercial",
+    mode: ["morning", "afternoon", "evening"],
+    theme: ["strength", "renewal", "peace"],
     mood: ["serene", "calm"],
     season: ["all"], weather: ["any"],
     tone: "mid",
+    text_position: "bottom",
+    text_color: "light",
+    is_sacred_safe: true,
+    avoid_themes: [],
+    status: "active"
+  },
+  {
+    image_id: "img_003",
+    filename: "gdrive_img_003.jpg",
+    storage_url: "https://drive.google.com/uc?export=view&id=1pouIqKzr5deSdJeJmk9SYRkLo7WLc3JD",
+    source: "Google Drive (Genspark Pro)", source_url: "", license: "Commercial",
+    mode: ["morning", "dawn", "evening"],
+    theme: ["stillness", "faith", "reflection"],
+    mood: ["serene", "calm", "cozy"],
+    season: ["all"], weather: ["any"],
+    tone: "dark",
     text_position: "center",
     text_color: "light",
     is_sacred_safe: true,
@@ -289,27 +286,26 @@ const images = [
   },
   {
     image_id: "img_004",
-    filename: "foggy_mountain_forest.jpg",
-    // 안개 낀 산숲 — 저녁/반영 분위기
-    storage_url: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/misty-forest", license: "CC0",
-    mode: ["morning", "evening"],
-    theme: ["wisdom", "reflection"],
-    mood: ["serene", "calm"],
-    season: ["all"], weather: ["cloudy", "any"],
-    tone: "dark",
+    filename: "gdrive_img_004.jpg",
+    storage_url: "https://drive.google.com/uc?export=view&id=1IpjnaNBUKlt1fH9V-NLqEcWHHM3NjosM",
+    source: "Google Drive (Genspark Pro)", source_url: "", license: "Commercial",
+    mode: ["morning", "afternoon", "evening", "dawn"],
+    theme: ["grace", "comfort", "rest"],
+    mood: ["serene", "warm"],
+    season: ["all"], weather: ["any"],
+    tone: "mid",
     text_position: "bottom",
     text_color: "light",
     is_sacred_safe: true,
     avoid_themes: [],
     status: "active"
   },
+  // img_005, img_006: Unsplash 유지 (추가 이미지 제공 시 교체 예정)
   {
     image_id: "img_005",
-    filename: "sea_cliff_bright.jpg",
-    // 밝은 해안절벽 — 오전/낮 분위기
+    filename: "unsplash_sea_cliff.jpg",
     storage_url: "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/ocean-cliffs", license: "CC0",
+    source: "Unsplash (CC0)", source_url: "", license: "CC0",
     mode: ["morning", "afternoon"],
     theme: ["wisdom", "focus", "courage"],
     mood: ["dramatic", "bright"],
@@ -323,10 +319,9 @@ const images = [
   },
   {
     image_id: "img_006",
-    filename: "night_stars_mountain.jpg",
-    // 별하늘 산 — 새벽/저녁 분위기
+    filename: "unsplash_night_stars.jpg",
     storage_url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&q=80",
-    source: "Unsplash (CC0)", source_url: "https://unsplash.com/photos/night-sky-stars", license: "CC0",
+    source: "Unsplash (CC0)", source_url: "", license: "CC0",
     mode: ["dawn", "evening"],
     theme: ["stillness", "hope", "grace"],
     mood: ["serene", "calm"],
