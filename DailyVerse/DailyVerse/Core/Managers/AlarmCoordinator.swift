@@ -7,6 +7,7 @@ final class AlarmCoordinator: ObservableObject {
     enum AlarmStage: Equatable {
         case none
         case stage1
+        case stage1_5   // v5.1: 웨이크업 미션 수행
         case stage2
     }
 
@@ -16,6 +17,7 @@ final class AlarmCoordinator: ObservableObject {
     @Published var activeImage: VerseImage?
     @Published var activeWeather: WeatherData?
     @Published var activeSnoozeInterval: Int = 5
+    @Published var activeMission: String = "none"   // v5.1
 
     private var snoozeCount: Int = 0
     private let notificationManager: NotificationManager
@@ -68,16 +70,27 @@ final class AlarmCoordinator: ObservableObject {
         activeImage = image
         activeAlarmId = alarmId
         // 알람의 스누즈 간격 로드 (없으면 기본값 5분)
-        activeSnoozeInterval = alarmRepository.fetchAll()
-            .first(where: { $0.id == alarmId })?.snoozeInterval ?? 5
+        let activeAlarm = alarmRepository.fetchAll().first(where: { $0.id == alarmId })
+        activeSnoozeInterval = activeAlarm?.snoozeInterval ?? 5
+        activeMission = activeAlarm?.wakeMission ?? "none"   // v5.1
         snoozeCount = 0
         stage = .stage1
     }
 
     // MARK: - Stage Transitions
 
-    /// Stage 1 → Stage 2 (Fade-in 0.6s 애니메이션은 AppRootView에서 처리)
+    /// Stage 1 → Stage 1.5(미션) 또는 Stage 2
+    /// v5.1: 미션이 "none"이 아니면 Stage 1.5를 거침
     func dismissToStage2() {
+        if activeMission != "none" {
+            stage = .stage1_5
+        } else {
+            stage = .stage2
+        }
+    }
+
+    /// Stage 1.5 미션 완료 → Stage 2
+    func completeMission() {
         stage = .stage2
     }
 

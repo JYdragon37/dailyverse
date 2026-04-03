@@ -9,8 +9,6 @@ struct AlarmAddEditView: View {
     let alarm: Alarm?
     let onSave: (Alarm) -> Void
 
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @EnvironmentObject private var upsellManager: UpsellManager
     @Environment(\.dismiss) private var dismiss
 
     // MARK: State
@@ -20,6 +18,10 @@ struct AlarmAddEditView: View {
     @State private var selectedTheme: String
     @State private var labelText: String
     @State private var snoozeInterval: Int
+    @State private var maxSnoozeCount: Int
+    @State private var wakeMission: String
+    @State private var soundId: String
+    @State private var volume: Float
     @State private var isLabelAutoSet: Bool
 
     private let allThemes = [
@@ -37,24 +39,31 @@ struct AlarmAddEditView: View {
         self.onSave = onSave
 
         if let alarm {
-            _selectedTime = State(initialValue: alarm.time)
-            _selectedDays = State(initialValue: Set(alarm.repeatDays))
-            _selectedTheme = State(initialValue: alarm.theme)
-            _labelText = State(initialValue: alarm.label)
-            _snoozeInterval = State(initialValue: alarm.snoozeInterval)
-            _isLabelAutoSet = State(initialValue: false)
+            _selectedTime      = State(initialValue: alarm.time)
+            _selectedDays      = State(initialValue: Set(alarm.repeatDays))
+            _selectedTheme     = State(initialValue: alarm.theme)
+            _labelText         = State(initialValue: alarm.label)
+            _snoozeInterval    = State(initialValue: alarm.snoozeInterval)
+            _maxSnoozeCount    = State(initialValue: alarm.maxSnoozeCount)
+            _wakeMission       = State(initialValue: alarm.wakeMission)
+            _soundId           = State(initialValue: alarm.soundId)
+            _volume            = State(initialValue: alarm.volume)
+            _isLabelAutoSet    = State(initialValue: false)
         } else {
-            // 추가 모드: 다음 정시로 초기화
             let nextHour = Calendar.current.date(
                 bySetting: .minute, value: 0,
                 of: Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
             ) ?? Date()
-            _selectedTime = State(initialValue: nextHour)
-            _selectedDays = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
-            _selectedTheme = State(initialValue: "hope")
-            _labelText = State(initialValue: Alarm.defaultLabel(for: nextHour))
-            _snoozeInterval = State(initialValue: 5)
-            _isLabelAutoSet = State(initialValue: true)
+            _selectedTime      = State(initialValue: nextHour)
+            _selectedDays      = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
+            _selectedTheme     = State(initialValue: "hope")
+            _labelText         = State(initialValue: Alarm.defaultLabel(for: nextHour))
+            _snoozeInterval    = State(initialValue: 5)
+            _maxSnoozeCount    = State(initialValue: 3)
+            _wakeMission       = State(initialValue: "none")
+            _soundId           = State(initialValue: "piano")
+            _volume            = State(initialValue: 0.8)
+            _isLabelAutoSet    = State(initialValue: true)
         }
     }
 
@@ -127,68 +136,80 @@ struct AlarmAddEditView: View {
                         .font(.dvSectionTitle)
                 }
 
-                // 주제 (테마)
+                // 주제 (테마) — v5.1: 단일 플랜, 모든 유저 자유 선택
                 Section {
-                    if subscriptionManager.isPremium {
-                        Picker("테마", selection: $selectedTheme) {
-                            ForEach(allThemes, id: \.self) { theme in
-                                Text(themeDisplayName(theme))
-                                    .tag(theme)
-                            }
+                    Picker("테마", selection: $selectedTheme) {
+                        ForEach(allThemes, id: \.self) { theme in
+                            Text(themeDisplayName(theme)).tag(theme)
                         }
-                        .pickerStyle(.navigationLink)
-                        .accessibilityLabel("테마 선택")
-                    } else {
-                        HStack {
-                            Image(systemName: "lock.fill")
-                                .foregroundColor(.dvAccent)
-                                .accessibilityHidden(true)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("자동 배분")
-                                    .font(.dvBody)
-                                Text("시간대에 맞는 주제가 자동으로 선택됩니다")
-                                    .font(.dvCaption)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            Spacer()
-
-                            Text("Premium")
-                                .font(.dvCaption.weight(.semibold))
-                                .foregroundColor(.dvAccent)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(
-                                    Capsule()
-                                        .stroke(Color.dvAccent, lineWidth: 1)
-                                )
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            upsellManager.show(trigger: .alarmTheme)
-                        }
-                        .accessibilityLabel("테마 자유 선택은 Premium 기능입니다")
                     }
+                    .pickerStyle(.navigationLink)
                 } header: {
                     Text("주제")
                         .font(.dvSectionTitle)
                 }
 
-                // 스누즈 설정
+                // 웨이크업 미션 (v5.1 신규)
+                Section {
+                    Picker("미션", selection: $wakeMission) {
+                        Text("없음").tag("none")
+                        Text("흔들기").tag("shake")
+                        Text("수학 문제").tag("math")
+                        Text("타이핑 ✨").tag("typing")
+                    }
+                    .pickerStyle(.navigationLink)
+                } header: {
+                    Text("웨이크업 미션")
+                        .font(.dvSectionTitle)
+                } footer: {
+                    Text("미션을 완료해야 말씀 화면으로 이동합니다")
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+                }
+
+                // 알람 소리 & 볼륨 (v5.1 신규)
+                Section {
+                    Picker("소리", selection: $soundId) {
+                        Text("은은한 피아노").tag("piano")
+                        Text("자연 소리").tag("nature")
+                        Text("찬양 멜로디").tag("hymn")
+                    }
+                    .pickerStyle(.navigationLink)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("볼륨")
+                                .font(.dvBody)
+                            Spacer()
+                            Text("\(Int(volume * 100))%")
+                                .font(.dvCaption)
+                                .foregroundColor(.secondary)
+                        }
+                        Slider(value: $volume, in: 0.1...1.0, step: 0.1)
+                            .accentColor(.dvAccentGold)
+                    }
+                } header: {
+                    Text("알람 소리")
+                        .font(.dvSectionTitle)
+                }
+
+                // 스누즈 설정 (v5.1: 1/3/5/10분, 0~10회)
                 Section {
                     Picker("스누즈 간격", selection: $snoozeInterval) {
+                        Text("1분").tag(1)
+                        Text("3분").tag(3)
                         Text("5분").tag(5)
                         Text("10분").tag(10)
-                        Text("15분").tag(15)
                     }
                     .pickerStyle(.segmented)
-                    .accessibilityLabel("스누즈 간격 선택")
+
+                    Stepper("최대 \(maxSnoozeCount)회", value: $maxSnoozeCount, in: 0...10)
+                        .font(.dvBody)
                 } header: {
                     Text("스누즈 설정")
                         .font(.dvSectionTitle)
                 } footer: {
-                    Text("말씀과의 약속을 지킬 수 있는 여유를 설정하세요")
+                    Text("최대 횟수만큼 스누즈 후 알람이 해제됩니다")
                         .font(.dvCaption)
                         .foregroundColor(.secondary)
                 }
@@ -235,25 +256,26 @@ struct AlarmAddEditView: View {
                 }
             }
         }
-        .sheet(isPresented: $upsellManager.shouldShow) {
-            UpsellBottomSheet()
-                .environmentObject(subscriptionManager)
-                .environmentObject(upsellManager)
-        }
+        // v5.1: 단일 플랜 — UpsellBottomSheet 제거
     }
 
     // MARK: - 저장 처리
 
     private func handleSave() {
+        // v5.1: 단일 플랜 — 모든 유저 선택 테마 사용
         let newAlarm = Alarm(
             id: alarm?.id ?? UUID(),
             time: selectedTime,
             repeatDays: Array(selectedDays).sorted(),
-            theme: subscriptionManager.isPremium ? selectedTheme : autoTheme,
+            theme: selectedTheme,
             isEnabled: alarm?.isEnabled ?? true,
             snoozeCount: 0,
             label: labelText,
-            snoozeInterval: snoozeInterval
+            snoozeInterval: snoozeInterval,
+            maxSnoozeCount: maxSnoozeCount,
+            wakeMission: wakeMission,
+            soundId: soundId,
+            volume: volume
         )
 
         onSave(newAlarm)
@@ -285,18 +307,12 @@ struct AlarmAddEditView: View {
     // MARK: - 말씀 미리보기 선택
 
     private var previewVerse: Verse {
-        // 선택된 시간대에 맞는 fallback 구절 반환
-        // Premium 유저는 selectedTheme에 맞는 구절 우선
+        // v5.1: 단일 플랜 — 선택 테마에 맞는 구절 우선
         let timeMode = AppMode.fromTime(selectedTime)
-        let themeToMatch = subscriptionManager.isPremium ? selectedTheme : nil
-
-        if let themeToMatch {
-            let candidates: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening]
-            if let matched = candidates.first(where: { $0.theme.contains(themeToMatch) }) {
-                return matched
-            }
+        let candidates: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening, .fallbackDawn]
+        if let matched = candidates.first(where: { $0.theme.contains(selectedTheme) }) {
+            return matched
         }
-
         switch timeMode {
         case .morning:   return .fallbackMorning
         case .afternoon: return .fallbackAfternoon

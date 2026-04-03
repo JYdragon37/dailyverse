@@ -25,6 +25,7 @@
 		3033E570B28C2E74B3A645F9 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 01C2BCC9A543DD3A4F7C632B /* GoogleMobileAds */; };
 		307B5303579AD7DEC0BBAEAC /* SavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4556EFE58C2885CCFA3408 /* SavedViewModel.swift */; };
 		3473ED13E82E2A5C0FD505C5 /* AlarmStage1View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */; };
+		AAB714B610334E98B816F00C /* WakeMissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F8CCF866709463789F4DC37 /* WakeMissionView.swift */; };
 		35CD0FAA61EDC10C9F772EA7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B251C69BC68A186219A6DF48 /* FirebaseAuth */; };
 		388BFF8E3DEEEAB13A02C53C /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7B6DBF39995973040553CB8D /* FirebaseFirestore */; };
 		446F5FB870F94520B3E3D15D /* Notification+DailyVerse.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA6FFDF33136CAD4A06979B /* Notification+DailyVerse.swift */; };
@@ -86,6 +87,9 @@
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
 		AB12CD34EF56789012345678 /* NicknameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD34EF5678901234AB12CD34 /* NicknameManager.swift */; };
+		AA11BB22CC33DD44EE55FF67 /* AlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */; };
+		BB22CC33DD44EE55FF6677AB /* LegacyAlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */; };
+		CC33DD44EE55FF6677AABB23 /* AlarmKitEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -123,6 +127,7 @@
 		293F17253F05FCB2A946935F /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		298B3F2765BA447E48C02C44 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStage1View.swift; sourceTree = "<group>"; };
+		4F8CCF866709463789F4DC37 /* WakeMissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeMissionView.swift; sourceTree = "<group>"; };
 		2E9E250D2931BE33AF0352F9 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
 		38468676E9D9FE8698E07ADA /* Verse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verse.swift; sourceTree = "<group>"; };
 		3AD35CB40B40FD013019F7C3 /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
@@ -183,6 +188,9 @@
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
 		CD34EF5678901234AB12CD34 /* NicknameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NicknameManager.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEngine.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyAlarmEngine.swift; sourceTree = "<group>"; };
+		CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -264,6 +272,7 @@
 				2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */,
 				2613468BC948C1BDB0FDF0DE /* AlarmStage2View.swift */,
 				B22E457DD726C00F9AD8F0A1 /* AlarmViewModel.swift */,
+				4F8CCF866709463789F4DC37 /* WakeMissionView.swift */,
 			);
 			path = Alarm;
 			sourceTree = "<group>";
@@ -441,6 +450,9 @@
 				B5814C3268942E53E0423363 /* NotificationManager.swift */,
 				01850BB01382CF53BBB11601 /* VerseSelector.swift */,
 				C1BB2A3C4EB162E8A4F48B7C /* WeatherService.swift */,
+				AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */,
+				BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */,
+				CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -601,6 +613,7 @@
 				3473ED13E82E2A5C0FD505C5 /* AlarmStage1View.swift in Sources */,
 				F223CA5032B4BC3235F1D4E0 /* AlarmStage2View.swift in Sources */,
 				6173F810364A7103B900C34C /* AlarmViewModel.swift in Sources */,
+				AAB714B610334E98B816F00C /* WakeMissionView.swift in Sources */,
 				E2AB88B392BA7E489F1784BA /* Animation+DailyVerse.swift in Sources */,
 				9D10BF89761FE7696DA5D732 /* AppDelegate.swift in Sources */,
 				9612DE9398330A88D0209BFA /* AppLoadingCoordinator.swift in Sources */,
@@ -655,6 +668,9 @@
 				61ADA793F70325E02C8C84D0 /* VerseImage.swift in Sources */,
 				E9F81CAAC8D2EBE9B9460986 /* VerseRepository.swift in Sources */,
 				84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */,
+				AA11BB22CC33DD44EE55FF67 /* AlarmEngine.swift in Sources */,
+				BB22CC33DD44EE55FF6677AB /* LegacyAlarmEngine.swift in Sources */,
+				CC33DD44EE55FF6677AABB23 /* AlarmKitEngine.swift in Sources */,
 				1FE4CD38DE867945C3F86474 /* WeatherCacheManager.swift in Sources */,
 				8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */,
 				1FF7C326A5C192FB8BE58500 /* WeatherService.swift in Sources */,

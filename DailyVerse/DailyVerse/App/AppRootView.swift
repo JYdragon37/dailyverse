@@ -34,11 +34,24 @@ struct AppRootView: View {
                 .transition(.opacity)
             }
 
-            // MARK: - Stage 1 — 전체화면 알람 오버레이 (TabBar 없음)
+            // MARK: - Stage 1 — 전체화면 알람 (TabBar 없음)
             if alarmCoordinator.stage == .stage1 {
                 AlarmStage1View()
                     .transition(.opacity)
                     .zIndex(10)
+            }
+
+            // MARK: - Stage 1.5 — 웨이크업 미션 (v5.1)
+            if alarmCoordinator.stage == .stage1_5 {
+                WakeMissionView(
+                    mission: alarmCoordinator.activeMission,
+                    nickname: NicknameManager.shared.nickname,
+                    verse: alarmCoordinator.activeVerse,
+                    onComplete: { alarmCoordinator.completeMission() },
+                    onSkip: { alarmCoordinator.completeMission() }
+                )
+                .transition(.dvFade)
+                .zIndex(10)
             }
 
             // MARK: - Stage 2 — 웰컴 스크린 (0.6s Fade-in)
