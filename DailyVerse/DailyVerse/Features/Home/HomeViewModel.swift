@@ -247,12 +247,12 @@ final class HomeViewModel: ObservableObject {
             if image.weather.contains(weatherCondition) || image.weather.contains("any") { score += 2 }
             if image.season.contains(season) || image.season.contains("all") { score += 1 }
 
-            // 톤 우선순위: 아침 → bright/mid, 저녁 → dark
+            // 톤 우선순위: 아침/낮 → bright/mid, 저녁/새벽 → dark
             switch mode {
             case .morning, .afternoon:
                 if image.tone == "bright" { score += 2 }
                 else if image.tone == "mid" { score += 1 }
-            case .evening:
+            case .evening, .dawn:
                 if image.tone == "dark" { score += 2 }
                 else if image.tone == "mid" { score += 1 }
             }

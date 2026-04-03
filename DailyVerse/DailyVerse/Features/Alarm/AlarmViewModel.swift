@@ -148,9 +148,10 @@ final class AlarmViewModel: ObservableObject {
 
     private func fallbackVerse(for alarm: Alarm) -> Verse {
         switch AppMode.fromTime(alarm.time) {
-        case .morning: return Verse.fallbackMorning
+        case .morning:   return Verse.fallbackMorning
         case .afternoon: return Verse.fallbackAfternoon
-        case .evening: return Verse.fallbackEvening
+        case .evening:   return Verse.fallbackEvening
+        case .dawn:      return Verse.fallbackDawn
         }
     }
 
@@ -169,6 +170,7 @@ final class AlarmViewModel: ObservableObject {
         case .morning:   contextMsg = "새 날이 말씀과 함께 시작됩니다"
         case .afternoon: contextMsg = "낮의 한 호흡, 말씀이 함께해요"
         case .evening:   contextMsg = "하루를 말씀으로 마무리해요"
+        case .dawn:      contextMsg = "새벽에도 말씀이 함께해요"
         }
 
         if isToday {

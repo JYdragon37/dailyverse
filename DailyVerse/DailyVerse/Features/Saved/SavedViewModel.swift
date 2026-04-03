@@ -7,19 +7,14 @@ final class SavedViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var toastMessage: String?
 
-    // MARK: - Access State
+    // v5.1: 단일 플랜 — 접근 제한 제거. 전체 무제한 열람.
+    // AccessState는 UI 코드 호환을 위해 유지하되 항상 .free 반환
 
-    /// 저장탭 3단계 접근 제어 (CLAUDE.md §8 기준)
-    /// - .free      : 0~7일 모두 / 7일 이상 Premium
-    /// - .adRequired: 7~30일 Free 유저 (광고 시청 필요)
-    /// - .locked    : 30일 초과 Free 유저 (Premium 유도)
     enum AccessState {
-        case free
-        case adRequired
-        case locked
+        case free        // 전체 열람 가능
+        case adRequired  // v5.1: 미사용 (단일 플랜)
+        case locked      // v5.1: 미사용 (단일 플랜)
     }
-
-    // MARK: - Dependencies
 
     private let savedVerseRepository: SavedVerseRepository
 
@@ -27,18 +22,9 @@ final class SavedViewModel: ObservableObject {
         self.savedVerseRepository = savedVerseRepository
     }
 
-    // MARK: - Access Control
-
+    // v5.1: 항상 .free 반환
     func accessState(for savedVerse: SavedVerse, isPremium: Bool) -> AccessState {
-        // Premium 유저는 기간에 관계없이 자유 열람
-        if isPremium { return .free }
-
-        let daysSince = Calendar.current
-            .dateComponents([.day], from: savedVerse.savedAt, to: Date()).day ?? 0
-
-        if daysSince <= 7 { return .free }
-        if daysSince <= 30 { return .adRequired }
-        return .locked
+        return .free
     }
 
     // MARK: - Data Loading
@@ -47,7 +33,6 @@ final class SavedViewModel: ObservableObject {
         isLoading = true
         do {
             let verses = try await savedVerseRepository.fetchAll(userId: userId)
-            // 최신순 정렬 (CLAUDE.md §8: 최신순 정렬)
             savedVerses = verses.sorted { $0.savedAt > $1.savedAt }
         } catch {
             showToast("말씀을 불러오지 못했어요. 잠시 후 다시 시도해주세요.")
@@ -76,4 +61,3 @@ final class SavedViewModel: ObservableObject {
         }
     }
 }
-

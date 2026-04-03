@@ -298,9 +298,10 @@ struct AlarmAddEditView: View {
         }
 
         switch timeMode {
-        case .morning: return .fallbackMorning
+        case .morning:   return .fallbackMorning
         case .afternoon: return .fallbackAfternoon
-        case .evening: return .fallbackEvening
+        case .evening:   return .fallbackEvening
+        case .dawn:      return .fallbackDawn
         }
     }
 

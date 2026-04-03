@@ -18,6 +18,25 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let curated: Bool
     let status: String
     let usageCount: Int
+    let notes: String?
+
+    // v5.1 — cooldown 로직용
+    let lastShown: String?      // "YYYY-MM-DD"
+    let showCount: Int?
+    let cooldownDays: Int?      // 기본값 7
+
+    // v5.1 — 번역본 (MVP: ko_nkrv만 사용)
+    let translations: VerseTranslations?
+
+    struct VerseTranslations: Codable, Equatable, Hashable {
+        let koNkrv: String?
+        let koEasy: String?
+
+        enum CodingKeys: String, CodingKey {
+            case koNkrv = "ko_nkrv"
+            case koEasy = "ko_easy"
+        }
+    }
 
     enum CodingKeys: String, CodingKey {
         case id = "verse_id"
@@ -25,11 +44,28 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case textFullKo = "text_full_ko"
         case reference, book, chapter, verse
         case mode, theme, mood, season, weather
-        case interpretation, application, curated, status
+        case interpretation, application, curated, status, notes
         case usageCount = "usage_count"
+        case lastShown = "last_shown"
+        case showCount = "show_count"
+        case cooldownDays = "cooldown_days"
+        case translations
     }
 
-    // 번들 폴백용 샘플 말씀
+    // MARK: - Cooldown 헬퍼
+
+    /// 이 구절이 오늘 표시 가능한지 (cooldown_days 경과 여부)
+    var isEligible: Bool {
+        guard let lastShown, let cooldownDays else { return true }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        guard let lastDate = formatter.date(from: lastShown) else { return true }
+        let daysSince = Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day ?? 0
+        return daysSince >= cooldownDays
+    }
+
+    // MARK: - 번들 폴백용 샘플 말씀
+
     static let fallbackMorning = Verse(
         id: "fallback_morning",
         textKo: "두려워하지 말라 내가 너와 함께 함이라",
@@ -40,7 +76,8 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         season: ["all"], weather: ["any"],
         interpretation: "하나님이 직접 함께하겠다는 약속",
         application: "오늘 두렵다면 혼자가 아님을 기억해",
-        curated: true, status: "active", usageCount: 0
+        curated: true, status: "active", usageCount: 0,
+        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackAfternoon = Verse(
@@ -53,7 +90,8 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         season: ["all"], weather: ["any"],
         interpretation: "지혜의 길로 나아갈 때 앞길이 열린다",
         application: "오늘 결정해야 할 일이 있다면 지혜를 구해보자",
-        curated: true, status: "active", usageCount: 0
+        curated: true, status: "active", usageCount: 0,
+        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackEvening = Verse(
@@ -66,8 +104,23 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         season: ["all"], weather: ["any"],
         interpretation: "하나님이 목자처럼 돌봐주신다는 안식의 약속",
         application: "오늘 하루를 마무리하며 부족함 없이 채워주심을 감사해",
-        curated: true, status: "active", usageCount: 0
+        curated: true, status: "active", usageCount: 0,
+        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
-    static let fallbackVerses: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening]
+    static let fallbackDawn = Verse(
+        id: "fallback_dawn",
+        textKo: "내가 새벽 날개를 치며 바다 끝에 거할지라도",
+        textFullKo: "내가 새벽 날개를 치며 바다 끝에 거할지라도 거기서도 주의 손이 나를 인도하시며 주의 오른손이 나를 붙드시리이다",
+        reference: "시편 139:9-10",
+        book: "시편", chapter: 139, verse: 9,
+        mode: ["dawn"], theme: ["stillness", "faith"], mood: ["serene", "calm"],
+        season: ["all"], weather: ["any"],
+        interpretation: "어디에 있든 하나님의 손이 함께한다",
+        application: "잠 못 드는 이 시간에도 하나님이 붙드심을 기억해",
+        curated: true, status: "active", usageCount: 0,
+        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+    )
+
+    static let fallbackVerses: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening, .fallbackDawn]
 }

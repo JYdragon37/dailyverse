@@ -4,52 +4,55 @@ import Combine
 
 class DailyCacheManager {
     static let shared = DailyCacheManager()
-    private let cacheKey = "dailyVerseCache"
+    private let cacheKey = "dailyVerseCache_v2"  // v5.1: 4모드 캐시 키 변경
 
-    // MARK: - Public Interface
+    // MARK: - Verse ID
 
     func getVerseId(for mode: AppMode) -> String? {
         guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
-        switch mode {
-        case .morning: return cache.morningVerseId
-        case .afternoon: return cache.afternoonVerseId
-        case .evening: return cache.eveningVerseId
-        }
+        return cache.verseId(for: mode)
     }
 
     func setVerseId(_ verseId: String, for mode: AppMode) {
-        let existing = loadCache()
-        let base = DailyVerseCache(
-            date: existing?.date ?? Date(),
-            morningVerseId: existing?.morningVerseId,
-            afternoonVerseId: existing?.afternoonVerseId,
-            eveningVerseId: existing?.eveningVerseId
+        var cache = loadCache() ?? DailyVerseCache(
+            date: Date(),
+            morningVerseId: nil, afternoonVerseId: nil,
+            eveningVerseId: nil, dawnVerseId: nil,
+            morningImageId: nil, afternoonImageId: nil,
+            eveningImageId: nil, dawnImageId: nil
         )
-        let updated: DailyVerseCache
-        switch mode {
-        case .morning:
-            updated = DailyVerseCache(date: base.date, morningVerseId: verseId,
-                                       afternoonVerseId: base.afternoonVerseId, eveningVerseId: base.eveningVerseId)
-        case .afternoon:
-            updated = DailyVerseCache(date: base.date, morningVerseId: base.morningVerseId,
-                                       afternoonVerseId: verseId, eveningVerseId: base.eveningVerseId)
-        case .evening:
-            updated = DailyVerseCache(date: base.date, morningVerseId: base.morningVerseId,
-                                       afternoonVerseId: base.afternoonVerseId, eveningVerseId: verseId)
-        }
-        saveCache(updated)
+        cache.setVerseId(verseId, for: mode)
+        saveCache(cache)
     }
+
+    // MARK: - Image ID (v5.1)
+
+    func getImageId(for mode: AppMode) -> String? {
+        guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
+        return cache.imageId(for: mode)
+    }
+
+    func setImageId(_ imageId: String, for mode: AppMode) {
+        var cache = loadCache() ?? DailyVerseCache(
+            date: Date(),
+            morningVerseId: nil, afternoonVerseId: nil,
+            eveningVerseId: nil, dawnVerseId: nil,
+            morningImageId: nil, afternoonImageId: nil,
+            eveningImageId: nil, dawnImageId: nil
+        )
+        cache.setImageId(imageId, for: mode)
+        saveCache(cache)
+    }
+
+    // MARK: - 유효성 확인
 
     func clearCache() {
         UserDefaults.standard.removeObject(forKey: cacheKey)
     }
 
-    /// 오늘 날짜 기준으로 유효한 캐시가 하나라도 존재하는지 확인 (05:00 기준)
     func hasValidCache() -> Bool {
         guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return false }
-        return cache.morningVerseId != nil
-            || cache.afternoonVerseId != nil
-            || cache.eveningVerseId != nil
+        return cache.hasAnyVerse
     }
 
     // MARK: - Core Data verse cache

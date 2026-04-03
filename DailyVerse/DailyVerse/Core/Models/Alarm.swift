@@ -1,14 +1,19 @@
 import Foundation
+import SwiftUI
 
 struct Alarm: Identifiable, Codable, Equatable {
     var id: UUID
     var time: Date
-    var repeatDays: [Int]    // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+    var repeatDays: [Int]       // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
     var theme: String
     var isEnabled: Bool
-    var snoozeCount: Int     // 현재 세션 스누즈 횟수 (최대 3)
-    var label: String        // 알람 이름 (기본값: 시간대별 자동 이름)
-    var snoozeInterval: Int  // 스누즈 간격 분 (기본값: 5)
+    var snoozeCount: Int        // 현재 세션 스누즈 횟수
+    var label: String
+    var snoozeInterval: Int     // 스누즈 간격 분 (1/3/5/10 중 선택, 기본값: 5)
+    var maxSnoozeCount: Int     // 최대 스누즈 횟수 (0~10, 기본값: 3)
+    var wakeMission: String     // "none" | "shake" | "math" | "typing"
+    var soundId: String         // "piano" | "nature" | "hymn"
+    var volume: Float           // 0.0~1.0 (기본값: 0.8)
 
     init(
         id: UUID = UUID(),
@@ -18,7 +23,11 @@ struct Alarm: Identifiable, Codable, Equatable {
         isEnabled: Bool = true,
         snoozeCount: Int = 0,
         label: String? = nil,
-        snoozeInterval: Int = 5
+        snoozeInterval: Int = 5,
+        maxSnoozeCount: Int = 3,
+        wakeMission: String = "none",
+        soundId: String = "piano",
+        volume: Float = 0.8
     ) {
         self.id = id
         self.time = time
@@ -28,22 +37,29 @@ struct Alarm: Identifiable, Codable, Equatable {
         self.snoozeCount = snoozeCount
         self.label = label ?? Alarm.defaultLabel(for: time)
         self.snoozeInterval = snoozeInterval
+        self.maxSnoozeCount = maxSnoozeCount
+        self.wakeMission = wakeMission
+        self.soundId = soundId
+        self.volume = volume
     }
 
-    // MARK: - Decodable (하위 호환: label/snoozeInterval 없는 기존 데이터 폴백 처리)
+    // MARK: - Decodable (하위 호환: 기존 필드 없을 때 기본값 폴백)
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        time = try container.decode(Date.self, forKey: .time)
-        repeatDays = try container.decode([Int].self, forKey: .repeatDays)
-        theme = try container.decode(String.self, forKey: .theme)
-        isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
-        snoozeCount = try container.decode(Int.self, forKey: .snoozeCount)
-        // 기존 데이터에 없을 경우 기본값으로 폴백
+        id           = try container.decode(UUID.self, forKey: .id)
+        time         = try container.decode(Date.self, forKey: .time)
+        repeatDays   = try container.decode([Int].self, forKey: .repeatDays)
+        theme        = try container.decode(String.self, forKey: .theme)
+        isEnabled    = try container.decode(Bool.self, forKey: .isEnabled)
+        snoozeCount  = try container.decode(Int.self, forKey: .snoozeCount)
         let decodedLabel = try container.decodeIfPresent(String.self, forKey: .label)
-        label = decodedLabel ?? Alarm.defaultLabel(for: time)
-        snoozeInterval = try container.decodeIfPresent(Int.self, forKey: .snoozeInterval) ?? 5
+        label        = decodedLabel ?? Alarm.defaultLabel(for: time)
+        snoozeInterval   = try container.decodeIfPresent(Int.self,    forKey: .snoozeInterval)   ?? 5
+        maxSnoozeCount   = try container.decodeIfPresent(Int.self,    forKey: .maxSnoozeCount)   ?? 3
+        wakeMission      = try container.decodeIfPresent(String.self, forKey: .wakeMission)      ?? "none"
+        soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "piano"
+        volume           = try container.decodeIfPresent(Float.self,  forKey: .volume)           ?? 0.8
     }
 
     // MARK: - Computed Properties
@@ -64,26 +80,49 @@ struct Alarm: Identifiable, Codable, Equatable {
         return formatter.string(from: time)
     }
 
+    var canSnooze: Bool {
+        return snoozeCount < maxSnoozeCount
+    }
+
+    var wakeMissionDisplayName: String {
+        switch wakeMission {
+        case "shake":  return "흔들기"
+        case "math":   return "수학 문제"
+        case "typing": return "타이핑"
+        default:       return "없음"
+        }
+    }
+
+    var soundDisplayName: String {
+        switch soundId {
+        case "nature": return "자연 소리"
+        case "hymn":   return "찬양 멜로디"
+        default:       return "은은한 피아노"
+        }
+    }
+
     // MARK: - Helpers
 
-    /// 시간대별 기본 알람 이름
     static func defaultLabel(for time: Date) -> String {
         let mode = AppMode.fromTime(time)
         switch mode {
         case .morning:   return "아침의 말씀"
         case .afternoon: return "낮의 말씀"
         case .evening:   return "저녁의 말씀"
+        case .dawn:      return "새벽의 말씀"
         }
     }
 
     // MARK: - CodingKeys
 
     enum CodingKeys: String, CodingKey {
-        case id, time, theme
-        case repeatDays = "repeat_days"
-        case isEnabled = "is_enabled"
-        case snoozeCount = "snooze_count"
-        case label
-        case snoozeInterval = "snooze_interval"
+        case id, time, theme, label, volume
+        case repeatDays      = "repeat_days"
+        case isEnabled       = "is_enabled"
+        case snoozeCount     = "snooze_count"
+        case snoozeInterval  = "snooze_interval"
+        case maxSnoozeCount  = "max_snooze_count"
+        case wakeMission     = "wake_mission"
+        case soundId         = "sound_id"
     }
 }

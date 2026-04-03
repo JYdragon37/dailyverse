@@ -121,8 +121,8 @@ struct AlarmListView: View {
                             .font(.system(size: 16, weight: .semibold))
                         Text("새 알람 추가")
                             .font(.dvBody)
-                        if viewModel.alarms.count >= 3 {
-                            Text("(최대 3개)")
+                        if viewModel.alarms.count >= 5 {
+                            Text("(최대 5개)")
                                 .font(.dvCaption)
                                 .foregroundColor(.secondary)
                         }
@@ -137,9 +137,9 @@ struct AlarmListView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                 }
-                .disabled(viewModel.alarms.count >= 3)
-                .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
-                .accessibilityLabel(viewModel.alarms.count >= 3 ? "알람 최대 3개 도달" : "새 알람 추가")
+                .disabled(viewModel.alarms.count >= 5)
+                .opacity(viewModel.alarms.count >= 5 ? 0.45 : 1.0)
+                .accessibilityLabel(viewModel.alarms.count >= 5 ? "알람 최대 5개 도달" : "새 알람 추가")
             }
         }
     }
