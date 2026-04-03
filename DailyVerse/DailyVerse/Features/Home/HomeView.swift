@@ -44,11 +44,10 @@ struct HomeView: View {
                     onDismiss: { showLoginPrompt = false }
                 )
             }
-            // #4 날씨 상세 시트
+            // #4 날씨 상세 시트 (전체화면, ultraThinMaterial — 홈 배경 비침)
             .sheet(isPresented: $showWeatherDetail) {
                 if let weather = viewModel.weather {
                     WeatherDetailSheet(weather: weather, mode: viewModel.currentMode)
-                        .presentationDetents([.medium])
                 }
             }
             .task { await viewModel.loadData() }
@@ -265,7 +264,7 @@ struct HomeView: View {
     }
 }
 
-// MARK: - #4 WeatherDetailSheet
+// MARK: - #4 WeatherDetailSheet (iOS Weather 앱 스타일)
 
 struct WeatherDetailSheet: View {
     let weather: WeatherData
@@ -273,65 +272,72 @@ struct WeatherDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.dvPrimaryDeep.ignoresSafeArea()
+        ZStack {
+            // 배경 — 홈 배경이 비치도록 반투명
+            Color.black.opacity(0.4).ignoresSafeArea()
 
-                VStack(spacing: 28) {
-                    // 현재 날씨
-                    VStack(spacing: 8) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 16) {
+                    // 드래그 인디케이터
+                    Capsule()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(width: 36, height: 4)
+                        .padding(.top, 12)
+
+                    // 위치 + 온도 헤더
+                    VStack(spacing: 4) {
+                        Text("나의 위치")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.55))
                         Text(weather.cityName)
-                            .font(.dvLargeTitle).foregroundColor(.white)
-                        HStack(spacing: 6) {
-                            Image(systemName: conditionIcon(weather.condition))
-                                .font(.system(size: 48)).foregroundColor(.dvAccentGold)
-                        }
-                        Text("\(weather.temperature)°C")
-                            .font(.system(size: 56, weight: .thin)).foregroundColor(.white)
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("\(weather.temperature)°")
+                            .font(.system(size: 96, weight: .thin))
+                            .foregroundColor(.white)
+                            .padding(.vertical, -8)
                         Text(weather.conditionKo)
-                            .font(.dvSubtitle).foregroundColor(.dvTextSecondary)
+                            .font(.system(size: 20))
+                            .foregroundColor(.white.opacity(0.8))
+                        HStack(spacing: 4) {
+                            Text("최고:\(weather.highTemp.map { "\($0)°" } ?? "--")")
+                            Text("최저:\(weather.lowTemp.map { "\($0)°" } ?? "--")")
+                        }
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.white.opacity(0.6))
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 8)
 
-                    // 상세 정보 그리드
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        detailCard(icon: "drop.fill", label: "습도", value: "\(weather.humidity)%", color: .cyan)
-                        detailCard(icon: "aqi.low", label: "미세먼지", value: weather.dustGrade, color: dustColor(weather.dustGrade))
-                        if let tomorrowTemp = weather.tomorrowMorningTemp,
-                           let tomorrowCond = weather.tomorrowMorningCondition {
-                            detailCard(icon: "sunrise.fill", label: "내일 아침", value: "\(tomorrowTemp)°C", color: .dvMorningGold)
-                            detailCard(icon: conditionIcon(tomorrowCond), label: "내일 날씨", value: weather.tomorrowMorningConditionKo ?? "", color: .dvNoonSky)
+                    // 대기질 카드
+                    AQICard(weather: weather)
+
+                    // 시간별 예보 카드
+                    HourlyForecastCard(weather: weather)
+
+                    // 추가 상세 (습도, 미세먼지)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        WeatherDetailTile(icon: "drop.fill", color: .cyan,
+                                          label: "습도", value: "\(weather.humidity)%")
+                        WeatherDetailTile(icon: "aqi.low", color: aqiColor(weather.dustGrade),
+                                          label: "미세먼지", value: weather.dustGrade)
+                        if let tomorrowTemp = weather.tomorrowMorningTemp {
+                            WeatherDetailTile(icon: "sunrise.fill", color: .dvMorningGold,
+                                              label: "내일 아침", value: "\(tomorrowTemp)°")
+                        }
+                        if let tomorrowCond = weather.tomorrowMorningConditionKo {
+                            WeatherDetailTile(icon: conditionIcon(weather.tomorrowMorningCondition ?? ""),
+                                              color: .dvNoonSky, label: "내일 날씨", value: tomorrowCond)
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 16)
 
-                    Spacer()
+                    Spacer(minLength: 32)
                 }
-            }
-            .navigationTitle("현재 날씨")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("닫기") { dismiss() }
-                        .foregroundColor(.dvAccentGold)
-                }
+                .padding(.horizontal, 16)
             }
         }
-    }
-
-    private func detailCard(icon: String, label: String, value: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 24)).foregroundColor(color)
-            Text(value)
-                .font(.system(size: 22, weight: .semibold)).foregroundColor(.white)
-            Text(label)
-                .font(.dvCaption).foregroundColor(.dvTextSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(Color.white.opacity(0.08))
-        .cornerRadius(14)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.hidden)
     }
 
     private func conditionIcon(_ c: String) -> String {
@@ -344,13 +350,176 @@ struct WeatherDetailSheet: View {
         }
     }
 
-    private func dustColor(_ grade: String) -> Color {
+    private func aqiColor(_ grade: String) -> Color {
         switch grade {
-        case "좋음":   return .green
-        case "보통":   return .yellow
-        case "나쁨":   return .orange
-        default:      return .red
+        case "좋음": return .green
+        case "보통": return .yellow
+        case "나쁨": return .orange
+        default:    return .red
         }
+    }
+}
+
+// MARK: - AQI Card
+
+private struct AQICard: View {
+    let weather: WeatherData
+
+    private var aqiNum: Int { weather.aqi ?? weather.dustGradeToAqi }
+    private var aqiDesc: String { weather.aqiDescription ?? weather.dustGrade }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // 헤더
+            HStack {
+                Image(systemName: "aqi.low")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+                Text("대기질")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+                Spacer()
+            }
+
+            // AQI 수치 + 등급
+            Text("\(aqiNum) - \(aqiDesc)")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.white)
+
+            // 컬러 게이지
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    // 트랙
+                    LinearGradient(
+                        colors: [.green, .yellow, .orange, .red],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(height: 6)
+                    .clipShape(Capsule())
+
+                    // 인디케이터
+                    Circle()
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2)
+                        .frame(width: 14, height: 14)
+                        .offset(x: max(0, min(geo.size.width - 14, geo.size.width * weather.aqiFraction - 7)))
+                }
+                .frame(height: 14)
+            }
+            .frame(height: 14)
+
+            // 설명 텍스트
+            Text("현재 대기질 지수는 \(aqiNum) 수준으로 \(aqiDesc)입니다.")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.7))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.dvBorderMid, lineWidth: 1))
+        )
+    }
+}
+
+// MARK: - Hourly Forecast Card
+
+private struct HourlyForecastCard: View {
+    let weather: WeatherData
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "clock")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+                Text("시간별 일기예보")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+                Spacer()
+            }
+
+            if weather.hourlyForecast.isEmpty {
+                Text("시간별 예보 정보를 불러오는 중...")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.5))
+                    .padding(.vertical, 8)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 20) {
+                        ForEach(Array(weather.hourlyForecast.enumerated()), id: \.offset) { idx, item in
+                            HourlyItem(item: item, isNow: idx == 0)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.dvBorderMid, lineWidth: 1))
+        )
+    }
+}
+
+private struct HourlyItem: View {
+    let item: HourlyForecastItem
+    let isNow: Bool
+
+    private var timeLabel: String {
+        if isNow { return "지금" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "a h시"
+        return f.string(from: item.time)
+    }
+
+    private var conditionIcon: String {
+        switch item.condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "sun.max.fill"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(timeLabel)
+                .font(.system(size: 13, weight: isNow ? .semibold : .regular))
+                .foregroundColor(.white.opacity(0.8))
+            Image(systemName: conditionIcon)
+                .font(.system(size: 22))
+                .foregroundColor(.white)
+            Text("\(item.temperature)°")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
+        }
+        .frame(width: 44)
+    }
+}
+
+// MARK: - Detail Tile
+
+private struct WeatherDetailTile: View {
+    let icon: String
+    let color: Color
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon).font(.system(size: 22)).foregroundColor(color)
+            Text(value).font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+            Text(label).font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.dvBorderMid, lineWidth: 1))
+        )
     }
 }
 

@@ -59,6 +59,46 @@ extension Color {
     static let dvDawnIndigo = Color(red: 0.153, green: 0.165, blue: 0.380)    // 깊은 남색·별빛
     static let dvDawnNavy   = Color(red: 0.102, green: 0.122, blue: 0.250)
 
+    // MARK: - Design System v3.0 (경건하고 신비로운 분위기)
+
+    /// 딥 다크 배경 #090D18
+    static let dvBgDeep     = Color(hex: "#090D18")
+    /// 카드 서피스 #0F1420
+    static let dvBgSurface  = Color(hex: "#0F1420")
+    /// Elevated 서피스 #1C2333
+    static let dvBgElevated = Color(hex: "#1C2333")
+    /// v3.0 골드 #C9A84C (dvAccentGold와 별도 유지)
+    static let dvGold       = Color(hex: "#C9A84C")
+    /// 세이지 그린 #7A9E87
+    static let dvSage       = Color(hex: "#7A9E87")
+    /// 힌트 텍스트 — white 30%
+    static let dvTextHint   = Color.white.opacity(0.30)
+    /// 미드 보더 — white 14%
+    static let dvBorderMid  = Color.white.opacity(0.14)
+
+    // MARK: - 시간대 그라데이션 색상 (v3.0)
+
+    /// 아침 그라데이션 시작 — 딥 퍼플
+    static let dvMorningGradStart = Color(hex: "#1A0E2E")
+    /// 아침 그라데이션 중간 — 퍼플
+    static let dvMorningGradMid   = Color(hex: "#3D1F5A")
+    /// 아침 그라데이션 끝 — 코랄
+    static let dvMorningGradEnd   = Color(hex: "#C9704A")
+
+    /// 오후 그라데이션 시작 — 딥 네이비
+    static let dvAfternoonGradStart = Color(hex: "#0D1B2A")
+    /// 오후 그라데이션 중간 — 네이비 블루
+    static let dvAfternoonGradMid   = Color(hex: "#1B3A5C")
+    /// 오후 그라데이션 끝 — 스틸 블루
+    static let dvAfternoonGradEnd   = Color(hex: "#2E7DAA")
+
+    /// 저녁 그라데이션 시작 — 거의 검정
+    static let dvEveningGradStart = Color(hex: "#06080F")
+    /// 저녁 그라데이션 중간 — 딥 인디고
+    static let dvEveningGradMid   = Color(hex: "#0D1533")
+    /// 저녁 그라데이션 끝 — 인디고 블루
+    static let dvEveningGradEnd   = Color(hex: "#1A2460")
+
     // MARK: - 기존 레거시 호환 (참조 코드가 있을 경우 오류 방지)
 
     static let dvPrimary    = Color.primary

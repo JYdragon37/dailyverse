@@ -10,8 +10,13 @@ struct AlarmListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dvBackground
-                    .ignoresSafeArea()
+                // #3 딥 퍼플/인디고 그라데이션 배경 (경건하고 신비로운 분위기)
+                LinearGradient(
+                    colors: [Color.dvBgDeep, Color(hex: "#0D1033"), Color(hex: "#1A0E2E")],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // 알림 권한 거부 배너
@@ -30,6 +35,8 @@ struct AlarmListView: View {
             }
             .navigationTitle("Alarm")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
             .toolbar {
                 if viewModel.alarms.count < 3 {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -99,7 +106,7 @@ struct AlarmListView: View {
                     }
                     .accessibilityLabel("알람 삭제")
                 }
-                .listRowBackground(Color.dvSurface)
+                .listRowBackground(Color.clear)  // 카드 자체 배경 사용
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
             }
@@ -121,25 +128,32 @@ struct AlarmListView: View {
                             .font(.system(size: 16, weight: .semibold))
                         Text("새 알람 추가")
                             .font(.dvBody)
-                        if viewModel.alarms.count >= 5 {
-                            Text("(최대 5개)")
+                        if viewModel.alarms.count >= 3 {
+                            Text("(최대 3개)")
                                 .font(.dvCaption)
                                 .foregroundColor(.secondary)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
+                    // #3 dvGold 그라데이션 버튼
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.dvAccent)
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.dvGold, Color.dvGold.opacity(0.75)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                 }
-                .disabled(viewModel.alarms.count >= 5)
-                .opacity(viewModel.alarms.count >= 5 ? 0.45 : 1.0)
-                .accessibilityLabel(viewModel.alarms.count >= 5 ? "알람 최대 5개 도달" : "새 알람 추가")
+                .disabled(viewModel.alarms.count >= 3)
+                .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
+                .accessibilityLabel(viewModel.alarms.count >= 3 ? "알람 최대 3개 도달" : "새 알람 추가")
             }
         }
     }
@@ -187,33 +201,35 @@ private struct AlarmCardRow: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
+                // #3 시간: 흰색 (활성) / 힌트 (비활성)
                 Text(formattedTime)
                     .font(.system(size: 36, weight: .thin, design: .default))
-                    .foregroundColor(alarm.isEnabled ? .primary : .secondary)
+                    .foregroundColor(alarm.isEnabled ? .white : Color.dvTextHint)
 
                 if !alarm.label.isEmpty {
                     Text(alarm.label)
                         .font(.dvCaption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.dvTextSecondary)
                 }
 
                 HStack(spacing: 6) {
                     Text(alarm.repeatSummary)
                         .font(.dvCaption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.dvTextSecondary)
 
                     Text("·")
                         .font(.dvCaption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.dvTextSecondary)
 
+                    // #3 테마 칩: dvGold
                     Text(alarm.theme.capitalized)
                         .font(.dvCaption)
-                        .foregroundColor(.dvAccent)
+                        .foregroundColor(.dvGold)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(
                             Capsule()
-                                .fill(Color.dvAccent.opacity(0.12))
+                                .fill(Color.dvGold.opacity(0.15))
                         )
                 }
 
@@ -229,14 +245,19 @@ private struct AlarmCardRow: View {
                 set: { _ in onToggle() }
             ))
             .labelsHidden()
+            .tint(Color.dvGold)   // #3 골드 토글
             .accessibilityLabel("\(formattedTime) 알람 \(alarm.isEnabled ? "켜짐" : "꺼짐")")
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
+        // #3 Glassmorphism 카드 (그림자 제거)
         .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.dvSurface)
-                .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.dvBorderMid, lineWidth: 1)
+                )
         )
         .opacity(alarm.isEnabled ? 1.0 : 0.55)
     }
@@ -326,19 +347,20 @@ private struct AlarmEmptyStateView: View {
         VStack(spacing: 20) {
             Spacer()
 
+            // #3 다크 테마 Empty State
             Image(systemName: "alarm")
                 .font(.system(size: 64, weight: .thin))
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.dvTextHint)
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
                 Text("아직 알람이 없어요")
                     .font(.dvTitle)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
 
                 Text("알람을 설정하면 매일 말씀과 함께\n하루를 시작할 수 있어요")
                     .font(.dvBody)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.dvTextSecondary)
                     .multilineTextAlignment(.center)
             }
 
@@ -353,8 +375,13 @@ private struct AlarmEmptyStateView: View {
                 .frame(maxWidth: 240)
                 .padding(.vertical, 14)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.dvAccent)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.dvGold, Color.dvGold.opacity(0.75)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
                 )
                 .foregroundColor(.white)
             }

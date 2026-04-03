@@ -11,24 +11,19 @@ class WeatherService: WeatherServiceProtocol {
     private let cacheManager = WeatherCacheManager()
 
     func fetchWeather(for location: CLLocation) async throws -> WeatherData {
-        // 1. 유효 캐시 확인 (30분)
         if let cached = cacheManager.load(), cached.isValid {
             return cached
         }
-
-        // 2. WeatherKit 시도
         do {
             let data = try await fetchFromWeatherKit(location: location)
             cacheManager.save(data)
             return data
         } catch {
-            // 3. OpenWeatherMap 폴백
             do {
                 let data = try await fetchFromOpenWeatherMap(location: location)
                 cacheManager.save(data)
                 return data
             } catch {
-                // 4. 캐시 만료됐더라도 반환
                 if let stale = cacheManager.load() { return stale }
                 throw WeatherError.unavailable
             }
@@ -40,16 +35,45 @@ class WeatherService: WeatherServiceProtocol {
     private func fetchFromWeatherKit(location: CLLocation) async throws -> WeatherData {
         let weather = try await weatherKitService.weather(for: location)
         let current = weather.currentWeather
-        let hourly = weather.hourlyForecast
+        let hourly  = weather.hourlyForecast
+        let daily   = weather.dailyForecast
 
+        // 내일 아침 6시 예보
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())
         let tomorrowForecast = tomorrow.flatMap { tomorrowDate in
-            hourly.first { forecast in
-                let components = Calendar.current.dateComponents([.hour], from: forecast.date)
-                return Calendar.current.isDate(forecast.date, inSameDayAs: tomorrowDate)
-                    && (components.hour ?? 0) == 6
+            hourly.first {
+                Calendar.current.isDate($0.date, inSameDayAs: tomorrowDate)
+                && (Calendar.current.component(.hour, from: $0.date) == 6)
             }
         }
+
+        // 오늘 최고/최저 기온
+        let todayDaily = daily.forecast.first
+        let highTemp = todayDaily.map { Int($0.highTemperature.converted(to: .celsius).value.rounded()) }
+        let lowTemp  = todayDaily.map { Int($0.lowTemperature.converted(to: .celsius).value.rounded()) }
+
+        // 시간별 예보 12개 (현재 시각 이후)
+        let now = Date()
+        let next12 = Array(hourly.forecast.filter { $0.date >= now }.prefix(12))
+        let hourlyItems = next12.map { f in
+            HourlyForecastItem(
+                time: f.date,
+                temperature: Int(f.temperature.converted(to: .celsius).value.rounded()),
+                condition: mapWeatherKitCondition(f.condition),
+                conditionKo: mapWeatherKitConditionKo(f.condition)
+            )
+        }
+
+        // AQI — OWM Air Pollution API
+        let apiKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
+        let (aqiVal, aqiDesc) = await fetchAQI(
+            lat: location.coordinate.latitude,
+            lon: location.coordinate.longitude,
+            apiKey: apiKey
+        )
+
+        // dustGrade 결정
+        let dustGrade = aqiDesc ?? "보통"
 
         let cityName = await reverseGeocode(location) ?? "현재 위치"
 
@@ -58,21 +82,52 @@ class WeatherService: WeatherServiceProtocol {
             condition: mapWeatherKitCondition(current.condition),
             conditionKo: mapWeatherKitConditionKo(current.condition),
             humidity: Int((current.humidity * 100).rounded()),
-            dustGrade: "보통",
+            dustGrade: dustGrade,
             cityName: cityName,
             cachedAt: Date(),
             tomorrowMorningTemp: tomorrowForecast.map { Int($0.temperature.converted(to: .celsius).value.rounded()) },
             tomorrowMorningCondition: tomorrowForecast.map { mapWeatherKitCondition($0.condition) },
-            tomorrowMorningConditionKo: tomorrowForecast.map { mapWeatherKitConditionKo($0.condition) }
+            tomorrowMorningConditionKo: tomorrowForecast.map { mapWeatherKitConditionKo($0.condition) },
+            highTemp: highTemp,
+            lowTemp: lowTemp,
+            hourlyForecast: hourlyItems,
+            aqi: aqiVal,
+            aqiDescription: aqiDesc
         )
     }
+
+    // MARK: - AQI (OpenWeatherMap Air Pollution API)
+
+    private func fetchAQI(lat: Double, lon: Double, apiKey: String) async -> (Int?, String?) {
+        guard !apiKey.isEmpty,
+              let url = URL(string: "https://api.openweathermap.org/data/2.5/air_pollution?lat=\(lat)&lon=\(lon)&appid=\(apiKey)") else {
+            return (nil, nil)
+        }
+        guard let (data, _) = try? await URLSession.shared.data(from: url),
+              let response = try? JSONDecoder().decode(OWMAirPollutionResponse.self, from: data),
+              let item = response.list.first else {
+            return (nil, nil)
+        }
+        let owmAqi = item.main.aqi  // 1(좋음)~5(매우나쁨)
+        let aqiNum = owmAqi * 50    // 50~250
+        let desc: String
+        switch owmAqi {
+        case 1:    desc = "좋음"
+        case 2:    desc = "보통"
+        case 3:    desc = "나쁨"
+        default:   desc = "매우나쁨"
+        }
+        return (aqiNum, desc)
+    }
+
+    // MARK: - WeatherKit Condition Mapping
 
     private func mapWeatherKitCondition(_ condition: WeatherCondition) -> String {
         switch condition {
         case .clear, .mostlyClear, .partlyCloudy: return "sunny"
-        case .cloudy, .mostlyCloudy: return "cloudy"
+        case .cloudy, .mostlyCloudy:              return "cloudy"
         case .rain, .heavyRain, .drizzle, .freezingRain, .freezingDrizzle: return "rainy"
-        case .snow, .heavySnow, .blowingSnow, .sleet, .wintryMix: return "snowy"
+        case .snow, .heavySnow, .blowingSnow, .sleet, .wintryMix:          return "snowy"
         default: return "any"
         }
     }
@@ -80,10 +135,10 @@ class WeatherService: WeatherServiceProtocol {
     private func mapWeatherKitConditionKo(_ condition: WeatherCondition) -> String {
         switch condition {
         case .clear, .mostlyClear, .partlyCloudy: return "맑음"
-        case .cloudy, .mostlyCloudy: return "흐림"
-        case .rain, .heavyRain, .drizzle: return "비"
-        case .snow, .heavySnow, .blowingSnow: return "눈"
-        default: return "보통"
+        case .cloudy, .mostlyCloudy:              return "흐림"
+        case .rain, .heavyRain, .drizzle:         return "비"
+        case .snow, .heavySnow, .blowingSnow:     return "눈"
+        default: return "흐림"
         }
     }
 
@@ -92,7 +147,6 @@ class WeatherService: WeatherServiceProtocol {
     private func fetchFromOpenWeatherMap(location: CLLocation) async throws -> WeatherData {
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
-        // API Key는 Info.plist OPENWEATHER_API_KEY 또는 하드코딩 (개발 중)
         let apiKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
         guard !apiKey.isEmpty else { throw WeatherError.noApiKey }
 
@@ -102,27 +156,29 @@ class WeatherService: WeatherServiceProtocol {
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(OWMCurrentResponse.self, from: data)
 
+        // AQI도 함께 조회
+        let (aqiVal, aqiDesc) = await fetchAQI(lat: lat, lon: lon, apiKey: apiKey)
+
         return WeatherData(
             temperature: Int(response.main.temp.rounded()),
             condition: mapOWMId(response.weather.first?.id ?? 800),
-            conditionKo: response.weather.first?.description ?? "보통",
+            conditionKo: response.weather.first?.description ?? "흐림",
             humidity: response.main.humidity,
-            dustGrade: "보통",
+            dustGrade: aqiDesc ?? "보통",
             cityName: response.name,
-            cachedAt: Date()
+            cachedAt: Date(),
+            aqi: aqiVal,
+            aqiDescription: aqiDesc
         )
     }
 
     private func mapOWMId(_ id: Int) -> String {
         switch id {
-        case 200...299: return "rainy"
-        case 300...399: return "rainy"
-        case 500...599: return "rainy"
+        case 200...599: return "rainy"
         case 600...699: return "snowy"
         case 700...799: return "cloudy"
-        case 800: return "sunny"
-        case 801...804: return "cloudy"
-        default: return "any"
+        case 800:       return "sunny"
+        default:        return "cloudy"
         }
     }
 
@@ -140,33 +196,29 @@ class WeatherService: WeatherServiceProtocol {
     }
 }
 
-// MARK: - OWM Response Models
+// MARK: - Response Models
 
 private struct OWMCurrentResponse: Codable {
     let main: OWMMain
     let weather: [OWMWeather]
     let name: String
+    struct OWMMain: Codable { let temp: Double; let humidity: Int }
+    struct OWMWeather: Codable { let id: Int; let description: String }
+}
 
-    struct OWMMain: Codable {
-        let temp: Double
-        let humidity: Int
-    }
-    struct OWMWeather: Codable {
-        let id: Int
-        let description: String
-    }
+private struct OWMAirPollutionResponse: Codable {
+    let list: [AirItem]
+    struct AirItem: Codable { let main: AirMain }
+    struct AirMain: Codable { let aqi: Int }
 }
 
 enum WeatherError: Error, LocalizedError {
-    case unavailable
-    case invalidURL
-    case noApiKey
-
+    case unavailable, invalidURL, noApiKey
     var errorDescription: String? {
         switch self {
         case .unavailable: return "날씨 정보를 불러올 수 없습니다."
-        case .invalidURL: return "잘못된 URL입니다."
-        case .noApiKey: return "API 키가 없습니다."
+        case .invalidURL:  return "잘못된 URL입니다."
+        case .noApiKey:    return "API 키가 없습니다."
         }
     }
 }
