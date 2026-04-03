@@ -24,9 +24,22 @@
 	<string>현재 날씨에 맞는 말씀을 전해드리기 위해 위치 정보가 필요합니다.</string>
 	<key>NSWeatherKitUsageDescription</key>
 	<string>현재 날씨에 맞는 말씀을 제공하기 위해 날씨 정보가 필요합니다.</string>
+	<key>OPENWEATHER_API_KEY</key>
+	<string>1fd0b74dbc916987213ea8ac4b596376</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 </dict>
 </plist>

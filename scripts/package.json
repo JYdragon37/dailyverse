@@ -1,0 +1,11 @@
+{
+  "name": "dailyverse-scripts",
+  "version": "1.0.0",
+  "description": "DailyVerse Firestore upload scripts",
+  "scripts": {
+    "upload": "node upload_verses.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
