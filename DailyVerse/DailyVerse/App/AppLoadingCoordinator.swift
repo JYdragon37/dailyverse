@@ -40,8 +40,8 @@ final class AppLoadingCoordinator: ObservableObject {
 
     /// 앱 진입 시 호출. 스플래시 → 로딩 → 준비 완료 순으로 상태를 전이한다.
     func start() async {
-        // Stage 1: 스플래시 0.8초 대기
-        try? await Task.sleep(nanoseconds: 800_000_000)
+        // Stage 1: 스플래시 2.8초 대기 (+2초 추가)
+        try? await Task.sleep(nanoseconds: 2_800_000_000)
         state = .loading
 
         // Stage 2-a: 오늘 날짜 기준 유효 캐시가 있으면 네트워크 호출 없이 즉시 ready

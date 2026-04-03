@@ -7,6 +7,7 @@ struct AlarmStage2View: View {
     @State private var showLoginPrompt: Bool = false
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = false
+    @State private var showWordChallenge: Bool = false   // #5/6 오늘의 한마디
 
     private var currentMode: AppMode { AppMode.current() }
 
@@ -60,7 +61,6 @@ struct AlarmStage2View: View {
                 isVisible = true
             }
         }
-        // Edge Case 5: Stage 2 저장 — 미로그인 시 LoginPromptSheet 표시
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {
                 showLoginPrompt = false
@@ -69,7 +69,20 @@ struct AlarmStage2View: View {
                 showLoginPrompt = false
             }
         }
-        // v5.1: 단일 플랜 — UpsellBottomSheet 제거
+        // #5/6 오늘의 한마디 시트
+        .sheet(isPresented: $showWordChallenge) {
+            if let verse = coordinator.activeVerse {
+                WordChallengeView(
+                    verse: verse,
+                    imageId: coordinator.activeImage?.id,
+                    weather: coordinator.activeWeather,
+                    mode: currentMode,
+                    authManager: authManager
+                ) {
+                    showWordChallenge = false
+                }
+            }
+        }
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
     }
@@ -130,23 +143,23 @@ struct AlarmStage2View: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
-            // 다음 말씀 버튼
+            // #5 오늘의 한마디 버튼 (다음 말씀 대체)
             Button {
-                handleNextVerse()
+                showWordChallenge = true
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "arrow.right.circle")
+                    Text("✨")
                         .accessibilityHidden(true)
-                    Text("다음 말씀")
+                    Text("오늘의 한마디")
                         .font(.dvBody)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.white.opacity(0.2))
+                .background(Color.dvAccentGold.opacity(0.3))
                 .foregroundColor(.white)
                 .cornerRadius(12)
             }
-            .accessibilityLabel("다음 말씀 보기")
+            .accessibilityLabel("오늘의 한마디 따라 적기")
 
             // 닫기 버튼 → 홈 탭으로 이동, TabBar 복원
             Button {

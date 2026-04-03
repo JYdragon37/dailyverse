@@ -63,6 +63,9 @@ struct WakeMissionView: View {
             MathMissionContent(onComplete: onComplete)
         case "typing":
             TypingMissionContent(verse: verse, onComplete: onComplete)
+        case "word":
+            // #4 오늘의 한마디 — textKo 타이핑
+            TypingMissionContent(verse: verse, onComplete: onComplete, useShortText: true)
         default:
             // "none" — 즉시 완료 버튼
             Button(action: onComplete) {
@@ -86,6 +89,7 @@ struct WakeMissionView: View {
         case "shake":  return "폰을 흔들어 깨어나세요"
         case "math":   return "간단한 수학 문제를 풀어요"
         case "typing": return "말씀을 직접 타이핑해요"
+        case "word":   return "오늘의 한마디 ✨"
         default:       return "준비되셨나요?"
         }
     }
@@ -95,6 +99,7 @@ struct WakeMissionView: View {
         case "shake":  return "3번 세게 흔들면 오늘의 말씀이 열립니다"
         case "math":   return "정답을 맞히면 오늘의 말씀을 만납니다"
         case "typing": return "손으로 직접 쓰며 말씀을 마음에 새겨요"
+        case "word":   return "오늘의 한 문장을 그대로 따라 적어보세요"
         default:       return "오늘의 말씀이 기다리고 있어요 🌿"
         }
     }
@@ -263,10 +268,13 @@ private struct MathProblem {
 private struct TypingMissionContent: View {
     let verse: Verse?
     let onComplete: () -> Void
+    var useShortText: Bool = false   // true: textKo(한 문장), false: textKo(동일)
     @State private var typedText = ""
     @FocusState private var isFocused: Bool
 
     private var targetText: String {
+        // useShortText: 오늘의 한마디 미션 — 짧은 핵심 문장
+        // 기본 typing 미션과 동일하게 textKo 사용
         verse?.textKo ?? "두려워하지 말라 내가 너와 함께 함이라"
     }
 

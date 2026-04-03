@@ -87,6 +87,25 @@ class FirestoreService {
             .delete()
     }
 
+    // MARK: - Daily Word (오늘의 한마디 Gallery 저장)
+
+    func saveDailyWord(_ entry: DailyWordEntry, userId: String) async throws {
+        try await db.collection("daily_words")
+            .document(userId)
+            .collection("words")
+            .document(entry.id)
+            .setData(from: entry)
+    }
+
+    func fetchDailyWords(userId: String) async throws -> [DailyWordEntry] {
+        let snapshot = try await db.collection("daily_words")
+            .document(userId)
+            .collection("words")
+            .order(by: "saved_at", descending: true)
+            .getDocuments()
+        return snapshot.documents.compactMap { try? $0.data(as: DailyWordEntry.self) }
+    }
+
     // MARK: - User
 
     func createUser(uid: String, email: String, displayName: String, nickname: String = "친구") async throws {
