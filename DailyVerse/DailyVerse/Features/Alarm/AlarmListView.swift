@@ -7,10 +7,13 @@ struct AlarmListView: View {
     @StateObject private var viewModel = AlarmViewModel()
     @EnvironmentObject private var permissionManager: PermissionManager
 
+    // Fix 4: 날씨 + 오늘의 말씀
+    @State private var cachedWeather: WeatherData?
+    @State private var todayVerse: Verse?
+
     var body: some View {
         NavigationStack {
             ZStack {
-                // #3 딥 퍼플/인디고 그라데이션 배경 (경건하고 신비로운 분위기)
                 LinearGradient(
                     colors: [Color.dvBgDeep, Color(hex: "#0D1033"), Color(hex: "#1A0E2E")],
                     startPoint: .topLeading,
@@ -19,7 +22,6 @@ struct AlarmListView: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // 알림 권한 거부 배너
                     if permissionManager.notificationStatus == .denied {
                         NotificationPermissionBanner()
                     }
@@ -34,6 +36,18 @@ struct AlarmListView: View {
                 }
             }
             .navigationTitle("Alarm")
+            .task {
+                // Fix 4: 날씨 캐시 로드
+                cachedWeather = WeatherCacheManager().load()
+                // Fix 4: 오늘의 말씀 로드 (DailyCacheManager → Core Data)
+                let mode = AppMode.current()
+                if let id = DailyCacheManager.shared.getVerseId(for: mode),
+                   let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                    todayVerse = verse
+                } else {
+                    todayVerse = OfflineFallbackManager.shared.fallbackVerse(for: mode)
+                }
+            }
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
@@ -88,6 +102,37 @@ struct AlarmListView: View {
 
     private var alarmList: some View {
         List {
+            // Fix 4: 상단 — 시간별 일기예보 카드
+            if let weather = cachedWeather {
+                Section {
+                    AlarmHourlyForecastCard(weather: weather)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+                        .listRowSeparator(.hidden)
+                }
+
+                // Fix 4: 오늘의 말씀
+                if let verse = todayVerse {
+                    Section {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(verse.textKo)
+                                .font(.custom("Georgia-BoldItalic", size: 18))
+                                .foregroundColor(.white.opacity(0.9))
+                                .lineSpacing(4)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(verse.reference)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.dvGold)
+                        }
+                        .padding(.vertical, 8)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+                        .listRowSeparator(.hidden)
+                    }
+                }
+            }
+
+            // 알람 카드들
             ForEach(sortedAlarms) { alarm in
                 AlarmCardRow(
                     alarm: alarm,
@@ -128,11 +173,7 @@ struct AlarmListView: View {
                             .font(.system(size: 16, weight: .semibold))
                         Text("새 알람 추가")
                             .font(.dvBody)
-                        if viewModel.alarms.count >= 3 {
-                            Text("(최대 3개)")
-                                .font(.dvCaption)
-                                .foregroundColor(.secondary)
-                        }
+                        // (최대 3개) 텍스트 제거
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -149,8 +190,7 @@ struct AlarmListView: View {
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
-                    // Fix 2: 탭바 위 여유 공간 확보 (커스텀 탭바 ~84pt + 여유)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 140)  // 탭바 위 더 여유있게
                 }
                 .disabled(viewModel.alarms.count >= 3)
                 .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
@@ -423,6 +463,86 @@ private struct AlarmEmptyStateView: View {
 
     return AlarmListView()
         .environmentObject(PermissionManager())
+}
+
+// MARK: - Fix 4: 알람 화면 시간별 일기예보 카드
+
+private struct AlarmHourlyForecastCard: View {
+    let weather: WeatherData
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "clock")
+                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
+                Text("시간별 일기예보")
+                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
+            }
+
+            if weather.hourlyForecast.isEmpty {
+                Text("예보 정보 없음")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.4))
+                    .padding(.vertical, 4)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 18) {
+                        ForEach(Array(weather.hourlyForecast.enumerated()), id: \.offset) { idx, item in
+                            AlarmHourlyItem(item: item, isNow: idx == 0)
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.07))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.10), lineWidth: 1))
+        )
+    }
+}
+
+private struct AlarmHourlyItem: View {
+    let item: HourlyForecastItem
+    let isNow: Bool
+
+    private var timeLabel: String {
+        if isNow { return "지금" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "a h시"
+        return f.string(from: item.time)
+    }
+
+    private var conditionIcon: String {
+        switch item.condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "sun.max.fill"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Text(timeLabel)
+                .font(.system(size: 11, weight: isNow ? .semibold : .regular))
+                .foregroundColor(.white.opacity(0.75))
+                .frame(height: 15)
+            Image(systemName: conditionIcon)
+                .font(.system(size: 17))
+                .foregroundColor(.white.opacity(0.9))
+                .frame(width: 24, height: 24)
+            Text("\(item.temperature)°")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .frame(height: 18)
+        }
+        .frame(width: 38)
+    }
 }
 
 #Preview("알람 없음") {

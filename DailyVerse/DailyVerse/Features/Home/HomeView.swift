@@ -127,27 +127,26 @@ struct HomeView: View {
                 }
             }
 
-            // 시간 + 날씨(온도+습도) 한 줄 — #3 중복 제거, #4 탭 시 상세
+            // Fix 1: 시간/날씨 — 아이콘 너비(26)+간격(8)=34pt leading으로 G,D와 수직 정렬
             HStack(spacing: 8) {
+                Color.clear.frame(width: 34, height: 1)  // 아이콘+spacing 만큼 들여쓰기
+
                 Text(currentTimeString)
-                    .font(.dvSubtitle)
-                    .foregroundColor(.white.opacity(0.9))
+                    .font(.system(size: 17, weight: .semibold))  // 크기 업
+                    .foregroundColor(.white.opacity(0.95))
 
                 if let weather = viewModel.weather {
                     Text("·").foregroundColor(.white.opacity(0.4))
-
-                    // #4 날씨 탭 → 상세 시트
                     Button {
                         showWeatherDetail = true
                     } label: {
                         HStack(spacing: 5) {
                             Image(systemName: weatherIcon(weather.condition))
-                                .font(.system(size: 13))
-                            // #3 습도 추가
+                                .font(.system(size: 15))
                             Text("\(weather.cityName) \(weather.temperature)°C · 💧\(weather.humidity)%")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.system(size: 16, weight: .medium))  // 크기 업
                         }
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.white.opacity(0.95))
                     }
                 }
             }

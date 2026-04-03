@@ -29,9 +29,11 @@ struct SettingsView: View {
                 accountSection
                 subscriptionSection
                 permissionsSection
-                appearanceSection      // v5.1 신규
+                appearanceSection
                 appInfoSection
                 feedbackSection
+                // Fix 3: 탭바 겹침 방지 — 하단 여백
+                Color.clear.listRowBackground(Color.clear).frame(height: 60)
             }
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)
