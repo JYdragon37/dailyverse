@@ -41,7 +41,7 @@ struct MainTabView: View {
             }
             // UITabBar.appearance().isHidden = true로 전역 숨김 (DailyVerseApp.init)
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 83)  // 커스텀 탭 바 공간 확보
+                Color.clear.frame(height: 60)  // 커스텀 탭 바 공간 확보
             }
 
             // 커스텀 탭 바 오버레이
@@ -70,39 +70,42 @@ private struct DVTabBar: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 미세 구분선
-            Rectangle()
-                .fill(Color.white.opacity(0.10))
-                .frame(height: 0.5)
-
-            HStack(spacing: 0) {
-                ForEach(tabs, id: \.0) { tag, label, icon in
-                    Button {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            selectedTab = tag
-                        }
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: icon)
-                                .font(.system(size: 22))
-                            Text(label)
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundColor(selectedTab == tag ? Color.dvGold : Color.dvTextHint)
-                        .animation(.easeOut(duration: 0.2), value: selectedTab)
+        HStack(spacing: 0) {
+            ForEach(tabs, id: \.0) { tag, label, icon in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedTab = tag
                     }
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: icon)
+                            .font(.system(size: 20, weight: selectedTab == tag ? .semibold : .regular))
+                            .scaleEffect(selectedTab == tag ? 1.08 : 1.0)
+                        Text(label)
+                            .font(.system(size: 9.5, weight: .medium))
+                    }
+                    .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.35))
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(label)
+                    .padding(.top, 10)
+                    .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom - 4 : 16)
+                    .contentShape(Rectangle())
                 }
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)
+                .accessibilityLabel(label)
             }
-            .padding(.top, 12)
-            .padding(.bottom, safeAreaBottom + 8)
         }
         .background(
-            ZStack {
-                Color.dvBgDeep.opacity(0.85)
-                Rectangle().fill(.ultraThinMaterial)
+            // 상단 미세 선 + 완전 투명 유리 효과
+            ZStack(alignment: .top) {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))  // 매우 미묘한 오버레이
+                // 상단 미세 구분선
+                Rectangle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(height: 0.33)
             }
         )
     }

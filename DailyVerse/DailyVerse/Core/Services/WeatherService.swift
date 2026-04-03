@@ -11,7 +11,8 @@ class WeatherService: WeatherServiceProtocol {
     private let cacheManager = WeatherCacheManager()
 
     func fetchWeather(for location: CLLocation) async throws -> WeatherData {
-        if let cached = cacheManager.load(), cached.isValid {
+        // hourlyForecast가 비어있는 구 캐시는 무시하고 새로 fetch
+        if let cached = cacheManager.load(), cached.isValid, !cached.hourlyForecast.isEmpty {
             return cached
         }
         do {
