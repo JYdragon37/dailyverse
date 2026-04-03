@@ -13,8 +13,9 @@ final class NotificationManager: NSObject {
 
     func requestPermission() async -> Bool {
         do {
+            // .timeSensitive: 집중 모드(Focus)에서도 알람이 표시되도록 요청
             let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .badge, .sound])
+                .requestAuthorization(options: [.alert, .badge, .sound, .timeSensitive])
             return granted
         } catch {
             return false
@@ -28,9 +29,12 @@ final class NotificationManager: NSObject {
         guard alarm.isEnabled else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "DailyVerse"
+        content.title = "DailyVerse 🔔"
         content.body = "\"\(verse.textKo)\"\n\(verse.reference) \u{2022} \(verse.theme.first?.capitalized ?? "")"
         content.sound = .default
+        // timeSensitive: 집중 모드(Focus)를 뚫고 알람이 표시됨 (iOS 15+)
+        // 엔타이틀먼트 com.apple.developer.usernotifications.time-sensitive 필요
+        content.interruptionLevel = .timeSensitive
         content.userInfo = [
             "alarm_id": alarm.id.uuidString,
             "verse_id": verse.id,
@@ -90,9 +94,10 @@ final class NotificationManager: NSObject {
 
     func rescheduleSnooze(alarmId: UUID, verse: Verse, minutes: Int = 5) {
         let content = UNMutableNotificationContent()
-        content.title = "DailyVerse"
+        content.title = "DailyVerse 🔔"
         content.body = "\"\(verse.textKo)\"\n\(verse.reference)"
         content.sound = .default
+        content.interruptionLevel = .timeSensitive
         content.userInfo = [
             "alarm_id": alarmId.uuidString,
             "verse_id": verse.id,

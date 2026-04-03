@@ -61,9 +61,8 @@ final class AlarmViewModel: ObservableObject {
         toastMessage = "알람이 삭제되었습니다."
 
         undoTask?.cancel()
-        undoTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled else { return }
+        undoTask = Task { @MainActor [weak self] in
+            do { try await Task.sleep(for: .seconds(3)) } catch { return }
             guard let self else { return }
             if let toDelete = self.pendingDeleteAlarm, toDelete.id == id {
                 try? self.alarmRepository.delete(id: id)

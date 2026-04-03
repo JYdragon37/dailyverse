@@ -87,7 +87,22 @@ struct AlarmStage2View: View {
 
     @ViewBuilder
     private var backgroundView: some View {
-        // TODO: Sprint 3 이미지 서비스 연동 시 AsyncImage로 교체
+        if let imageURL = coordinator.activeImage.flatMap({ URL(string: $0.storageUrl) }) {
+            AsyncImage(url: imageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    fallbackGradient
+                }
+            }
+            .ignoresSafeArea()
+        } else {
+            fallbackGradient
+        }
+    }
+
+    private var fallbackGradient: some View {
         LinearGradient(
             colors: gradientColors(for: currentMode),
             startPoint: .topLeading,

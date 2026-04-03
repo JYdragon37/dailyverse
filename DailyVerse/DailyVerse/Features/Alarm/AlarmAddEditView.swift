@@ -363,11 +363,13 @@ private struct WeekdaySelector: View {
                     label: dayLabels[index],
                     isSelected: selectedDays.contains(index)
                 ) {
-                    if selectedDays.contains(index) {
-                        selectedDays.remove(index)
+                    var days = selectedDays
+                    if days.contains(index) {
+                        days.remove(index)
                     } else {
-                        selectedDays.insert(index)
+                        days.insert(index)
                     }
+                    selectedDays = days
                 }
             }
         }

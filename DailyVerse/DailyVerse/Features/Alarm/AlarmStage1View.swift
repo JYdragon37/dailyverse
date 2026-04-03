@@ -6,13 +6,23 @@ struct AlarmStage1View: View {
 
     var body: some View {
         ZStack {
-            // 다크 그라데이션 배경
-            LinearGradient(
-                colors: [Color.black, Color(red: 0.05, green: 0.07, blue: 0.18)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // 감성 이미지 배경 (없으면 다크 그라데이션 폴백)
+            if let imageURL = coordinator.activeImage.flatMap({ URL(string: $0.storageUrl) }) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        darkFallbackGradient
+                    }
+                }
+                .ignoresSafeArea()
+            } else {
+                darkFallbackGradient
+            }
+
+            // 말씀이 잘 보이도록 다크 오버레이
+            Color.black.opacity(0.55).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
@@ -45,7 +55,7 @@ struct AlarmStage1View: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "alarm")
                                     .accessibilityHidden(true)
-                                Text("스누즈 5분")
+                                Text("스누즈 \(coordinator.activeSnoozeInterval)분")
                                     .font(.dvSubtitle)
                             }
                             .frame(maxWidth: .infinity)
@@ -89,6 +99,15 @@ struct AlarmStage1View: View {
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
         .statusBarHidden(false)
+    }
+
+    private var darkFallbackGradient: some View {
+        LinearGradient(
+            colors: [Color.black, Color(red: 0.05, green: 0.07, blue: 0.18)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
     }
 }
 

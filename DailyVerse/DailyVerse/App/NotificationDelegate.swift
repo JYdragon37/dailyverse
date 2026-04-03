@@ -23,8 +23,8 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             object: nil,
             userInfo: userInfo as? [String: Any]
         )
-        // Edge Case 8: 포그라운드에서는 배너 표시 안 함 — Stage 1이 직접 오버레이
-        completionHandler([])
+        // Edge Case 8: 포그라운드에서 배너는 숨기되 소리는 재생 — Stage 1 오버레이가 화면 담당
+        completionHandler([.sound])
     }
 
     // MARK: - Background / Locked Screen Tap
