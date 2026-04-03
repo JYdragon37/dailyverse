@@ -24,52 +24,105 @@ const IMAGES_DIR = './images_to_upload';  // 업로드할 이미지 폴더
 // 파일명만 추가하면 자동으로 Firebase Storage 업로드 + Firestore 등록
 
 const IMAGE_METADATA = [
-  // 예시: 실제 파일명으로 교체하세요
   {
-    filename: "morning_hope_01.jpg",
-    mode: ["morning"],
-    theme: ["hope", "courage"],
-    mood: ["bright", "dramatic"],
-    season: ["all"],
-    weather: ["any"],
-    tone: "bright",
-    text_position: "bottom",
-    text_color: "light",
-    is_sacred_safe: true,
-    avoid_themes: [],
-    source: "Genspark Pro",
-    license: "Commercial",
-  },
-  {
-    filename: "evening_peace_01.jpg",
-    mode: ["evening"],
-    theme: ["peace", "comfort"],
+    // 예루살렘 성벽 골목 — 황혼, 어두운 돌길
+    filename: "Photorealistic_Jerusalem_Old_City_ancient_stone_wa-1775193696155.png",
+    mode: ["evening", "dawn"],
+    theme: ["wisdom", "reflection", "stillness"],
     mood: ["serene", "calm"],
-    season: ["all"],
-    weather: ["any"],
-    tone: "dark",
-    text_position: "center",
-    text_color: "light",
-    is_sacred_safe: true,
-    avoid_themes: [],
-    source: "Genspark Pro",
-    license: "Commercial",
+    season: ["all"], weather: ["cloudy", "any"],
+    tone: "dark", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
   },
-  // 이 패턴으로 계속 추가...
-  // {
-  //   filename: "파일명.jpg",
-  //   mode: ["morning", "afternoon"],  // morning/afternoon/evening/dawn/all
-  //   theme: ["hope"],                 // 12가지 테마 중 선택
-  //   mood: ["bright"],               // bright/calm/warm/serene/dramatic/cozy
-  //   season: ["all"],                // spring/summer/autumn/winter/all
-  //   weather: ["any"],               // sunny/cloudy/rainy/snowy/any
-  //   tone: "bright",                 // bright/mid/dark
-  //   text_position: "bottom",        // top/center/bottom
-  //   text_color: "light",            // light/dark
-  //   is_sacred_safe: true,
-  //   source: "Genspark Pro",
-  //   license: "Commercial",
-  // },
+  {
+    // 시나이 광야 새벽 길 — 어두운 산, 구름
+    filename: "Photorealistic_Mount_Sinai_desert_landscape_at_daw-1775193657399.png",
+    mode: ["dawn", "evening"],
+    theme: ["stillness", "faith", "surrender"],
+    mood: ["serene", "calm"],
+    season: ["all"], weather: ["any"],
+    tone: "dark", text_position: "center", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 페트라 신전 — 밝은 사암, 웅장함
+    filename: "Photorealistic_Petra_Jordan_Treasury_ancient_carve-1775193673692.png",
+    mode: ["morning", "afternoon"],
+    theme: ["wisdom", "courage", "strength"],
+    mood: ["dramatic", "calm"],
+    season: ["all"], weather: ["sunny", "any"],
+    tone: "bright", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 새벽 안개 낀 고요한 호수
+    filename: "Natural_photographic_scene_of_peaceful_lake_at_daw-1775193910947.png",
+    mode: ["morning", "dawn"],
+    theme: ["stillness", "peace", "renewal"],
+    mood: ["serene", "calm"],
+    season: ["spring", "summer", "all"], weather: ["cloudy", "any"],
+    tone: "mid", text_position: "center", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 해변 일몰 — 파스텔 하늘, 잔잔한 파도
+    filename: "Authentic_camera_photograph_of_tranquil_coastal_sc-1775193922802.png",
+    mode: ["evening", "morning"],
+    theme: ["peace", "comfort", "hope"],
+    mood: ["warm", "serene"],
+    season: ["summer", "all"], weather: ["any"],
+    tone: "mid", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 밝은 해변 일몰 — 황금빛, 혼자 걷는 사람
+    filename: "Professional_natural_photograph_of_serene_ocean_be-1775193895561.png",
+    mode: ["morning", "afternoon"],
+    theme: ["hope", "renewal", "gratitude"],
+    mood: ["bright", "warm"],
+    season: ["summer", "all"], weather: ["sunny", "any"],
+    tone: "bright", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 앙코르와트 새벽 — 물 반영, 안개, 일출
+    filename: "Authentic_camera_photograph_of_Angkor_Wat_Cambodia-1775194139198.png",
+    mode: ["morning", "dawn"],
+    theme: ["hope", "faith", "renewal"],
+    mood: ["serene", "dramatic"],
+    season: ["all"], weather: ["any"],
+    tone: "mid", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 몽생미셸 석양 — 황금빛 하늘, 반사
+    filename: "Natural_photographic_scene_of_Mont_Saint-Michel_Fr-1775194153665.png",
+    mode: ["evening", "morning"],
+    theme: ["peace", "wisdom", "reflection"],
+    mood: ["warm", "serene"],
+    season: ["all"], weather: ["any"],
+    tone: "mid", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
+  {
+    // 산토리니 석양 — 흰 건물, 황금빛, 바다
+    filename: "Professional_natural_photograph_of_Santorini_Greec-1775194128185.png",
+    mode: ["evening", "afternoon"],
+    theme: ["gratitude", "peace", "comfort"],
+    mood: ["warm", "bright"],
+    season: ["summer", "all"], weather: ["sunny", "any"],
+    tone: "mid", text_position: "bottom", text_color: "light",
+    is_sacred_safe: true, avoid_themes: [],
+    source: "Genspark Pro", license: "Commercial",
+  },
 ];
 
 // ─── TAG 가이드 ────────────────────────────────────────────────────────────────
