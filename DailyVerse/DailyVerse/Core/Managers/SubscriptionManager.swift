@@ -4,7 +4,11 @@ import RevenueCat
 
 @MainActor
 final class SubscriptionManager: ObservableObject {
+    #if DEBUG
+    @Published var isPremium: Bool = true   // 개발 중 테스트용 — 출시 전 false로 변경
+    #else
     @Published var isPremium: Bool = false
+    #endif
     @Published var subscriptionStatus: String = "free"
     @Published var expirationDate: Date? = nil
     @Published var isLoading: Bool = false

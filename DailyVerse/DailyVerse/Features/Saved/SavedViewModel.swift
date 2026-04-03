@@ -70,9 +70,9 @@ final class SavedViewModel: ObservableObject {
 
     private func showToast(_ message: String) {
         toastMessage = message
-        Task {
+        Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(2))
-            toastMessage = nil
+            self?.toastMessage = nil
         }
     }
 }

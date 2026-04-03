@@ -97,7 +97,9 @@ class AuthManager: ObservableObject {
 
         // Step 4: RevenueCat 로그아웃 + UserDefaults 초기화
         subscriptionManager.logOut()
-        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+        if let bundleId = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleId)
+        }
 
         Analytics.logEvent("account_deleted", parameters: nil)
     }
