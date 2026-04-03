@@ -153,7 +153,9 @@ final class HomeViewModel: ObservableObject {
             print("🖼️ [Image] Fetched \(images.count)개, mode=\(mode.rawValue)")
             images.forEach { print("  - \($0.id): \($0.storageUrl)") }
             #endif
-            currentImage = selectImage(from: images, mode: mode)
+            // v5.1: Gallery 핀 이미지 우선 적용
+            let pinnedId = UserDefaults.standard.string(forKey: "pinnedImage_\(mode.rawValue)")
+            currentImage = selectImage(from: images, mode: mode, pinnedImageId: pinnedId)
             #if DEBUG
             print("🖼️ [Image] Selected: \(currentImage?.id ?? "nil") | URL: \(currentImage?.storageUrl ?? "-")")
             #endif

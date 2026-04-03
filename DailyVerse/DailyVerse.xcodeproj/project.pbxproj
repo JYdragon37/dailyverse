@@ -90,6 +90,8 @@
 		AA11BB22CC33DD44EE55FF67 /* AlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */; };
 		BB22CC33DD44EE55FF6677AB /* LegacyAlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */; };
 		CC33DD44EE55FF6677AABB23 /* AlarmKitEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */; };
+		D39674E67A7B4197ADB946FE /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52BFEE375434767B74AA06F /* GalleryView.swift */; };
+		5BBE906E89F743F09DE20AEC /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BBE47153FCE4F30946B3242 /* GalleryViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -191,6 +193,8 @@
 		AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEngine.swift; sourceTree = "<group>"; };
 		BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyAlarmEngine.swift; sourceTree = "<group>"; };
 		CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitEngine.swift; sourceTree = "<group>"; };
+		A52BFEE375434767B74AA06F /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
+		0BBE47153FCE4F30946B3242 /* GalleryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -428,10 +432,20 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		CE51278B308F4B9788BB6197 /* Gallery */ = {
+			isa = PBXGroup;
+			children = (
+				A52BFEE375434767B74AA06F /* GalleryView.swift */,
+				0BBE47153FCE4F30946B3242 /* GalleryViewModel.swift */,
+			);
+			path = Gallery;
+			sourceTree = "<group>";
+		};
 		DEEFF164B9331317976C2B9B /* Features */ = {
 			isa = PBXGroup;
 			children = (
 				51F353101DD50EB0FD099465 /* Alarm */,
+				CE51278B308F4B9788BB6197 /* Gallery */,
 				D639B5C829A7AC3DD9540F44 /* Home */,
 				01F28048AAC18375B41DF90E /* Onboarding */,
 				8C5C67BBE6E6582A36DCEFB6 /* Saved */,
@@ -629,6 +643,8 @@
 				737915491CC78A7C0B23171A /* DailyVerseCache.swift in Sources */,
 				58FD7C1C09D9826CCD5A8865 /* FirestoreService.swift in Sources */,
 				BEAA3F18140EA87C7D2F8C82 /* Font+DailyVerse.swift in Sources */,
+				D39674E67A7B4197ADB946FE /* GalleryView.swift in Sources */,
+				5BBE906E89F743F09DE20AEC /* GalleryViewModel.swift in Sources */,
 				9DAB56CB74E13B304135646C /* HomeView.swift in Sources */,
 				2B661F0350764A885C968D0B /* HomeViewModel.swift in Sources */,
 				0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */,

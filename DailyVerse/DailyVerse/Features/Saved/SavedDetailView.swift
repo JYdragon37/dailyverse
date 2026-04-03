@@ -24,10 +24,11 @@ struct SavedDetailView: View {
 
     private var modeText: String {
         switch savedVerse.mode {
-        case "morning": return "아침"
+        case "morning":   return "아침"
         case "afternoon": return "낮"
-        case "evening": return "저녁"
-        default: return savedVerse.mode
+        case "evening":   return "저녁"
+        case "dawn":      return "새벽"
+        default:          return savedVerse.mode
         }
     }
 
@@ -65,6 +66,12 @@ struct SavedDetailView: View {
         case "evening":
             return LinearGradient(
                 colors: [Color(red: 0.15, green: 0.12, blue: 0.35), Color(red: 0.05, green: 0.05, blue: 0.15)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        case "dawn":
+            return LinearGradient(
+                colors: [Color(red: 0.06, green: 0.06, blue: 0.20), Color(red: 0.10, green: 0.12, blue: 0.25)],
                 startPoint: .top,
                 endPoint: .bottom
             )
