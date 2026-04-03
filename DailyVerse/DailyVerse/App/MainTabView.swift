@@ -39,22 +39,28 @@ struct MainTabView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                     .tag(4)
             }
-            // #2 Fix: safeAreaInset을 실제 탭바 높이(~84pt)에 맞게 조정
             .safeAreaInset(edge: .bottom) {
                 Color.clear.frame(height: 84)
             }
 
-            // 하단 그라데이션 페이드 (Calm 스타일)
+            // Fix 3: 그라데이션 불투명도 강화 + 높이 확대 (컨텐츠 비침 방지)
             LinearGradient(
-                colors: [.clear, Color.black.opacity(0.68)],
+                colors: [
+                    .clear,
+                    Color.black.opacity(0.55),
+                    Color.black.opacity(0.90)
+                ],
                 startPoint: .init(x: 0.5, y: 0.0),
                 endPoint: .bottom
             )
-            .frame(height: 120)
+            .frame(height: 150)
             .allowsHitTesting(false)
+            // Fix 1: ignoresSafeArea로 그라데이션이 화면 끝까지 확장
+            .ignoresSafeArea(edges: .bottom)
 
-            // 커스텀 탭 바 (배경 없음 — 그라데이션 위에 아이콘만 표시)
+            // Fix 1: DVTabBar를 화면 끝(ignoresSafeArea)까지 내림
             DVTabBar(selectedTab: $selectedTab)
+                .ignoresSafeArea(edges: .bottom)
         }
         .onReceive(NotificationCenter.default.publisher(for: .dvSwitchToAlarmTab)) { _ in
             selectedTab = 1
@@ -105,7 +111,8 @@ private struct DVTabBar: View {
                         .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.45))
                         .frame(maxWidth: .infinity)
                         .padding(.top, 10)
-                        .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom + 2 : 20)
+                        // ignoresSafeArea 적용 후 safeAreaBottom 그대로 사용
+                        .padding(.bottom, safeAreaBottom > 0 ? safeAreaBottom + 4 : 22)
                         .contentShape(Rectangle())
                     }
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)

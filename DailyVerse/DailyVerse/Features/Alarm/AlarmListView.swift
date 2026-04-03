@@ -149,7 +149,8 @@ struct AlarmListView: View {
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
+                    // Fix 2: 탭바 위 여유 공간 확보 (커스텀 탭바 ~84pt + 여유)
+                    .padding(.bottom, 100)
                 }
                 .disabled(viewModel.alarms.count >= 3)
                 .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
