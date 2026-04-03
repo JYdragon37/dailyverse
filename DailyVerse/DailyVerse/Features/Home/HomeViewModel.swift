@@ -83,7 +83,8 @@ final class HomeViewModel: ObservableObject {
         // 말씀 로드
         await loadVerse(for: currentMode)
 
-        // 이미지 로드
+        // 이미지 로드 (Bug C 수정: Firestore pinnedImages를 UserDefaults에 동기화)
+        await syncPinnedImagesIfNeeded()
         await loadImage(for: currentMode)
 
         // 알람 CTA 재평가
@@ -139,6 +140,18 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Private: Data Loading
+
+    /// Bug C 수정: 로그인 유저의 Firestore pinnedImages를 UserDefaults에 동기화
+    /// 다른 기기에서 설정한 핀이 반영되도록 최초 로드 시 1회 수행
+    private func syncPinnedImagesIfNeeded() async {
+        guard let userId = authManager.userId else { return }
+        guard let user = try? await FirestoreService().fetchUser(uid: userId) else { return }
+        for mode in AppMode.allCases {
+            if let pinnedId = user.pinnedImages.pinnedImageId(for: mode) {
+                UserDefaults.standard.set(pinnedId, forKey: "pinnedImage_\(mode.rawValue)")
+            }
+        }
+    }
 
     private func loadVerse(for mode: AppMode) async {
         let verse = await verseRepository.currentVerse(for: mode, weather: weather)

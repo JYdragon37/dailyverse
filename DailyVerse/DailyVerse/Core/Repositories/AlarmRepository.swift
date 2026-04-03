@@ -29,9 +29,14 @@ class AlarmRepository {
         if let data = try? JSONEncoder().encode(alarm.repeatDays) {
             entity.repeatDays = String(data: data, encoding: .utf8)
         }
-        // label, snoozeInterval — Core Data migration 없이 UserDefaults 보조 저장
+        // label + v5.1 새 필드 — Core Data migration 없이 UserDefaults 보조 저장
         AlarmAuxStore.setLabel(alarm.label, for: alarm.id)
         AlarmAuxStore.setSnoozeInterval(alarm.snoozeInterval, for: alarm.id)
+        AlarmAuxStore.setMaxSnoozeCount(alarm.maxSnoozeCount, for: alarm.id)
+        AlarmAuxStore.setWakeMission(alarm.wakeMission, for: alarm.id)
+        AlarmAuxStore.setSoundId(alarm.soundId, for: alarm.id)
+        AlarmAuxStore.setVolume(alarm.volume, for: alarm.id)
+        AlarmAuxStore.setAlertStyle(alarm.alertStyle, for: alarm.id)
         try context.save()
     }
 
@@ -80,10 +85,7 @@ extension Alarm {
             days = decoded
         }
 
-        // label, snoozeInterval — UserDefaults 보조 저장에서 복원 (없으면 기본값)
-        let restoredLabel = AlarmAuxStore.label(for: id)
-        let restoredInterval = AlarmAuxStore.snoozeInterval(for: id)
-
+        // 모든 필드 복원 (없으면 기본값)
         self.init(
             id: id,
             time: time,
@@ -91,39 +93,89 @@ extension Alarm {
             theme: theme,
             isEnabled: entity.isEnabled,
             snoozeCount: Int(entity.snoozeCount),
-            label: restoredLabel,
-            snoozeInterval: restoredInterval
+            label: AlarmAuxStore.label(for: id),
+            snoozeInterval: AlarmAuxStore.snoozeInterval(for: id),
+            maxSnoozeCount: AlarmAuxStore.maxSnoozeCount(for: id),
+            wakeMission: AlarmAuxStore.wakeMission(for: id),
+            soundId: AlarmAuxStore.soundId(for: id),
+            volume: AlarmAuxStore.volume(for: id),
+            alertStyle: AlarmAuxStore.alertStyle(for: id)
         )
     }
 }
 
-// MARK: - AlarmAuxStore (label / snoozeInterval 보조 저장소)
-// Core Data 스키마 마이그레이션 없이 label, snoozeInterval을 UserDefaults에 저장합니다.
-// 키 패턴: "alarmAux_{uuid}_label", "alarmAux_{uuid}_snoozeInterval"
+// MARK: - AlarmAuxStore
+// Core Data 스키마 마이그레이션 없이 모든 Alarm 확장 필드를 UserDefaults에 저장.
 
 enum AlarmAuxStore {
-    private static func labelKey(for id: UUID) -> String { "alarmAux_\(id.uuidString)_label" }
-    private static func intervalKey(for id: UUID) -> String { "alarmAux_\(id.uuidString)_snoozeInterval" }
+    private static func key(_ field: String, for id: UUID) -> String {
+        "alarmAux_\(id.uuidString)_\(field)"
+    }
 
+    // MARK: - label
     static func label(for id: UUID) -> String? {
-        UserDefaults.standard.string(forKey: labelKey(for: id))
+        UserDefaults.standard.string(forKey: key("label", for: id))
+    }
+    static func setLabel(_ v: String, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("label", for: id))
     }
 
+    // MARK: - snoozeInterval
     static func snoozeInterval(for id: UUID) -> Int {
-        let stored = UserDefaults.standard.integer(forKey: intervalKey(for: id))
-        return stored > 0 ? stored : 5
+        let s = UserDefaults.standard.integer(forKey: key("snoozeInterval", for: id))
+        return s > 0 ? s : 5
+    }
+    static func setSnoozeInterval(_ v: Int, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("snoozeInterval", for: id))
     }
 
-    static func setLabel(_ label: String, for id: UUID) {
-        UserDefaults.standard.set(label, forKey: labelKey(for: id))
+    // MARK: - maxSnoozeCount (v5.1)
+    static func maxSnoozeCount(for id: UUID) -> Int {
+        let s = UserDefaults.standard.integer(forKey: key("maxSnoozeCount", for: id))
+        return s > 0 ? s : 3
+    }
+    static func setMaxSnoozeCount(_ v: Int, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("maxSnoozeCount", for: id))
     }
 
-    static func setSnoozeInterval(_ interval: Int, for id: UUID) {
-        UserDefaults.standard.set(interval, forKey: intervalKey(for: id))
+    // MARK: - wakeMission (v5.1)
+    static func wakeMission(for id: UUID) -> String {
+        UserDefaults.standard.string(forKey: key("wakeMission", for: id)) ?? "none"
+    }
+    static func setWakeMission(_ v: String, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("wakeMission", for: id))
     }
 
+    // MARK: - soundId (v5.1)
+    static func soundId(for id: UUID) -> String {
+        UserDefaults.standard.string(forKey: key("soundId", for: id)) ?? "piano"
+    }
+    static func setSoundId(_ v: String, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("soundId", for: id))
+    }
+
+    // MARK: - volume (v5.1)
+    static func volume(for id: UUID) -> Float {
+        let s = UserDefaults.standard.float(forKey: key("volume", for: id))
+        return s > 0 ? s : 0.8
+    }
+    static func setVolume(_ v: Float, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("volume", for: id))
+    }
+
+    // MARK: - alertStyle (v5.1)
+    static func alertStyle(for id: UUID) -> String {
+        UserDefaults.standard.string(forKey: key("alertStyle", for: id)) ?? "soundAndVibration"
+    }
+    static func setAlertStyle(_ v: String, for id: UUID) {
+        UserDefaults.standard.set(v, forKey: key("alertStyle", for: id))
+    }
+
+    // MARK: - 전체 삭제
     static func remove(for id: UUID) {
-        UserDefaults.standard.removeObject(forKey: labelKey(for: id))
-        UserDefaults.standard.removeObject(forKey: intervalKey(for: id))
+        ["label", "snoozeInterval", "maxSnoozeCount", "wakeMission",
+         "soundId", "volume", "alertStyle"].forEach {
+            UserDefaults.standard.removeObject(forKey: key($0, for: id))
+        }
     }
 }

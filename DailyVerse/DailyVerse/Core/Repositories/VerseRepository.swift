@@ -31,8 +31,8 @@ class VerseRepository {
     /// 3. Cooldown 통과 알고리즘 선택
     /// 4. 번들 폴백
     func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
-        // 1. daily_cards 큐레이션 우선
-        if let card = try? await firestoreService.fetchDailyCard(for: Date()),
+        // 1. daily_cards 큐레이션 우선 (Bug E 수정: 모드 파라미터 전달)
+        if let card = try? await firestoreService.fetchDailyCard(for: Date(), mode: mode),
            let verseId = card.verseId {
             if let cached = cacheManager.loadCachedVerse(id: verseId) {
                 cacheManager.setVerseId(verseId, for: mode)

@@ -122,13 +122,17 @@ final class AlarmCoordinator: ObservableObject {
     }
 
     func dismissAll() {
-        stopAlarmFeedback()  // Bug 2 수정
+        stopAlarmFeedback()
         stage = .none
         activeVerse = nil
         activeImage = nil
         activeAlarmId = nil
         activeWeather = nil
         activeSnoozeInterval = 5
+        activeMission    = "none"           // Bug D 수정
+        activeAlertStyle = "soundAndVibration"
+        activeSoundId    = "piano"
+        activeVolume     = 0.8
         snoozeCount = 0
     }
 

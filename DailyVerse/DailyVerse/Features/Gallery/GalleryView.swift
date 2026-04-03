@@ -37,7 +37,13 @@ struct GalleryView: View {
             .navigationTitle("Gallery")
             .navigationBarTitleDisplayMode(.large)
         }
-        .task { await viewModel.loadImages() }
+        .task {
+            await viewModel.loadImages()
+            // Bug B 수정: 로그인 유저의 핀 상태 로드
+            if let userId = authManager.userId {
+                await viewModel.loadPinnedImages(userId: userId)
+            }
+        }
         .sheet(item: $selectedImage) { image in
             GalleryImageDetailSheet(
                 image: image,

@@ -37,20 +37,26 @@ class FirestoreService {
 
     // MARK: - Daily Cards (v5.1 신규 — 큐레이션 카드)
 
-    /// 특정 날짜의 큐레이션 카드 가져오기
-    func fetchDailyCard(for date: Date) async throws -> DailyCard? {
+    /// Bug E 수정: 모드별 큐레이션 카드 가져오기
+    /// Firestore 구조: daily_cards/{YYYY-MM-DD}/{mode} (서브컬렉션 또는 모드 키)
+    /// 현재 구조: daily_cards/{YYYY-MM-DD} 문서에 mode별 키 포함
+    /// 예: { morning: { verse_id: "v_001", image_id: "img_001" }, evening: {...} }
+    func fetchDailyCard(for date: Date, mode: AppMode) async throws -> DailyCard? {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let dateString = formatter.string(from: date)
 
         let doc = try await db.collection("daily_cards").document(dateString).getDocument()
         guard doc.exists, let data = doc.data() else { return nil }
+
+        // 모드별 키 우선, 없으면 공통 키 폴백
+        let modeData = data[mode.rawValue] as? [String: Any] ?? data
         return DailyCard(
             date: dateString,
-            verseId: data["verse_id"] as? String,
-            imageId: data["image_id"] as? String,
-            label: data["label"] as? String,
-            note: data["note"] as? String
+            verseId: modeData["verse_id"] as? String,
+            imageId: modeData["image_id"] as? String,
+            label: modeData["label"] as? String,
+            note: modeData["note"] as? String
         )
     }
 
