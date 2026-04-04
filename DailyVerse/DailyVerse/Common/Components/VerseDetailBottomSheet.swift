@@ -1,4 +1,15 @@
 import SwiftUI
+import GoogleMobileAds
+
+// MARK: - 커스텀 Detent: 홈화면 날씨 위젯 아래까지 (화면의 약 78%)
+
+struct VerseSheetDetent: CustomPresentationDetent {
+    static func height(in context: Context) -> CGFloat? {
+        context.maxDetentValue * 0.78
+    }
+}
+
+// MARK: - VerseDetailBottomSheet
 
 struct VerseDetailBottomSheet: View {
     let verse: Verse
@@ -11,77 +22,85 @@ struct VerseDetailBottomSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 22) {
 
-                    // 1. 원문 (타이틀 유지)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("원문")
+                    // 상단 여백 — 텍스트가 팝업 중앙에 자연스럽게 위치
+                    Spacer(minLength: 12)
+
+                    // 1. 원문
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("원문", systemImage: "book.closed")
                             .font(.dvSectionTitle)
                             .foregroundColor(.secondary)
-                            .textCase(.uppercase)
 
                         Text(verse.textFullKo)
                             .font(.dvVerseFullText)
                             .foregroundColor(.dvPrimary)
                             .fixedSize(horizontal: false, vertical: true)
-                            .padding(.top, 2)
+                            .lineSpacing(4)
                     }
 
                     Text(verse.reference)
                         .font(.dvReference)
                         .foregroundColor(.dvAccentGold)
 
-                    Divider()
+                    Divider().padding(.vertical, 2)
 
-                    // 2. 일상 적용 — 타이틀 없이, 닉네임 포함 (#5: "일상 적용" 타이틀 제거)
-                    Text(applicationWithNickname)
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .lineSpacing(4)
-
-                    Divider()
-
-                    // 3. 해석 — 맨 아래 (#6)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("해석")
+                    // 2. 일상 적용 (닉네임 포함)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("오늘의 적용", systemImage: "sparkles")
                             .font(.dvSectionTitle)
                             .foregroundColor(.secondary)
-                            .textCase(.uppercase)
+
+                        Text(applicationWithNickname)
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(5)
+                    }
+
+                    Divider().padding(.vertical, 2)
+
+                    // 3. 해석
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("해석", systemImage: "text.magnifyingglass")
+                            .font(.dvSectionTitle)
+                            .foregroundColor(.secondary)
 
                         Text(verse.interpretation)
                             .font(.dvBody)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(4)
                     }
 
-                    Spacer(minLength: 80)
+                    // 4. 광고 슬롯 (Medium Rectangle 300×250)
+                    VerseBannerAdView()
+                        .padding(.top, 8)
+
+                    Spacer(minLength: 100)
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 8)
+                .padding(.top, 20)
             }
             .safeAreaInset(edge: .bottom) { actionBar }
         }
-        .presentationDetents([.medium, .large])
+        // 홈화면 날씨 위젯 아래부터 시작하는 커스텀 높이
+        .presentationDetents([.custom(VerseSheetDetent.self)])
         .presentationDragIndicator(.visible)
+        .presentationCornerRadius(24)
     }
 
-    // 닉네임 + 일상 적용 텍스트
     private var applicationWithNickname: String {
-        let nickname = nicknameManager.nickname
-        return "\(nickname), \(verse.application)"
+        "\(nicknameManager.nickname), \(verse.application)"
     }
 
-    // #7 버튼 UI — 앱 톤앤매너 (dvGold + dark glass)
     private var actionBar: some View {
         HStack(spacing: 10) {
-            // 저장 버튼 — dvGold 그라데이션 (주 CTA)
             Button(action: onSave) {
                 HStack(spacing: 6) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 14))
-                    Text("저장")
-                        .font(.system(size: 15, weight: .semibold))
+                    Image(systemName: "heart.fill").font(.system(size: 14))
+                    Text("저장").font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -96,7 +115,6 @@ struct VerseDetailBottomSheet: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
-            // 다음 말씀 — Glassmorphism 보조 버튼
             Button(action: onNext) {
                 Text("다음 말씀")
                     .font(.system(size: 15, weight: .medium))
@@ -105,16 +123,12 @@ struct VerseDetailBottomSheet: View {
                     .background(
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.white.opacity(0.10))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                            )
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
                     )
                     .foregroundColor(.white)
             }
             .accessibilityLabel("다음 말씀 보기")
 
-            // 닫기 — 미니 아이콘 버튼
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 13, weight: .semibold))
@@ -131,18 +145,46 @@ struct VerseDetailBottomSheet: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .background(
-            // 시트 하단 배경도 통일감 있게
             Color.dvBgDeep.opacity(0.85)
                 .overlay(Rectangle().fill(.ultraThinMaterial))
         )
     }
 }
 
+// MARK: - AdMob 배너 광고 (Medium Rectangle 300×250)
+
+private struct VerseBannerAdView: UIViewRepresentable {
+
+    // TODO: 프로덕션 배포 전 실제 Ad Unit ID로 교체
+    // 현재: AdMob 테스트 ID (실제 광고 미게재)
+    // 실제 ID 예시: "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+    private let adUnitID = "ca-app-pub-3940256099942544/2934735716"  // 테스트 ID
+
+    func makeUIView(context: Context) -> GADBannerView {
+        let banner = GADBannerView(adSize: GADAdSizeMediumRectangle)
+        banner.adUnitID = adUnitID
+        banner.rootViewController = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.rootViewController
+        banner.load(GADRequest())
+        return banner
+    }
+
+    func updateUIView(_ uiView: GADBannerView, context: Context) {}
+
+    // 300×250 고정 크기
+    static func dismantleUIView(_ uiView: GADBannerView, coordinator: ()) {
+        uiView.removeFromSuperview()
+    }
+}
+
+// MARK: - Preview
+
 #Preview {
     Color.black
         .sheet(isPresented: .constant(true)) {
             VerseDetailBottomSheet(
-                verse: .fallbackMorning,
+                verse: .fallbackRiseIgnite,
                 onSave: {},
                 onNext: {},
                 onClose: {}
