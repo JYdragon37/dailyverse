@@ -88,7 +88,7 @@ struct VerseDetailBottomSheet: View {
         // 홈화면 날씨 위젯 아래부터 시작하는 커스텀 높이
         .presentationDetents([.custom(VerseSheetDetent.self)])
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(24)
+        .modifier(PresentationCornerRadiusModifier(radius: 24))
     }
 
     private var applicationWithNickname: String {
@@ -175,6 +175,19 @@ private struct VerseBannerAdView: UIViewRepresentable {
     // 300×250 고정 크기
     static func dismantleUIView(_ uiView: GADBannerView, coordinator: ()) {
         uiView.removeFromSuperview()
+    }
+}
+
+// MARK: - iOS 버전 호환 Corner Radius Modifier
+
+private struct PresentationCornerRadiusModifier: ViewModifier {
+    let radius: CGFloat
+    func body(content: Content) -> some View {
+        if #available(iOS 16.4, *) {
+            content.presentationCornerRadius(radius)
+        } else {
+            content
+        }
     }
 }
 
