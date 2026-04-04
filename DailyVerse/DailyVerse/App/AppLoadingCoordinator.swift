@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import Network
+import UIKit
 
 @MainActor
 final class AppLoadingCoordinator: ObservableObject {
@@ -60,6 +61,10 @@ final class AppLoadingCoordinator: ObservableObject {
 
         // Stage 2-c: Firestore에서 최신 말씀 로드 (실패해도 폴백으로 ready)
         _ = try? await verseRepository.fetchVerses()
+
+        // Stage 2-d: 현재 Zone 배경 이미지 pre-load → HomeView 진입 시 즉시 표시
+        await preloadZoneBackground()
+
         state = .ready
     }
 
@@ -67,6 +72,27 @@ final class AppLoadingCoordinator: ObservableObject {
 
     /// NWPathMonitor를 이용해 현재 네트워크 상태를 단발성으로 확인한다.
     /// 경로 상태가 `.satisfied`가 아니면 오프라인으로 판단한다.
+    /// 현재 Zone 배경 이미지를 disk cache에 미리 저장
+    /// HomeView 진입 시 RemoteImageView가 cache hit → 즉시 표시 (flash 없음)
+    private func preloadZoneBackground() async {
+        let mode = AppMode.current()
+        guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
+              let url = URL(string: bg.storageUrl) else { return }
+
+        // 이미 disk cache에 있으면 스킵
+        guard ImageDiskCache.shared.load(for: url) == nil else { return }
+
+        // disk cache 없으면 다운로드 후 저장
+        var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
+        request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode),
+              let image = UIImage(data: data) else { return }
+
+        ImageDiskCache.shared.save(image, for: url)
+    }
+
     private func checkConnectivity() async -> Bool {
         await withCheckedContinuation { continuation in
             let monitor = NWPathMonitor()

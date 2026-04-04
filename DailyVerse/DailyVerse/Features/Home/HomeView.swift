@@ -62,14 +62,10 @@ struct HomeView: View {
             .ignoresSafeArea()
             .background {
                 Group {
-                    // #3 시간대별 배경 이미지 우선 (background_images 컬렉션)
+                    // Zone 배경 이미지만 사용 (이미지 이원화 — 말씀 이미지는 홈 배경으로 사용 안 함)
                     if let bgUrlStr = viewModel.currentBackground?.storageUrl,
                        let bgUrl = URL(string: bgUrlStr) {
                         RemoteImageView(url: bgUrl) { fallbackGradient }
-                    // 없으면 기존 말씀 이미지
-                    } else if let urlStr = viewModel.currentImage?.storageUrl,
-                       let url = URL(string: urlStr) {
-                        RemoteImageView(url: url) { fallbackGradient }
                     } else {
                         fallbackGradient
                     }
