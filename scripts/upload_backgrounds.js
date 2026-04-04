@@ -90,9 +90,10 @@ async function uploadBackground(bucket, db, zone) {
     `https://storage.googleapis.com/${PROJECT_ID}.firebasestorage.app/${storagePath}`;
 
   // Firestore background_images/{bgId} 문서 저장
+  // mode 필드 = zone rawValue (BackgroundImage 모델 CodingKey와 일치)
   await db.collection('background_images').doc(bgId).set({
     bg_id: bgId,
-    zone: zoneId,      // 8 Zone rawValue (코드와 일치)
+    mode: zoneId,      // 8 Zone rawValue — BackgroundImage.mode 필드로 디코딩됨
     filename,
     storage_url: storageUrl,
     source: 'Custom',
