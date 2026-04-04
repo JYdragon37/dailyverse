@@ -113,8 +113,8 @@ struct HomeView: View {
                 Image(systemName: viewModel.currentMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
-                if viewModel.currentMode == .dawn {
-                    Text("Still awake, \(nicknameManager.nickname)?")
+                if viewModel.currentMode == .deepDark || viewModel.currentMode == .firstLight {
+                    Text("\(viewModel.currentMode.greeting) \(nicknameManager.nickname)")
                         .font(.dvLargeTitle).foregroundColor(.white)
                 } else {
                     Text("\(viewModel.currentMode.greeting), \(nicknameManager.nickname)")

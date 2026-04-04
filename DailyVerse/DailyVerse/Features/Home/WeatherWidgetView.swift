@@ -143,7 +143,7 @@ struct WeatherWidgetView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         VStack(spacing: 16) {
-            WeatherWidgetView(weather: .placeholder, mode: .morning)
+            WeatherWidgetView(weather: .placeholder, mode: .riseIgnite)
             WeatherWidgetView(
                 weather: WeatherData(
                     temperature: 14,
@@ -156,7 +156,7 @@ struct WeatherWidgetView: View {
                     tomorrowMorningTemp: 12,
                     tomorrowMorningCondition: "rainy"
                 ),
-                mode: .evening
+                mode: .goldenHour
             )
         }
         .padding(.horizontal, 20)
@@ -166,7 +166,7 @@ struct WeatherWidgetView: View {
 #Preview("날씨 없음") {
     ZStack {
         Color.black.ignoresSafeArea()
-        WeatherWidgetView(weather: nil, mode: .morning)
+        WeatherWidgetView(weather: nil, mode: .riseIgnite)
             .padding(.horizontal, 20)
     }
 }
