@@ -27,7 +27,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         snoozeInterval: Int = 5,
         maxSnoozeCount: Int = 3,
         wakeMission: String = "none",
-        soundId: String = "piano",
+        soundId: String = "song",
         volume: Float = 0.8,
         alertStyle: String = "soundAndVibration"
     ) {
@@ -61,7 +61,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         snoozeInterval   = try container.decodeIfPresent(Int.self,    forKey: .snoozeInterval)   ?? 5
         maxSnoozeCount   = try container.decodeIfPresent(Int.self,    forKey: .maxSnoozeCount)   ?? 3
         wakeMission      = try container.decodeIfPresent(String.self, forKey: .wakeMission)      ?? "none"
-        soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "piano"
+        soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "song"
         volume           = try container.decodeIfPresent(Float.self,  forKey: .volume)           ?? 0.8
         alertStyle       = try container.decodeIfPresent(String.self, forKey: .alertStyle)       ?? "soundAndVibration"
     }
@@ -99,9 +99,10 @@ struct Alarm: Identifiable, Codable, Equatable {
 
     var soundDisplayName: String {
         switch soundId {
+        case "song":   return "알람송"
         case "nature": return "자연 소리"
         case "hymn":   return "찬양 멜로디"
-        default:       return "은은한 피아노"
+        default:       return "알람송"
         }
     }
 

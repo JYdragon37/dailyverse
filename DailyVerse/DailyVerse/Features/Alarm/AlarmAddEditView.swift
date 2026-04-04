@@ -63,7 +63,7 @@ struct AlarmAddEditView: View {
             _snoozeInterval    = State(initialValue: 5)
             _maxSnoozeCount    = State(initialValue: 3)
             _wakeMission       = State(initialValue: "none")
-            _soundId           = State(initialValue: "piano")
+            _soundId           = State(initialValue: "song")
             _volume            = State(initialValue: 0.8)
             _alertStyle        = State(initialValue: "soundAndVibration")
             _isLabelAutoSet    = State(initialValue: true)
@@ -185,7 +185,7 @@ struct AlarmAddEditView: View {
                     // 소리가 포함된 경우만 소리 종류 + 볼륨 표시
                     if alertStyle != "vibration" {
                         Picker("소리 종류", selection: $soundId) {
-                            Text("은은한 피아노").tag("piano")
+                            Text("🎵 알람송").tag("song")
                             Text("자연 소리").tag("nature")
                             Text("찬양 멜로디").tag("hymn")
                         }

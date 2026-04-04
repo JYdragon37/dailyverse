@@ -54,7 +54,8 @@ final class LegacyAlarmEngine: AlarmEngine {
         switch soundId {
         case "nature": filename = "alarm_nature"
         case "hymn":   filename = "alarm_hymn"
-        default:       filename = "alarm_piano"
+        case "song":   filename = "alarm_song"
+        default:       filename = "alarm_song"   // alarm_song이 기본 알람음
         }
 
         if let url = Bundle.main.url(forResource: filename, withExtension: "caf")
