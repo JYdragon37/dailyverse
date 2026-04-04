@@ -3,35 +3,39 @@ import Combine
 
 struct AlarmStage1View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
+    @State private var weatherForForecast: WeatherData?
 
     var body: some View {
         ZStack {
-            if let urlStr = coordinator.activeImage?.storageUrl,
-               let url = URL(string: urlStr) {
-                RemoteImageView(url: url) { darkFallbackGradient }
-                    .ignoresSafeArea()
-            } else {
-                darkFallbackGradient
-            }
+            // ── 전체화면 배경 ──
+            backgroundLayer
+            Color.black.opacity(0.50).ignoresSafeArea()
 
-            Color.black.opacity(0.55).ignoresSafeArea()
-
+            // ── 콘텐츠: 원래 레이아웃(Spacer-말씀-Spacer-버튼)을 유지 ──
             VStack(spacing: 0) {
+
+                // 날씨 — 상단 콤팩트 스트립 (높이 최소화)
+                if let weather = weatherForForecast {
+                    Stage1WeatherStrip(weather: weather)
+                        .padding(.top, 12)
+                        .padding(.horizontal, 20)
+                }
+
+                // 원래 레이아웃 그대로: Spacer - 말씀 - Spacer - 버튼
                 Spacer()
 
                 if let verse = coordinator.activeVerse {
-                    VStack(spacing: 16) {
-                        Text(verse.textFullKo)
-                            .font(.dvStage1Verse)
+                    VStack(spacing: 14) {
+                        Text(verse.textKo)
+                            .font(.system(size: 26, weight: .semibold, design: .serif))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
-                            .lineSpacing(8)
+                            .lineSpacing(6)
                             .padding(.horizontal, 32)
-                            .fixedSize(horizontal: false, vertical: true)
 
                         Text(verse.reference)
-                            .font(.dvReference)
-                            .foregroundColor(.white.opacity(0.7))
+                            .font(.system(size: 15))
+                            .foregroundColor(.white.opacity(0.65))
                     }
                 }
 
@@ -43,7 +47,7 @@ struct AlarmStage1View: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "alarm").accessibilityHidden(true)
                                 Text("스누즈 \(coordinator.activeSnoozeInterval)분")
-                                    .font(.dvSubtitle)
+                                    .font(.system(size: 17, weight: .medium))
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
@@ -53,7 +57,7 @@ struct AlarmStage1View: View {
                         }
                     } else {
                         Text("더 이상 스누즈할 수 없어요")
-                            .font(.dvBody)
+                            .font(.system(size: 15))
                             .foregroundColor(.white.opacity(0.5))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
@@ -61,10 +65,9 @@ struct AlarmStage1View: View {
                             .cornerRadius(14)
                     }
 
-                    // #2 기본 종료 버튼 복원 (아멘 입력은 미션으로 분리)
                     Button { coordinator.dismissToStage2() } label: {
                         Text("종료")
-                            .font(.dvSubtitle)
+                            .font(.system(size: 17, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(Color.dvAccentGold)
@@ -74,12 +77,30 @@ struct AlarmStage1View: View {
                     .accessibilityLabel("알람 종료 후 말씀 화면으로 이동")
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 48)
+                .padding(.bottom, 24)
             }
         }
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
-        .statusBarHidden(false)
+        .task {
+            if let w = coordinator.activeWeather, !w.hourlyForecast.isEmpty {
+                weatherForForecast = w
+            } else if let cached = WeatherCacheManager().load() {
+                weatherForForecast = cached
+                coordinator.activeWeather = cached
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var backgroundLayer: some View {
+        if let urlStr = coordinator.activeImage?.storageUrl,
+           let url = URL(string: urlStr) {
+            RemoteImageView(url: url) { darkFallbackGradient }
+                .ignoresSafeArea()
+        } else {
+            darkFallbackGradient
+        }
     }
 
     private var darkFallbackGradient: some View {
@@ -91,8 +112,129 @@ struct AlarmStage1View: View {
     }
 }
 
+// MARK: - 콤팩트 날씨 스트립
+// 날씨 추가 전 Spacer-말씀-Spacer-버튼 비율을 유지하기 위해
+// 최소 높이의 2줄 구성: (1) 현재 날씨 한 줄 + (2) 시간별 예보 한 줄
+
+private struct Stage1WeatherStrip: View {
+    let weather: WeatherData
+
+    private var conditionIcon: String {
+        switch weather.condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "cloud.fill"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // 줄 1: 현재 날씨 (아이콘 + 도시 + 온도 + 상태 + 습도)
+            HStack(spacing: 6) {
+                Image(systemName: conditionIcon)
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.85))
+
+                Text(weather.cityName)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.80))
+
+                Text("\(weather.temperature)°")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+
+                Text("·")
+                    .foregroundColor(.white.opacity(0.35))
+
+                Text(weather.conditionKo)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.65))
+
+                Text("·")
+                    .foregroundColor(.white.opacity(0.35))
+
+                Text("💧\(weather.humidity)%")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.55))
+            }
+
+            // 줄 2: 시간별 예보 — 5개, ScrollView 없이 HStack으로 균등 배분
+            if !weather.hourlyForecast.isEmpty {
+                HStack(spacing: 0) {
+                    ForEach(Array(weather.hourlyForecast.prefix(5).enumerated()), id: \.offset) { idx, item in
+                        CompactHourlyItem(item: item, isNow: idx == 0)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.10))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        )
+    }
+}
+
+private struct CompactHourlyItem: View {
+    let item: HourlyForecastItem
+    let isNow: Bool
+
+    private var timeLabel: String {
+        if isNow { return "지금" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "a h시"
+        return f.string(from: item.time)
+    }
+
+    private var conditionIcon: String {
+        switch item.condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "sun.max.fill"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 5) {
+            // 고정 높이 → 모든 아이템 높이 동일 보장
+            Text(timeLabel)
+                .font(.system(size: 12, weight: isNow ? .semibold : .regular))
+                .foregroundColor(isNow ? .white : .white.opacity(0.70))
+                .frame(height: 16)
+                .lineLimit(1)
+            Image(systemName: conditionIcon)
+                .font(.system(size: 20))
+                .foregroundColor(.white.opacity(0.90))
+                .frame(width: 28, height: 28)
+            Text("\(item.temperature)°")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(height: 18)
+        }
+    }
+}
+
 #Preview {
     let coordinator = AlarmCoordinator()
     coordinator.activeVerse = .fallbackMorning
+    coordinator.activeWeather = WeatherData(
+        temperature: 14, condition: "sunny", conditionKo: "맑음",
+        humidity: 67, dustGrade: "보통", cityName: "Seoul", cachedAt: Date(),
+        hourlyForecast: [
+            HourlyForecastItem(time: Date(), temperature: 15, condition: "cloudy", conditionKo: "흐림"),
+            HourlyForecastItem(time: Date().addingTimeInterval(3600), temperature: 17, condition: "cloudy", conditionKo: "흐림"),
+            HourlyForecastItem(time: Date().addingTimeInterval(7200), temperature: 15, condition: "rainy", conditionKo: "비"),
+            HourlyForecastItem(time: Date().addingTimeInterval(10800), temperature: 13, condition: "rainy", conditionKo: "비"),
+            HourlyForecastItem(time: Date().addingTimeInterval(14400), temperature: 11, condition: "sunny", conditionKo: "맑음"),
+        ]
+    )
     return AlarmStage1View().environmentObject(coordinator)
 }

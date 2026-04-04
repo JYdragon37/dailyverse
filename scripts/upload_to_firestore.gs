@@ -17,13 +17,16 @@ var FIRESTORE_BASE_URL =
   "/databases/(default)/documents/";
 
 // 배열 필드로 처리할 컬럼 목록 (쉼표 구분 문자열 → 배열)
-var ARRAY_FIELDS = ["mode", "theme", "mood", "season", "weather"];
+var ARRAY_FIELDS = ["mode", "theme", "mood", "season", "weather", "avoid_themes"];
 
 // 정수 필드로 처리할 컬럼 목록
-var INT_FIELDS = ["chapter", "verse", "usage_count"];
+var INT_FIELDS = ["chapter", "verse", "usage_count", "cooldown_days", "show_count"];
 
 // 불리언 필드로 처리할 컬럼 목록
-var BOOL_FIELDS = ["curated"];
+var BOOL_FIELDS = ["curated", "is_sacred_safe"];
+
+// 비어있으면 Firestore에 기록하지 않을 선택적 필드 목록 (null 처리)
+var NULLABLE_FIELDS = ["alarm_text_ko", "last_shown", "notes", "source_url"];
 
 // ─── 메인 함수 ────────────────────────────────────────────────────────────────
 
@@ -32,7 +35,13 @@ var BOOL_FIELDS = ["curated"];
  * verse_id 컬럼 값이 문서 ID로 사용됩니다.
  */
 function uploadVersesToFirestore() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  // 활성 탭이 아닌 "VERSES" 탭을 명시적으로 지정
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("VERSES");
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert("오류", '"VERSES" 시트를 찾을 수 없습니다.', SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
   var data = sheet.getDataRange().getValues();
 
   if (data.length < 2) {
@@ -126,8 +135,11 @@ function buildFirestoreDocument(headers, row) {
 
     if (key === "" || key === undefined) continue;
 
-    // verse_id는 문서 ID로 사용되므로 필드에도 포함
-    fields[key] = convertToFirestoreValue(key, rawValue);
+    var converted = convertToFirestoreValue(key, rawValue);
+    // null 반환 = 비어있는 nullable 필드 → Firestore에 기록하지 않음
+    if (converted !== null) {
+      fields[key] = converted;
+    }
   }
 
   // 기본값 처리: Sheets에 없는 필드들
@@ -151,6 +163,11 @@ function buildFirestoreDocument(headers, row) {
  */
 function convertToFirestoreValue(key, rawValue) {
   var strValue = String(rawValue).trim();
+
+  // nullable 필드: 비어있으면 null 반환 (Firestore에 기록 안 함)
+  if (NULLABLE_FIELDS.indexOf(key) !== -1 && strValue === "") {
+    return null;
+  }
 
   // 배열 필드 처리 (쉼표 구분 문자열 → arrayValue)
   if (ARRAY_FIELDS.indexOf(key) !== -1) {
@@ -254,7 +271,8 @@ function upsertDocument(collection, documentId, docBody) {
  * 업로드 전 매핑 확인용으로 사용하세요.
  */
 function previewSheetStructure() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("VERSES") ||
+              SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
 
   if (data.length === 0) {
@@ -278,8 +296,9 @@ function previewSheetStructure() {
   // 필수 컬럼 존재 여부 확인
   var requiredColumns = [
     "verse_id", "text_ko", "text_full_ko", "reference",
-    "book", "chapter", "verse", "mode", "theme",
-    "interpretation", "application"
+    "book", "chapter", "verse", "mode", "theme", "mood",
+    "season", "weather", "interpretation", "application",
+    "curated", "status", "usage_count", "cooldown_days"
   ];
 
   Logger.log("\n=== 필수 컬럼 확인 ===");
@@ -294,7 +313,8 @@ function previewSheetStructure() {
  * 전체 업로드 전에 단일 항목으로 동작을 검증하세요.
  */
 function testUploadFirstRow() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("VERSES") ||
+              SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
 
   if (data.length < 2) {
@@ -315,4 +335,49 @@ function testUploadFirstRow() {
 
   var success = upsertDocument("verses", verseId, firestoreDoc);
   Logger.log(success ? "테스트 성공" : "테스트 실패 — 로그를 확인하세요");
+}
+
+/**
+ * 누락된 컬럼을 헤더 행에 자동으로 추가합니다.
+ * 기존 데이터는 건드리지 않고, 없는 컬럼만 우측에 추가합니다.
+ * Apps Script 편집기에서 이 함수를 선택 후 실행하세요.
+ */
+function addMissingColumns() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var headers = headerRow.map(function(h) { return String(h).trim(); });
+
+  // 추가할 컬럼 정의: [컬럼명, 기본값(신규 행 참고용)]
+  var columnsToAdd = [
+    ["alarm_text_ko", ""],          // 알람 탭 전용 텍스트 (비워두면 text_ko 사용)
+    ["usage_count",   "0"],         // 사용 횟수 (항상 0으로 시작)
+    ["cooldown_days", "7"],         // 재표시까지 최소 일수
+    ["last_shown",    ""],          // 마지막 표시일 (비워두기)
+    ["show_count",    "0"],         // 표시 횟수 (항상 0으로 시작)
+  ];
+
+  var added = [];
+  var nextCol = headers.length + 1;
+
+  columnsToAdd.forEach(function(colDef) {
+    var colName = colDef[0];
+    if (headers.indexOf(colName) === -1) {
+      // 헤더 추가
+      sheet.getRange(1, nextCol).setValue(colName);
+      // 헤더 스타일 — 기존 헤더와 동일하게
+      sheet.getRange(1, nextCol).setFontWeight("bold").setBackground("#d9ead3");
+      added.push(colName + " (열 " + nextCol + ")");
+      nextCol++;
+    }
+  });
+
+  // 결과 출력
+  if (added.length === 0) {
+    Logger.log("✅ 누락된 컬럼 없음. 모든 컬럼이 이미 존재합니다.");
+    SpreadsheetApp.getUi().alert("✅ 누락 컬럼 없음", "모든 필수 컬럼이 이미 존재합니다.", SpreadsheetApp.getUi().ButtonSet.OK);
+  } else {
+    var msg = "✅ 추가된 컬럼:\n" + added.join("\n");
+    Logger.log(msg);
+    SpreadsheetApp.getUi().alert("컬럼 추가 완료", msg, SpreadsheetApp.getUi().ButtonSet.OK);
+  }
 }

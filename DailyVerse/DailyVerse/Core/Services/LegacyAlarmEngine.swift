@@ -19,16 +19,34 @@ final class LegacyAlarmEngine: AlarmEngine {
 
     static var audioPlayer: AVAudioPlayer?
 
-    // Bug 4 수정: 진동 전용 타이머
+    // 진동 전용 타이머
     private static var vibrationTimer: Timer?
 
+    // 번들 파일 없을 때 AVAudioEngine으로 생성한 알람음
+    private static var audioEngine: AVAudioEngine?
+    private static var enginePlayerNode: AVAudioPlayerNode?
+
     /// 포그라운드 진입 시 alertStyle에 따라 소리/진동 시작
-    /// Bug 5 수정: 번들 .caf 없으면 시스템 사운드 + AudioServices로 폴백
+    /// AVAudioSession.playback 카테고리 → 무음 스위치 우회 (무음/진동 모드에서도 소리 재생)
     static func startAudio(soundId: String, volume: Float = 0.8) {
         // 진동 전용 모드
         if soundId == "vibration" {
             startVibrationLoop()
             return
+        }
+
+        // 항상 먼저 AVAudioSession.playback 설정 — 무음 스위치 우회
+        do {
+            try AVAudioSession.sharedInstance().setCategory(
+                .playback,
+                mode: .default,
+                options: [.duckOthers]
+            )
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            #if DEBUG
+            print("⚠️ [LegacyAlarmEngine] AVAudioSession 설정 실패: \(error)")
+            #endif
         }
 
         // 번들 오디오 파일 시도
@@ -39,11 +57,11 @@ final class LegacyAlarmEngine: AlarmEngine {
         default:       filename = "alarm_piano"
         }
 
-        if let url = Bundle.main.url(forResource: filename, withExtension: "caf") {
+        if let url = Bundle.main.url(forResource: filename, withExtension: "caf")
+            ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+            ?? Bundle.main.url(forResource: filename, withExtension: "wav") {
             // 번들 파일 있음 → AVAudioPlayer 루프
             do {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-                try AVAudioSession.sharedInstance().setActive(true)
                 let player = try AVAudioPlayer(contentsOf: url)
                 player.numberOfLoops = -1
                 player.volume = volume
@@ -51,28 +69,42 @@ final class LegacyAlarmEngine: AlarmEngine {
                 audioPlayer = player
             } catch {
                 #if DEBUG
-                print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 실패, 시스템 사운드로 폴백: \(error)")
+                print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 실패: \(error)")
                 #endif
-                startSystemSoundLoop()
+                startGeneratedToneLoop(volume: volume)
             }
         } else {
-            // Bug 5 수정: 번들 파일 없음 → 시스템 알람 사운드 + 진동 루프로 폴백
-            startSystemSoundLoop()
+            // 번들 파일 없음 → AVAudioEngine으로 알람음 직접 생성 (무음 모드 우회 유지)
+            startGeneratedToneLoop(volume: volume)
         }
     }
 
-    /// Bug 5 폴백: 시스템 알람 사운드(1005) + 진동을 2초 간격으로 반복
-    private static func startSystemSoundLoop() {
-        stopAudio() // 기존 타이머 정리
-        // 즉시 1회 실행
-        playSystemAlarmSound()
-        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            playSystemAlarmSound()
+    /// AVAudioEngine으로 알람 비프음을 생성하여 재생
+    /// AVAudioSession.playback 위에서 실행되므로 무음 모드에서도 소리가 남
+    private static func startGeneratedToneLoop(volume: Float) {
+        stopAudio()
+
+        guard let beepData = makeBeepWavData(volume: volume),
+              let tempURL = writeTempWav(data: beepData) else {
+            // 최후 폴백 (이 경로는 거의 도달하지 않음)
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+            return
         }
-        RunLoop.main.add(vibrationTimer!, forMode: .common)
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: tempURL)
+            player.numberOfLoops = -1
+            player.volume = volume
+            player.play()
+            audioPlayer = player
+        } catch {
+            #if DEBUG
+            print("⚠️ [LegacyAlarmEngine] 생성 톤 재생 실패: \(error)")
+            #endif
+        }
     }
 
-    /// Bug 4 수정: 진동 전용 — 1.5초 간격 햅틱 루프
+    /// 진동 전용 — 1.5초 간격 햅틱 루프
     private static func startVibrationLoop() {
         stopAudio()
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
@@ -82,19 +114,74 @@ final class LegacyAlarmEngine: AlarmEngine {
         RunLoop.main.add(vibrationTimer!, forMode: .common)
     }
 
-    private static func playSystemAlarmSound() {
-        // 시스템 사운드 1005 = 받은 메일 소리 (짧고 명확)
-        // 1007 = 클릭, 1016 = 트윗 수신음, 1057 = SMS 수신음
-        AudioServicesPlayAlertSoundWithCompletion(1005) { }
-        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-    }
-
     static func stopAudio() {
         vibrationTimer?.invalidate()
         vibrationTimer = nil
         audioPlayer?.stop()
         audioPlayer = nil
+        enginePlayerNode?.stop()
+        audioEngine?.stop()
+        enginePlayerNode = nil
+        audioEngine = nil
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    // MARK: - WAV 생성 헬퍼
+
+    /// 알람 비프음 PCM 데이터를 메모리에서 직접 생성
+    /// 패턴: 0.3s on (880Hz) → 0.15s off → 0.3s on → 0.25s off (1초 루프)
+    private static func makeBeepWavData(volume: Float) -> Data? {
+        let sampleRate: Int32 = 22050
+        let numChannels: Int16 = 1
+        let bitsPerSample: Int16 = 16
+        let totalSeconds: Float = 1.0
+        let numSamples = Int(Float(sampleRate) * totalSeconds)
+
+        var wav = Data()
+
+        func appendI32(_ v: Int32) { withUnsafeBytes(of: v.littleEndian) { wav.append(contentsOf: $0) } }
+        func appendI16(_ v: Int16) { withUnsafeBytes(of: v.littleEndian) { wav.append(contentsOf: $0) } }
+
+        let dataBytes = Int32(numSamples * 2)
+        wav.append(contentsOf: "RIFF".utf8)
+        appendI32(dataBytes + 36)
+        wav.append(contentsOf: "WAVE".utf8)
+        wav.append(contentsOf: "fmt ".utf8)
+        appendI32(16)
+        appendI16(1)             // PCM
+        appendI16(numChannels)
+        appendI32(sampleRate)
+        appendI32(sampleRate * Int32(numChannels * bitsPerSample / 8))
+        appendI16(numChannels * bitsPerSample / 8)
+        appendI16(bitsPerSample)
+        wav.append(contentsOf: "data".utf8)
+        appendI32(dataBytes)
+
+        let freq: Float = 880.0
+        let amp: Float = min(max(volume, 0), 1) * 26000
+
+        for i in 0..<numSamples {
+            let t = Float(i) / Float(sampleRate)
+            let pos = t.truncatingRemainder(dividingBy: 1.0)
+            var sample: Int16 = 0
+            // on 구간: 0~0.3s, 0.45~0.75s
+            if pos < 0.30 || (pos >= 0.45 && pos < 0.75) {
+                sample = Int16(sin(2 * .pi * freq * t) * amp)
+            }
+            withUnsafeBytes(of: sample.littleEndian) { wav.append(contentsOf: $0) }
+        }
+        return wav
+    }
+
+    private static func writeTempWav(data: Data) -> URL? {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dv_alarm_beep.wav")
+        do {
+            try data.write(to: url, options: .atomic)
+            return url
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - AlarmEngine

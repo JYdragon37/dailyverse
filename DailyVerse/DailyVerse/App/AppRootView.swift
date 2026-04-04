@@ -8,21 +8,13 @@ struct AppRootView: View {
     var body: some View {
         ZStack {
             // MARK: - 로딩 상태에 따른 화면 분기
-            switch loadingCoordinator.state {
-            case .splash:
-                // Stage 1: 스플래시 화면 (0.8초)
+            // splash / loading 을 단일 SplashView로 유지 →
+            // 상태 전환 시 SwiftUI가 같은 뷰로 인식, 로고 재애니메이션(깜빡임) 없음
+            if loadingCoordinator.state != .ready {
                 SplashView()
                     .transition(.opacity)
                     .zIndex(20)
-
-            case .loading:
-                // Stage 2: 스플래시를 유지하면서 백그라운드에서 데이터 로드
-                // 데이터 로드 완료 후 .ready로 전환되므로 별도 스켈레톤 없이 스플래시 유지
-                SplashView()
-                    .transition(.opacity)
-                    .zIndex(20)
-
-            case .ready:
+            } else {
                 // Stage 3: 온보딩 완료 여부에 따라 홈/온보딩 분기
                 Group {
                     if onboardingCompleted {

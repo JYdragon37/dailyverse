@@ -19,6 +19,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let status: String
     let usageCount: Int
     let notes: String?
+    let alarmTextKo: String?    // 알람 탭/팝업 전용 텍스트 글귀 (alarm_text_ko)
 
     // v5.1 — cooldown 로직용
     let lastShown: String?      // "YYYY-MM-DD"
@@ -45,6 +46,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case reference, book, chapter, verse
         case mode, theme, mood, season, weather
         case interpretation, application, curated, status, notes
+        case alarmTextKo = "alarm_text_ko"
         case usageCount = "usage_count"
         case lastShown = "last_shown"
         case showCount = "show_count"
@@ -77,7 +79,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "하나님이 직접 함께하겠다는 약속",
         application: "오늘 두렵다면 혼자가 아님을 기억해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        notes: nil, alarmTextKo: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackAfternoon = Verse(
@@ -91,7 +93,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "지혜의 길로 나아갈 때 앞길이 열린다",
         application: "오늘 결정해야 할 일이 있다면 지혜를 구해보자",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        notes: nil, alarmTextKo: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackEvening = Verse(
@@ -105,7 +107,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "하나님이 목자처럼 돌봐주신다는 안식의 약속",
         application: "오늘 하루를 마무리하며 부족함 없이 채워주심을 감사해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        notes: nil, alarmTextKo: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackDawn = Verse(
@@ -119,7 +121,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "어디에 있든 하나님의 손이 함께한다",
         application: "잠 못 드는 이 시간에도 하나님이 붙드심을 기억해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        notes: nil, alarmTextKo: nil, lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
     )
 
     static let fallbackVerses: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening, .fallbackDawn]

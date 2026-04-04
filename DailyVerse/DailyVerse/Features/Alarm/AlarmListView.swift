@@ -7,8 +7,6 @@ struct AlarmListView: View {
     @StateObject private var viewModel = AlarmViewModel()
     @EnvironmentObject private var permissionManager: PermissionManager
 
-    // Fix 4: 날씨 + 오늘의 말씀
-    @State private var cachedWeather: WeatherData?
     @State private var todayVerse: Verse?
 
     var body: some View {
@@ -45,9 +43,7 @@ struct AlarmListView: View {
             }
             .navigationTitle("Alarm")
             .task {
-                // Fix 4: 날씨 캐시 로드
-                cachedWeather = WeatherCacheManager().load()
-                // Fix 4: 오늘의 말씀 로드 (DailyCacheManager → Core Data)
+                // 오늘의 말씀 로드 (DailyCacheManager → Core Data)
                 let mode = AppMode.current()
                 if let id = DailyCacheManager.shared.getVerseId(for: mode),
                    let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
@@ -112,16 +108,11 @@ struct AlarmListView: View {
     @ViewBuilder
     private var alarmTopSection: some View {
         VStack(spacing: 10) {
-            // 시간별 일기예보 (캐시된 날씨 있을 때만)
-            if let weather = cachedWeather {
-                AlarmHourlyForecastCard(weather: weather)
-                    .padding(.horizontal, 16)
-            }
-            // 오늘의 말씀 (항상 표시 — 날씨 없어도 표시)
+            // 오늘의 말씀 (항상 표시)
             if let verse = todayVerse {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(verse.textKo)
+                        Text(verse.alarmTextKo ?? verse.textKo)
                             .font(.custom("Georgia-BoldItalic", size: 17))
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
@@ -206,7 +197,7 @@ struct AlarmListView: View {
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 140)  // 탭바 위 더 여유있게
+                    .padding(.bottom, 16)
                 }
                 .disabled(viewModel.alarms.count >= 3)
                 .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
@@ -481,85 +472,6 @@ private struct AlarmEmptyStateView: View {
         .environmentObject(PermissionManager())
 }
 
-// MARK: - Fix 4: 알람 화면 시간별 일기예보 카드
-
-private struct AlarmHourlyForecastCard: View {
-    let weather: WeatherData
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "clock")
-                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
-                Text("시간별 일기예보")
-                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
-            }
-
-            if weather.hourlyForecast.isEmpty {
-                Text("예보 정보 없음")
-                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.4))
-                    .padding(.vertical, 4)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 18) {
-                        ForEach(Array(weather.hourlyForecast.enumerated()), id: \.offset) { idx, item in
-                            AlarmHourlyItem(item: item, isNow: idx == 0)
-                        }
-                    }
-                    .padding(.horizontal, 2)
-                }
-            }
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.07))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.10), lineWidth: 1))
-        )
-    }
-}
-
-private struct AlarmHourlyItem: View {
-    let item: HourlyForecastItem
-    let isNow: Bool
-
-    private var timeLabel: String {
-        if isNow { return "지금" }
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "a h시"
-        return f.string(from: item.time)
-    }
-
-    private var conditionIcon: String {
-        switch item.condition {
-        case "sunny":  return "sun.max.fill"
-        case "cloudy": return "cloud.fill"
-        case "rainy":  return "cloud.rain.fill"
-        case "snowy":  return "cloud.snow.fill"
-        default:       return "sun.max.fill"
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 5) {
-            Text(timeLabel)
-                .font(.system(size: 11, weight: isNow ? .semibold : .regular))
-                .foregroundColor(.white.opacity(0.75))
-                .frame(height: 15)
-            Image(systemName: conditionIcon)
-                .font(.system(size: 17))
-                .foregroundColor(.white.opacity(0.9))
-                .frame(width: 24, height: 24)
-            Text("\(item.temperature)°")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.white)
-                .frame(height: 18)
-        }
-        .frame(width: 38)
-    }
-}
 
 #Preview("알람 없음") {
     AlarmListView()
