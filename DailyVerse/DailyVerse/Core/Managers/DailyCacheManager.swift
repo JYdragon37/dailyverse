@@ -4,7 +4,7 @@ import Combine
 
 class DailyCacheManager {
     static let shared = DailyCacheManager()
-    private let cacheKey = "dailyVerseCache_v2"  // v5.1: 4모드 캐시 키 변경
+    private let cacheKey = "dailyVerseCache_v3"  // v6.0: 8 Zone 캐시 키 변경
 
     // MARK: - Verse ID
 
@@ -14,13 +14,7 @@ class DailyCacheManager {
     }
 
     func setVerseId(_ verseId: String, for mode: AppMode) {
-        var cache = loadCache() ?? DailyVerseCache(
-            date: Date(),
-            morningVerseId: nil, afternoonVerseId: nil,
-            eveningVerseId: nil, dawnVerseId: nil,
-            morningImageId: nil, afternoonImageId: nil,
-            eveningImageId: nil, dawnImageId: nil
-        )
+        var cache = loadCache() ?? DailyVerseCache(date: Date())
         cache.setVerseId(verseId, for: mode)
         saveCache(cache)
     }
@@ -33,13 +27,7 @@ class DailyCacheManager {
     }
 
     func setImageId(_ imageId: String, for mode: AppMode) {
-        var cache = loadCache() ?? DailyVerseCache(
-            date: Date(),
-            morningVerseId: nil, afternoonVerseId: nil,
-            eveningVerseId: nil, dawnVerseId: nil,
-            morningImageId: nil, afternoonImageId: nil,
-            eveningImageId: nil, dawnImageId: nil
-        )
+        var cache = loadCache() ?? DailyVerseCache(date: Date())
         cache.setImageId(imageId, for: mode)
         saveCache(cache)
     }

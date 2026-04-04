@@ -6,6 +6,11 @@ import SwiftUI
 struct DailyVerseCache: Codable {
     let date: Date
 
+    // 기본값 init — date만 필요, 나머지는 nil
+    init(date: Date = Date()) {
+        self.date = date
+    }
+
     // Zone별 말씀 ID
     var deepDarkVerseId: String?    // Zone 1: 00–03
     var firstLightVerseId: String?  // Zone 2: 03–06
