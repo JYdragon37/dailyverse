@@ -37,29 +37,53 @@ struct DVUser: Codable, Equatable {
     }
 
     struct PinnedImages: Codable, Equatable {
-        var morning: String?
-        var afternoon: String?
-        var evening: String?
-        var dawn: String?
+        // v6.0 — 8 Zone
+        var deepDark: String?
+        var firstLight: String?
+        var riseIgnite: String?
+        var peakMode: String?
+        var recharge: String?
+        var secondWind: String?
+        var goldenHour: String?
+        var windDown: String?
 
-        static let empty = PinnedImages(morning: nil, afternoon: nil, evening: nil, dawn: nil)
+        static let empty = PinnedImages()
 
         func pinnedImageId(for mode: AppMode) -> String? {
             switch mode {
-            case .morning:   return morning
-            case .afternoon: return afternoon
-            case .evening:   return evening
-            case .dawn:      return dawn
+            case .deepDark:   return deepDark
+            case .firstLight: return firstLight
+            case .riseIgnite: return riseIgnite
+            case .peakMode:   return peakMode
+            case .recharge:   return recharge
+            case .secondWind: return secondWind
+            case .goldenHour: return goldenHour
+            case .windDown:   return windDown
             }
         }
 
         mutating func setPin(_ imageId: String?, for mode: AppMode) {
             switch mode {
-            case .morning:   morning   = imageId
-            case .afternoon: afternoon = imageId
-            case .evening:   evening   = imageId
-            case .dawn:      dawn      = imageId
+            case .deepDark:   deepDark   = imageId
+            case .firstLight: firstLight = imageId
+            case .riseIgnite: riseIgnite = imageId
+            case .peakMode:   peakMode   = imageId
+            case .recharge:   recharge   = imageId
+            case .secondWind: secondWind = imageId
+            case .goldenHour: goldenHour = imageId
+            case .windDown:   windDown   = imageId
             }
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case deepDark   = "deep_dark"
+            case firstLight = "first_light"
+            case riseIgnite = "rise_ignite"
+            case peakMode   = "peak_mode"
+            case recharge   = "recharge"
+            case secondWind = "second_wind"
+            case goldenHour = "golden_hour"
+            case windDown   = "wind_down"
         }
     }
 

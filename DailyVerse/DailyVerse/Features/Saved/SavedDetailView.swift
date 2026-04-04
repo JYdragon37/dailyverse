@@ -24,11 +24,20 @@ struct SavedDetailView: View {
 
     private var modeText: String {
         switch savedVerse.mode {
-        case "morning":   return "아침"
-        case "afternoon": return "낮"
-        case "evening":   return "저녁"
-        case "dawn":      return "새벽"
-        default:          return savedVerse.mode
+        case "deep_dark":   return "🌑 Deep Dark"
+        case "first_light": return "🌒 First Light"
+        case "rise_ignite": return "🌅 Rise & Ignite"
+        case "peak_mode":   return "⚡ Peak Mode"
+        case "recharge":    return "☀️ Recharge"
+        case "second_wind": return "🌤 Second Wind"
+        case "golden_hour": return "🌇 Golden Hour"
+        case "wind_down":   return "🌙 Wind Down"
+        // 레거시 호환
+        case "morning":     return "🌅 아침"
+        case "afternoon":   return "☀️ 낮"
+        case "evening":     return "🌇 저녁"
+        case "dawn":        return "🌒 새벽"
+        default:            return savedVerse.mode
         }
     }
 
@@ -50,38 +59,9 @@ struct SavedDetailView: View {
     }
 
     private var backgroundGradient: LinearGradient {
-        switch savedVerse.mode {
-        case "morning":
-            return LinearGradient(
-                colors: [Color(red: 0.98, green: 0.75, blue: 0.44), Color(red: 0.53, green: 0.73, blue: 0.96)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        case "afternoon":
-            return LinearGradient(
-                colors: [Color(red: 0.53, green: 0.73, blue: 0.96), Color(red: 0.38, green: 0.56, blue: 0.80)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        case "evening":
-            return LinearGradient(
-                colors: [Color(red: 0.15, green: 0.12, blue: 0.35), Color(red: 0.05, green: 0.05, blue: 0.15)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        case "dawn":
-            return LinearGradient(
-                colors: [Color(red: 0.06, green: 0.06, blue: 0.20), Color(red: 0.10, green: 0.12, blue: 0.25)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        default:
-            return LinearGradient(
-                colors: [Color(red: 0.15, green: 0.12, blue: 0.35), Color.black],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
+        // AppMode rawValue로 매핑하여 각 Zone의 그라데이션 사용
+        let mode = AppMode(rawValue: savedVerse.mode) ?? AppMode.current()
+        return LinearGradient(colors: mode.gradientColors, startPoint: .top, endPoint: .bottom)
     }
 
     private var shareText: String {

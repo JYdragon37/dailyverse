@@ -220,13 +220,9 @@ final class AlarmCoordinator: ObservableObject {
             score += image.mood.filter { mode.moods.contains($0) }.count * 2
             if image.weather.contains(weatherCondition) || image.weather.contains("any") { score += 2 }
             if image.season.contains(season) || image.season.contains("all") { score += 1 }
-            // 톤 우선순위: 아침/낮 → bright/mid, 저녁/새벽 → dark
-            switch mode {
-            case .morning, .afternoon:
-                if image.tone == "bright" { score += 2 } else if image.tone == "mid" { score += 1 }
-            case .evening, .dawn:
-                if image.tone == "dark" { score += 2 } else if image.tone == "mid" { score += 1 }
-            }
+            // 톤 우선순위: AppMode.preferredImageTone 활용 (8 Zone 대응)
+            let preferredTone = mode.preferredImageTone
+            if image.tone == preferredTone { score += 2 } else if image.tone == "mid" { score += 1 }
             return (image, score)
         }
 
@@ -247,10 +243,14 @@ final class AlarmCoordinator: ObservableObject {
 
     private func fallbackVerse(for mode: AppMode) -> Verse {
         switch mode {
-        case .morning:   return Verse.fallbackMorning
-        case .afternoon: return Verse.fallbackAfternoon
-        case .evening:   return Verse.fallbackEvening
-        case .dawn:      return Verse.fallbackDawn
+        case .deepDark:   return Verse.fallbackDeepDark
+        case .firstLight: return Verse.fallbackFirstLight
+        case .riseIgnite: return Verse.fallbackRiseIgnite
+        case .peakMode:   return Verse.fallbackPeakMode
+        case .recharge:   return Verse.fallbackRecharge
+        case .secondWind: return Verse.fallbackSecondWind
+        case .goldenHour: return Verse.fallbackGoldenHour
+        case .windDown:   return Verse.fallbackWindDown
         }
     }
 }

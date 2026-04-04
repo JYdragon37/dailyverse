@@ -3,25 +3,29 @@ import Network
 
 /// 오프라인 상황에서 번들에 내장된 폴백 말씀을 제공하는 매니저.
 /// Core Data 캐시도 없을 때 최후의 안전망 역할을 한다.
-/// v5.1: 새벽(dawn) 모드 폴백 추가 — 4개 구절
+/// v6.0: 8 Zone 폴백 — 각 Zone별 1개 구절 (총 8개)
 final class OfflineFallbackManager: Sendable {
     static let shared = OfflineFallbackManager()
     private init() {}
 
     // MARK: - Fallback Verses
 
-    /// 번들에 내장된 폴백 말씀 4개 (아침/낮/저녁/새벽 각 1개) 반환
+    /// 번들에 내장된 폴백 말씀 8개 (Zone별 1개) 반환
     func fallbackVerses() -> [Verse] {
         return Verse.fallbackVerses
     }
 
-    /// 현재 모드에 맞는 폴백 말씀 반환
+    /// 현재 Zone에 맞는 폴백 말씀 반환
     func fallbackVerse(for mode: AppMode) -> Verse {
         switch mode {
-        case .morning:   return Verse.fallbackMorning
-        case .afternoon: return Verse.fallbackAfternoon
-        case .evening:   return Verse.fallbackEvening
-        case .dawn:      return Verse.fallbackDawn
+        case .deepDark:   return Verse.fallbackDeepDark
+        case .firstLight: return Verse.fallbackFirstLight
+        case .riseIgnite: return Verse.fallbackRiseIgnite
+        case .peakMode:   return Verse.fallbackPeakMode
+        case .recharge:   return Verse.fallbackRecharge
+        case .secondWind: return Verse.fallbackSecondWind
+        case .goldenHour: return Verse.fallbackGoldenHour
+        case .windDown:   return Verse.fallbackWindDown
         }
     }
 

@@ -219,16 +219,7 @@ struct AlarmStage2View: View {
     // MARK: - Helpers
 
     private func gradientColors(for mode: AppMode) -> [Color] {
-        switch mode {
-        case .morning:
-            return [Color(red: 0.95, green: 0.6, blue: 0.3), Color(red: 0.5, green: 0.25, blue: 0.7)]
-        case .afternoon:
-            return [Color(red: 0.2, green: 0.5, blue: 0.85), Color(red: 0.1, green: 0.3, blue: 0.6)]
-        case .evening:
-            return [Color(red: 0.05, green: 0.05, blue: 0.2), Color(red: 0.15, green: 0.05, blue: 0.3)]
-        case .dawn:
-            return [Color(red: 0.06, green: 0.06, blue: 0.25), Color(red: 0.10, green: 0.10, blue: 0.20)]
-        }
+        return mode.gradientColors
     }
 }
 

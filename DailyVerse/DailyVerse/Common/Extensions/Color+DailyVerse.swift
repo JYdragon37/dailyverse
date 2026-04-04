@@ -59,6 +59,25 @@ extension Color {
     static let dvDawnIndigo = Color(red: 0.153, green: 0.165, blue: 0.380)    // 깊은 남색·별빛
     static let dvDawnNavy   = Color(red: 0.102, green: 0.122, blue: 0.250)
 
+    // MARK: - 8 Zone 액센트 색상 (v6.0)
+
+    // Zone 1 — Deep Dark (00–03) 극야 보라
+    static let dvDeepDarkAccent  = Color(hex: "#3D2B6B")  // 딥 퍼플
+
+    // Zone 2 — First Light (03–06) 새벽 블루
+    static let dvFirstLightAccent = Color(hex: "#2A4A8A")  // 스틸 블루
+
+    // Zone 5 — Recharge (12–15) 민트 그린
+    static let dvRechargeAccent  = Color(hex: "#2A8A7A")  // 틸 그린
+    static let dvRechargeSoft    = Color(hex: "#1A5A50")  // 다크 틸
+
+    // Zone 6 — Second Wind (15–18) 황금빛 황혼 전
+    static let dvSecondWindAccent = Color(hex: "#8A7A2A")  // 다크 골드
+    static let dvSecondWindSoft   = Color(hex: "#5A4A10")  // 어두운 황금
+
+    // Zone 7 — Golden Hour (18–21) 앰버 골드
+    static let dvGoldenHourAccent = Color(hex: "#C87020")  // 버닝 오렌지
+
     // MARK: - Design System v3.0 (경건하고 신비로운 분위기)
 
     /// 딥 다크 배경 #090D18

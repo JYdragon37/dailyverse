@@ -62,21 +62,29 @@ images 컬렉션  ← "이미지 메타데이터 시트"
 
 ### 태그 규칙
 
-**mode** (시간대)
+**mode** (시간대 — v6.0 8 Zone)
 ```
-morning    06:00 ~ 12:00
-afternoon  12:00 ~ 20:00
-evening    20:00 ~ 06:00
-dawn       00:00 ~ 06:00  (새벽 특화)
-all        모든 시간대
+deep_dark    00:00 ~ 03:00  🌑 Deep Dark   — 극야, 고요, 솔직함
+first_light  03:00 ~ 06:00  🌒 First Light — 여명, 준비, 예열
+rise_ignite  06:00 ~ 09:00  🌅 Rise & Ignite — 아침, 점화, 모멘텀
+peak_mode    09:00 ~ 12:00  ⚡ Peak Mode   — 집중, 판단, 성과
+recharge     12:00 ~ 15:00  ☀️ Recharge   — 정오, 리셋, 회복
+second_wind  15:00 ~ 18:00  🌤 Second Wind — 오후 재점화, 마무리
+golden_hour  18:00 ~ 21:00  🌇 Golden Hour — 저녁, 감사, 수확
+wind_down    21:00 ~ 24:00  🌙 Wind Down   — 밤, 마무리, 안식
+all          모든 시간대 적용 가능
 ```
 
-**theme** (테마, mode별 권장)
+**theme** (테마, zone별 권장)
 ```
-morning   → hope / courage / strength / renewal
-afternoon → wisdom / focus / patience / gratitude
-evening   → peace / comfort / reflection / rest
-dawn      → stillness / faith / surrender / grace
+deep_dark    → stillness / surrender / grace / faith
+first_light  → faith / renewal / stillness / hope
+rise_ignite  → hope / courage / strength / renewal
+peak_mode    → wisdom / focus / courage / strength
+recharge     → rest / patience / gratitude / comfort
+second_wind  → strength / focus / patience / wisdom
+golden_hour  → gratitude / reflection / comfort / peace
+wind_down    → peace / rest / comfort / stillness
 ```
 
 **mood** (분위기)

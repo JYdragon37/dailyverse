@@ -148,10 +148,14 @@ final class AlarmViewModel: ObservableObject {
 
     private func fallbackVerse(for alarm: Alarm) -> Verse {
         switch AppMode.fromTime(alarm.time) {
-        case .morning:   return Verse.fallbackMorning
-        case .afternoon: return Verse.fallbackAfternoon
-        case .evening:   return Verse.fallbackEvening
-        case .dawn:      return Verse.fallbackDawn
+        case .deepDark:   return Verse.fallbackDeepDark
+        case .firstLight: return Verse.fallbackFirstLight
+        case .riseIgnite: return Verse.fallbackRiseIgnite
+        case .peakMode:   return Verse.fallbackPeakMode
+        case .recharge:   return Verse.fallbackRecharge
+        case .secondWind: return Verse.fallbackSecondWind
+        case .goldenHour: return Verse.fallbackGoldenHour
+        case .windDown:   return Verse.fallbackWindDown
         }
     }
 
@@ -167,10 +171,14 @@ final class AlarmViewModel: ObservableObject {
         let mode = AppMode.fromTime(alarm.time)
         let contextMsg: String
         switch mode {
-        case .morning:   contextMsg = "새 날이 말씀과 함께 시작됩니다"
-        case .afternoon: contextMsg = "낮의 한 호흡, 말씀이 함께해요"
-        case .evening:   contextMsg = "하루를 말씀으로 마무리해요"
-        case .dawn:      contextMsg = "새벽에도 말씀이 함께해요"
+        case .deepDark:   contextMsg = "이 시간에도 말씀이 함께해요"
+        case .firstLight: contextMsg = "새벽 말씀이 준비됐어요"
+        case .riseIgnite: contextMsg = "새 날이 말씀과 함께 시작됩니다"
+        case .peakMode:   contextMsg = "최고의 순간, 말씀이 함께해요"
+        case .recharge:   contextMsg = "잠깐 쉬며 말씀을 만나봐요"
+        case .secondWind: contextMsg = "오후의 한 호흡, 말씀이 함께해요"
+        case .goldenHour: contextMsg = "하루를 말씀으로 마무리해요"
+        case .windDown:   contextMsg = "오늘도 말씀이 함께했어요"
         }
 
         if isToday {

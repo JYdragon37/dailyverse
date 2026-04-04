@@ -21,11 +21,21 @@ struct BackgroundImage: Identifiable, Codable, Equatable {
     /// 모드 한글 표시명
     var modeDisplayName: String {
         switch mode {
-        case "morning":   return "☀️ 아침 (06-12)"
-        case "afternoon": return "🌤 낮 (12-18)"
-        case "evening":   return "🌙 저녁 (18-00)"
-        case "dawn":      return "✨ 새벽 (00-06)"
-        default: return mode
+        case "deep_dark":   return "🌑 Deep Dark (00–03)"
+        case "first_light": return "🌒 First Light (03–06)"
+        case "rise_ignite": return "🌅 Rise & Ignite (06–09)"
+        case "peak_mode":   return "⚡ Peak Mode (09–12)"
+        case "recharge":    return "☀️ Recharge (12–15)"
+        case "second_wind": return "🌤 Second Wind (15–18)"
+        case "golden_hour": return "🌇 Golden Hour (18–21)"
+        case "wind_down":   return "🌙 Wind Down (21–24)"
+        case "all":         return "🌐 전체"
+        // 레거시 호환
+        case "morning":     return "🌅 아침"
+        case "afternoon":   return "☀️ 낮"
+        case "evening":     return "🌇 저녁"
+        case "dawn":        return "🌒 새벽"
+        default:            return mode
         }
     }
 }

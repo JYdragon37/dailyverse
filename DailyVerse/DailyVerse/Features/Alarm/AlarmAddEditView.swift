@@ -322,15 +322,19 @@ struct AlarmAddEditView: View {
     private var previewVerse: Verse {
         // v5.1: 단일 플랜 — 선택 테마에 맞는 구절 우선
         let timeMode = AppMode.fromTime(selectedTime)
-        let candidates: [Verse] = [.fallbackMorning, .fallbackAfternoon, .fallbackEvening, .fallbackDawn]
+        let candidates = Verse.fallbackVerses
         if let matched = candidates.first(where: { $0.theme.contains(selectedTheme) }) {
             return matched
         }
         switch timeMode {
-        case .morning:   return .fallbackMorning
-        case .afternoon: return .fallbackAfternoon
-        case .evening:   return .fallbackEvening
-        case .dawn:      return .fallbackDawn
+        case .deepDark:   return .fallbackDeepDark
+        case .firstLight: return .fallbackFirstLight
+        case .riseIgnite: return .fallbackRiseIgnite
+        case .peakMode:   return .fallbackPeakMode
+        case .recharge:   return .fallbackRecharge
+        case .secondWind: return .fallbackSecondWind
+        case .goldenHour: return .fallbackGoldenHour
+        case .windDown:   return .fallbackWindDown
         }
     }
 

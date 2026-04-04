@@ -87,10 +87,14 @@ class VerseRepository {
 
     private func fallbackVerse(for mode: AppMode) -> Verse {
         switch mode {
-        case .morning:   return Verse.fallbackMorning
-        case .afternoon: return Verse.fallbackAfternoon
-        case .evening:   return Verse.fallbackEvening
-        case .dawn:      return Verse.fallbackDawn
+        case .deepDark:   return Verse.fallbackDeepDark
+        case .firstLight: return Verse.fallbackFirstLight
+        case .riseIgnite: return Verse.fallbackRiseIgnite
+        case .peakMode:   return Verse.fallbackPeakMode
+        case .recharge:   return Verse.fallbackRecharge
+        case .secondWind: return Verse.fallbackSecondWind
+        case .goldenHour: return Verse.fallbackGoldenHour
+        case .windDown:   return Verse.fallbackWindDown
         }
     }
 }

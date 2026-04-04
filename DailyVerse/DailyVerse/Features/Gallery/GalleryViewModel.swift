@@ -7,19 +7,27 @@ final class GalleryViewModel: ObservableObject {
     // MARK: - Mode Filter
 
     enum ModeFilter: String, CaseIterable {
-        case all       = "all"
-        case morning   = "morning"
-        case afternoon = "afternoon"
-        case evening   = "evening"
-        case dawn      = "dawn"
+        case all        = "all"
+        case deepDark   = "deep_dark"
+        case firstLight = "first_light"
+        case riseIgnite = "rise_ignite"
+        case peakMode   = "peak_mode"
+        case recharge   = "recharge"
+        case secondWind = "second_wind"
+        case goldenHour = "golden_hour"
+        case windDown   = "wind_down"
 
         var displayName: String {
             switch self {
-            case .all:       return "전체"
-            case .morning:   return "☀️ 아침"
-            case .afternoon: return "🌤 낮"
-            case .evening:   return "🌙 저녁"
-            case .dawn:      return "✨ 새벽"
+            case .all:        return "전체"
+            case .deepDark:   return "🌑 Deep Dark"
+            case .firstLight: return "🌒 First Light"
+            case .riseIgnite: return "🌅 Rise & Ignite"
+            case .peakMode:   return "⚡ Peak Mode"
+            case .recharge:   return "☀️ Recharge"
+            case .secondWind: return "🌤 Second Wind"
+            case .goldenHour: return "🌇 Golden Hour"
+            case .windDown:   return "🌙 Wind Down"
             }
         }
     }

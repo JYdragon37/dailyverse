@@ -110,10 +110,14 @@ struct Alarm: Identifiable, Codable, Equatable {
     static func defaultLabel(for time: Date) -> String {
         let mode = AppMode.fromTime(time)
         switch mode {
-        case .morning:   return "아침의 말씀"
-        case .afternoon: return "낮의 말씀"
-        case .evening:   return "저녁의 말씀"
-        case .dawn:      return "새벽의 말씀"
+        case .deepDark:   return "Deep Dark의 말씀"
+        case .firstLight: return "새벽 말씀"
+        case .riseIgnite: return "아침의 말씀"
+        case .peakMode:   return "집중의 말씀"
+        case .recharge:   return "점심 말씀"
+        case .secondWind: return "오후의 말씀"
+        case .goldenHour: return "저녁의 말씀"
+        case .windDown:   return "밤의 말씀"
         }
     }
 

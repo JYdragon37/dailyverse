@@ -79,14 +79,8 @@ struct HomeView: View {
     }
 
     private var fallbackGradient: some View {
-        // 이미지 로드 전 짧게 보이는 플레이스홀더 — 다크 테마로 통일
-        let colors: [Color]
-        switch viewModel.currentMode {
-        case .morning:   colors = [Color.dvMorningGradStart, Color.dvMorningGradMid]
-        case .afternoon: colors = [Color.dvAfternoonGradStart, Color.dvAfternoonGradMid]
-        case .evening:   colors = [Color.dvEveningGradStart, Color.dvEveningGradMid]
-        case .dawn:      colors = [Color(red:0.06,green:0.06,blue:0.20), Color(red:0.10,green:0.12,blue:0.25)]
-        }
+        // 이미지 로드 전 플레이스홀더 — 각 Zone 다크 테마 그라데이션
+        let colors = viewModel.currentMode.gradientColors
         return LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
             .ignoresSafeArea()
     }

@@ -165,11 +165,20 @@ private struct SavedCardView: View {
 
     private var modeEmoji: String {
         switch savedVerse.mode {
-        case "morning":   return "☀️"
-        case "afternoon": return "🌤"
-        case "evening":   return "🌙"
-        case "dawn":      return "✨"
-        default:          return ""
+        case "deep_dark":   return "🌑"
+        case "first_light": return "🌒"
+        case "rise_ignite": return "🌅"
+        case "peak_mode":   return "⚡"
+        case "recharge":    return "☀️"
+        case "second_wind": return "🌤"
+        case "golden_hour": return "🌇"
+        case "wind_down":   return "🌙"
+        // 레거시 호환
+        case "morning":     return "🌅"
+        case "afternoon":   return "☀️"
+        case "evening":     return "🌇"
+        case "dawn":        return "🌒"
+        default:            return ""
         }
     }
 
@@ -228,14 +237,8 @@ private struct SavedCardView: View {
     }
 
     private var modeGradient: some View {
-        let colors: [Color]
-        switch savedVerse.mode {
-        case "morning":   colors = [Color(red:0.98,green:0.86,blue:0.60), Color(red:0.60,green:0.78,blue:0.95)]
-        case "afternoon": colors = [Color(red:0.53,green:0.81,blue:0.98), Color(red:0.35,green:0.55,blue:0.85)]
-        case "dawn":      colors = [Color(red:0.06,green:0.06,blue:0.20), Color(red:0.10,green:0.12,blue:0.25)]
-        default:          colors = [Color(red:0.10,green:0.10,blue:0.28), Color(red:0.05,green:0.05,blue:0.15)]
-        }
-        return LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
+        let mode = AppMode(rawValue: savedVerse.mode) ?? AppMode.current()
+        return LinearGradient(colors: mode.gradientColors, startPoint: .top, endPoint: .bottom)
     }
 }
 

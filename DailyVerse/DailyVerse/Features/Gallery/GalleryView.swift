@@ -181,11 +181,20 @@ private struct GalleryImageCard: View {
 
     private func modeEmoji(_ mode: String) -> String {
         switch mode {
-        case "morning":   return "☀️"
-        case "afternoon": return "🌤"
-        case "evening":   return "🌙"
-        case "dawn":      return "✨"
-        default:          return ""
+        case "deep_dark":   return "🌑"
+        case "first_light": return "🌒"
+        case "rise_ignite": return "🌅"
+        case "peak_mode":   return "⚡"
+        case "recharge":    return "☀️"
+        case "second_wind": return "🌤"
+        case "golden_hour": return "🌇"
+        case "wind_down":   return "🌙"
+        // 레거시 호환
+        case "morning":     return "🌅"
+        case "afternoon":   return "☀️"
+        case "evening":     return "🌇"
+        case "dawn":        return "🌒"
+        default:            return ""
         }
     }
 }
@@ -298,10 +307,14 @@ struct GalleryImageDetailSheet: View {
 
     private func modeEmoji(_ mode: AppMode) -> String {
         switch mode {
-        case .morning:   return "☀️"
-        case .afternoon: return "🌤"
-        case .evening:   return "🌙"
-        case .dawn:      return "✨"
+        case .deepDark:   return "🌑"
+        case .firstLight: return "🌒"
+        case .riseIgnite: return "🌅"
+        case .peakMode:   return "⚡"
+        case .recharge:   return "☀️"
+        case .secondWind: return "🌤"
+        case .goldenHour: return "🌇"
+        case .windDown:   return "🌙"
         }
     }
 }

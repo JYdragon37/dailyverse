@@ -1,27 +1,36 @@
 import Foundation
 import SwiftUI
 
+// v6.0 — 8 Zone 캐시 구조
+
 struct DailyVerseCache: Codable {
     let date: Date
 
-    // 모드별 말씀 ID
-    var morningVerseId: String?
-    var afternoonVerseId: String?
-    var eveningVerseId: String?
-    var dawnVerseId: String?        // v5.1
+    // Zone별 말씀 ID
+    var deepDarkVerseId: String?    // Zone 1: 00–03
+    var firstLightVerseId: String?  // Zone 2: 03–06
+    var riseIgniteVerseId: String?  // Zone 3: 06–09
+    var peakModeVerseId: String?    // Zone 4: 09–12
+    var rechargeVerseId: String?    // Zone 5: 12–15
+    var secondWindVerseId: String?  // Zone 6: 15–18
+    var goldenHourVerseId: String?  // Zone 7: 18–21
+    var windDownVerseId: String?    // Zone 8: 21–24
 
-    // v5.1 — 모드별 이미지 ID (daily_cards 큐레이션 또는 알고리즘 결과 캐시)
-    var morningImageId: String?
-    var afternoonImageId: String?
-    var eveningImageId: String?
-    var dawnImageId: String?
+    // Zone별 이미지 ID
+    var deepDarkImageId: String?
+    var firstLightImageId: String?
+    var riseIgniteImageId: String?
+    var peakModeImageId: String?
+    var rechargeImageId: String?
+    var secondWindImageId: String?
+    var goldenHourImageId: String?
+    var windDownImageId: String?
 
-    // 06:00 기준으로 "오늘"을 판단 (v5.1: 05:00 → 06:00 변경)
+    // 06:00 기준으로 "오늘"을 판단 (새벽 00–05는 전날 취급)
     static func isValid(_ cache: DailyVerseCache) -> Bool {
         let calendar = Calendar.current
         let now = Date()
         let hour = calendar.component(.hour, from: now)
-        // 00:00~05:59는 전날로 취급
         let referenceDate: Date
         if hour < 6 {
             referenceDate = calendar.date(byAdding: .day, value: -1, to: now) ?? now
@@ -35,42 +44,60 @@ struct DailyVerseCache: Codable {
 
     func verseId(for mode: AppMode) -> String? {
         switch mode {
-        case .morning:   return morningVerseId
-        case .afternoon: return afternoonVerseId
-        case .evening:   return eveningVerseId
-        case .dawn:      return dawnVerseId
+        case .deepDark:   return deepDarkVerseId
+        case .firstLight: return firstLightVerseId
+        case .riseIgnite: return riseIgniteVerseId
+        case .peakMode:   return peakModeVerseId
+        case .recharge:   return rechargeVerseId
+        case .secondWind: return secondWindVerseId
+        case .goldenHour: return goldenHourVerseId
+        case .windDown:   return windDownVerseId
         }
     }
 
     func imageId(for mode: AppMode) -> String? {
         switch mode {
-        case .morning:   return morningImageId
-        case .afternoon: return afternoonImageId
-        case .evening:   return eveningImageId
-        case .dawn:      return dawnImageId
+        case .deepDark:   return deepDarkImageId
+        case .firstLight: return firstLightImageId
+        case .riseIgnite: return riseIgniteImageId
+        case .peakMode:   return peakModeImageId
+        case .recharge:   return rechargeImageId
+        case .secondWind: return secondWindImageId
+        case .goldenHour: return goldenHourImageId
+        case .windDown:   return windDownImageId
         }
     }
 
     mutating func setVerseId(_ id: String, for mode: AppMode) {
         switch mode {
-        case .morning:   morningVerseId   = id
-        case .afternoon: afternoonVerseId = id
-        case .evening:   eveningVerseId   = id
-        case .dawn:      dawnVerseId      = id
+        case .deepDark:   deepDarkVerseId   = id
+        case .firstLight: firstLightVerseId = id
+        case .riseIgnite: riseIgniteVerseId = id
+        case .peakMode:   peakModeVerseId   = id
+        case .recharge:   rechargeVerseId   = id
+        case .secondWind: secondWindVerseId = id
+        case .goldenHour: goldenHourVerseId = id
+        case .windDown:   windDownVerseId   = id
         }
     }
 
     mutating func setImageId(_ id: String, for mode: AppMode) {
         switch mode {
-        case .morning:   morningImageId   = id
-        case .afternoon: afternoonImageId = id
-        case .evening:   eveningImageId   = id
-        case .dawn:      dawnImageId      = id
+        case .deepDark:   deepDarkImageId   = id
+        case .firstLight: firstLightImageId = id
+        case .riseIgnite: riseIgniteImageId = id
+        case .peakMode:   peakModeImageId   = id
+        case .recharge:   rechargeImageId   = id
+        case .secondWind: secondWindImageId = id
+        case .goldenHour: goldenHourImageId = id
+        case .windDown:   windDownImageId   = id
         }
     }
 
     var hasAnyVerse: Bool {
-        return morningVerseId != nil || afternoonVerseId != nil
-            || eveningVerseId != nil || dawnVerseId != nil
+        return deepDarkVerseId != nil || firstLightVerseId != nil ||
+               riseIgniteVerseId != nil || peakModeVerseId != nil ||
+               rechargeVerseId != nil || secondWindVerseId != nil ||
+               goldenHourVerseId != nil || windDownVerseId != nil
     }
 }
