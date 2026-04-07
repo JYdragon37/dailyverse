@@ -216,8 +216,8 @@ final class AlarmCoordinator: ObservableObject {
 
         let scored = pool.map { image -> (VerseImage, Int) in
             var score = 0
-            score += image.theme.filter { verse.theme.contains($0) }.count * 3
-            score += image.mood.filter { mode.moods.contains($0) }.count * 2
+            score += image.theme.contains("all") ? 3 : image.theme.filter { verse.theme.contains($0) }.count * 3
+            score += image.mood.contains("all") ? 2 : image.mood.filter { mode.moods.contains($0) }.count * 2
             if image.weather.contains(weatherCondition) || image.weather.contains("any") { score += 2 }
             if image.season.contains(season) || image.season.contains("all") { score += 1 }
             // 톤 우선순위: AppMode.preferredImageTone 활용 (8 Zone 대응)

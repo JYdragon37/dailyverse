@@ -85,6 +85,18 @@ recharge     → rest / patience / gratitude / comfort
 second_wind  → strength / focus / patience / wisdom
 golden_hour  → gratitude / reflection / comfort / peace
 wind_down    → peace / rest / comfort / stillness
+all          → 모든 Zone에서 표시 가능 (Zone 무관 범용 말씀)
+```
+
+**mood** (분위기)
+```
+bright   맑고 활기찬        (rise_ignite, peak_mode 권장)
+calm     차분하고 안정된     (recharge, second_wind, wind_down 권장)
+warm     따뜻하고 포근한     (recharge, second_wind, golden_hour 권장)
+serene   고요하고 평화로운   (deep_dark, first_light, golden_hour 권장)
+dramatic 웅장하고 강렬한     (rise_ignite, peak_mode 권장)
+cozy     아늑하고 편안한     (wind_down 권장)
+all      모든 분위기에서 표시 가능 (분위기 무관 범용)
 ```
 
 **mood** (분위기)

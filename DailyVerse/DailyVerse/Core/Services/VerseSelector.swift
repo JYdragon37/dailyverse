@@ -46,8 +46,18 @@ class VerseSelector {
 
         let scored: [(Verse, Int)] = verses.map { verse in
             var score = 0
-            score += verse.theme.filter { currentThemes.contains($0) }.count * 3
-            score += verse.mood.filter { currentMoods.contains($0) }.count * 2
+            // theme: "all" → 모든 Zone에서 +3 (1개 매칭과 동일)
+            if verse.theme.contains("all") {
+                score += 3
+            } else {
+                score += verse.theme.filter { currentThemes.contains($0) }.count * 3
+            }
+            // mood: "all" → 모든 분위기에서 +2
+            if verse.mood.contains("all") {
+                score += 2
+            } else {
+                score += verse.mood.filter { currentMoods.contains($0) }.count * 2
+            }
             if verse.weather.contains(currentWeather) || verse.weather.contains("any") { score += 2 }
             if verse.season.contains(currentSeason) || verse.season.contains("all") { score += 1 }
             return (verse, score)
