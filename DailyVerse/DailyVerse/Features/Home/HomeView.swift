@@ -32,8 +32,9 @@ struct HomeView: View {
             .overlay(alignment: .bottom) {
                 if let verse = viewModel.currentVerse {
                     verseCenter(verse: verse)
-                        .padding(.horizontal, 28)
-                        .padding(.bottom, 110)
+                        .padding(.leading, 36)
+                        .padding(.trailing, 28)
+                        .padding(.bottom, 140)
                 }
             }
             .overlay { toastLayer }
@@ -166,7 +167,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 — 21pt regular (textFullKo: 긴 텍스트라 lineSpacing 중요)
             Text(verse.textFullKo)
-                .font(.system(size: 19, weight: .semibold))
+                .font(.system(size: 21, weight: .semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
