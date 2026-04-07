@@ -9,11 +9,8 @@ final class AppLoadingCoordinator: ObservableObject {
     // MARK: - Loading State
 
     enum LoadingState {
-        /// Stage 1: 스플래시 0.8초
         case splash
-        /// Stage 2: 데이터 로드 (스켈레톤 or 스플래시 유지)
         case loading
-        /// Stage 3: 준비 완료 → 온보딩/홈 전환
         case ready
     }
 
@@ -22,12 +19,15 @@ final class AppLoadingCoordinator: ObservableObject {
     @Published var state: LoadingState = .splash
     @Published var isOffline: Bool = false
 
+    /// 스플래시 중 미리 로드된 Zone 배경 이미지
+    /// AppRootView 베이스 레이어에서 사용 → 스플래시 종료 즉시 올바른 이미지 표시
+    @Published var zoneBgImage: UIImage? = nil
+    @Published var zoneBgUrl: URL? = nil
+
     // MARK: - Dependencies
 
     private let verseRepository: VerseRepository
     private let cacheManager: DailyCacheManager
-
-    // MARK: - Init
 
     init(
         verseRepository: VerseRepository = VerseRepository(),
@@ -39,17 +39,16 @@ final class AppLoadingCoordinator: ObservableObject {
 
     // MARK: - Start
 
-    /// 앱 진입 시 호출. 스플래시 → 로딩 → 준비 완료 순으로 상태를 전이한다.
     func start() async {
-        // Stage 1: 스플래시 2.8초 대기 (+2초 추가)
+        // Stage 1: 스플래시
         try? await Task.sleep(nanoseconds: 2_800_000_000)
         state = .loading
 
-        // Stage 2-a: 배경 이미지 pre-load (캐시 유무 관계없이 항상 실행)
-        // → HomeView 진입 전 disk cache에 이미지 저장 → 첫 렌더에 즉시 표시
-        await preloadZoneBackground()
+        // Stage 2-a: Zone 배경 이미지를 메모리에 로드 (항상 실행)
+        // → AppRootView 베이스 레이어가 즉시 표시 → HomeView 전환 시 플래시 0
+        await loadZoneBackground()
 
-        // Stage 2-b: 오늘 날짜 기준 유효 캐시가 있으면 네트워크 호출 없이 즉시 ready
+        // Stage 2-b: 유효 캐시 있으면 즉시 ready
         if cacheManager.hasValidCache() {
             state = .ready
             return
@@ -63,27 +62,31 @@ final class AppLoadingCoordinator: ObservableObject {
             return
         }
 
-        // Stage 2-d: Firestore에서 최신 말씀 로드 (실패해도 폴백으로 ready)
+        // Stage 2-d: Firestore 말씀 로드
         _ = try? await verseRepository.fetchVerses()
 
         state = .ready
     }
 
-    // MARK: - Connectivity
+    // MARK: - Zone Background 로드
 
-    /// NWPathMonitor를 이용해 현재 네트워크 상태를 단발성으로 확인한다.
-    /// 경로 상태가 `.satisfied`가 아니면 오프라인으로 판단한다.
-    /// 현재 Zone 배경 이미지를 disk cache에 미리 저장
-    /// HomeView 진입 시 RemoteImageView가 cache hit → 즉시 표시 (flash 없음)
-    private func preloadZoneBackground() async {
+    /// 현재 Zone 배경 이미지를 메모리(zoneBgImage)에 로드
+    /// 1. disk cache hit → 즉시 메모리에 세팅
+    /// 2. miss → 다운로드 → disk 저장 → 메모리에 세팅
+    private func loadZoneBackground() async {
         let mode = AppMode.current()
         guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
               let url = URL(string: bg.storageUrl) else { return }
 
-        // 이미 disk cache에 있으면 스킵
-        guard ImageDiskCache.shared.load(for: url) == nil else { return }
+        zoneBgUrl = url
 
-        // disk cache 없으면 다운로드 후 저장
+        // Disk cache hit → 즉시 메모리에 로드
+        if let cached = ImageDiskCache.shared.load(for: url) {
+            zoneBgImage = cached
+            return
+        }
+
+        // Disk cache miss → 다운로드
         var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
         request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
         guard let (data, response) = try? await URLSession.shared.data(for: request),
@@ -92,7 +95,10 @@ final class AppLoadingCoordinator: ObservableObject {
               let image = UIImage(data: data) else { return }
 
         ImageDiskCache.shared.save(image, for: url)
+        zoneBgImage = image
     }
+
+    // MARK: - Connectivity
 
     private func checkConnectivity() async -> Bool {
         await withCheckedContinuation { continuation in

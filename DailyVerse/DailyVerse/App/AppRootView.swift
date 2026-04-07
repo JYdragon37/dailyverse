@@ -7,6 +7,25 @@ struct AppRootView: View {
 
     var body: some View {
         ZStack {
+            // MARK: - [베이스 레이어] Zone 배경 이미지
+            // 스플래시 중에 미리 로드됨 → state=.ready 전환 순간 이미지가 이미 보임
+            // SplashView / MainTabView / AlarmView 모두 이 위에 올라탐
+            if let bgImage = loadingCoordinator.zoneBgImage {
+                Image(uiImage: bgImage)
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                    .zIndex(0)
+            } else {
+                // 이미지 로드 전: Zone 다크 그라데이션 (플래시 없음)
+                LinearGradient(
+                    colors: AppMode.current().gradientColors,
+                    startPoint: .top, endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                .zIndex(0)
+            }
+
             // MARK: - 로딩 상태에 따른 화면 분기
             // splash / loading 을 단일 SplashView로 유지 →
             // 상태 전환 시 SwiftUI가 같은 뷰로 인식, 로고 재애니메이션(깜빡임) 없음

@@ -6,6 +6,7 @@ struct HomeView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var upsellManager: UpsellManager
+    @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
     @State private var showVerseDetail = false
@@ -62,9 +63,17 @@ struct HomeView: View {
             .ignoresSafeArea()
             .background {
                 Group {
-                    // Zone 배경 이미지만 사용 (이미지 이원화 — 말씀 이미지는 홈 배경으로 사용 안 함)
-                    if let bgUrlStr = viewModel.currentBackground?.storageUrl,
-                       let bgUrl = URL(string: bgUrlStr) {
+                    // 우선순위 1: AppRootView가 미리 로드한 이미지 (스플래시 중 로드, 즉시 표시)
+                    if let preloaded = loadingCoordinator.zoneBgImage {
+                        Image(uiImage: preloaded)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+                    }
+                    // 우선순위 2: zone 변경 시 ViewModel이 로드한 이미지
+                    else if let bgUrlStr = viewModel.currentBackground?.storageUrl,
+                            let bgUrl = URL(string: bgUrlStr) {
                         RemoteImageView(url: bgUrl) { fallbackGradient }
                     } else {
                         fallbackGradient
