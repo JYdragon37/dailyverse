@@ -84,7 +84,11 @@ async function main() {
     process.exit(1);
   }
 
-  const headers  = rows[0].map(h => String(h).trim());
+  const headers  = rows[0].map(h => {
+    const s = String(h).trim();
+    const p = s.indexOf('(');
+    return p > 0 ? s.substring(0, p).trim() : s;
+  });
   const idIdx    = headers.indexOf(ID_FIELD);
   if (idIdx === -1) {
     console.error(`❌ '${ID_FIELD}' 컬럼 없음`);

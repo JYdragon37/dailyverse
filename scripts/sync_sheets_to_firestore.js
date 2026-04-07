@@ -78,7 +78,12 @@ async function main() {
     process.exit(1);
   }
 
-  const headers = rows[0].map(h => String(h).trim());
+  // 헤더에서 괄호 설명 제거: "text_ko(설명...)" → "text_ko"
+  const headers = rows[0].map(h => {
+    const s = String(h).trim();
+    const p = s.indexOf('(');
+    return p > 0 ? s.substring(0, p).trim() : s;
+  });
   const verseIdIdx = headers.indexOf('verse_id');
   if (verseIdIdx === -1) {
     console.error('❌ verse_id 컬럼 없음');

@@ -4,7 +4,7 @@ import Combine
 
 class DailyCacheManager {
     static let shared = DailyCacheManager()
-    private let cacheKey = "dailyVerseCache_v3"  // v6.0: 8 Zone 캐시 키 변경
+    private let cacheKey = "dailyVerseCache_v4"  // v4: 다수 구절 추가로 캐시 강제 초기화
 
     // MARK: - Verse ID
 
