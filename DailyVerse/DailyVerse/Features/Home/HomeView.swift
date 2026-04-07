@@ -501,8 +501,18 @@ private struct HourlyForecastCard: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 20) {
-                        ForEach(Array(weather.hourlyForecast.enumerated()), id: \.offset) { idx, item in
-                            HourlyItem(item: item, isNow: idx == 0)
+                        // 첫 항목: 현재 실시간 날씨 (API 예보는 최소 1-2시간 이후부터 시작)
+                        let currentItem = HourlyForecastItem(
+                            time: Date(),
+                            temperature: weather.temperature,
+                            condition: weather.condition,
+                            conditionKo: weather.conditionKo
+                        )
+                        HourlyItem(item: currentItem, isNow: true)
+
+                        // 이후 예보 항목들
+                        ForEach(Array(weather.hourlyForecast.enumerated()), id: \.offset) { _, item in
+                            HourlyItem(item: item, isNow: false)
                         }
                     }
                     .padding(.horizontal, 4)
@@ -526,8 +536,12 @@ private struct HourlyItem: View {
         if isNow { return "지금" }
         let f = DateFormatter()
         f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "a h시"
-        return f.string(from: item.time)
+        // "오전 1시" → 잘림 방지: "오전\n1시" 두 줄로 표시
+        f.dateFormat = "a"
+        let ampm = f.string(from: item.time)  // "오전" or "오후"
+        f.dateFormat = "h시"
+        let hour = f.string(from: item.time)  // "1시"
+        return "\(ampm)\n\(hour)"
     }
 
     private var conditionIcon: String {
@@ -544,9 +558,11 @@ private struct HourlyItem: View {
         VStack(spacing: 6) {
             // 시간 레이블 — 고정 높이
             Text(timeLabel)
-                .font(.system(size: 13, weight: isNow ? .semibold : .regular))
+                .font(.system(size: 12, weight: isNow ? .semibold : .regular))
                 .foregroundColor(.white.opacity(0.8))
-                .frame(height: 18)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(height: 30)
             // 아이콘 — 고정 프레임으로 높이 통일 (Fix 1)
             Image(systemName: conditionIcon)
                 .font(.system(size: 20))
