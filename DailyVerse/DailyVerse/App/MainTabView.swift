@@ -99,7 +99,6 @@ private struct DVTabBar: View {
                         }
                         .foregroundColor(selectedTab == tag ? Color.dvGold : Color.white.opacity(0.45))
                         .frame(maxWidth: .infinity)
-                        // 홈인디케이터 없는 기기(SE 등)는 최소 16pt 여백 확보
                         .padding(.top, 8)
                         .padding(.bottom, 8)
                         .contentShape(Rectangle())
@@ -108,6 +107,7 @@ private struct DVTabBar: View {
                     .accessibilityLabel(label)
                 }
             }
+            .padding(.horizontal, 20)
         }
         // 배경: dvBgDeep 색상이 home indicator 영역까지 확장
         .background(

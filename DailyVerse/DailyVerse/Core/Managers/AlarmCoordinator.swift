@@ -16,10 +16,11 @@ final class AlarmCoordinator: ObservableObject {
     @Published var activeVerse: Verse?
     @Published var activeImage: VerseImage?
     @Published var activeWeather: WeatherData?
+    @Published var activeMode: AppMode = AppMode.current()   // 알람 발동 시간 기준 zone
     @Published var activeSnoozeInterval: Int = 5
     @Published var activeMission: String = "none"
     @Published var activeAlertStyle: String = "soundAndVibration"  // Bug 3 수정
-    @Published var activeSoundId: String = "piano"
+    @Published var activeSoundId: String = "song"
     @Published var activeVolume: Float = 0.8
 
     private var snoozeCount: Int = 0
@@ -90,6 +91,11 @@ final class AlarmCoordinator: ObservableObject {
         activeVerse = verse
         activeImage = image
         activeAlarmId = alarmId
+        activeMode = mode
+        // 캐시된 날씨 로드 (Stage 2 날씨 위젯용)
+        if activeWeather == nil {
+            activeWeather = WeatherCacheManager().load()
+        }
         let activeAlarm = alarmRepository.fetchAll().first(where: { $0.id == alarmId })
         activeSnoozeInterval = activeAlarm?.snoozeInterval ?? 5
         activeMission        = activeAlarm?.wakeMission    ?? "none"
@@ -129,10 +135,11 @@ final class AlarmCoordinator: ObservableObject {
         activeAlarmId = nil
         activeWeather = nil
         activeSnoozeInterval = 5
-        activeMission    = "none"           // Bug D 수정
+        activeMission    = "none"
         activeAlertStyle = "soundAndVibration"
-        activeSoundId    = "piano"
+        activeSoundId    = "song"
         activeVolume     = 0.8
+        activeMode       = AppMode.current()
         snoozeCount = 0
     }
 
@@ -154,11 +161,11 @@ final class AlarmCoordinator: ObservableObject {
     private func startAlarmFeedback() {
         switch activeAlertStyle {
         case "vibration":
-            // Bug 4/5 수정: 진동 전용 → AudioServices 루프는 AlarmStage1View에서 처리
-            // AlarmCoordinator는 시작 신호만 발생 (notificationManager 통해 주기적 haptic)
-            notificationManager.startAlarmAudio(soundId: activeAlertStyle, volume: 0)
-        case "sound", "soundAndVibration":
-            // Bug 5 수정: 번들 오디오 없으면 시스템 사운드로 폴백
+            notificationManager.startAlarmAudio(soundId: "vibration", volume: 0)
+        case "soundAndVibration":
+            notificationManager.startAlarmAudio(soundId: activeSoundId, volume: activeVolume)
+            notificationManager.addVibrationLoop()  // stopAudio 없이 진동만 추가
+        case "sound":
             notificationManager.startAlarmAudio(soundId: activeSoundId, volume: activeVolume)
         default:
             notificationManager.startAlarmAudio(soundId: activeSoundId, volume: activeVolume)

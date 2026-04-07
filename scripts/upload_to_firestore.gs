@@ -337,6 +337,95 @@ function testUploadFirstRow() {
   Logger.log(success ? "테스트 성공" : "테스트 실패 — 로그를 확인하세요");
 }
 
+// ─── ALARM_VERSES 업로드 ──────────────────────────────────────────────────────
+
+/**
+ * 구글 시트 ALARM_VERSES 탭 → Firestore alarm_verses 컬렉션 업로드.
+ * 알람탭 상단 헤더에 표시될 말씀 전용.
+ * verse_id 컬럼 값이 문서 ID로 사용됩니다 (av_001 형식).
+ */
+function uploadAlarmVersesToFirestore() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("ALARM_VERSES");
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert("오류", '"ALARM_VERSES" 시트를 찾을 수 없습니다.\n구글 시트에서 ALARM_VERSES 탭을 먼저 만들어주세요.', SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
+  var data = sheet.getDataRange().getValues();
+  if (data.length < 2) {
+    Logger.log("ALARM_VERSES: 데이터가 없습니다.");
+    return;
+  }
+
+  // ALARM_VERSES 전용 배열/정수/불리언 필드
+  var AV_ARRAY_FIELDS    = ["theme", "mood", "alarm_context"];
+  var AV_INT_FIELDS      = ["chapter", "verse", "usage_count", "cooldown_days", "show_count"];
+  var AV_BOOL_FIELDS     = ["curated"];
+  var AV_NULLABLE_FIELDS = ["last_shown", "notes"];
+
+  var headers = data[0].map(function(h) { return String(h).trim(); });
+  var verseIdIndex = headers.indexOf("verse_id");
+  if (verseIdIndex === -1) {
+    SpreadsheetApp.getUi().alert("오류", "verse_id 컬럼이 없습니다.", SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
+
+  Logger.log("ALARM_VERSES 컬럼: " + headers.join(", "));
+
+  var successCount = 0, failCount = 0, failedRows = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var verseId = String(row[verseIdIndex]).trim();
+    if (verseId === "" || verseId === "undefined") continue;
+
+    // ALARM_VERSES 전용 필드 타입으로 Firestore 문서 빌드
+    var fields = {};
+    for (var j = 0; j < headers.length; j++) {
+      var key = headers[j];
+      var rawValue = row[j];
+      if (!key) continue;
+
+      var strValue = String(rawValue).trim();
+
+      if (AV_NULLABLE_FIELDS.indexOf(key) !== -1 && strValue === "") continue;
+
+      if (AV_ARRAY_FIELDS.indexOf(key) !== -1) {
+        var items = strValue.split(",").map(function(s){ return s.trim(); }).filter(function(s){ return s !== ""; });
+        if (items.length === 0) items = ["all"];
+        fields[key] = { arrayValue: { values: items.map(function(item){ return { stringValue: item }; }) } };
+      } else if (AV_INT_FIELDS.indexOf(key) !== -1) {
+        var intVal = parseInt(strValue, 10);
+        fields[key] = { integerValue: String(isNaN(intVal) ? 0 : intVal) };
+      } else if (AV_BOOL_FIELDS.indexOf(key) !== -1) {
+        fields[key] = { booleanValue: ["true","1","yes"].indexOf(strValue.toLowerCase()) !== -1 };
+      } else {
+        fields[key] = { stringValue: strValue };
+      }
+    }
+
+    // 기본값 보장
+    if (!fields.status)       fields.status       = { stringValue: "active" };
+    if (!fields.curated)      fields.curated      = { booleanValue: true };
+    if (!fields.usage_count)  fields.usage_count  = { integerValue: "0" };
+    if (!fields.cooldown_days) fields.cooldown_days = { integerValue: "7" };
+
+    var success = upsertDocument("alarm_verses", verseId, { fields: fields });
+    if (success) {
+      successCount++;
+      Logger.log("성공 [" + (i) + "/" + (data.length - 1) + "]: " + verseId);
+    } else {
+      failCount++;
+      failedRows.push(verseId);
+    }
+    Utilities.sleep(100);
+  }
+
+  var summary = "alarm_verses 업로드: " + successCount + "개 성공, " + failCount + "개 실패";
+  Logger.log(summary);
+  SpreadsheetApp.getUi().alert("업로드 결과", summary + (failedRows.length ? "\n\n실패: " + failedRows.join(", ") : ""), SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
 /**
  * 누락된 컬럼을 헤더 행에 자동으로 추가합니다.
  * 기존 데이터는 건드리지 않고, 없는 컬럼만 우측에 추가합니다.

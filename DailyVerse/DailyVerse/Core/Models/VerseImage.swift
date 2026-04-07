@@ -5,9 +5,9 @@ struct VerseImage: Identifiable, Codable, Equatable {
     let id: String
     let filename: String
     let storageUrl: String
-    let source: String
-    let sourceUrl: String
-    let license: String
+    let source: String?
+    let sourceUrl: String?
+    let license: String?
     let mode: [String]
     let theme: [String]
     let mood: [String]

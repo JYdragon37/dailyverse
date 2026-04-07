@@ -35,14 +35,16 @@ final class LegacyAlarmEngine: AlarmEngine {
             return
         }
 
-        // 항상 먼저 AVAudioSession.playback 설정 — 무음 스위치 우회
+        // AVAudioSession.playback — 무음 스위치 우회, 스피커 강제 출력
         do {
             try AVAudioSession.sharedInstance().setCategory(
                 .playback,
                 mode: .default,
-                options: [.duckOthers]
+                options: []   // duckOthers 제거 — 알람은 단독으로 재생
             )
-            try AVAudioSession.sharedInstance().setActive(true)
+            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+            // 내장 스피커 강제 출력 — 이어폰/블루투스 연결 여부 무관하게 스피커로
+            try AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
         } catch {
             #if DEBUG
             print("⚠️ [LegacyAlarmEngine] AVAudioSession 설정 실패: \(error)")
@@ -58,25 +60,47 @@ final class LegacyAlarmEngine: AlarmEngine {
         default:       filename = "alarm_song"   // alarm_song이 기본 알람음
         }
 
+        // 미디어 볼륨 체크 — 0이면 소리 안 남
+        let outputVol = AVAudioSession.sharedInstance().outputVolume
+        #if DEBUG
+        print("🔊 [LegacyAlarmEngine] 미디어 볼륨: \(outputVol)")
+        print("🔊 [LegacyAlarmEngine] filename: \(filename)")
+        #endif
+
         if let url = Bundle.main.url(forResource: filename, withExtension: "caf")
             ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
             ?? Bundle.main.url(forResource: filename, withExtension: "wav") {
+            #if DEBUG
+            print("🔊 [LegacyAlarmEngine] 파일 URL 발견: \(url.lastPathComponent)")
+            #endif
             // 번들 파일 있음 → AVAudioPlayer 루프
             do {
                 let player = try AVAudioPlayer(contentsOf: url)
                 player.numberOfLoops = -1
                 player.volume = volume
-                player.play()
+                let started = player.play()
                 audioPlayer = player
+                #if DEBUG
+                print("🔊 [LegacyAlarmEngine] play() 결과: \(started)  playerVolume: \(player.volume)")
+                #endif
             } catch {
                 #if DEBUG
-                print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 실패: \(error)")
+                print("⚠️ [LegacyAlarmEngine] AVAudioPlayer 생성 실패: \(error)")
                 #endif
                 startGeneratedToneLoop(volume: volume)
             }
         } else {
-            // 번들 파일 없음 → AVAudioEngine으로 알람음 직접 생성 (무음 모드 우회 유지)
+            #if DEBUG
+            print("⚠️ [LegacyAlarmEngine] 번들에서 \(filename) 파일 없음 — 생성 톤으로 대체")
+            #endif
             startGeneratedToneLoop(volume: volume)
+        }
+
+        // 미디어 볼륨이 0이면 알림 → Stage1이 경고 표시
+        if outputVol < 0.05 {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .dvAlarmVolumeTooLow, object: nil)
+            }
         }
     }
 
@@ -105,9 +129,19 @@ final class LegacyAlarmEngine: AlarmEngine {
         }
     }
 
-    /// 진동 전용 — 1.5초 간격 햅틱 루프
-    private static func startVibrationLoop() {
+    /// 진동 전용 모드 — 기존 오디오 정지 후 진동 루프 시작
+    static func startVibrationLoop() {
         stopAudio()
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        }
+        RunLoop.main.add(vibrationTimer!, forMode: .common)
+    }
+
+    /// 소리+진동 모드 — 오디오를 유지하면서 진동 루프만 추가
+    static func addVibrationLoop() {
+        vibrationTimer?.invalidate()
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
         vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)

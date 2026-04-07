@@ -54,6 +54,8 @@
 		<string>audio</string>
 	</array>
 	<!-- UI -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

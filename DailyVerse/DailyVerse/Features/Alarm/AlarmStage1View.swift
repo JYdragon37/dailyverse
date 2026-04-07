@@ -4,6 +4,7 @@ import Combine
 struct AlarmStage1View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
     @State private var weatherForForecast: WeatherData?
+    @State private var showVolumeWarning: Bool = false
 
     var body: some View {
         ZStack {
@@ -80,6 +81,24 @@ struct AlarmStage1View: View {
                 .padding(.bottom, 24)
             }
         }
+        // 볼륨 경고 토스트
+        .overlay(alignment: .top) {
+            if showVolumeWarning {
+                HStack(spacing: 8) {
+                    Image(systemName: "speaker.slash.fill")
+                    Text("미디어 볼륨을 올려주세요 (옆면 버튼 ▲)")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color.orange.opacity(0.85))
+                .clipShape(Capsule())
+                .padding(.top, 60)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showVolumeWarning)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
         .task {
@@ -88,6 +107,13 @@ struct AlarmStage1View: View {
             } else if let cached = WeatherCacheManager().load() {
                 weatherForForecast = cached
                 coordinator.activeWeather = cached
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dvAlarmVolumeTooLow)) { _ in
+            withAnimation { showVolumeWarning = true }
+            // 5초 후 자동 숨김
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                withAnimation { showVolumeWarning = false }
             }
         }
     }

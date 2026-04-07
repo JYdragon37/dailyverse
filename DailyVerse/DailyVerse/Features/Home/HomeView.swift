@@ -26,14 +26,14 @@ struct HomeView: View {
             .overlay(alignment: .topLeading) {
                 greetingHeader
                     .padding(.top, 60)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 28)
             }
-            // #2 말씀 카드: 중앙 배치
-            .overlay(alignment: .center) {
+            // #2 말씀 카드: 하단 다크 영역에 배치
+            .overlay(alignment: .bottom) {
                 if let verse = viewModel.currentVerse {
                     verseCenter(verse: verse)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 100) // 인사말 영역과 겹치지 않게 살짝 아래
+                        .padding(.horizontal, 28)
+                        .padding(.bottom, 110)
                 }
             }
             .overlay { toastLayer }
@@ -163,22 +163,22 @@ struct HomeView: View {
     // WeatherWidget 제거 — 날씨 정보는 헤더로 통합
 
     private func verseCenter(verse: Verse) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // 말씀 텍스트 — 30pt bold (기존 26pt에서 확대)
-            Text(verse.textKo)
-                .font(.system(size: 30, weight: .bold))
+        VStack(alignment: .leading, spacing: 0) {
+            // 말씀 텍스트 — 21pt regular (textFullKo: 긴 텍스트라 lineSpacing 중요)
+            Text(verse.textFullKo)
+                .font(.system(size: 19, weight: .semibold))
                 .foregroundColor(.white)
-                .lineSpacing(6)
+                .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.7), radius: 6, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
 
-            // 성경 참조 + 테마 + DB 인덱스
+            // 성경 참조 + 테마 + DB 인덱스 (2줄 띄움)
             HStack(spacing: 8) {
                 Text(verse.reference)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
 
-                if let firstTheme = verse.theme.first {
+                if let firstTheme = verse.theme.first, firstTheme != "all" {
                     Text(firstTheme.capitalized)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.dvAccentGold)
@@ -200,11 +200,12 @@ struct HomeView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.5))
             }
+            .padding(.top, 18)  // 출처: 말씀과 2줄 간격
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { showVerseDetail = true }
-        .accessibilityLabel("\(verse.textKo). \(verse.reference)")
+        .accessibilityLabel("\(verse.textFullKo). \(verse.reference)")
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)

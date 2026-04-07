@@ -35,7 +35,7 @@ class PermissionManager: NSObject, ObservableObject {
     func requestNotification() async {
         do {
             let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .badge, .sound, .timeSensitive]) // iOS 15+
+                .requestAuthorization(options: [.alert, .badge, .sound]) // timeSensitive는 entitlement로 처리
             notificationStatus = granted ? .authorized : .denied
         } catch {
             notificationStatus = .denied

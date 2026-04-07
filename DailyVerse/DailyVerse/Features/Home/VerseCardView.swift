@@ -21,7 +21,7 @@ struct VerseCardView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
 
-                if let firstTheme = verse.theme.first {
+                if let firstTheme = verse.theme.first, firstTheme != "all" {
                     Text(firstTheme.capitalized)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.dvVerseGold)

@@ -130,13 +130,12 @@ private struct GalleryImageCard: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            AsyncImage(url: URL(string: image.storageUrl)) { phase in
-                switch phase {
-                case .success(let img):
-                    img.resizable()
-                        .scaledToFill()
+            // RemoteImageView — 디스크 캐시로 즉시 표시
+            Group {
+                if let url = URL(string: image.storageUrl) {
+                    RemoteImageView(url: url) { modeColorBlock }
                         .blur(radius: image.isHomeSafe ? 0 : 6)
-                default:
+                } else {
                     modeColorBlock
                 }
             }
@@ -245,8 +244,8 @@ struct GalleryImageDetailSheet: View {
 
                     // 메타 정보
                     VStack(alignment: .leading, spacing: 8) {
-                        infoRow(label: "출처", value: image.source)
-                        infoRow(label: "라이선스", value: image.license)
+                        infoRow(label: "출처", value: image.source ?? "Custom")
+                        infoRow(label: "라이선스", value: image.license ?? "Commercial")
                         infoRow(label: "테마", value: image.theme.joined(separator: ", "))
                         infoRow(label: "분위기", value: image.mood.joined(separator: ", "))
                         if !image.isHomeSafe {

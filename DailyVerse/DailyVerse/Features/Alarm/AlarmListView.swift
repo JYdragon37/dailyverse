@@ -36,6 +36,11 @@ struct AlarmListView: View {
                         // 날씨+말씀 섹션 + 알람 리스트
                         VStack(spacing: 0) {
                             alarmTopSection
+                            // 말씀 ↔ 알람 구분선
+                            Divider()
+                                .background(Color.white.opacity(0.08))
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 4)
                             alarmList
                         }
                     }
@@ -104,37 +109,74 @@ struct AlarmListView: View {
         }
     }
 
-    // MARK: - 날씨 + 말씀 상단 섹션 (List 밖 — 상태 변경 즉시 반영 보장)
+    // MARK: - 말씀 상단 섹션
     @ViewBuilder
     private var alarmTopSection: some View {
-        VStack(spacing: 10) {
-            // 오늘의 말씀 (항상 표시)
-            if let verse = todayVerse {
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(verse.alarmTextKo ?? verse.textKo)
-                            .font(.custom("Georgia-BoldItalic", size: 17))
-                            .foregroundColor(.white.opacity(0.88))
-                            .lineSpacing(4)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Text(verse.reference)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.dvGold)
-                    }
-                    Spacer()
+        if let verse = todayVerse {
+            VStack(alignment: .leading, spacing: 6) {
+
+                // 섹션 레이블
+                HStack(spacing: 5) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.dvGold)
+                    Text("오늘의 말씀")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.dvGold)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+
+                // 말씀 카드
+                HStack(alignment: .center, spacing: 0) {
+                    // 좌측 골드 악센트 바 — 고정 높이로 팽창 방지
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.dvGold, Color.dvGold.opacity(0.4)],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 3, height: 48)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(verse.alarmTextKo ?? verse.textKo)
+                            .font(.custom("Georgia-BoldItalic", size: 16))
+                            .foregroundColor(.white.opacity(0.92))
+                            .lineSpacing(4)
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text(verse.reference)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.dvGold.opacity(0.85))
+                    }
+                    .padding(.leading, 14)
+                    .padding(.trailing, 16)
+                    .padding(.vertical, 12)
+                }
+                .fixedSize(horizontal: false, vertical: true)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.06))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.dvGold.opacity(0.11),
+                                    Color.dvGold.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.dvGold.opacity(0.22), lineWidth: 1)
+                        )
                 )
                 .padding(.horizontal, 16)
             }
+            .padding(.top, 10)
+            .padding(.bottom, 8)
         }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
     }
 
     private var alarmList: some View {

@@ -226,25 +226,33 @@ struct AlarmAddEditView: View {
                         .foregroundColor(.secondary)
                 }
 
-                // 말씀 미리보기
+                // 광고 영역
                 Section {
-                    let verse = previewVerse
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("\"\(verse.textKo)\"")
-                            .font(.dvVerseText)
-                            .foregroundColor(.dvPrimary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.08))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                            )
 
-                        Text(verse.reference)
-                            .font(.dvCaption)
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 6) {
+                            Image(systemName: "rectangle.fill.on.rectangle.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(.secondary.opacity(0.5))
+                            Text("광고 영역")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+                            Text("300 × 250")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary.opacity(0.6))
+                        }
+                        .padding(.vertical, 24)
                     }
-                    .padding(.vertical, 4)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("말씀 미리보기: \(verse.textKo), \(verse.reference)")
+                    .frame(maxWidth: .infinity)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 } header: {
-                    Text("말씀 미리보기")
+                    Text("광고")
                         .font(.dvSectionTitle)
                 }
             }

@@ -18,10 +18,11 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         let userInfo = notification.request.content.userInfo
+        // [AnyHashable: Any]를 직접 전달 — as? [String: Any] 캐스트는 NSString 키 때문에 nil 반환하여 Stage 1이 뜨지 않는 버그 수정
         NotificationCenter.default.post(
             name: .dvAlarmTriggered,
             object: nil,
-            userInfo: userInfo as? [String: Any]
+            userInfo: userInfo as [AnyHashable: Any]
         )
         // alertStyle에 따라 소리/진동 처리
         let alertStyle = notification.request.content.userInfo["alert_style"] as? String ?? "soundAndVibration"
@@ -49,7 +50,7 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         NotificationCenter.default.post(
             name: .dvAlarmTriggered,
             object: nil,
-            userInfo: userInfo as? [String: Any]
+            userInfo: userInfo as [AnyHashable: Any]
         )
         completionHandler()
     }

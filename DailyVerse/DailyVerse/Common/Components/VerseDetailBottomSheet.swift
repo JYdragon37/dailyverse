@@ -27,26 +27,7 @@ struct VerseDetailBottomSheet: View {
                     // 상단 여백 — 텍스트가 팝업 중앙에 자연스럽게 위치
                     Spacer(minLength: 12)
 
-                    // 1. 원문
-                    VStack(alignment: .leading, spacing: 10) {
-                        Label("원문", systemImage: "book.closed")
-                            .font(.dvSectionTitle)
-                            .foregroundColor(.secondary)
-
-                        Text(verse.textFullKo)
-                            .font(.dvVerseFullText)
-                            .foregroundColor(.dvPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(4)
-                    }
-
-                    Text(verse.reference)
-                        .font(.dvReference)
-                        .foregroundColor(.dvAccentGold)
-
-                    Divider().padding(.vertical, 2)
-
-                    // 2. 일상 적용 (닉네임 포함)
+                    // 1. 일상 적용 (닉네임 포함)
                     VStack(alignment: .leading, spacing: 6) {
                         Label("오늘의 적용", systemImage: "sparkles")
                             .font(.dvSectionTitle)

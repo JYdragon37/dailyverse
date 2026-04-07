@@ -20,7 +20,7 @@ final class NotificationManager: NSObject {
     func requestPermission() async -> Bool {
         do {
             let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .badge, .sound, .timeSensitive])
+                .requestAuthorization(options: [.alert, .badge, .sound]) // timeSensitive는 entitlement로 처리
             return granted
         } catch {
             return false
@@ -102,6 +102,14 @@ final class NotificationManager: NSObject {
 
     func startAlarmAudio(soundId: String, volume: Float) {
         LegacyAlarmEngine.startAudio(soundId: soundId, volume: volume)
+    }
+
+    func startVibrationLoop() {
+        LegacyAlarmEngine.startVibrationLoop()
+    }
+
+    func addVibrationLoop() {
+        LegacyAlarmEngine.addVibrationLoop()
     }
 
     func stopAlarmAudio() {
