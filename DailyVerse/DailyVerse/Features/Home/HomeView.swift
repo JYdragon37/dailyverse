@@ -45,13 +45,9 @@ struct HomeView: View {
                     onDismiss: { showLoginPrompt = false }
                 )
             }
-            // #4 날씨 상세 시트 (전체화면, ultraThinMaterial — 홈 배경 비침)
+            // #4 날씨 상세 시트 — viewModel을 직접 전달하여 새로고침 후 실시간 반영
             .sheet(isPresented: $showWeatherDetail) {
-                if let weather = viewModel.weather {
-                    WeatherDetailSheet(weather: weather, mode: viewModel.currentMode) {
-                        Task { await viewModel.refreshWeather() }
-                    }
-                }
+                WeatherDetailSheet(viewModel: viewModel)
             }
             .task { await viewModel.loadData() }
     }
@@ -291,94 +287,101 @@ struct HomeView: View {
 // MARK: - #4 WeatherDetailSheet (iOS Weather 앱 스타일)
 
 struct WeatherDetailSheet: View {
-    let weather: WeatherData
-    let mode: AppMode
-    let onRefresh: () -> Void
-    @Environment(\.dismiss) private var dismiss
+    /// viewModel 직접 관찰 → 새로고침 후 AQI/미세먼지 즉시 반영
+    @ObservedObject var viewModel: HomeViewModel
     @State private var isRefreshing = false
+
+    private var weather: WeatherData? { viewModel.weather }
+    private var mode: AppMode { viewModel.currentMode }
 
     var body: some View {
         ZStack {
-            // 배경 — 홈 배경이 비치도록 반투명
             Color.black.opacity(0.4).ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    // 드래그 인디케이터 + 새로고침 버튼
-                    ZStack {
-                        Capsule()
-                            .fill(Color.white.opacity(0.3))
-                            .frame(width: 36, height: 4)
-                        HStack {
-                            Spacer()
-                            Button {
-                                isRefreshing = true
-                                onRefresh()
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                    isRefreshing = false
+            if let weather {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        // 드래그 인디케이터 + 새로고침 버튼
+                        ZStack {
+                            Capsule()
+                                .fill(Color.white.opacity(0.3))
+                                .frame(width: 36, height: 4)
+                            HStack {
+                                Spacer()
+                                Button {
+                                    guard !isRefreshing else { return }
+                                    isRefreshing = true
+                                    // 캐시 강제 초기화 후 AQI 포함 재요청
+                                    Task {
+                                        await viewModel.forceRefreshWeather()
+                                        isRefreshing = false
+                                    }
+                                } label: {
+                                    Image(systemName: "arrow.clockwise.circle")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+                                        .animation(
+                                            isRefreshing
+                                                ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                                                : .default,
+                                            value: isRefreshing
+                                        )
                                 }
-                            } label: {
-                                Image(systemName: isRefreshing ? "arrow.clockwise.circle.fill" : "arrow.clockwise.circle")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(.white.opacity(0.7))
-                                    .rotationEffect(.degrees(isRefreshing ? 360 : 0))
-                                    .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
+                                .padding(.trailing, 20)
                             }
-                            .padding(.trailing, 20)
                         }
-                    }
-                    .padding(.top, 12)
+                        .padding(.top, 12)
 
-                    // 위치 + 온도 헤더
-                    VStack(spacing: 4) {
-                        Text("나의 위치")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.55))
-                        Text(weather.cityName)
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundColor(.white)
-                        Text("\(weather.temperature)°")
-                            .font(.system(size: 96, weight: .thin))
-                            .foregroundColor(.white)
-                            .padding(.vertical, -8)
-                        Text(weather.conditionKo)
-                            .font(.system(size: 20))
-                            .foregroundColor(.white.opacity(0.8))
-                        HStack(spacing: 4) {
-                            Text("최고:\(weather.highTemp.map { "\($0)°" } ?? "--")")
-                            Text("최저:\(weather.lowTemp.map { "\($0)°" } ?? "--")")
+                        // 위치 + 온도 헤더
+                        VStack(spacing: 4) {
+                            Text("나의 위치")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.55))
+                            Text(weather.cityName)
+                                .font(.system(size: 32, weight: .semibold))
+                                .foregroundColor(.white)
+                            Text("\(weather.temperature)°")
+                                .font(.system(size: 96, weight: .thin))
+                                .foregroundColor(.white)
+                                .padding(.vertical, -8)
+                            Text(weather.conditionKo)
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.8))
+                            HStack(spacing: 4) {
+                                Text("최고:\(weather.highTemp.map { "\($0)°" } ?? "--")")
+                                Text("최저:\(weather.lowTemp.map { "\($0)°" } ?? "--")")
+                            }
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
                         }
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
-                    }
-                    .padding(.top, 8)
+                        .padding(.top, 8)
 
-                    // 대기질 카드
-                    AQICard(weather: weather)
+                        AQICard(weather: weather)
+                        HourlyForecastCard(weather: weather)
 
-                    // 시간별 예보 카드
-                    HourlyForecastCard(weather: weather)
-
-                    // 추가 상세 (습도, 미세먼지)
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        WeatherDetailTile(icon: "drop.fill", color: .cyan,
-                                          label: "습도", value: "\(weather.humidity)%")
-                        WeatherDetailTile(icon: "aqi.low", color: aqiColor(weather.dustGrade),
-                                          label: "미세먼지", value: weather.dustGrade)
-                        if let tomorrowTemp = weather.tomorrowMorningTemp {
-                            WeatherDetailTile(icon: "sunrise.fill", color: .dvMorningGold,
-                                              label: "내일 아침", value: "\(tomorrowTemp)°")
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            WeatherDetailTile(icon: "drop.fill", color: .cyan,
+                                              label: "습도", value: "\(weather.humidity)%")
+                            WeatherDetailTile(icon: "aqi.low", color: aqiColor(weather.dustGrade),
+                                              label: "미세먼지", value: weather.dustGrade)
+                            if let tomorrowTemp = weather.tomorrowMorningTemp {
+                                WeatherDetailTile(icon: "sunrise.fill", color: .dvMorningGold,
+                                                  label: "내일 아침", value: "\(tomorrowTemp)°")
+                            }
+                            if let tomorrowCond = weather.tomorrowMorningConditionKo {
+                                WeatherDetailTile(icon: conditionIcon(weather.tomorrowMorningCondition ?? ""),
+                                                  color: .dvNoonSky, label: "내일 날씨", value: tomorrowCond)
+                            }
                         }
-                        if let tomorrowCond = weather.tomorrowMorningConditionKo {
-                            WeatherDetailTile(icon: conditionIcon(weather.tomorrowMorningCondition ?? ""),
-                                              color: .dvNoonSky, label: "내일 날씨", value: tomorrowCond)
-                        }
+                        .padding(.horizontal, 16)
+
+                        Spacer(minLength: 32)
                     }
                     .padding(.horizontal, 16)
-
-                    Spacer(minLength: 32)
                 }
-                .padding(.horizontal, 16)
+            } else {
+                ProgressView().tint(.white)
             }
         }
         .presentationDetents([.large])

@@ -94,8 +94,14 @@ final class HomeViewModel: ObservableObject {
         evaluateAlarmCTA()
     }
 
-    /// 포그라운드 복귀 시 날씨만 갱신
+    /// 포그라운드 복귀 시 날씨만 갱신 (백그라운드 복귀 등 자동 갱신)
     func refreshWeather() async {
+        await loadWeatherIfPermitted()
+    }
+
+    /// 수동 새로고침 — 캐시 강제 초기화 후 API 재요청 (AQI 포함)
+    func forceRefreshWeather() async {
+        WeatherCacheManager().clear()
         await loadWeatherIfPermitted()
     }
 
