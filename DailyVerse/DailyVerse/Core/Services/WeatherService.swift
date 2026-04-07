@@ -65,17 +65,31 @@ class WeatherService: WeatherServiceProtocol {
             )
         }
 
-        // AQI — OWM Air Pollution API
-        let apiKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
-        let (aqiVal, aqiDesc) = await fetchAQI(
-            lat: location.coordinate.latitude,
-            lon: location.coordinate.longitude,
-            apiKey: apiKey
-        )
+        // 대기질 — 에어코리아 우선, 실패 시 OWM 폴백
+        let airKorea = await fetchAirKorea(location: location)
+        let aqiVal: Int?
+        let aqiDesc: String?
+        let pm25Val: Double?
+        let pm10Val: Double?
+        let stationName: String?
 
-        // dustGrade 결정
+        if airKorea.aqi != nil {
+            // 에어코리아 CAI 기반
+            aqiVal = airKorea.aqi
+            aqiDesc = airKorea.desc
+            pm25Val = airKorea.pm25
+            pm10Val = airKorea.pm10
+            stationName = airKorea.station
+        } else {
+            // OWM 폴백
+            let owmKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
+            let owm = await fetchAQI(lat: location.coordinate.latitude, lon: location.coordinate.longitude, apiKey: owmKey)
+            aqiVal = owm.0
+            aqiDesc = owm.1
+            pm25Val = nil; pm10Val = nil; stationName = nil
+        }
+
         let dustGrade = aqiDesc ?? "보통"
-
         let cityName = await reverseGeocode(location) ?? "현재 위치"
 
         return WeatherData(
@@ -93,11 +107,88 @@ class WeatherService: WeatherServiceProtocol {
             lowTemp: lowTemp,
             hourlyForecast: hourlyItems,
             aqi: aqiVal,
-            aqiDescription: aqiDesc
+            aqiDescription: aqiDesc,
+            pm25: pm25Val,
+            pm10: pm10Val,
+            airStation: stationName
         )
     }
 
-    // MARK: - AQI (OpenWeatherMap Air Pollution API)
+    // MARK: - 에어코리아 대기오염 API (한국 공식 측정소 실시간 데이터)
+
+    /// 좌표 → 시도명 변환 (CLGeocoder administrativeArea 기반)
+    private func sidoName(from location: CLLocation) async -> String {
+        return await withCheckedContinuation { continuation in
+            CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
+                let admin = placemarks?.first?.administrativeArea ?? ""
+                // CLGeocoder는 영문/한글 혼용 반환 — 한국 시도명으로 매핑
+                let map: [String: String] = [
+                    "Seoul": "서울", "서울특별시": "서울", "서울": "서울",
+                    "Busan": "부산", "부산광역시": "부산",
+                    "Daegu": "대구", "대구광역시": "대구",
+                    "Incheon": "인천", "인천광역시": "인천",
+                    "Gwangju": "광주", "광주광역시": "광주",
+                    "Daejeon": "대전", "대전광역시": "대전",
+                    "Ulsan": "울산", "울산광역시": "울산",
+                    "Gyeonggi-do": "경기", "경기도": "경기",
+                    "Gangwon-do": "강원", "강원도": "강원",
+                    "Chungcheongbuk-do": "충북", "충청북도": "충북",
+                    "Chungcheongnam-do": "충남", "충청남도": "충남",
+                    "Jeollabuk-do": "전북", "전라북도": "전북",
+                    "Jeollanam-do": "전남", "전라남도": "전남",
+                    "Gyeongsangbuk-do": "경북", "경상북도": "경북",
+                    "Gyeongsangnam-do": "경남", "경상남도": "경남",
+                    "Jeju-do": "제주", "제주특별자치도": "제주",
+                    "Sejong": "세종", "세종특별자치시": "세종",
+                ]
+                continuation.resume(returning: map[admin] ?? "서울")
+            }
+        }
+    }
+
+    /// 에어코리아 API — 시도 단위 실시간 대기오염 정보
+    /// CAI(통합대기환경지수), PM2.5, PM10 반환
+    private func fetchAirKorea(location: CLLocation) async -> (aqi: Int?, desc: String?, pm25: Double?, pm10: Double?, station: String?) {
+        let apiKey = Bundle.main.infoDictionary?["AIRKOREA_API_KEY"] as? String ?? ""
+        guard !apiKey.isEmpty else { return (nil, nil, nil, nil, nil) }
+
+        let sido = await sidoName(from: location)
+        let encodedSido = sido.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sido
+        let urlStr = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty"
+            + "?sidoName=\(encodedSido)&pageNo=1&numOfRows=10&returnType=json"
+            + "&serviceKey=\(apiKey)&ver=1.0"
+
+        guard let url = URL(string: urlStr),
+              let (data, _) = try? await URLSession.shared.data(from: url),
+              let response = try? JSONDecoder().decode(AirKoreaResponse.self, from: data) else {
+            return (nil, nil, nil, nil, nil)
+        }
+
+        // 유효한 측정값이 있는 첫 번째 측정소
+        guard let item = response.response.body.items.first(where: {
+            $0.khaiValue != "-" && $0.khaiValue != nil
+        }) else { return (nil, nil, nil, nil, nil) }
+
+        let cai = item.khaiValue.flatMap { Int($0) }
+        let pm25 = item.pm25Value.flatMap { Double($0) }
+        let pm10 = item.pm10Value.flatMap { Double($0) }
+
+        let desc: String
+        switch item.khaiGrade {
+        case "1": desc = "좋음"
+        case "2": desc = "보통"
+        case "3": desc = "나쁨"
+        case "4": desc = "매우나쁨"
+        default:
+            if let c = cai {
+                desc = c <= 50 ? "좋음" : c <= 100 ? "보통" : c <= 250 ? "나쁨" : "매우나쁨"
+            } else { desc = "보통" }
+        }
+
+        return (cai, desc, pm25, pm10, item.stationName)
+    }
+
+    // MARK: - AQI (OpenWeatherMap — 해외 또는 에어코리아 실패 시 폴백)
 
     private func fetchAQI(lat: Double, lon: Double, apiKey: String) async -> (Int?, String?) {
         guard !apiKey.isEmpty,
@@ -109,14 +200,14 @@ class WeatherService: WeatherServiceProtocol {
               let item = response.list.first else {
             return (nil, nil)
         }
-        let owmAqi = item.main.aqi  // 1(좋음)~5(매우나쁨)
-        let aqiNum = owmAqi * 50    // 50~250
+        let owmAqi = item.main.aqi
+        let aqiNum = owmAqi * 50
         let desc: String
         switch owmAqi {
-        case 1:    desc = "좋음"
-        case 2:    desc = "보통"
-        case 3:    desc = "나쁨"
-        default:   desc = "매우나쁨"
+        case 1: desc = "좋음"
+        case 2: desc = "보통"
+        case 3: desc = "나쁨"
+        default: desc = "매우나쁨"
         }
         return (aqiNum, desc)
     }
@@ -188,21 +279,35 @@ class WeatherService: WeatherServiceProtocol {
                 }
         }
 
-        let (aqiVal, aqiDesc) = await fetchAQI(lat: lat, lon: lon, apiKey: apiKey)
+        // 에어코리아 우선, 실패 시 OWM AQI 폴백
+        let airKorea2 = await fetchAirKorea(location: location)
+        let aqiVal2: Int?; let aqiDesc2: String?
+        let pm25_2: Double?; let pm10_2: Double?; let station2: String?
+        if airKorea2.aqi != nil {
+            aqiVal2 = airKorea2.aqi; aqiDesc2 = airKorea2.desc
+            pm25_2 = airKorea2.pm25; pm10_2 = airKorea2.pm10; station2 = airKorea2.station
+        } else {
+            let owm = await fetchAQI(lat: lat, lon: lon, apiKey: apiKey)
+            aqiVal2 = owm.0; aqiDesc2 = owm.1
+            pm25_2 = nil; pm10_2 = nil; station2 = nil
+        }
 
         return WeatherData(
             temperature: Int(response.main.temp.rounded()),
             condition: mapOWMId(weatherId),
-            conditionKo: mapOWMIdKo(weatherId),    // Fix 1: OWM 자체 한국어 사용 안 함
+            conditionKo: mapOWMIdKo(weatherId),
             humidity: response.main.humidity,
-            dustGrade: aqiDesc ?? "보통",
+            dustGrade: aqiDesc2 ?? "보통",
             cityName: response.name,
             cachedAt: Date(),
             highTemp: highTemp,
             lowTemp: lowTemp,
             hourlyForecast: hourlyItems,
-            aqi: aqiVal,
-            aqiDescription: aqiDesc
+            aqi: aqiVal2,
+            aqiDescription: aqiDesc2,
+            pm25: pm25_2,
+            pm10: pm10_2,
+            airStation: station2
         )
     }
 
@@ -288,6 +393,26 @@ private struct OWMAirPollutionResponse: Codable {
     let list: [AirItem]
     struct AirItem: Codable { let main: AirMain }
     struct AirMain: Codable { let aqi: Int }
+}
+
+// MARK: - 에어코리아 Response Model
+
+private struct AirKoreaResponse: Codable {
+    let response: AKBody
+    struct AKBody: Codable { let body: AKItems }
+    struct AKItems: Codable { let items: [AKItem] }
+    struct AKItem: Codable {
+        let stationName: String?
+        let khaiValue: String?    // 통합대기환경지수 CAI
+        let khaiGrade: String?    // 1:좋음 2:보통 3:나쁨 4:매우나쁨
+        let pm25Value: String?    // PM2.5 μg/m³
+        let pm10Value: String?    // PM10 μg/m³
+        enum CodingKeys: String, CodingKey {
+            case stationName, khaiValue, khaiGrade
+            case pm25Value = "pm25Value"
+            case pm10Value = "pm10Value"
+        }
+    }
 }
 
 enum WeatherError: Error, LocalizedError {

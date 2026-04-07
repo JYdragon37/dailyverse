@@ -363,8 +363,21 @@ struct WeatherDetailSheet: View {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             WeatherDetailTile(icon: "drop.fill", color: .cyan,
                                               label: "습도", value: "\(weather.humidity)%")
-                            WeatherDetailTile(icon: "aqi.low", color: aqiColor(weather.dustGrade),
-                                              label: "미세먼지", value: weather.dustGrade)
+                            // 에어코리아 실측값 우선, 없으면 등급 표시
+                            WeatherDetailTile(
+                                icon: "aqi.low",
+                                color: aqiColor(weather.dustGrade),
+                                label: weather.pm25 != nil ? "PM2.5 (에어코리아)" : "미세먼지",
+                                value: weather.pm25.map { "\(Int($0)) μg/m³" } ?? weather.dustGrade
+                            )
+                            if let pm10 = weather.pm10 {
+                                WeatherDetailTile(
+                                    icon: "wind",
+                                    color: aqiColor(weather.dustGrade),
+                                    label: "PM10",
+                                    value: "\(Int(pm10)) μg/m³"
+                                )
+                            }
                             if let tomorrowTemp = weather.tomorrowMorningTemp {
                                 WeatherDetailTile(icon: "sunrise.fill", color: .dvMorningGold,
                                                   label: "내일 아침", value: "\(tomorrowTemp)°")

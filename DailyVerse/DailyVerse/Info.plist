@@ -39,6 +39,8 @@
 	<!-- API 키 -->
 	<key>OPENWEATHER_API_KEY</key>
 	<string>1fd0b74dbc916987213ea8ac4b596376</string>
+	<key>AIRKOREA_API_KEY</key>
+	<string>Mm87QYoZnDniZE0L1qBopn9I%2F%2F4gS2f4%2FVY14CzgBOx0DjB4pogtFF5fzJhkoaxEgqFrM0NTDA8u90wp1qgnQQ%3D%3D</string>
 	<!-- 네트워크 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>

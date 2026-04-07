@@ -29,8 +29,12 @@ struct WeatherData: Codable, Equatable {
     var highTemp: Int?                          // 오늘 최고 기온
     var lowTemp: Int?                           // 오늘 최저 기온
     var hourlyForecast: [HourlyForecastItem]    // 다음 12시간 예보
-    var aqi: Int?                               // 대기질 지수 (0–250 매핑)
+    var aqi: Int?                               // 대기질 지수 (0–250 매핑 또는 에어코리아 CAI)
     var aqiDescription: String?                 // "좋음" | "보통" | "나쁨" | "매우나쁨"
+    // 에어코리아 실측값
+    var pm25: Double?                           // PM2.5 실측 (μg/m³)
+    var pm10: Double?                           // PM10 실측 (μg/m³)
+    var airStation: String?                     // 측정소명
 
     init(
         temperature: Int,
@@ -47,7 +51,10 @@ struct WeatherData: Codable, Equatable {
         lowTemp: Int? = nil,
         hourlyForecast: [HourlyForecastItem] = [],
         aqi: Int? = nil,
-        aqiDescription: String? = nil
+        aqiDescription: String? = nil,
+        pm25: Double? = nil,
+        pm10: Double? = nil,
+        airStation: String? = nil
     ) {
         self.temperature = temperature
         self.condition = condition
@@ -64,6 +71,9 @@ struct WeatherData: Codable, Equatable {
         self.hourlyForecast = hourlyForecast
         self.aqi = aqi
         self.aqiDescription = aqiDescription
+        self.pm25 = pm25
+        self.pm10 = pm10
+        self.airStation = airStation
     }
 
     var isValid: Bool {
