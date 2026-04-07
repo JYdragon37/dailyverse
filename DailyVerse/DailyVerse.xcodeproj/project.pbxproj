@@ -56,6 +56,8 @@
 		849864FEC88D8C331E7F8B57 /* OnboardingLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153D8636E78BAE711647E96 /* OnboardingLocationView.swift */; };
 		84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01850BB01382CF53BBB11601 /* VerseSelector.swift */; };
 		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8A3130072F80B28E009F815D /* alarm_song.mp3 */; };
+		FA001002FA001002FA001002 /* DancingScript.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001001FA001001FA001001 /* DancingScript.ttf */; };
+		FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */; };
 		8B4A424041EC86CA8355E89D /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73D43781D887A90FC6FD043 /* ToastView.swift */; };
 		8C5540743E8C48219FA5F86B /* OnboardingNicknameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DE16F7556F546B6B2641564 /* OnboardingNicknameView.swift */; };
 		8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91818E82ADB8A50609DDA1E9 /* WeatherData.swift */; };
@@ -158,6 +160,8 @@
 		883AE40A2F80AF5436D647BF /* AlarmRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRepository.swift; sourceTree = "<group>"; };
 		895D5E70C69EA9646472CD1B /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		8A3130072F80B28E009F815D /* alarm_song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm_song.mp3; sourceTree = "<group>"; };
+		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
+		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
 		8E18DAC4793BDF05B1A63355 /* DailyVerseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseUITests.swift; sourceTree = "<group>"; };
 		8FF6B9D4FD3198F96F2C9EAC /* UpsellBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsellBottomSheet.swift; sourceTree = "<group>"; };
 		904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAddEditView.swift; sourceTree = "<group>"; };
@@ -401,6 +405,8 @@
 				2613FCE9FF92BCB617BD0A18 /* Core */,
 				DEEFF164B9331317976C2B9B /* Features */,
 				8A3130072F80B28E009F815D /* alarm_song.mp3 */,
+				FA001001FA001001FA001001 /* DancingScript.ttf */,
+				FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */,
 			);
 			path = DailyVerse;
 			sourceTree = "<group>";
@@ -615,6 +621,8 @@
 				274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */,
 				180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */,
 				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
+				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
+				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
