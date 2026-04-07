@@ -28,13 +28,13 @@ struct HomeView: View {
                     .padding(.top, 60)
                     .padding(.horizontal, 28)
             }
-            // #2 말씀 카드: 하단 다크 영역에 배치
-            .overlay(alignment: .bottom) {
+            // #2 말씀 카드: 화면 중앙 배치
+            .overlay(alignment: .center) {
                 if let verse = viewModel.currentVerse {
                     verseCenter(verse: verse)
                         .padding(.leading, 36)
                         .padding(.trailing, 28)
-                        .padding(.bottom, 140)
+                        .padding(.top, 80)  // 인사말 영역과 겹치지 않게
                 }
             }
             .overlay { toastLayer }
