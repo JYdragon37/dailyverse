@@ -2,22 +2,43 @@ import Foundation
 
 class VerseSelector {
 
+    // MARK: - 구 4-zone → 새 8-zone 하위 호환 매핑
+    // DB에 "morning", "afternoon", "evening", "dawn"으로 저장된 구 데이터 지원
+    private let legacyModeAliases: [String: [String]] = [
+        "morning":   ["rise_ignite", "peak_mode"],
+        "afternoon": ["recharge", "second_wind"],
+        "evening":   ["golden_hour", "wind_down"],
+        "dawn":      ["deep_dark", "first_light"]
+    ]
+
+    /// 말씀의 mode 배열이 현재 Zone과 매칭되는지 확인 (8-zone + 구 4-zone 하위 호환)
+    private func modeMatches(_ verseModes: [String], mode: AppMode) -> Bool {
+        // 1. 직접 매칭 (새 8-zone rawValue 또는 "all")
+        if verseModes.contains(mode.rawValue) || verseModes.contains("all") { return true }
+        // 2. 구 4-zone 이름으로 저장된 경우 → 새 zone 매핑 확인
+        for legacyMode in verseModes {
+            if let newZones = legacyModeAliases[legacyMode], newZones.contains(mode.rawValue) {
+                return true
+            }
+        }
+        return false
+    }
+
     /// 현재 모드 + 날씨 기반으로 최적 말씀 선택
-    /// v5.1: cooldown 필터 적용 (is_sacred_safe는 이미지에 적용, 말씀은 해당 없음)
-    /// 스코어링: 테마 겹침 +3, 분위기 겹침 +2, 날씨 일치 +2, 계절 일치 +1
+    /// v6.0: 8-zone + 구 4-zone 하위 호환, theme/mood "all" 지원
     func select(from verses: [Verse], mode: AppMode, weather: WeatherData?) -> Verse? {
         let filtered = verses.filter {
             $0.status == "active" &&
             $0.curated == true &&
-            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all")) &&
-            $0.isEligible  // v5.1: cooldown 필터
+            modeMatches($0.mode, mode: mode) &&
+            $0.isEligible
         }
 
         // cooldown 통과 구절이 없으면 제한 없이 전체에서 선택
         let pool = filtered.isEmpty ? verses.filter {
             $0.status == "active" &&
             $0.curated == true &&
-            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
+            modeMatches($0.mode, mode: mode)
         } : filtered
 
         guard !pool.isEmpty else { return nil }
