@@ -48,7 +48,9 @@ struct HomeView: View {
             // #4 날씨 상세 시트 (전체화면, ultraThinMaterial — 홈 배경 비침)
             .sheet(isPresented: $showWeatherDetail) {
                 if let weather = viewModel.weather {
-                    WeatherDetailSheet(weather: weather, mode: viewModel.currentMode)
+                    WeatherDetailSheet(weather: weather, mode: viewModel.currentMode) {
+                        Task { await viewModel.refreshWeather() }
+                    }
                 }
             }
             .task { await viewModel.loadData() }
@@ -111,6 +113,18 @@ struct HomeView: View {
 
     // MARK: - Greeting Header
 
+    /// greeting + 닉네임 조합 — greeting이 구두점으로 끝나면 쉼표 없이 공백만 추가
+    private var greetingText: String {
+        let g = viewModel.currentMode.greeting
+        let name = nicknameManager.nickname
+        let lastChar = g.last
+        if lastChar == "." || lastChar == "!" || lastChar == "?" {
+            // "Breathe. Reset." → "Breathe. Reset. 친구"
+            return "\(g) \(name)"
+        }
+        return "\(g), \(name)"
+    }
+
     private var greetingHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Good Afternoon, 친구 🌤
@@ -118,13 +132,8 @@ struct HomeView: View {
                 Image(systemName: viewModel.currentMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
-                if viewModel.currentMode == .deepDark || viewModel.currentMode == .firstLight {
-                    Text("\(viewModel.currentMode.greeting) \(nicknameManager.nickname)")
-                        .font(.dvLargeTitle).foregroundColor(.white)
-                } else {
-                    Text("\(viewModel.currentMode.greeting), \(nicknameManager.nickname)")
-                        .font(.dvLargeTitle).foregroundColor(.white)
-                }
+                Text(greetingText)
+                    .font(.dvLargeTitle).foregroundColor(.white)
             }
 
             // Fix 1: 시간/날씨 — 아이콘 너비(26)+간격(8)=34pt leading으로 G,D와 수직 정렬
@@ -167,7 +176,7 @@ struct HomeView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .shadow(color: .black.opacity(0.7), radius: 6, x: 0, y: 2)
 
-            // 성경 참조 + 테마
+            // 성경 참조 + 테마 + DB 인덱스
             HStack(spacing: 8) {
                 Text(verse.reference)
                     .font(.system(size: 15, weight: .medium))
@@ -181,7 +190,16 @@ struct HomeView: View {
                         .background(Color.dvAccentGold.opacity(0.2))
                         .clipShape(Capsule())
                 }
+
                 Spacer()
+
+                // DB 글귀 번호 표시 (폴백이면 표시 안 함)
+                if !verse.id.hasPrefix("fallback_") {
+                    Text(verseIndexLabel(verse.id))
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.35))
+                }
+
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.5))
@@ -194,6 +212,13 @@ struct HomeView: View {
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
+    }
+
+    /// "v_007" → "#7" 형태로 변환
+    private func verseIndexLabel(_ id: String) -> String {
+        let digits = id.filter { $0.isNumber }
+        if let n = Int(digits) { return "#\(n)" }
+        return ""
     }
 
     // MARK: - Helpers
@@ -268,7 +293,9 @@ struct HomeView: View {
 struct WeatherDetailSheet: View {
     let weather: WeatherData
     let mode: AppMode
+    let onRefresh: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @State private var isRefreshing = false
 
     var body: some View {
         ZStack {
@@ -277,11 +304,30 @@ struct WeatherDetailSheet: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
-                    // 드래그 인디케이터
-                    Capsule()
-                        .fill(Color.white.opacity(0.3))
-                        .frame(width: 36, height: 4)
-                        .padding(.top, 12)
+                    // 드래그 인디케이터 + 새로고침 버튼
+                    ZStack {
+                        Capsule()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(width: 36, height: 4)
+                        HStack {
+                            Spacer()
+                            Button {
+                                isRefreshing = true
+                                onRefresh()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    isRefreshing = false
+                                }
+                            } label: {
+                                Image(systemName: isRefreshing ? "arrow.clockwise.circle.fill" : "arrow.clockwise.circle")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+                                    .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
+                            }
+                            .padding(.trailing, 20)
+                        }
+                    }
+                    .padding(.top, 12)
 
                     // 위치 + 온도 헤더
                     VStack(spacing: 4) {
@@ -366,6 +412,8 @@ private struct AQICard: View {
 
     private var aqiNum: Int { weather.aqi ?? weather.dustGradeToAqi }
     private var aqiDesc: String { weather.aqiDescription ?? weather.dustGrade }
+    /// aqi 필드가 실제 API 데이터인지 여부
+    private var isRealAQI: Bool { weather.aqi != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -378,10 +426,17 @@ private struct AQICard: View {
                 Spacer()
             }
 
-            // AQI 수치 + 등급
-            Text("\(aqiNum) - \(aqiDesc)")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.white)
+            // AQI 수치 + 등급 (실측 여부 표시)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(aqiNum) - \(aqiDesc)")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                if !isRealAQI {
+                    Text("추정값")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+            }
 
             // 컬러 게이지
             GeometryReader { geo in
