@@ -24,6 +24,8 @@ struct SplashView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 120, height: 120)
+                    // 투명 배경 처리 — 배경 제거된 PNG의 경우에도 깔끔하게 표시
+                    .background(Color.white.opacity(0.15))
                     .clipShape(RoundedRectangle(cornerRadius: 26))
                     .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 6)
                     .opacity(logoOpacity)
