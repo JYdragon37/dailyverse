@@ -45,13 +45,17 @@ final class AppLoadingCoordinator: ObservableObject {
         try? await Task.sleep(nanoseconds: 2_800_000_000)
         state = .loading
 
-        // Stage 2-a: 오늘 날짜 기준 유효 캐시가 있으면 네트워크 호출 없이 즉시 ready
+        // Stage 2-a: 배경 이미지 pre-load (캐시 유무 관계없이 항상 실행)
+        // → HomeView 진입 전 disk cache에 이미지 저장 → 첫 렌더에 즉시 표시
+        await preloadZoneBackground()
+
+        // Stage 2-b: 오늘 날짜 기준 유효 캐시가 있으면 네트워크 호출 없이 즉시 ready
         if cacheManager.hasValidCache() {
             state = .ready
             return
         }
 
-        // Stage 2-b: 오프라인 확인
+        // Stage 2-c: 오프라인 확인
         let offline = await checkConnectivity()
         if offline {
             isOffline = true
@@ -59,11 +63,8 @@ final class AppLoadingCoordinator: ObservableObject {
             return
         }
 
-        // Stage 2-c: Firestore에서 최신 말씀 로드 (실패해도 폴백으로 ready)
+        // Stage 2-d: Firestore에서 최신 말씀 로드 (실패해도 폴백으로 ready)
         _ = try? await verseRepository.fetchVerses()
-
-        // Stage 2-d: 현재 Zone 배경 이미지 pre-load → HomeView 진입 시 즉시 표시
-        await preloadZoneBackground()
 
         state = .ready
     }
