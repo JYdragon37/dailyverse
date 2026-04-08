@@ -58,13 +58,13 @@
 		<string>remote-notification</string>
 		<string>audio</string>
 	</array>
-	<!-- Google Sign-In URL Scheme — REVERSED_CLIENT_ID값은 GoogleService-Info.plist에서 확인 필요 -->
+	<!-- Google Sign-In URL Scheme -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>$(REVERSED_CLIENT_ID)</string>
+				<string>com.googleusercontent.apps.602534055449-fdur94q3qg0v489fl7s3p0rq1qtopd6p</string>
 			</array>
 		</dict>
 	</array>
