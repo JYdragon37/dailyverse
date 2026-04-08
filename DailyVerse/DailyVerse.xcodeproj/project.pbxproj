@@ -623,8 +623,7 @@
 			files = (
 				274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */,
 				180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */,
-				FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
-		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
+				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
 				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
 				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
 			);
