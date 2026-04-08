@@ -37,7 +37,7 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Init
 
     init(
-        verseRepository: VerseRepository = VerseRepository(),
+        verseRepository: VerseRepository = VerseRepository.shared,
         weatherService: WeatherServiceProtocol = WeatherService(),
         cacheManager: DailyCacheManager = DailyCacheManager.shared,
         alarmRepository: AlarmRepository = AlarmRepository(),

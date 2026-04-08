@@ -38,7 +38,7 @@ final class AlarmCoordinator: ObservableObject {
 
     init(
         notificationManager: NotificationManager = .shared,
-        verseRepository: VerseRepository = VerseRepository(),
+        verseRepository: VerseRepository = VerseRepository.shared,
         alarmRepository: AlarmRepository = AlarmRepository()
     ) {
         self.notificationManager = notificationManager

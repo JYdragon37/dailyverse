@@ -30,7 +30,7 @@ final class AppLoadingCoordinator: ObservableObject {
     private let cacheManager: DailyCacheManager
 
     init(
-        verseRepository: VerseRepository = VerseRepository(),
+        verseRepository: VerseRepository = VerseRepository.shared,
         cacheManager: DailyCacheManager = .shared
     ) {
         self.verseRepository = verseRepository

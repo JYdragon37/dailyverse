@@ -4,8 +4,8 @@ import CoreData
 class WeatherCacheManager {
     private let context = PersistenceController.shared.context
     /// 캐시 스키마 버전 — WeatherData 구조 변경 시 올려서 구 캐시 강제 무효화
-    // v3: 에어코리아 API 연동 + WeatherData pm25/pm10/airStation 필드 추가로 구 캐시 무효화
-    private static let schemaVersion = "v3"
+    // v4: dailyForecast/uvIndex/precipitationProbability 필드 추가로 구 캐시 무효화
+    private static let schemaVersion = "v4"
     private static let schemaKey = "weatherCacheSchemaVersion"
 
     init() {

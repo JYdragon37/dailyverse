@@ -20,7 +20,7 @@ final class AlarmViewModel: ObservableObject {
     init(
         alarmRepository: AlarmRepository = AlarmRepository(),
         notificationManager: NotificationManager = .shared,
-        verseRepository: VerseRepository = VerseRepository()
+        verseRepository: VerseRepository = VerseRepository.shared
     ) {
         self.alarmRepository = alarmRepository
         self.notificationManager = notificationManager

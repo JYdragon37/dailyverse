@@ -2,6 +2,9 @@ import Foundation
 import Combine
 
 class VerseRepository {
+    /// 싱글톤 — fetchVerses() 30분 TTL 캐시를 전역 공유하여 불필요한 API 호출 방지
+    static let shared = VerseRepository()
+
     private let firestoreService = FirestoreService()
     private let cacheManager = DailyCacheManager.shared
     private let selector = VerseSelector()

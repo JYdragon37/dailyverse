@@ -99,12 +99,14 @@ struct AlarmListView: View {
 
     private var alarmListWithHeader: some View {
         List {
-            // 오늘의 말씀 (List 첫 항목 → 알람 카드와 함께 스크롤)
-            Section {
-                alarmTopSection
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            // 오늘의 말씀 — verse 있을 때만 Section 표시 (nil 시 빈 섹션 방지)
+            if todayVerse != nil {
+                Section {
+                    alarmTopSection
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                }
             }
 
             // 알람 카드들
