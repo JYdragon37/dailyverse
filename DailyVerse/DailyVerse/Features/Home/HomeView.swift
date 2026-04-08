@@ -366,35 +366,30 @@ struct WeatherDetailSheet: View {
                         }
                         .padding(.top, 8)
 
+                        TomorrowActionCard(weather: weather)
+
                         AQICard(weather: weather)
                         HourlyForecastCard(weather: weather)
+
+                        if !weather.dailyForecast.isEmpty {
+                            DailyForecastCard(forecast: weather.dailyForecast)
+                        }
 
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             WeatherDetailTile(icon: "drop.fill", color: .cyan,
                                               label: "습도", value: "\(weather.humidity)%")
-                            // 에어코리아 실측값 우선, 없으면 등급 표시
+                            WeatherDetailTile(icon: "cloud.rain.fill", color: .blue,
+                                              label: "강수 확률",
+                                              value: weather.precipitationProbability.map { "\($0)%" } ?? "--")
+                            WeatherDetailTile(icon: "sun.max.fill", color: .yellow,
+                                              label: "자외선",
+                                              value: weather.uvIndex.map { "\($0) \(weather.uvIndexDescription)" } ?? "--")
                             WeatherDetailTile(
                                 icon: "aqi.low",
                                 color: aqiColor(weather.dustGrade),
-                                label: weather.pm25 != nil ? "PM2.5 (에어코리아)" : "미세먼지",
-                                value: weather.pm25.map { "\(Int($0)) μg/m³" } ?? weather.dustGrade
+                                label: weather.pm25 != nil ? "PM2.5" : "미세먼지",
+                                value: weather.pm25.map { "\(Int($0))μg/m³" } ?? weather.dustGrade
                             )
-                            if let pm10 = weather.pm10 {
-                                WeatherDetailTile(
-                                    icon: "wind",
-                                    color: aqiColor(weather.dustGrade),
-                                    label: "PM10",
-                                    value: "\(Int(pm10)) μg/m³"
-                                )
-                            }
-                            if let tomorrowTemp = weather.tomorrowMorningTemp {
-                                WeatherDetailTile(icon: "sunrise.fill", color: .dvMorningGold,
-                                                  label: "내일 아침", value: "\(tomorrowTemp)°")
-                            }
-                            if let tomorrowCond = weather.tomorrowMorningConditionKo {
-                                WeatherDetailTile(icon: conditionIcon(weather.tomorrowMorningCondition ?? ""),
-                                                  color: .dvNoonSky, label: "내일 날씨", value: tomorrowCond)
-                            }
                         }
                         .padding(.horizontal, 16)
 
@@ -427,6 +422,196 @@ struct WeatherDetailSheet: View {
         case "나쁨": return .orange
         default:    return .red
         }
+    }
+}
+
+// MARK: - 내일 날씨 액션 카드
+
+private struct TomorrowActionCard: View {
+    let weather: WeatherData
+
+    private var actionMessage: (icon: String, color: Color, title: String, message: String) {
+        let rainProb = weather.tomorrowPrecipitationProbability ?? 0
+        let temp = weather.tomorrowMorningTemp ?? weather.temperature
+        let cond = weather.tomorrowMorningCondition ?? weather.condition
+        let uv = weather.uvIndex ?? 0
+
+        if rainProb >= 60 {
+            return ("umbrella.fill", .blue, "내일 비 소식", "강수 확률 \(rainProb)%, 우산 꼭 챙기세요 ☂️")
+        } else if rainProb >= 30 {
+            return ("cloud.drizzle.fill", .cyan, "비 올 수도 있어요", "강수 확률 \(rainProb)%, 접이식 우산이 있으면 좋겠어요")
+        } else if cond == "snowy" {
+            return ("snowflake", .white, "내일 눈이 와요", "미끄러운 길 조심하고, 따뜻하게 입으세요 🧥")
+        } else if temp <= -5 {
+            return ("thermometer.snowflake", Color(red: 0.5, green: 0.8, blue: 1), "매우 추운 날씨", "내일 아침 \(temp)°C, 최대한 따뜻하게 입으세요 🧤")
+        } else if temp <= 5 {
+            return ("thermometer.low", .cyan, "꽤 추운 날씨", "내일 아침 \(temp)°C, 외투 꼭 챙기세요 🧥")
+        } else if uv >= 8 {
+            return ("sun.max.trianglebadge.exclamationmark.fill", .orange, "자외선 매우 강함", "외출 시 자외선 차단제 필수예요 🧴")
+        } else if uv >= 6 {
+            return ("sun.max.fill", .yellow, "자외선 강한 날", "선글라스와 선크림 챙기면 좋아요 😎")
+        } else if temp >= 33 {
+            return ("thermometer.high", .red, "매우 더운 날씨", "충분히 물 마시고, 그늘에 있어요 💧")
+        } else {
+            return ("sun.and.horizon.fill", .dvMorningGold, "내일 날씨 양호", "쾌적한 하루가 될 것 같아요 😊")
+        }
+    }
+
+    var body: some View {
+        let action = actionMessage
+        HStack(spacing: 14) {
+            Image(systemName: action.icon)
+                .font(.system(size: 28))
+                .foregroundColor(action.color)
+                .frame(width: 40)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(action.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                Text(action.message)
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.75))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.1))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(action.color.opacity(0.3), lineWidth: 1))
+        )
+    }
+}
+
+// MARK: - 7일 예보 (iOS 날씨 앱 스타일)
+
+private struct DailyForecastCard: View {
+    let forecast: [DailyForecastItem]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+                Text("7일간의 날씨")
+                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            let allHighs = forecast.map { $0.highTemp }
+            let allLows = forecast.map { $0.lowTemp }
+            let rangeMin = allLows.min() ?? 0
+            let rangeMax = allHighs.max() ?? 30
+            let totalRange = Double(max(rangeMax - rangeMin, 1))
+
+            ForEach(Array(forecast.enumerated()), id: \.offset) { idx, day in
+                VStack(spacing: 0) {
+                    if idx > 0 {
+                        Divider().background(Color.white.opacity(0.1)).padding(.horizontal, 16)
+                    }
+                    DailyForecastRow(
+                        day: day,
+                        rangeMin: rangeMin,
+                        rangeMax: rangeMax,
+                        totalRange: totalRange,
+                        isToday: idx == 0
+                    )
+                }
+            }
+            .padding(.bottom, 8)
+        }
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.1)))
+    }
+}
+
+private struct DailyForecastRow: View {
+    let day: DailyForecastItem
+    let rangeMin: Int
+    let rangeMax: Int
+    let totalRange: Double
+    let isToday: Bool
+
+    private func conditionIcon(_ c: String) -> String {
+        switch c {
+        case "sunny": return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy": return "cloud.rain.fill"
+        case "snowy": return "snowflake"
+        default: return "cloud.fill"
+        }
+    }
+
+    private func conditionColor(_ c: String) -> Color {
+        switch c {
+        case "sunny": return .yellow
+        case "rainy": return .blue
+        case "snowy": return .white
+        default: return .gray
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(isToday ? "오늘" : dayString(day.date))
+                .font(.system(size: 17, weight: isToday ? .semibold : .regular))
+                .foregroundColor(.white)
+                .frame(width: 44, alignment: .leading)
+
+            VStack(spacing: 2) {
+                Image(systemName: conditionIcon(day.condition))
+                    .font(.system(size: 18))
+                    .foregroundColor(conditionColor(day.condition))
+                if day.precipitationProbability >= 20 {
+                    Text("\(day.precipitationProbability)%")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.cyan)
+                }
+            }
+            .frame(width: 38)
+
+            Text("\(day.lowTemp)°")
+                .font(.system(size: 15))
+                .foregroundColor(.white.opacity(0.5))
+                .frame(width: 32, alignment: .trailing)
+
+            GeometryReader { geo in
+                let lowFrac = Double(day.lowTemp - rangeMin) / totalRange
+                let highFrac = Double(day.highTemp - rangeMin) / totalRange
+                let width = geo.size.width
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.15)).frame(height: 4)
+                    Capsule()
+                        .fill(LinearGradient(
+                            colors: [.cyan, .yellow],
+                            startPoint: .leading, endPoint: .trailing
+                        ))
+                        .frame(
+                            width: max(8, width * (highFrac - lowFrac)),
+                            height: 4
+                        )
+                        .offset(x: width * lowFrac)
+                }
+            }
+            .frame(height: 4)
+
+            Text("\(day.highTemp)°")
+                .font(.system(size: 15))
+                .foregroundColor(.white)
+                .frame(width: 32, alignment: .leading)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+
+    private func dayString(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "E"
+        return f.string(from: date)
     }
 }
 

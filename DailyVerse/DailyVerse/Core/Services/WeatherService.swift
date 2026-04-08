@@ -65,6 +65,25 @@ class WeatherService: WeatherServiceProtocol {
             )
         }
 
+        // 7일 예보 (WeatherKit DayWeather)
+        let sevenDayForecast = Array(daily.forecast.prefix(7)).map { d -> DailyForecastItem in
+            DailyForecastItem(
+                date: d.date,
+                highTemp: Int(d.highTemperature.converted(to: .celsius).value.rounded()),
+                lowTemp: Int(d.lowTemperature.converted(to: .celsius).value.rounded()),
+                condition: mapWeatherKitCondition(d.condition),
+                conditionKo: mapWeatherKitConditionKo(d.condition),
+                precipitationProbability: Int((d.precipitationChance * 100).rounded())
+            )
+        }
+
+        // UV Index (현재 자외선 지수)
+        let uvIndexVal = Int(current.uvIndex.value)
+
+        // 오늘/내일 강수 확률
+        let todayRainProb = daily.forecast.first.map { Int(($0.precipitationChance * 100).rounded()) }
+        let tomorrowRainProb = daily.forecast.dropFirst().first.map { Int(($0.precipitationChance * 100).rounded()) }
+
         // 대기질 — 에어코리아 우선, 실패 시 OWM 폴백
         let airKorea = await fetchAirKorea(location: location)
         let aqiVal: Int?
@@ -110,7 +129,11 @@ class WeatherService: WeatherServiceProtocol {
             aqiDescription: aqiDesc,
             pm25: pm25Val,
             pm10: pm10Val,
-            airStation: stationName
+            airStation: stationName,
+            uvIndex: uvIndexVal,
+            precipitationProbability: todayRainProb,
+            tomorrowPrecipitationProbability: tomorrowRainProb,
+            dailyForecast: sevenDayForecast
         )
     }
 

@@ -9,6 +9,17 @@ struct HourlyForecastItem: Codable, Equatable {
     let conditionKo: String
 }
 
+// MARK: - DailyForecastItem
+
+struct DailyForecastItem: Codable, Equatable {
+    let date: Date
+    let highTemp: Int
+    let lowTemp: Int
+    let condition: String       // "sunny" | "cloudy" | "rainy" | "snowy"
+    let conditionKo: String     // "맑음" | "흐림" | "비" | "눈"
+    let precipitationProbability: Int  // 강수 확률 0-100%
+}
+
 // MARK: - WeatherData
 
 struct WeatherData: Codable, Equatable {
@@ -35,6 +46,10 @@ struct WeatherData: Codable, Equatable {
     var pm25: Double?                           // PM2.5 실측 (μg/m³)
     var pm10: Double?                           // PM10 실측 (μg/m³)
     var airStation: String?                     // 측정소명
+    var uvIndex: Int?                              // 자외선 지수 0-11+
+    var precipitationProbability: Int?             // 오늘 강수 확률 %
+    var tomorrowPrecipitationProbability: Int?     // 내일 강수 확률 %
+    var dailyForecast: [DailyForecastItem]         // 7일 예보
 
     init(
         temperature: Int,
@@ -54,7 +69,11 @@ struct WeatherData: Codable, Equatable {
         aqiDescription: String? = nil,
         pm25: Double? = nil,
         pm10: Double? = nil,
-        airStation: String? = nil
+        airStation: String? = nil,
+        uvIndex: Int? = nil,
+        precipitationProbability: Int? = nil,
+        tomorrowPrecipitationProbability: Int? = nil,
+        dailyForecast: [DailyForecastItem] = []
     ) {
         self.temperature = temperature
         self.condition = condition
@@ -74,6 +93,21 @@ struct WeatherData: Codable, Equatable {
         self.pm25 = pm25
         self.pm10 = pm10
         self.airStation = airStation
+        self.uvIndex = uvIndex
+        self.precipitationProbability = precipitationProbability
+        self.tomorrowPrecipitationProbability = tomorrowPrecipitationProbability
+        self.dailyForecast = dailyForecast
+    }
+
+    var uvIndexDescription: String {
+        guard let uv = uvIndex else { return "정보 없음" }
+        switch uv {
+        case 0...2:  return "낮음"
+        case 3...5:  return "보통"
+        case 6...7:  return "높음"
+        case 8...10: return "매우 높음"
+        default:     return "위험"
+        }
     }
 
     var isValid: Bool {
