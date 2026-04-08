@@ -33,14 +33,14 @@ struct HomeView: View {
                 if let verse = viewModel.currentVerse {
                     GeometryReader { geo in
                         let w = geo.size.width
-                        // 가로 여백: 화면 너비의 10% (최소 32pt)
-                        let hPad = max(w * 0.10, 32.0)
+                        // 가로 여백: 화면 너비의 13% (최소 40pt) → 텍스트 블록 더 좁게
+                        let hPad = max(w * 0.13, 40.0)
                         verseCenter(verse: verse)
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            // 화면 상단 40%~60% 구간에 배치
+                            // 화면 상단 42% 위치 (이전 52%보다 위)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.52)
+                                      y: geo.size.height * 0.42)
                     }
                 }
             }

@@ -33,12 +33,12 @@ struct AlarmStage2View: View {
                 if let verse = coordinator.activeVerse {
                     GeometryReader { geo in
                         let w = geo.size.width
-                        let hPad = max(w * 0.10, 32.0)
+                        let hPad = max(w * 0.13, 40.0)
                         verseCenter(verse: verse)
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.52)
+                                      y: geo.size.height * 0.42)
                     }
                 }
             }
