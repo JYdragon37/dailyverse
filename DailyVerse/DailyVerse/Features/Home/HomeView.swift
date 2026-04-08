@@ -40,7 +40,7 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             // 화면 상단 42% 위치 (이전 52%보다 위)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.42)
+                                      y: geo.size.height * 0.45)
                     }
                 }
             }

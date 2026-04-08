@@ -38,7 +38,7 @@ struct AlarmStage2View: View {
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.42)
+                                      y: geo.size.height * 0.45)
                     }
                 }
             }
