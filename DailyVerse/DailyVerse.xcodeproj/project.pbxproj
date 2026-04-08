@@ -564,7 +564,7 @@
 				A285DC85A3217441EE57A4F1 /* FirebaseCrashlytics */,
 				9E8BDCAC9E2AE9E47FBF0366 /* RevenueCat */,
 				01C2BCC9A543DD3A4F7C632B /* GoogleMobileAds */,
-				GS100002GS100002GS100002 /* GoogleSignIn */,
+				B2C3D4E5F6A1B2C3D4E5F6A1 /* GoogleSignIn */,
 			);
 			productName = DailyVerse;
 			productReference = FC1D3512D353F774664EA614 /* DailyVerse.app */;
@@ -604,7 +604,7 @@
 				2B36C6EA26EFFFAD03EAC0C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				FE5EF7FBD603B03043142952 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				A6BE7DC3B47128AAD2491F66 /* XCRemoteSwiftPackageReference "purchases-ios" */,
-				GS100001GS100001GS100001 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BC443F1456E717A0068753FA /* Products */;
@@ -1040,7 +1040,7 @@
 				minimumVersion = 11.0.0;
 			};
 		};
-		GS100001GS100001GS100001 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
@@ -1086,9 +1086,9 @@
 			package = 2B36C6EA26EFFFAD03EAC0C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
 		};
-		GS100002GS100002GS100002 /* GoogleSignIn */ = {
+		B2C3D4E5F6A1B2C3D4E5F6A1 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = GS100001GS100001GS100001 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			package = A1B2C3D4E5F6A1B2C3D4E5F6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
 		};
 /* End XCSwiftPackageProductDependency section */
