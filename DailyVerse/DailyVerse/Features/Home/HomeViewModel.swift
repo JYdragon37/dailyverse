@@ -77,18 +77,20 @@ final class HomeViewModel: ObservableObject {
         if latestMode != currentMode {
             currentMode = latestMode
         }
+        let mode = currentMode
 
-        // 날씨 로드 (위치 권한이 있을 때만)
-        await loadWeatherIfPermitted()
+        // 말씀을 가장 먼저, 날씨와 병렬 로드 → 글귀가 최대한 빨리 표시됨
+        async let verseTask: () = loadVerse(for: mode)
+        async let weatherTask: () = loadWeatherIfPermitted()
+        await verseTask
+        await weatherTask
 
-        // 말씀 로드
-        await loadVerse(for: currentMode)
-
-        // 배경 이미지 로드 (#3 시간대별 배경)
-        await loadBackground(for: currentMode)
-        // 말씀 이미지 로드
+        // 배경/이미지는 말씀 표시 후 백그라운드에서 로드
         await syncPinnedImagesIfNeeded()
-        await loadImage(for: currentMode)
+        async let bgTask: () = loadBackground(for: mode)
+        async let imgTask: () = loadImage(for: mode)
+        await bgTask
+        await imgTask
 
         // 알람 CTA 재평가
         evaluateAlarmCTA()
