@@ -40,7 +40,7 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             // 화면 상단 42% 위치 (이전 52%보다 위)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.45)
+                                      y: geo.size.height * 0.48)
                     }
                 }
             }
@@ -153,13 +153,13 @@ struct HomeView: View {
                     Button {
                         showWeatherDetail = true
                     } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: weatherIcon(weather.condition))
-                                .font(.system(size: 15))
-                            Text("\(weather.cityName) \(weather.temperature)°C · 💧\(weather.humidity)%")
-                                .font(.system(size: 16, weight: .medium))  // 크기 업
-                        }
-                        .foregroundColor(.white.opacity(0.95))
+                        // 날씨 아이콘 제거 (Zone 인사말 아이콘과 중복)
+                        // lineLimit(1) + minimumScaleFactor로 한 줄 유지
+                        Text("\(weather.cityName) \(weather.temperature)°C · 💧\(weather.humidity)%")
+                            .font(.system(size: 15, weight: .medium))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .foregroundColor(.white.opacity(0.95))
                     }
                 }
             }
