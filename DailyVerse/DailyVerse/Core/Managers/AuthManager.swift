@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import FirebaseCore
 import FirebaseAuth
 import AuthenticationServices
 import FirebaseAnalytics
