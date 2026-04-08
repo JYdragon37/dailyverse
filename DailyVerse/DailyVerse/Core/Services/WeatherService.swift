@@ -103,9 +103,9 @@ class WeatherService: WeatherServiceProtocol {
             // OWM 폴백
             let owmKey = Bundle.main.infoDictionary?["OPENWEATHER_API_KEY"] as? String ?? ""
             let owm = await fetchAQI(lat: location.coordinate.latitude, lon: location.coordinate.longitude, apiKey: owmKey)
-            aqiVal = owm.0
-            aqiDesc = owm.1
-            pm25Val = nil; pm10Val = nil; stationName = nil
+            aqiVal = owm.aqi
+            aqiDesc = owm.desc
+            pm25Val = owm.pm25; pm10Val = owm.pm10; stationName = nil
         }
 
         let dustGrade = aqiDesc ?? "보통"
@@ -213,26 +213,40 @@ class WeatherService: WeatherServiceProtocol {
 
     // MARK: - AQI (OpenWeatherMap — 해외 또는 에어코리아 실패 시 폴백)
 
-    private func fetchAQI(lat: Double, lon: Double, apiKey: String) async -> (Int?, String?) {
+    /// OWM Air Pollution — pm2.5 실측값 기반 AQI 계산 (1-5 스케일×50 대신 실측값 사용)
+    private func fetchAQI(lat: Double, lon: Double, apiKey: String) async -> (aqi: Int?, desc: String?, pm25: Double?, pm10: Double?) {
         guard !apiKey.isEmpty,
               let url = URL(string: "https://api.openweathermap.org/data/2.5/air_pollution?lat=\(lat)&lon=\(lon)&appid=\(apiKey)") else {
-            return (nil, nil)
+            return (nil, nil, nil, nil)
         }
         guard let (data, _) = try? await URLSession.shared.data(from: url),
               let response = try? JSONDecoder().decode(OWMAirPollutionResponse.self, from: data),
               let item = response.list.first else {
-            return (nil, nil)
+            return (nil, nil, nil, nil)
         }
-        let owmAqi = item.main.aqi
-        let aqiNum = owmAqi * 50
+        // pm2.5 실측값으로 AQI 계산 (OWM 1-5 스케일 대신 실측 농도 기반)
+        let pm25 = item.components?.pm2_5
+        let pm10 = item.components?.pm10
+        let aqi: Int
         let desc: String
-        switch owmAqi {
-        case 1: desc = "좋음"
-        case 2: desc = "보통"
-        case 3: desc = "나쁨"
-        default: desc = "매우나쁨"
+        if let pm = pm25 {
+            // WHO / 한국 PM2.5 기준 환산
+            switch pm {
+            case ..<15:   aqi = Int(pm * 50 / 15);  desc = "좋음"
+            case ..<35:   aqi = Int(50 + (pm-15) * 50 / 20);  desc = "보통"
+            case ..<75:   aqi = Int(100 + (pm-35) * 100 / 40); desc = "나쁨"
+            default:      aqi = min(250, Int(200 + (pm-75)));   desc = "매우나쁨"
+            }
+        } else {
+            // components 없으면 1-5 스케일 폴백
+            switch item.main.aqi {
+            case 1: aqi = 30;  desc = "좋음"
+            case 2: aqi = 75;  desc = "보통"
+            case 3: aqi = 130; desc = "나쁨"
+            default: aqi = 200; desc = "매우나쁨"
+            }
         }
-        return (aqiNum, desc)
+        return (aqi, desc, pm25, pm10)
     }
 
     // MARK: - WeatherKit Condition Mapping
@@ -311,8 +325,38 @@ class WeatherService: WeatherServiceProtocol {
             pm25_2 = airKorea2.pm25; pm10_2 = airKorea2.pm10; station2 = airKorea2.station
         } else {
             let owm = await fetchAQI(lat: lat, lon: lon, apiKey: apiKey)
-            aqiVal2 = owm.0; aqiDesc2 = owm.1
-            pm25_2 = nil; pm10_2 = nil; station2 = nil
+            aqiVal2 = owm.aqi; aqiDesc2 = owm.desc
+            pm25_2 = owm.pm25; pm10_2 = owm.pm10; station2 = nil
+        }
+
+        // OWM에서 강수 확률 / 내일 강수 확률 추출
+        var todayPop: Int? = nil
+        var tomorrowPop: Int? = nil
+        var sevenDayForecast2: [DailyForecastItem] = []
+        if let fUrl = URL(string: "https://api.openweathermap.org/data/2.5/forecast?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric&cnt=40"),
+           let (fData, _) = try? await URLSession.shared.data(from: fUrl),
+           let fResp = try? JSONDecoder().decode(OWMForecastResponse.self, from: fData) {
+            let cal = Calendar.current
+            let today = Date()
+            let todayItems = fResp.list.filter { cal.isDate(Date(timeIntervalSince1970: TimeInterval($0.dt)), inSameDayAs: today) }
+            todayPop = todayItems.compactMap { $0.pop }.max().map { Int($0 * 100) }
+            let tomorrow = cal.date(byAdding: .day, value: 1, to: today) ?? today
+            let tomorrowItems = fResp.list.filter { cal.isDate(Date(timeIntervalSince1970: TimeInterval($0.dt)), inSameDayAs: tomorrow) }
+            tomorrowPop = tomorrowItems.compactMap { $0.pop }.max().map { Int($0 * 100) }
+            // 5일 예보 (일별 그룹화)
+            let grouped = Dictionary(grouping: fResp.list) {
+                cal.startOfDay(for: Date(timeIntervalSince1970: TimeInterval($0.dt)))
+            }
+            sevenDayForecast2 = grouped.keys.sorted().prefix(5).compactMap { day in
+                let items = grouped[day] ?? []
+                guard let high = items.map({ $0.main.tempMax }).max(),
+                      let low  = items.map({ $0.main.tempMin }).min(),
+                      let cond = items.first?.weather.first?.id else { return nil }
+                let pop = items.compactMap { $0.pop }.max().map { Int($0 * 100) } ?? 0
+                return DailyForecastItem(date: day, highTemp: Int(high.rounded()), lowTemp: Int(low.rounded()),
+                                         condition: mapOWMId(cond), conditionKo: mapOWMIdKo(cond),
+                                         precipitationProbability: pop)
+            }
         }
 
         return WeatherData(
@@ -330,7 +374,10 @@ class WeatherService: WeatherServiceProtocol {
             aqiDescription: aqiDesc2,
             pm25: pm25_2,
             pm10: pm10_2,
-            airStation: station2
+            airStation: station2,
+            precipitationProbability: todayPop,
+            tomorrowPrecipitationProbability: tomorrowPop,
+            dailyForecast: sevenDayForecast2
         )
     }
 
@@ -399,6 +446,7 @@ private struct OWMForecastResponse: Codable {
         let dt: Int
         let main: ForecastMain
         let weather: [OWMCurrentResponse.OWMWeather]
+        let pop: Double?   // 강수 확률 0.0–1.0
     }
     struct ForecastMain: Codable {
         let temp: Double
@@ -414,8 +462,15 @@ private struct OWMForecastResponse: Codable {
 
 private struct OWMAirPollutionResponse: Codable {
     let list: [AirItem]
-    struct AirItem: Codable { let main: AirMain }
+    struct AirItem: Codable {
+        let main: AirMain
+        let components: AirComponents?
+    }
     struct AirMain: Codable { let aqi: Int }
+    struct AirComponents: Codable {
+        let pm2_5: Double?
+        let pm10: Double?
+    }
 }
 
 // MARK: - 에어코리아 Response Model

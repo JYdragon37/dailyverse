@@ -13,8 +13,8 @@ struct SavedView: View {
     @State private var showLoginPrompt = false
 
     private let gridColumns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.flexible(), spacing: 14),
+        GridItem(.flexible(), spacing: 14)
     ]
 
     var body: some View {
@@ -90,7 +90,7 @@ struct SavedView: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
