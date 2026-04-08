@@ -25,7 +25,6 @@ struct AlarmListView: View {
                     }
 
                     if viewModel.alarms.isEmpty {
-                        // 빈 상태에서도 날씨/말씀 표시
                         VStack(spacing: 0) {
                             alarmTopSection
                             AlarmEmptyStateView {
@@ -33,30 +32,12 @@ struct AlarmListView: View {
                             }
                         }
                     } else {
-                        // 날씨+말씀 섹션 + 알람 리스트
-                        VStack(spacing: 0) {
-                            alarmTopSection
-                            // 말씀 ↔ 알람 구분선
-                            Divider()
-                                .background(Color.white.opacity(0.08))
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 4)
-                            alarmList
-                        }
+                        // 오늘의 말씀 + 알람 리스트를 하나의 List로 → 함께 스크롤
+                        alarmListWithHeader
                     }
                 }
             }
             .navigationTitle("Alarm")
-            .task {
-                // 오늘의 말씀 로드 (DailyCacheManager → Core Data)
-                let mode = AppMode.current()
-                if let id = DailyCacheManager.shared.getVerseId(for: mode),
-                   let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
-                    todayVerse = verse
-                } else {
-                    todayVerse = OfflineFallbackManager.shared.fallbackVerse(for: mode)
-                }
-            }
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
@@ -93,10 +74,63 @@ struct AlarmListView: View {
         .onAppear {
             viewModel.loadAlarms()
             Task { await permissionManager.checkNotification() }
+            refreshTodayVerse()  // 탭 진입마다 새 말씀
         }
     }
 
-    // MARK: - Alarm List
+    // MARK: - 탭마다 말씀 변경
+
+    private func refreshTodayVerse() {
+        let mode = AppMode.current()
+        // Core Data 캐시에서 랜덤 말씀 선택 (현재 말씀 제외)
+        let currentId = todayVerse?.id
+        if let id = DailyCacheManager.shared.getVerseId(for: mode),
+           let verse = DailyCacheManager.shared.loadCachedVerse(id: id),
+           verse.id != currentId {
+            todayVerse = verse
+            return
+        }
+        // 폴백 구절 중 랜덤
+        let fallbacks = Verse.fallbackVerses.filter { $0.id != currentId }
+        todayVerse = fallbacks.randomElement() ?? OfflineFallbackManager.shared.fallbackVerse(for: mode)
+    }
+
+    // MARK: - 오늘의 말씀 + 알람 리스트 통합 (함께 스크롤)
+
+    private var alarmListWithHeader: some View {
+        List {
+            // 오늘의 말씀 (List 첫 항목 → 알람 카드와 함께 스크롤)
+            Section {
+                alarmTopSection
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            }
+
+            // 알람 카드들
+            ForEach(sortedAlarms) { alarm in
+                AlarmCardRow(
+                    alarm: alarm,
+                    onToggle: { viewModel.toggleAlarm(id: alarm.id) }
+                )
+                .contentShape(Rectangle())
+                .onTapGesture { viewModel.editingAlarm = alarm }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        viewModel.deleteAlarm(id: alarm.id)
+                        viewModel.toastMessage = "알람이 삭제되었습니다"
+                    } label: { Label("삭제", systemImage: "trash") }
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+
+    // MARK: - Alarm List (빈 상태용, 기존 유지)
 
     private var sortedAlarms: [Alarm] {
         viewModel.alarms.sorted { a, b in
@@ -154,7 +188,8 @@ struct AlarmListView: View {
                     .padding(.trailing, 16)
                     .padding(.vertical, 12)
                 }
-                .fixedSize(horizontal: false, vertical: true)
+                // 고정 높이: 말씀 길이 무관하게 120pt
+                .frame(height: 120)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
                         .fill(

@@ -34,7 +34,7 @@ struct VerseDetailBottomSheet: View {
                             .foregroundColor(.secondary)
 
                         Text(applicationWithNickname)
-                            .font(.system(size: 16, weight: .regular))
+                            .font(.system(size: 17, weight: .regular))
                             .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(5)

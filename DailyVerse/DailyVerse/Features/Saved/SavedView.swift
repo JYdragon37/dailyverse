@@ -185,9 +185,14 @@ private struct SavedCardView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                // 배경 이미지
-                // 카드 그리드: 모드 그라데이션 표시 (이미지 로딩은 SavedDetailView에서 처리)
-                modeGradient
+                // 배경: imageUrl 있으면 실제 이미지, 없으면 모드 그라데이션
+                if let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr) {
+                    RemoteImageView(url: url) { modeGradient }
+                        .scaledToFill()
+                        .clipped()
+                } else {
+                    modeGradient
+                }
 
                 // 하단 그라데이션 오버레이 (투명→블랙 40%)
                 LinearGradient(

@@ -4,6 +4,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
     let id: String
     let verseId: String
     let imageId: String?        // v5.1 — 저장 당시 배경 이미지 ID
+    let imageUrl: String?       // 저장 당시 이미지 URL (표시용, nil이면 모드 그라데이션)
     let savedAt: Date
     let mode: String
     let weatherTemp: Int
@@ -18,6 +19,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         case id = "saved_id"
         case verseId = "verse_id"
         case imageId = "image_id"
+        case imageUrl = "image_url"
         case savedAt = "saved_at"
         case mode
         case weatherTemp = "weather_temp"
@@ -34,6 +36,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         id               = try container.decode(String.self, forKey: .id)
         verseId          = try container.decode(String.self, forKey: .verseId)
         imageId          = try container.decodeIfPresent(String.self, forKey: .imageId)
+        imageUrl         = try container.decodeIfPresent(String.self, forKey: .imageUrl)
         savedAt          = try container.decode(Date.self, forKey: .savedAt)
         mode             = try container.decode(String.self, forKey: .mode)
         weatherTemp      = try container.decodeIfPresent(Int.self, forKey: .weatherTemp) ?? 0
@@ -49,6 +52,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         id: String,
         verseId: String,
         imageId: String? = nil,
+        imageUrl: String? = nil,
         savedAt: Date,
         mode: String,
         weatherTemp: Int = 0,
@@ -62,6 +66,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         self.id = id
         self.verseId = verseId
         self.imageId = imageId
+        self.imageUrl = imageUrl
         self.savedAt = savedAt
         self.mode = mode
         self.weatherTemp = weatherTemp

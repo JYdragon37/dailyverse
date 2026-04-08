@@ -348,7 +348,8 @@ final class HomeViewModel: ObservableObject {
         SavedVerse(
             id: UUID().uuidString,
             verseId: verse.id,
-            imageId: currentImage?.id,           // v5.1: 저장 당시 배경 이미지 ID
+            imageId: currentImage?.id,
+            imageUrl: currentImage?.storageUrl,  // 표시용 URL
             savedAt: Date(),
             mode: currentMode.rawValue,
             weatherTemp: weather?.temperature ?? 0,

@@ -291,6 +291,7 @@ struct AlarmStage2View: View {
             id: UUID().uuidString,
             verseId: verse.id,
             imageId: coordinator.activeImage?.id,
+            imageUrl: coordinator.activeImage?.storageUrl,
             savedAt: Date(),
             mode: alarmMode.rawValue,
             weatherTemp: coordinator.activeWeather?.temperature ?? 0,
