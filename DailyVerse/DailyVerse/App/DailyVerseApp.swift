@@ -2,6 +2,7 @@ import SwiftUI
 import Firebase
 import RevenueCat
 import GoogleMobileAds
+import GoogleSignIn
 
 @main
 struct DailyVerseApp: App {
@@ -34,6 +35,10 @@ struct DailyVerseApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
                 .environmentObject(authManager)
                 .environmentObject(subscriptionManager)
                 .environmentObject(permissionManager)

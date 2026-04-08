@@ -55,10 +55,7 @@
 		83BCDFD72B9827340708D0E0 /* AlarmAddEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */; };
 		849864FEC88D8C331E7F8B57 /* OnboardingLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153D8636E78BAE711647E96 /* OnboardingLocationView.swift */; };
 		84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01850BB01382CF53BBB11601 /* VerseSelector.swift */; };
-		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8A3130072F80B28E009F815D /* alarm_song.mp3 */; };
-		FA001002FA001002FA001002 /* DancingScript.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001001FA001001FA001001 /* DancingScript.ttf */; };
-		FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */; };
 		8B4A424041EC86CA8355E89D /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73D43781D887A90FC6FD043 /* ToastView.swift */; };
 		8C5540743E8C48219FA5F86B /* OnboardingNicknameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DE16F7556F546B6B2641564 /* OnboardingNicknameView.swift */; };
 		8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91818E82ADB8A50609DDA1E9 /* WeatherData.swift */; };
@@ -97,7 +94,10 @@
 		F223CA5032B4BC3235F1D4E0 /* AlarmStage2View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2613468BC948C1BDB0FDF0DE /* AlarmStage2View.swift */; };
 		F54CD4FEC2B931D7341EFF87 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5814C3268942E53E0423363 /* NotificationManager.swift */; };
 		F8EC3DE5C8741A605224254E /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD35CB40B40FD013019F7C3 /* NotificationDelegate.swift */; };
+		FA001002FA001002FA001002 /* DancingScript.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001001FA001001FA001001 /* DancingScript.ttf */; };
+		FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */; };
 		FA5699AAD11898B968DE8EA3 /* OnboardingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54874B10A9BD5824B945E62 /* OnboardingKey.swift */; };
+		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
 /* End PBXBuildFile section */
@@ -160,10 +160,7 @@
 		87AF82929D2C67C67CB4354C /* Color+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+DailyVerse.swift"; sourceTree = "<group>"; };
 		883AE40A2F80AF5436D647BF /* AlarmRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRepository.swift; sourceTree = "<group>"; };
 		895D5E70C69EA9646472CD1B /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
-		FB100001FB100001FB100001 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		8A3130072F80B28E009F815D /* alarm_song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm_song.mp3; sourceTree = "<group>"; };
-		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
-		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
 		8E18DAC4793BDF05B1A63355 /* DailyVerseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseUITests.swift; sourceTree = "<group>"; };
 		8FF6B9D4FD3198F96F2C9EAC /* UpsellBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsellBottomSheet.swift; sourceTree = "<group>"; };
 		904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAddEditView.swift; sourceTree = "<group>"; };
@@ -208,6 +205,9 @@
 		F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		F8D76127093631BB4CCFF6D8 /* WeatherWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherWidgetView.swift; sourceTree = "<group>"; };
 		F97449D55F8DB9F917F590C3 /* SavedVerseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVerseRepository.swift; sourceTree = "<group>"; };
+		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
+		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
+		FB100001FB100001FB100001 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
@@ -564,6 +564,7 @@
 				A285DC85A3217441EE57A4F1 /* FirebaseCrashlytics */,
 				9E8BDCAC9E2AE9E47FBF0366 /* RevenueCat */,
 				01C2BCC9A543DD3A4F7C632B /* GoogleMobileAds */,
+				C3D4E5F6A1B2C3D4E5F6A1B2 /* GoogleSignIn */,
 			);
 			productName = DailyVerse;
 			productReference = FC1D3512D353F774664EA614 /* DailyVerse.app */;
@@ -603,6 +604,7 @@
 				2B36C6EA26EFFFAD03EAC0C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				FE5EF7FBD603B03043142952 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				A6BE7DC3B47128AAD2491F66 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				8A37CFBB2F862363007606F2 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BC443F1456E717A0068753FA /* Products */;
@@ -1021,6 +1023,14 @@
 				minimumVersion = 12.0.0;
 			};
 		};
+		8A37CFBB2F862363007606F2 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
 		A6BE7DC3B47128AAD2491F66 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
@@ -1074,6 +1084,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2B36C6EA26EFFFAD03EAC0C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		C3D4E5F6A1B2C3D4E5F6A1B2 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A37CFBB2F862363007606F2 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
 		};
 /* End XCSwiftPackageProductDependency section */
 

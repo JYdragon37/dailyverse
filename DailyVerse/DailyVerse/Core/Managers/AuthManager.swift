@@ -3,6 +3,7 @@ import Combine
 import FirebaseAuth
 import AuthenticationServices
 import FirebaseAnalytics
+import GoogleSignIn
 
 @MainActor
 class AuthManager: ObservableObject {
@@ -60,15 +61,44 @@ class AuthManager: ObservableObject {
         }
     }
 
-    /// Google Sign-In (Firebase Console에서 Google provider 활성화 후 사용 가능)
-    /// GoogleSignIn SPM 패키지 추가 필요: https://github.com/google/GoogleSignIn-iOS
+    /// Google Sign-In (GoogleSignIn-iOS SDK + Firebase Auth)
     func signInWithGoogle() async {
-        // TODO: GoogleSignIn SDK 연동
-        // 1. Firebase Console → Authentication → Sign-in method → Google 활성화
-        // 2. GoogleService-Info.plist 재다운로드 (CLIENT_ID, REVERSED_CLIENT_ID 포함)
-        // 3. SPM: GoogleSignIn-iOS 패키지 추가
-        // 4. GIDSignIn.sharedInstance.signIn(withPresenting:) 호출
-        await MainActor.run { authError = "Google 로그인 설정이 필요합니다. Firebase Console을 확인해주세요." }
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            authError = "Google 클라이언트 ID를 찾을 수 없어요."
+            return
+        }
+        // Google Sign-In 설정
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+
+        // 최상위 ViewController 가져오기
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else {
+            authError = "화면을 찾을 수 없어요."
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
+            guard let idToken = result.user.idToken?.tokenString else {
+                authError = "Google 인증 토큰을 받지 못했어요."
+                return
+            }
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: result.user.accessToken.tokenString
+            )
+            let authResult = try await Auth.auth().signIn(with: credential)
+            // 신규 유저면 Firestore 문서 생성
+            if authResult.additionalUserInfo?.isNewUser == true {
+                let displayName = result.user.profile?.name ?? "친구"
+                let email = result.user.profile?.email ?? ""
+                try? await FirestoreService().createUser(uid: authResult.user.uid, email: email, displayName: displayName)
+            }
+            authError = nil
+        } catch {
+            authError = error.localizedDescription
+        }
     }
 
     // MARK: - Sign In
