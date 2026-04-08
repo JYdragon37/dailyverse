@@ -383,7 +383,7 @@ struct WeatherDetailSheet: View {
                                               value: weather.precipitationProbability.map { "\($0)%" } ?? "--")
                             WeatherDetailTile(icon: "sun.max.fill", color: .yellow,
                                               label: "자외선",
-                                              value: weather.uvIndex.map { "\($0) \(weather.uvIndexDescription)" } ?? "--")
+                                              value: weather.uvIndex.map { "\($0)  \(weather.uvIndexDescription)" } ?? "WeatherKit 필요")
                             WeatherDetailTile(
                                 icon: "aqi.low",
                                 color: aqiColor(weather.dustGrade),

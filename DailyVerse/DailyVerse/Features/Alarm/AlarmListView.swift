@@ -105,7 +105,7 @@ struct AlarmListView: View {
                     alarmTopSection
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowInsets(EdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24))
                 }
             }
 
@@ -125,7 +125,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 24, bottom: 6, trailing: 24))
+                .listRowInsets(EdgeInsets(top: 6, leading: 28, bottom: 6, trailing: 28))
             }
         }
         .listStyle(.plain)
@@ -226,7 +226,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)  // 카드 자체 배경 사용
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 24, bottom: 6, trailing: 24))
+                .listRowInsets(EdgeInsets(top: 6, leading: 28, bottom: 6, trailing: 28))
             }
         }
         .listStyle(.plain)

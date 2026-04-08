@@ -90,7 +90,7 @@ struct SavedView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
