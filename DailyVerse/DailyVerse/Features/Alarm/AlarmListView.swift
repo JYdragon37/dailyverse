@@ -125,7 +125,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
         }
         .listStyle(.plain)
@@ -149,9 +149,9 @@ struct AlarmListView: View {
     @ViewBuilder
     private var alarmTopSection: some View {
         if let verse = todayVerse {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .center, spacing: 8) {
 
-                // 섹션 레이블
+                // 섹션 레이블 — 가운데 정렬
                 HStack(spacing: 5) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 10, weight: .semibold))
@@ -160,38 +160,25 @@ struct AlarmListView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.dvGold)
                 }
-                .padding(.horizontal, 16)
 
-                // 말씀 카드
-                HStack(alignment: .center, spacing: 0) {
-                    // 좌측 골드 악센트 바 — 고정 높이로 팽창 방지
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.dvGold, Color.dvGold.opacity(0.4)],
-                                startPoint: .top, endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 3, height: 48)
+                // 말씀 카드 — 가운데 정렬 고정 높이
+                VStack(alignment: .center, spacing: 8) {
+                    Text(verse.alarmTextKo ?? verse.textKo)
+                        .font(.custom("Georgia-BoldItalic", size: 16))
+                        .foregroundColor(.white.opacity(0.92))
+                        .lineSpacing(4)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.center)
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verse.alarmTextKo ?? verse.textKo)
-                            .font(.custom("Georgia-BoldItalic", size: 16))
-                            .foregroundColor(.white.opacity(0.92))
-                            .lineSpacing(4)
-                            .lineLimit(3)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Text(verse.reference)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.dvGold.opacity(0.85))
-                    }
-                    .padding(.leading, 14)
-                    .padding(.trailing, 16)
-                    .padding(.vertical, 12)
+                    Text(verse.reference)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.dvGold.opacity(0.85))
                 }
-                // 고정 높이: 말씀 길이 무관하게 120pt
-                .frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+                // 고정 높이: alarmTextKo 최대 50자 기준
+                .frame(height: 110)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
                         .fill(
@@ -239,7 +226,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)  // 카드 자체 배경 사용
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
         }
         .listStyle(.plain)

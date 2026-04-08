@@ -430,17 +430,39 @@ struct WeatherDetailSheet: View {
 private struct TomorrowActionCard: View {
     let weather: WeatherData
 
+    /// 내일 시간별 예보에서 비/눈 예보 여부 확인 (tomorrowPrecipitationProbability가 nil인 경우 보완)
+    private var tomorrowHasRain: Bool {
+        let cal = Calendar.current
+        let tomorrow = cal.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return weather.hourlyForecast.contains {
+            cal.isDate($0.time, inSameDayAs: tomorrow) && $0.condition == "rainy"
+        }
+    }
+    private var tomorrowHasSnow: Bool {
+        let cal = Calendar.current
+        let tomorrow = cal.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return weather.hourlyForecast.contains {
+            cal.isDate($0.time, inSameDayAs: tomorrow) && $0.condition == "snowy"
+        }
+    }
+
     private var actionMessage: (icon: String, color: Color, title: String, message: String) {
         let rainProb = weather.tomorrowPrecipitationProbability ?? 0
         let temp = weather.tomorrowMorningTemp ?? weather.temperature
         let cond = weather.tomorrowMorningCondition ?? weather.condition
         let uv = weather.uvIndex ?? 0
+        // 시간별 예보로 보완 (tomorrowPrecipitationProbability nil 대비)
+        let hasRain = tomorrowHasRain || cond == "rainy"
+        let hasSnow = tomorrowHasSnow || cond == "snowy"
 
-        if rainProb >= 60 {
+        if hasRain && rainProb >= 60 {
             return ("umbrella.fill", .blue, "내일 비 소식", "강수 확률 \(rainProb)%, 우산 꼭 챙기세요 ☂️")
+        } else if hasRain {
+            let probText = rainProb > 0 ? "강수 확률 \(rainProb)%, " : "내일 비 예보가 있어요. "
+            return ("umbrella.fill", .blue, "내일 비 소식", "\(probText)우산 챙기세요 ☂️")
         } else if rainProb >= 30 {
             return ("cloud.drizzle.fill", .cyan, "비 올 수도 있어요", "강수 확률 \(rainProb)%, 접이식 우산이 있으면 좋겠어요")
-        } else if cond == "snowy" {
+        } else if hasSnow {
             return ("snowflake", .white, "내일 눈이 와요", "미끄러운 길 조심하고, 따뜻하게 입으세요 🧥")
         } else if temp <= -5 {
             return ("thermometer.snowflake", Color(red: 0.5, green: 0.8, blue: 1), "매우 추운 날씨", "내일 아침 \(temp)°C, 최대한 따뜻하게 입으세요 🧤")
