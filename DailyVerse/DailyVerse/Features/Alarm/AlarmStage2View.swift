@@ -20,68 +20,74 @@ struct AlarmStage2View: View {
     }
 
     var body: some View {
-        ZStack {
-            backgroundView
-            Color.black.opacity(0.35).ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                // MARK: - 헤더: Zone 인사말 + 날짜
-                headerSection
-                    .padding(.top, 56)
-                    .padding(.horizontal, 24)
-
-                Spacer(minLength: 36)
-
-                // MARK: - 메인 말씀 (text_full_ko)
+        backgroundView
+            .overlay { gradientOverlay }
+            // 인사말: 상단 고정 (HomeView와 동일)
+            .overlay(alignment: .topLeading) {
+                greetingHeader
+                    .padding(.top, 60)
+                    .padding(.horizontal, 28)
+            }
+            // 말씀 카드: 중앙보다 살짝 위, 가로 반응형 (HomeView와 동일)
+            .overlay {
                 if let verse = coordinator.activeVerse {
-                    verseSection(verse: verse)
-                        .padding(.horizontal, 24)
-                }
-
-                Spacer(minLength: 36)
-
-                // MARK: - 하단 액션 버튼
-                actionButtons
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 44)
-            }
-        }
-        .opacity(isVisible ? 1 : 0)
-        .onAppear {
-            withAnimation(.dvStageTransition) { isVisible = true }
-        }
-        // 로그인 유도 시트
-        .sheet(isPresented: $showLoginPrompt) {
-            LoginPromptSheet {
-                showLoginPrompt = false
-                Task { await authManager.signIn() }
-            } onDismiss: {
-                showLoginPrompt = false
-            }
-        }
-        // 오늘의 한마디 시트 (text_ko 표시)
-        .sheet(isPresented: $showWordSheet) {
-            if let verse = coordinator.activeVerse {
-                WordOfDaySheet(verse: verse, mode: alarmMode) {
-                    showWordSheet = false
+                    GeometryReader { geo in
+                        let w = geo.size.width
+                        let hPad = max(w * 0.10, 32.0)
+                        verseCenter(verse: verse)
+                            .padding(.horizontal, hPad)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .position(x: geo.size.width / 2,
+                                      y: geo.size.height * 0.52)
+                    }
                 }
             }
-        }
-        .toolbar(.hidden, for: .tabBar)
-        .navigationBarHidden(true)
+            // 하단 버튼: safeAreaInset (HomeView 탭바 대체)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                actionBar
+            }
+            .opacity(isVisible ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.6)) { isVisible = true }
+            }
+            // 로그인 유도 시트
+            .sheet(isPresented: $showLoginPrompt) {
+                LoginPromptSheet {
+                    showLoginPrompt = false
+                    Task { await authManager.signIn() }
+                } onDismiss: {
+                    showLoginPrompt = false
+                }
+            }
+            // 오늘의 한마디 시트
+            .sheet(isPresented: $showWordSheet) {
+                if let verse = coordinator.activeVerse {
+                    WordOfDaySheet(verse: verse, mode: alarmMode) {
+                        showWordSheet = false
+                    }
+                }
+            }
+            .toolbar(.hidden, for: .tabBar)
+            .navigationBarHidden(true)
     }
 
-    // MARK: - 배경
+    // MARK: - Background (HomeView와 동일한 구조)
 
     @ViewBuilder
     private var backgroundView: some View {
-        if let urlStr = coordinator.activeImage?.storageUrl,
-           let url = URL(string: urlStr) {
-            RemoteImageView(url: url) { fallbackGradient }
+        Color.clear
+            .ignoresSafeArea()
+            .background {
+                Group {
+                    if let urlStr = coordinator.activeImage?.storageUrl,
+                       let url = URL(string: urlStr) {
+                        RemoteImageView(url: url) { fallbackGradient }
+                    } else {
+                        fallbackGradient
+                    }
+                }
                 .ignoresSafeArea()
-        } else {
-            fallbackGradient
-        }
+            }
     }
 
     private var fallbackGradient: some View {
@@ -93,45 +99,172 @@ struct AlarmStage2View: View {
         .ignoresSafeArea()
     }
 
-    // MARK: - 헤더 섹션
+    // MARK: - Gradient Overlay (HomeView와 동일)
 
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private var gradientOverlay: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                colors: [Color.black.opacity(0.65), .clear],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 200)
+            Spacer()
+            LinearGradient(
+                colors: [.clear, Color.black.opacity(0.70)],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 300)
+        }
+        .ignoresSafeArea()
+    }
+
+    // MARK: - Greeting Header (HomeView greetingHeader와 동일 스타일)
+
+    private var greetingHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
             // 1행: 아이콘 + Zone 인사말
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Image(systemName: alarmMode.greetingIcon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(alarmMode.accentColor)
+                    .font(.system(size: 26))
+                    .foregroundColor(.white)
                 Text(alarmMode.greeting)
-                    .font(.dvTitle)
+                    .font(.dvLargeTitle)
                     .foregroundColor(.white)
             }
-            // 2행: 날짜 + 날씨 인라인 (홈화면 스타일)
+
+            // 2행: 날짜 · 날씨 인라인 (아이콘 너비 들여쓰기 맞춤)
             HStack(spacing: 8) {
+                Color.clear.frame(width: 34, height: 1) // 아이콘+spacing 들여쓰기
+
                 Text(todayString)
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white.opacity(0.72))
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.85))
 
                 if let w = coordinator.activeWeather {
-                    Text("·")
-                        .foregroundColor(.white.opacity(0.35))
+                    Text("·").foregroundColor(.white.opacity(0.4))
                     HStack(spacing: 5) {
                         Image(systemName: weatherIcon(w.condition))
-                            .font(.system(size: 14))
-                        Text("\(w.cityName) \(w.temperature)°C")
-                            .font(.system(size: 16, weight: .medium))
-                        Text("·")
-                            .foregroundColor(.white.opacity(0.35))
-                        Text("\(w.humidity)%")
                             .font(.system(size: 15))
+                        Text("\(w.cityName) \(w.temperature)°C · 💧\(w.humidity)%")
+                            .font(.system(size: 16, weight: .medium))
                     }
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.white.opacity(0.95))
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .shadow(color: .black.opacity(0.7), radius: 6, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
     }
+
+    // MARK: - Verse Center (HomeView verseCenter와 동일 스타일)
+
+    private func verseCenter(verse: Verse) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // 말씀 텍스트 (textFullKo)
+            Text(verse.textFullKo)
+                .font(.system(size: 21, weight: .semibold))
+                .foregroundColor(.white)
+                .lineSpacing(8)
+                .fixedSize(horizontal: false, vertical: true)
+                .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
+
+            // 성경 참조 + 테마 태그
+            HStack(spacing: 8) {
+                Text(verse.reference)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+
+                if let firstTheme = verse.theme.first, firstTheme != "all" {
+                    Text(firstTheme.capitalized)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.dvAccentGold)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Color.dvAccentGold.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(.top, 18)
+        }
+        .padding(.vertical, 4)
+        .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
+    }
+
+    // MARK: - Action Bar (safeAreaInset)
+
+    private var actionBar: some View {
+        HStack(spacing: 12) {
+            // 저장 버튼 (꽉 채움, dvGold 배경)
+            Button { handleSave() } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "heart.fill")
+                        .scaleEffect(heartScale)
+                        .accessibilityHidden(true)
+                    Text("저장")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color.dvGold, Color.dvGold.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .foregroundColor(.white)
+                .cornerRadius(14)
+            }
+            .accessibilityLabel("말씀 저장하기")
+
+            // 오늘의 한마디 버튼 (반투명)
+            Button { showWordSheet = true } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "quote.bubble.fill")
+                        .font(.system(size: 14))
+                        .accessibilityHidden(true)
+                    Text("오늘의 한마디")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                        )
+                )
+                .foregroundColor(.white)
+            }
+            .accessibilityLabel("오늘의 한마디 보기")
+
+            // 닫기 (x)
+            Button { coordinator.dismissAll() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(Color.white.opacity(0.10))
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                            )
+                    )
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .accessibilityLabel("닫기")
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .padding(.bottom, 8)
+        .background(
+            Color.dvBgDeep.opacity(0.85)
+                .overlay(Rectangle().fill(.ultraThinMaterial))
+        )
+    }
+
+    // MARK: - Helpers
 
     private func weatherIcon(_ condition: String) -> String {
         switch condition {
@@ -143,90 +276,7 @@ struct AlarmStage2View: View {
         }
     }
 
-    // MARK: - 말씀 섹션 (text_full_ko)
-
-    @ViewBuilder
-    private func verseSection(verse: Verse) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // 전체 구절 텍스트 (text_full_ko)
-            Text(verse.textFullKo)
-                .font(.system(size: 21, weight: .regular))
-                .foregroundColor(.white)
-                .lineSpacing(6)
-                .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.55), radius: 4, x: 0, y: 2)
-
-            // 출처 + 테마 태그
-            HStack(spacing: 10) {
-                Text(verse.reference)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.80))
-
-                if let firstTheme = verse.theme.first, firstTheme != "all" {
-                    Text(firstTheme.capitalized)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.dvVerseGold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.dvVerseGold.opacity(0.20))
-                        .clipShape(Capsule())
-                }
-            }
-        }
-    }
-
-    // MARK: - 액션 버튼
-
-    private var actionButtons: some View {
-        HStack(spacing: 10) {
-            // 저장
-            Button { handleSave() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "heart.fill")
-                        .scaleEffect(heartScale)
-                        .accessibilityHidden(true)
-                    Text("저장")
-                        .font(.dvBody)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(Color.white.opacity(0.18))
-                .foregroundColor(.white)
-                .cornerRadius(14)
-            }
-            .accessibilityLabel("말씀 저장하기")
-
-            // 오늘의 한마디
-            Button { showWordSheet = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "quote.bubble.fill")
-                        .font(.system(size: 14))
-                        .accessibilityHidden(true)
-                    Text("오늘의 한마디")
-                        .font(.dvBody)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(alarmMode.accentColor.opacity(0.30))
-                .foregroundColor(.white)
-                .cornerRadius(14)
-            }
-            .accessibilityLabel("오늘의 한마디 보기")
-
-            // 닫기
-            Button { coordinator.dismissAll() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .medium))
-                    .frame(width: 52, height: 52)
-                    .background(Color.white.opacity(0.18))
-                    .foregroundColor(.white)
-                    .cornerRadius(14)
-            }
-            .accessibilityLabel("닫기")
-        }
-    }
-
-    // MARK: - 저장 액션
+    // MARK: - Save Action
 
     private func handleSave() {
         guard let verse = coordinator.activeVerse else { return }
@@ -282,7 +332,7 @@ private struct WordOfDaySheet: View {
                 }
                 .padding(.bottom, 28)
 
-                // 말씀 카드 (text_ko, 잘림 없음)
+                // 말씀 카드 (text_ko)
                 VStack(alignment: .center, spacing: 16) {
                     Text(verse.textKo)
                         .font(.system(size: 22, weight: .semibold))

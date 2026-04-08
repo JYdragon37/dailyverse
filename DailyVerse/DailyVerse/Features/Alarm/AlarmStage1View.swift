@@ -15,15 +15,15 @@ struct AlarmStage1View: View {
             // ── 콘텐츠: 원래 레이아웃(Spacer-말씀-Spacer-버튼)을 유지 ──
             VStack(spacing: 0) {
 
-                // 날씨 — 상단 콤팩트 스트립 (높이 최소화)
+                // 원래 레이아웃: Spacer - 날씨 - 말씀 - Spacer - 버튼
+                Spacer()
+
+                // 날씨 — 말씀 바로 위에 배치
                 if let weather = weatherForForecast {
                     Stage1WeatherStrip(weather: weather)
-                        .padding(.top, 12)
+                        .padding(.bottom, 16)
                         .padding(.horizontal, 20)
                 }
-
-                // 원래 레이아웃 그대로: Spacer - 말씀 - Spacer - 버튼
-                Spacer()
 
                 if let verse = coordinator.activeVerse {
                     VStack(spacing: 14) {

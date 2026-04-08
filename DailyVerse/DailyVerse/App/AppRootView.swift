@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 struct AppRootView: View {
     @AppStorage("onboardingCompleted") private var onboardingCompleted = false
@@ -77,6 +78,11 @@ struct AppRootView: View {
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
             await loadingCoordinator.start()
+            // 알림 권한이 아직 결정되지 않은 경우 자동 요청
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            if settings.authorizationStatus == .notDetermined {
+                _ = await NotificationManager.shared.requestPermission()
+            }
         }
         // MARK: - 오프라인 토스트 (3초 후 자동 해제)
         .overlay(alignment: .bottom) {

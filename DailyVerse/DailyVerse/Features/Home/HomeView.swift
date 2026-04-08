@@ -28,13 +28,20 @@ struct HomeView: View {
                     .padding(.top, 60)
                     .padding(.horizontal, 28)
             }
-            // #2 말씀 카드: 화면 중앙 배치
-            .overlay(alignment: .center) {
+            // #2 말씀 카드: 중앙보다 살짝 위, 가로 반응형
+            .overlay {
                 if let verse = viewModel.currentVerse {
-                    verseCenter(verse: verse)
-                        .padding(.leading, 36)
-                        .padding(.trailing, 28)
-                        .padding(.top, 80)  // 인사말 영역과 겹치지 않게
+                    GeometryReader { geo in
+                        let w = geo.size.width
+                        // 가로 여백: 화면 너비의 10% (최소 32pt)
+                        let hPad = max(w * 0.10, 32.0)
+                        verseCenter(verse: verse)
+                            .padding(.horizontal, hPad)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            // 화면 상단 40%~60% 구간에 배치
+                            .position(x: geo.size.width / 2,
+                                      y: geo.size.height * 0.52)
+                    }
                 }
             }
             .overlay { toastLayer }

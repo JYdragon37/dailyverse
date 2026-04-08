@@ -10,6 +10,7 @@ class AuthManager: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var pendingSave: SavedVerse?
+    @Published var authError: String?
 
     private let authService = AuthService()
     private let firestoreService = FirestoreService()
@@ -34,6 +35,41 @@ class AuthManager: ObservableObject {
 
     var isLoggedIn: Bool { user != nil }
     var userId: String? { user?.uid }
+
+    // MARK: - Email Auth
+
+    /// 이메일/비밀번호 회원가입
+    func signUpWithEmail(email: String, password: String) async {
+        do {
+            let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            // Firestore 유저 문서 생성
+            try? await FirestoreService().createUser(uid: result.user.uid, email: email, displayName: email.components(separatedBy: "@").first ?? "")
+            await MainActor.run { authError = nil }
+        } catch {
+            await MainActor.run { authError = error.localizedDescription }
+        }
+    }
+
+    /// 이메일/비밀번호 로그인
+    func signInWithEmail(email: String, password: String) async {
+        do {
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
+            await MainActor.run { authError = nil }
+        } catch {
+            await MainActor.run { authError = error.localizedDescription }
+        }
+    }
+
+    /// Google Sign-In (Firebase Console에서 Google provider 활성화 후 사용 가능)
+    /// GoogleSignIn SPM 패키지 추가 필요: https://github.com/google/GoogleSignIn-iOS
+    func signInWithGoogle() async {
+        // TODO: GoogleSignIn SDK 연동
+        // 1. Firebase Console → Authentication → Sign-in method → Google 활성화
+        // 2. GoogleService-Info.plist 재다운로드 (CLIENT_ID, REVERSED_CLIENT_ID 포함)
+        // 3. SPM: GoogleSignIn-iOS 패키지 추가
+        // 4. GIDSignIn.sharedInstance.signIn(withPresenting:) 호출
+        await MainActor.run { authError = "Google 로그인 설정이 필요합니다. Firebase Console을 확인해주세요." }
+    }
 
     // MARK: - Sign In
 

@@ -5,6 +5,8 @@ struct LoginPromptSheet: View {
     let onLogin: () -> Void
     let onDismiss: () -> Void
 
+    @State private var showEmailAuth = false
+
     var body: some View {
         VStack(spacing: 24) {
             // 핸들
@@ -44,6 +46,24 @@ struct LoginPromptSheet: View {
                     .cornerRadius(12)
                 }
                 .accessibilityLabel("Apple 계정으로 로그인")
+
+                Button {
+                    showEmailAuth = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "envelope.fill")
+                        Text("이메일로 로그인 / 회원가입")
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(.systemGray5))
+                    .foregroundColor(.primary)
+                    .cornerRadius(14)
+                }
+                .sheet(isPresented: $showEmailAuth) {
+                    EmailAuthView()
+                }
 
                 Button(action: onDismiss) {
                     Text("나중에")

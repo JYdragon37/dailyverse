@@ -55,6 +55,7 @@
 		83BCDFD72B9827340708D0E0 /* AlarmAddEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */; };
 		849864FEC88D8C331E7F8B57 /* OnboardingLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153D8636E78BAE711647E96 /* OnboardingLocationView.swift */; };
 		84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01850BB01382CF53BBB11601 /* VerseSelector.swift */; };
+		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8A3130072F80B28E009F815D /* alarm_song.mp3 */; };
 		FA001002FA001002FA001002 /* DancingScript.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001001FA001001FA001001 /* DancingScript.ttf */; };
 		FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */; };
@@ -159,6 +160,7 @@
 		87AF82929D2C67C67CB4354C /* Color+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+DailyVerse.swift"; sourceTree = "<group>"; };
 		883AE40A2F80AF5436D647BF /* AlarmRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRepository.swift; sourceTree = "<group>"; };
 		895D5E70C69EA9646472CD1B /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
+		FB100001FB100001FB100001 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		8A3130072F80B28E009F815D /* alarm_song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm_song.mp3; sourceTree = "<group>"; };
 		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
 		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
@@ -361,6 +363,7 @@
 			isa = PBXGroup;
 			children = (
 				B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */,
+				FB100001FB100001FB100001 /* EmailAuthView.swift */,
 				603F5A66AF244485140B6999 /* SettingsViewModel.swift */,
 			);
 			path = Settings;
@@ -620,7 +623,8 @@
 			files = (
 				274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */,
 				180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */,
-				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
+				FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
+		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
 				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
 				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
 			);
@@ -698,6 +702,7 @@
 				C0D6D65B97AB39E715DF88D4 /* SavedView.swift in Sources */,
 				307B5303579AD7DEC0BBAEAC /* SavedViewModel.swift in Sources */,
 				072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */,
+				FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */,
 				636DD98EF33E4AB4D5DE00F3 /* SettingsViewModel.swift in Sources */,
 				EFC125389B06A667AA67EB37 /* SplashView.swift in Sources */,
 				EAF4BE04769B199E65BAA480 /* SubscriptionManager.swift in Sources */,
