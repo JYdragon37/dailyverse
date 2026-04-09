@@ -366,7 +366,7 @@ struct WeatherDetailSheet: View {
                         }
                         .padding(.top, 8)
 
-                        GPTWeatherAdviceCard(weather: weather)
+                        GPTWeatherAdviceCard(weather: weather, zone: mode.rawValue)
 
                         AQICard(weather: weather)
                         HourlyForecastCard(weather: weather)
@@ -431,6 +431,7 @@ struct WeatherDetailSheet: View {
 // MARK: - GPT 날씨 조언 카드
 private struct GPTWeatherAdviceCard: View {
     let weather: WeatherData
+    let zone: String              // Zone rawValue — 변경 시에만 GPT 재호출
     @State private var advice: String = ""
     @State private var isLoading: Bool = true
 
@@ -463,25 +464,41 @@ private struct GPTWeatherAdviceCard: View {
                     .stroke(Color.white.opacity(0.15), lineWidth: 1))
         )
         .task {
-            advice = await WeatherAdviceService.shared.fetchAdvice(for: weather)
+            // Zone 기반 캐시 확인 → Zone 변경 시에만 GPT 재호출
+            advice = await WeatherAdviceService.shared.fetchAdvice(for: weather, zone: zone)
+            // 오래된 Zone 캐시 정리
+            await WeatherAdviceService.shared.clearOldCache(currentZone: zone)
             isLoading = false
         }
     }
 
     private var adviceTitle: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour >= 18 || hour < 6 ? "내일 날씨 미리보기" : "오늘의 날씨 팁"
+        switch zone {
+        case "golden_hour", "wind_down": return "내일 날씨 미리보기"
+        case "deep_dark", "first_light": return "오늘 하루 날씨"
+        default: return "오늘의 날씨 팁"
+        }
     }
 
     private var adviceIcon: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        if hour >= 18 || hour < 6 { return "moon.stars.fill" }
-        return "sun.and.horizon.fill"
+        switch zone {
+        case "deep_dark":   return "moon.fill"
+        case "first_light": return "moon.stars.fill"
+        case "rise_ignite": return "sunrise.fill"
+        case "peak_mode":   return "sun.max.fill"
+        case "recharge":    return "sun.and.horizon.fill"
+        case "second_wind": return "cloud.sun.fill"
+        case "golden_hour": return "sunset.fill"
+        default:            return "moon.stars.fill"
+        }
     }
 
     private var adviceColor: Color {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour >= 18 || hour < 6 ? .blue : .yellow
+        switch zone {
+        case "golden_hour", "wind_down": return .blue
+        case "rise_ignite", "peak_mode": return .yellow
+        default: return .white
+        }
     }
 }
 
