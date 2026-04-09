@@ -366,7 +366,7 @@ struct WeatherDetailSheet: View {
                         }
                         .padding(.top, 8)
 
-                        TomorrowActionCard(weather: weather)
+                        GPTWeatherAdviceCard(weather: weather)
 
                         AQICard(weather: weather)
                         HourlyForecastCard(weather: weather)
@@ -382,13 +382,16 @@ struct WeatherDetailSheet: View {
                                               label: "강수 확률",
                                               value: weather.precipitationProbability.map { "\($0)%" } ?? "--")
                             WeatherDetailTile(icon: "sun.max.fill", color: .yellow,
-                                              label: "자외선",
-                                              value: weather.uvIndex.map { "\($0)  \(weather.uvIndexDescription)" } ?? "WeatherKit 필요")
+                                              label: "자외선지수",
+                                              value: weather.uvIndex.map { "\($0)  \(weather.uvIndexDescription)" } ?? "정보 없음")
                             WeatherDetailTile(
                                 icon: "aqi.low",
                                 color: aqiColor(weather.dustGrade),
-                                label: weather.pm25 != nil ? "PM2.5" : "미세먼지",
-                                value: weather.pm25.map { "\(Int($0))μg/m³" } ?? weather.dustGrade
+                                label: "미세먼지",
+                                value: weather.pm25.map { pm in
+                                    let grade = weather.dustGrade
+                                    return "\(grade)  \(Int(pm))μg"
+                                } ?? weather.dustGrade
                             )
                         }
                         .padding(.horizontal, 16)
@@ -425,75 +428,29 @@ struct WeatherDetailSheet: View {
     }
 }
 
-// MARK: - 내일 날씨 액션 카드
-
-private struct TomorrowActionCard: View {
+// MARK: - GPT 날씨 조언 카드
+private struct GPTWeatherAdviceCard: View {
     let weather: WeatherData
-
-    /// 내일 시간별 예보에서 비/눈 예보 여부 확인 (tomorrowPrecipitationProbability가 nil인 경우 보완)
-    private var tomorrowHasRain: Bool {
-        let cal = Calendar.current
-        let tomorrow = cal.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-        return weather.hourlyForecast.contains {
-            cal.isDate($0.time, inSameDayAs: tomorrow) && $0.condition == "rainy"
-        }
-    }
-    private var tomorrowHasSnow: Bool {
-        let cal = Calendar.current
-        let tomorrow = cal.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-        return weather.hourlyForecast.contains {
-            cal.isDate($0.time, inSameDayAs: tomorrow) && $0.condition == "snowy"
-        }
-    }
-
-    private var actionMessage: (icon: String, color: Color, title: String, message: String) {
-        let rainProb = weather.tomorrowPrecipitationProbability ?? 0
-        let temp = weather.tomorrowMorningTemp ?? weather.temperature
-        let cond = weather.tomorrowMorningCondition ?? weather.condition
-        let uv = weather.uvIndex ?? 0
-        // 시간별 예보로 보완 (tomorrowPrecipitationProbability nil 대비)
-        let hasRain = tomorrowHasRain || cond == "rainy"
-        let hasSnow = tomorrowHasSnow || cond == "snowy"
-
-        if hasRain && rainProb >= 60 {
-            return ("umbrella.fill", .blue, "내일 비 소식", "강수 확률 \(rainProb)%, 우산 꼭 챙기세요 ☂️")
-        } else if hasRain {
-            let probText = rainProb > 0 ? "강수 확률 \(rainProb)%, " : "내일 비 예보가 있어요. "
-            return ("umbrella.fill", .blue, "내일 비 소식", "\(probText)우산 챙기세요 ☂️")
-        } else if rainProb >= 30 {
-            return ("cloud.drizzle.fill", .cyan, "비 올 수도 있어요", "강수 확률 \(rainProb)%, 접이식 우산이 있으면 좋겠어요")
-        } else if hasSnow {
-            return ("snowflake", .white, "내일 눈이 와요", "미끄러운 길 조심하고, 따뜻하게 입으세요 🧥")
-        } else if temp <= -5 {
-            return ("thermometer.snowflake", Color(red: 0.5, green: 0.8, blue: 1), "매우 추운 날씨", "내일 아침 \(temp)°C, 최대한 따뜻하게 입으세요 🧤")
-        } else if temp <= 5 {
-            return ("thermometer.low", .cyan, "꽤 추운 날씨", "내일 아침 \(temp)°C, 외투 꼭 챙기세요 🧥")
-        } else if uv >= 8 {
-            return ("sun.max.trianglebadge.exclamationmark.fill", .orange, "자외선 매우 강함", "외출 시 자외선 차단제 필수예요 🧴")
-        } else if uv >= 6 {
-            return ("sun.max.fill", .yellow, "자외선 강한 날", "선글라스와 선크림 챙기면 좋아요 😎")
-        } else if temp >= 33 {
-            return ("thermometer.high", .red, "매우 더운 날씨", "충분히 물 마시고, 그늘에 있어요 💧")
-        } else {
-            return ("sun.and.horizon.fill", .dvMorningGold, "내일 날씨 양호", "쾌적한 하루가 될 것 같아요 😊")
-        }
-    }
+    @State private var advice: String = ""
+    @State private var isLoading: Bool = true
 
     var body: some View {
-        let action = actionMessage
         HStack(spacing: 14) {
-            Image(systemName: action.icon)
-                .font(.system(size: 28))
-                .foregroundColor(action.color)
-                .frame(width: 40)
-
+            if isLoading {
+                ProgressView().tint(.white).frame(width: 40)
+            } else {
+                Image(systemName: adviceIcon)
+                    .font(.system(size: 26))
+                    .foregroundColor(adviceColor)
+                    .frame(width: 40)
+            }
             VStack(alignment: .leading, spacing: 4) {
-                Text(action.title)
-                    .font(.system(size: 14, weight: .semibold))
+                Text(adviceTitle)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.6))
+                Text(isLoading ? "날씨 정보 분석 중..." : advice)
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white)
-                Text(action.message)
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
@@ -502,8 +459,29 @@ private struct TomorrowActionCard: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white.opacity(0.1))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(action.color.opacity(0.3), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1))
         )
+        .task {
+            advice = await WeatherAdviceService.shared.fetchAdvice(for: weather)
+            isLoading = false
+        }
+    }
+
+    private var adviceTitle: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 18 || hour < 6 ? "내일 날씨 미리보기" : "오늘의 날씨 팁"
+    }
+
+    private var adviceIcon: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour >= 18 || hour < 6 { return "moon.stars.fill" }
+        return "sun.and.horizon.fill"
+    }
+
+    private var adviceColor: Color {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 18 || hour < 6 ? .blue : .yellow
     }
 }
 
