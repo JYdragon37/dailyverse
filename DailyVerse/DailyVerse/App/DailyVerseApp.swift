@@ -43,7 +43,11 @@ struct DailyVerseApp: App {
         ]
         UINavigationBar.appearance().standardAppearance = navBarAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
-        UINavigationBar.appearance().layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+        UINavigationBar.appearance().layoutMargins = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 0)
+
+        // 다크 테마 Form/List 배경 전역 설정 (SettingsView 등 UITableView 기반 뷰)
+        UITableView.appearance().backgroundColor = UIColor(red: 9/255, green: 13/255, blue: 24/255, alpha: 1)
+        UITableView.appearance().separatorColor = UIColor.white.withAlphaComponent(0.08)
 
         // AdMob 초기화는 AppDelegate.application(_:didFinishLaunchingWithOptions:)에서 메인스레드 처리
     }

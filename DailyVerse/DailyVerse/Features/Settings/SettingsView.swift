@@ -43,10 +43,6 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
-            .onAppear {
-                UITableView.appearance().backgroundColor = UIColor(Color.dvBgDeep)
-                UITableView.appearance().separatorColor = UIColor.white.withAlphaComponent(0.08)
-            }
         }
         .task { await permissionManager.checkAll() }
         .alert("로그아웃", isPresented: $showSignOutAlert) {
