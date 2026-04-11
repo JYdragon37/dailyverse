@@ -108,10 +108,13 @@ struct AppRootView: View {
                 // 이미 로그인 상태인데 닉네임 미설정 → 입력 화면 표시
                 showNicknameSetup = true
             }
-            // 알림 권한이 아직 결정되지 않은 경우 자동 요청
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
-            if settings.authorizationStatus == .notDetermined {
-                _ = await NotificationManager.shared.requestPermission()
+            // 알림 권한: 온보딩 완료 유저만 여기서 확인
+            // (미완료 유저는 온보딩 Screen 4에서 처리)
+            if onboardingCompleted {
+                let settings = await UNUserNotificationCenter.current().notificationSettings()
+                if settings.authorizationStatus == .notDetermined {
+                    _ = await NotificationManager.shared.requestPermission()
+                }
             }
         }
         // MARK: - 오프라인 토스트 (3초 후 자동 해제)
