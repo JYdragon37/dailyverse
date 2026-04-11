@@ -12,12 +12,8 @@ struct AlarmListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [Color.dvBgDeep, Color(hex: "#0D1033"), Color(hex: "#1A0E2E")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color.dvBgDeep
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     if permissionManager.notificationStatus == .denied {

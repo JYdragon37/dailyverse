@@ -23,6 +23,8 @@ struct SavedView: View {
                 contentBody
                     .navigationTitle("말씀들")
                     .navigationBarTitleDisplayMode(.large)
+                    .toolbarColorScheme(.dark, for: .navigationBar)
+                    .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
 
                 if let message = viewModel.toastMessage {
                     ToastView(message: message)
@@ -31,6 +33,7 @@ struct SavedView: View {
                         .animation(.easeInOut(duration: 0.3), value: viewModel.toastMessage)
                 }
             }
+            .background(Color.dvBgDeep.ignoresSafeArea())
         }
         .task {
             if authManager.isLoggedIn, let userId = authManager.userId {

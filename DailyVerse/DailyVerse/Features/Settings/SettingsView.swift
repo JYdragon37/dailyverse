@@ -37,8 +37,16 @@ struct SettingsView: View {
                 // Fix 3: 탭바 겹침 방지 — 하단 여백
                 Color.clear.listRowBackground(Color.clear).frame(height: 60)
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.dvBgDeep.ignoresSafeArea())
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
+            .onAppear {
+                UITableView.appearance().backgroundColor = UIColor(Color.dvBgDeep)
+                UITableView.appearance().separatorColor = UIColor.white.withAlphaComponent(0.08)
+            }
         }
         .task { await permissionManager.checkAll() }
         .alert("로그아웃", isPresented: $showSignOutAlert) {

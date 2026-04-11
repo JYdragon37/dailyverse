@@ -29,6 +29,22 @@ struct DailyVerseApp: App {
         // 커스텀 DVTabBar가 모든 탭 네비게이션을 담당함
         UITabBar.appearance().isHidden = true
 
+        // Toss-style: large title 좌측 여백 통일 + 투명 내비게이션바 기본값
+        // 각 탭에서 .toolbarBackground/.toolbarColorScheme을 설정한 경우 해당 modifier가 우선 적용됨
+        let navBarAppearance = UINavigationBarAppearance()
+        navBarAppearance.configureWithTransparentBackground()
+        navBarAppearance.backgroundColor = .clear
+        navBarAppearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        navBarAppearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white
+        ]
+        UINavigationBar.appearance().standardAppearance = navBarAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
+        UINavigationBar.appearance().layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+
         // AdMob 초기화는 AppDelegate.application(_:didFinishLaunchingWithOptions:)에서 메인스레드 처리
     }
 

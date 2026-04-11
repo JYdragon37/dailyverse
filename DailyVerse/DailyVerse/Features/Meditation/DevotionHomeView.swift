@@ -44,7 +44,7 @@ struct DevotionHomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 24) {
 
                 // 1. 시간대 인사말 블록
                 greetingBlock
@@ -59,7 +59,7 @@ struct DevotionHomeView: View {
                 streakSection
             }
             .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.top, 16)
             .padding(.bottom, 40)
         }
         .background(Color.dvBgDeep.ignoresSafeArea())
@@ -89,7 +89,7 @@ struct DevotionHomeView: View {
                 .font(.dvBody)
                 .foregroundColor(.white.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(3)
+                .lineSpacing(5)
 
             Spacer()
         }
@@ -104,7 +104,7 @@ struct DevotionHomeView: View {
                     .font(.custom("Georgia-Italic", size: 17))
                     .foregroundColor(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(4)
+                    .lineSpacing(6)
 
                 Text(verse.reference)
                     .font(.dvCaption)
@@ -126,7 +126,7 @@ struct DevotionHomeView: View {
                 }
             }
         }
-        .padding(20)
+        .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 20)
@@ -181,7 +181,7 @@ struct DevotionHomeView: View {
     // MARK: - 4. Streak Section
 
     private var streakSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 28) {
 
             // 헤더
             HStack {
@@ -203,7 +203,7 @@ struct DevotionHomeView: View {
                 streakManager: viewModel.streakManager
             )
         }
-        .padding(20)
+        .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.dvBgSurface)
@@ -264,12 +264,12 @@ private struct DevotionCalendarGrid: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 10) {
+        LazyVGrid(columns: columns, spacing: 12) {
             // 요일 헤더 행
             ForEach(Array(weekdayLabels.enumerated()), id: \.offset) { _, label in
                 Text(label)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.35))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.45))
                     .frame(maxWidth: .infinity)
             }
 
@@ -300,13 +300,13 @@ private struct DevotionDayDotCell: View {
             ZStack {
                 Circle()
                     .fill(dotFill)
-                    .frame(width: 26, height: 26)
+                    .frame(width: 28, height: 28)
 
                 // 오늘 미완료: 골드 stroke
                 if isToday && !isMeditated {
                     Circle()
                         .stroke(Color.dvAccentGold, lineWidth: 2)
-                        .frame(width: 26, height: 26)
+                        .frame(width: 28, height: 28)
                 }
 
                 // 오늘 완료: 체크마크
