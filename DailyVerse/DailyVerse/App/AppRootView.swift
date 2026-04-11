@@ -133,6 +133,15 @@ struct AppRootView: View {
                     }
             }
         }
+        // MARK: - 온보딩 완료 → 인증 화면 트리거
+        // 온보딩이 방금 완료됐고 아직 미로그인이면 AuthWelcomeView 표시
+        .onChange(of: onboardingCompleted) { completed in
+            if completed && !authManager.isLoggedIn {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showAuthWelcome = true
+                }
+            }
+        }
         // MARK: - 로그인/로그아웃 감지
         .onChange(of: authManager.isLoggedIn) { isLoggedIn in
             if isLoggedIn {

@@ -132,8 +132,8 @@ struct SettingsView: View {
                     showLoginPrompt = true
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "apple.logo")
-                        Text("Apple로 시작하기")
+                        Image(systemName: "person.badge.plus")
+                        Text("로그인 / 회원가입")
                     }
                 }
                 .foregroundColor(.dvAccentGold)
