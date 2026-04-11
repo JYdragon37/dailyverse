@@ -223,6 +223,15 @@
 		E870C917F0630E3D848D0AC6 /* CoachMarkOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkOverlay.swift; sourceTree = "<group>"; };
 		EEC5DCA569D0C1CE12E3C454 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		E10000D9E10000D9E10000D9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D20000D7D20000D7D20000D7 /* ONBThemeChip.swift */,
+				D20000D8D20000D8D20000D8 /* ONBAlarmTimeRow.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		D10000D2D10000D2D10000D2 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
@@ -272,7 +281,7 @@
 			isa = PBXGroup;
 			children = (
 				D10000D2D10000D2D10000D2 /* Screens */,
-				6243DE581081BF006D09B650 /* Components */,
+				E10000D9E10000D9E10000D9 /* Components */,
 				CBEC0AAE65799B77F5146D29 /* OnboardingContainerView.swift */,
 				F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */,
 			);
