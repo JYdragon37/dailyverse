@@ -9,6 +9,9 @@ struct MeditationView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var upsellManager: UpsellManager
 
+    // 새 UUID로 교체하면 NavigationStack이 재생성되어 루트(DevotionHomeView)로 리셋
+    @State private var navResetID = UUID()
+
     var body: some View {
         NavigationStack {
             DevotionHomeView()
@@ -16,6 +19,10 @@ struct MeditationView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
                 .toolbarColorScheme(.dark, for: .navigationBar)
+        }
+        .id(navResetID)
+        .onReceive(NotificationCenter.default.publisher(for: .dvResetMeditationNav)) { _ in
+            navResetID = UUID()
         }
     }
 }

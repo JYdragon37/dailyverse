@@ -163,7 +163,14 @@ struct DevotionCompleteView: View {
 
             // Secondary: 홈으로 돌아가기
             Button {
+                // 1. 즉시 홈 탭으로 전환 (유저가 바로 홈을 봄)
+                NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
+                // 2. fullScreenCover 닫기
                 dismiss()
+                // 3. 묵상 탭 NavigationStack 루트 리셋 (백그라운드에서, 유저 보이지 않음)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    NotificationCenter.default.post(name: .dvResetMeditationNav, object: nil)
+                }
             } label: {
                 HStack {
                     Spacer()

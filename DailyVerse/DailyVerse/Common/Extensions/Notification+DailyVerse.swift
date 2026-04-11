@@ -10,4 +10,6 @@ extension Notification.Name {
     static let dvAlarmVolumeTooLow = Notification.Name("dvAlarmVolumeTooLow")
     /// 묵상 탭으로 전환 요청
     static let dvSwitchToMeditationTab = Notification.Name("dvSwitchToMeditationTab")
+    /// 묵상 탭 NavigationStack 루트로 리셋 (묵상 완료 후 홈으로 돌아갈 때)
+    static let dvResetMeditationNav = Notification.Name("dvResetMeditationNav")
 }
