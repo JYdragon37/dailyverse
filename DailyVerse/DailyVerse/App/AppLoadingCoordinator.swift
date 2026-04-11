@@ -44,11 +44,10 @@ final class AppLoadingCoordinator: ObservableObject {
         try? await Task.sleep(nanoseconds: 800_000_000)
         state = .loading
 
-        // Stage 2: 배경 이미지 + 캐시 확인을 병렬 실행
-        async let bgTask: () = loadZoneBackground()
-        async let cacheCheck: Bool = Task { cacheManager.hasValidCache() }.value
-        await bgTask
-        let hasCached = await cacheCheck
+        // Stage 2: 캐시 확인 (동기, @MainActor 안에서 직접 호출)
+        // + 배경 이미지 비동기 로드
+        let hasCached = cacheManager.hasValidCache()
+        await loadZoneBackground()
 
         // Stage 3: 유효 캐시 있으면 즉시 ready
         if hasCached {
