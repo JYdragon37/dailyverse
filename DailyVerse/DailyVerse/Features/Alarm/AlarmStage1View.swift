@@ -110,8 +110,8 @@ struct AlarmStage1View: View {
                 weatherForForecast = cached
                 coordinator.activeWeather = cached
             }
-            // DailyCacheManager에서 오늘의 말씀 로드
-            let mode = coordinator.activeMode
+            // DailyCacheManager에서 오늘의 말씀 로드 (홈/묵상과 동일한 말씀 — B안 통일)
+            let mode = AppMode.current()
             if let id = DailyCacheManager.shared.getVerseId(for: mode),
                let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
                 todayVerse = verse
