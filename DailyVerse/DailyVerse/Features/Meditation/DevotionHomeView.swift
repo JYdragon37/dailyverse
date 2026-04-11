@@ -292,12 +292,12 @@ private struct DevotionCalendarGrid: View {
                     isMeditated: isMeditated,
                     isToday: isToday
                 )
+                .contentShape(Rectangle())
                 .onTapGesture {
                     if isMeditated, let entry {
                         onEntryTap(entry)
                     }
                 }
-                .contentShape(Rectangle())
             }
         }
     }
