@@ -1,78 +1,113 @@
 import SwiftUI
 import Combine
 
+// Design Ref: §3 — ZStack + 단일 ViewModel, Option C Pragmatic Balance
+// Plan SC: 온보딩 완료율 85%+ / 알람 설정 70%+ / 60초 이내
+
 @MainActor
 final class OnboardingViewModel: ObservableObject {
 
-    // MARK: - UserDefaults (v5.1: 5키)
+    // MARK: - 네비게이션
+    @Published var currentPage: Int = 0
+    static let totalPages = 4  // 기존 6 → 4 (슬림 온보딩)
 
-    @AppStorage(OnboardingKey.completed.rawValue) var onboardingCompleted = false
-    @AppStorage(OnboardingKey.nicknameSet.rawValue) var nicknameSet = false   // v5.1 신규
-    @AppStorage(OnboardingKey.locationRequested.rawValue) var locationPermissionRequested = false
-    @AppStorage(OnboardingKey.notificationRequested.rawValue) var notificationPermissionRequested = false
-    @AppStorage(OnboardingKey.firstAlarmShown.rawValue) var firstAlarmPromptShown = false
+    // MARK: - 기존 UserDefaults 키 (호환성 유지)
+    @AppStorage(OnboardingKey.completed.rawValue)              var onboardingCompleted = false
+    @AppStorage(OnboardingKey.nicknameSet.rawValue)            var nicknameSet = false
+    @AppStorage(OnboardingKey.notificationRequested.rawValue)  var notificationPermissionRequested = false
+    @AppStorage(OnboardingKey.firstAlarmShown.rawValue)        var firstAlarmPromptShown = false
+    // OnboardingKey.locationRequested → HomeViewModel에서 관리 (Design §6)
 
-    /// 스킵 지점 재개용
+    // MARK: - 재개용
     @AppStorage("onboardingCurrentPage") private var savedPage: Int = 0
 
-    // MARK: - Published
+    // MARK: - Screen 3: 개인화
+    @Published var nicknameInput: String = ""
+    @Published var selectedThemes: [String] = []   // 최대 3개
 
-    @Published var currentPage: Int = 0
-    @Published var skipCount: Int = 0
-    @Published var nicknameInput: String = ""  // v5.1: 닉네임 입력값
-
-    // MARK: - Pages (v5.1: 0=웰컴 1=닉네임 2=첫말씀 3=위치 4=알림 5=첫알람)
-    static let totalPages = 6
+    // MARK: - Screen 4: 알람
+    @Published var morningAlarmEnabled: Bool = true
+    @Published var eveningAlarmEnabled: Bool = false
+    @Published var morningAlarmTime: Date = {
+        Calendar.current.date(bySettingHour: 6, minute: 0, second: 0, of: Date()) ?? Date()
+    }()
+    @Published var eveningAlarmTime: Date = {
+        Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()
+    }()
 
     // MARK: - Dependencies
-
     private let permissionManager: PermissionManager
+    private let alarmRepository: AlarmRepository
+    private let notificationManager: NotificationManager
 
     // MARK: - Init
 
-    init() {
-        self.permissionManager = PermissionManager()
+    init(
+        permissionManager: PermissionManager = PermissionManager(),
+        alarmRepository: AlarmRepository = AlarmRepository(),
+        notificationManager: NotificationManager = .shared
+    ) {
+        self.permissionManager = permissionManager
+        self.alarmRepository = alarmRepository
+        self.notificationManager = notificationManager
+
         if !onboardingCompleted {
             currentPage = savedPage
         }
-        // 기존 닉네임 불러오기
-        nicknameInput = NicknameManager.shared.nickname == "친구" ? "" : NicknameManager.shared.nickname
+        // 기존 닉네임 복원
+        let existing = NicknameManager.shared.nickname
+        nicknameInput = existing == "친구" ? "" : existing
     }
 
-    // MARK: - Navigation
+    // MARK: - 네비게이션
 
     func next() {
-        if currentPage < OnboardingViewModel.totalPages - 1 {
+        guard currentPage < Self.totalPages - 1 else {
+            completeOnboarding()
+            return
+        }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
             currentPage += 1
             savedPage = currentPage
-        } else {
-            complete()
         }
     }
 
     func skip() {
-        skipCount += 1
-        if skipCount >= 3 {
-            complete()
-        } else {
-            next()
+        // v2.0: 단순 skip (스킵 카운트 제거 — 4단계면 충분)
+        next()
+    }
+
+    // MARK: - 테마 토글 (최대 3개)
+
+    func toggleTheme(_ theme: String) {
+        if selectedThemes.contains(theme) {
+            selectedThemes.removeAll { $0 == theme }
+        } else if selectedThemes.count < 3 {
+            selectedThemes.append(theme)
         }
     }
 
-    func complete() {
-        // 닉네임 미입력 시 "친구" 기본값으로 저장
-        let finalNickname = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        Task {
-            await NicknameManager.shared.setNickname(finalNickname.isEmpty ? "친구" : finalNickname)
-        }
+    // MARK: - 알림 권한 요청
+
+    func requestNotification() async {
+        notificationPermissionRequested = true
+        _ = await NotificationManager.shared.requestPermission()
+    }
+
+    // MARK: - 온보딩 완료
+
+    func completeOnboarding() {
+        saveNickname()
+        saveSelectedThemes()
+        saveFirstAlarms()
         onboardingCompleted = true
         savedPage = 0
+        firstAlarmPromptShown = true
     }
 
-    // MARK: - Nickname
+    // MARK: - Private 저장 헬퍼
 
-    /// Screen 2: 닉네임 저장
-    func saveNickname() {
+    private func saveNickname() {
         let trimmed = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
         nicknameSet = true
         Task {
@@ -80,36 +115,64 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Permission Requests
-
-    func requestLocation() async {
-        locationPermissionRequested = true
-        await permissionManager.requestLocationPermission()
+    private func saveSelectedThemes() {
+        guard !selectedThemes.isEmpty else { return }
+        if let data = try? JSONEncoder().encode(selectedThemes) {
+            UserDefaults.standard.set(data, forKey: "preferredThemes")
+        }
+        // 로그인 유저면 Firestore에도 저장 (향후 구현)
     }
 
-    func requestNotification() async {
-        notificationPermissionRequested = true
-        await permissionManager.requestNotificationPermission()
-    }
+    private func saveFirstAlarms() {
+        guard morningAlarmEnabled || eveningAlarmEnabled else { return }
 
-    func markFirstAlarmShown() {
-        firstAlarmPromptShown = true
+        if morningAlarmEnabled {
+            let alarm = Alarm(
+                id: UUID(),
+                time: morningAlarmTime,
+                repeatDays: [0, 1, 2, 3, 4, 5, 6],
+                theme: selectedThemes.first ?? "hope",
+                isEnabled: true,
+                label: "아침의 말씀",
+                snoozeInterval: 5
+            )
+            try? alarmRepository.save(alarm)
+            notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
+        }
+
+        if eveningAlarmEnabled {
+            let alarm = Alarm(
+                id: UUID(),
+                time: eveningAlarmTime,
+                repeatDays: [0, 1, 2, 3, 4, 5, 6],
+                theme: selectedThemes.last ?? "peace",
+                isEnabled: true,
+                label: "저녁의 말씀",
+                snoozeInterval: 5
+            )
+            try? alarmRepository.save(alarm)
+            notificationManager.schedule(alarm, verse: Verse.fallbackWindDown)
+        }
     }
 }
 
-#Preview {
-    let vm = OnboardingViewModel()
-    return VStack(spacing: 16) {
-        Text("OnboardingViewModel Preview").font(.headline)
-        Text("currentPage: \(vm.currentPage)")
-        Text("skipCount: \(vm.skipCount)")
-        Text("completed: \(vm.onboardingCompleted.description)")
-        HStack(spacing: 12) {
-            Button("Next") { vm.next() }.buttonStyle(.bordered)
-            Button("Skip") { vm.skip() }.buttonStyle(.bordered)
-            Button("Reset") {
-                vm.onboardingCompleted = false; vm.skipCount = 0; vm.currentPage = 0
-            }.buttonStyle(.bordered).tint(.red)
-        }
-    }.padding()
+// MARK: - 테마 정의
+
+extension OnboardingViewModel {
+    struct Theme: Identifiable {
+        let id: String   // Verse theme key
+        let emoji: String
+        let label: String
+    }
+
+    static let themes: [Theme] = [
+        Theme(id: "courage",   emoji: "🌟", label: "용기"),
+        Theme(id: "peace",     emoji: "🕊️", label: "평안"),
+        Theme(id: "wisdom",    emoji: "💡", label: "지혜"),
+        Theme(id: "gratitude", emoji: "🙏", label: "감사"),
+        Theme(id: "strength",  emoji: "💪", label: "힘"),
+        Theme(id: "renewal",   emoji: "✨", label: "회복"),
+        Theme(id: "comfort",   emoji: "🤍", label: "위로"),
+        Theme(id: "hope",      emoji: "🌱", label: "소망"),
+    ]
 }
