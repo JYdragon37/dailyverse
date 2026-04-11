@@ -1,0 +1,1485 @@
+{
+  "timestamp": "2026-04-10T08:14:19.103Z",
+  "reason": "compaction",
+  "status": {
+    "version": "3.0",
+    "lastUpdated": "2026-04-10T07:28:45.785Z",
+    "activeFeatures": [
+      "Models",
+      "Managers",
+      "Repositories",
+      "Meditation",
+      "App",
+      "Extensions",
+      "Alarm",
+      "Services",
+      "Saved",
+      "Settings",
+      "Components",
+      "Home",
+      "scripts",
+      "Auth"
+    ],
+    "primaryFeature": "Models",
+    "features": {
+      "Models": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:03:49.314Z",
+          "lastUpdated": "2026-04-10T06:48:38.648Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Core/Models/SavedVerse.swift"
+      },
+      "Managers": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:04:04.455Z",
+          "lastUpdated": "2026-04-09T14:38:55.199Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Core/Managers/WeatherCacheManager.swift"
+      },
+      "Repositories": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:04:21.121Z",
+          "lastUpdated": "2026-04-09T02:04:21.121Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Core/Repositories/MeditationRepository.swift"
+      },
+      "Meditation": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:05:17.086Z",
+          "lastUpdated": "2026-04-10T07:06:44.526Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Meditation/MeditationWriteSheet.swift"
+      },
+      "App": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:15.806Z",
+          "lastUpdated": "2026-04-09T08:59:19.741Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/App/AppRootView.swift"
+      },
+      "Extensions": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:27.828Z",
+          "lastUpdated": "2026-04-09T02:10:27.828Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Common/Extensions/Notification+DailyVerse.swift"
+      },
+      "Alarm": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:33.428Z",
+          "lastUpdated": "2026-04-10T06:51:03.729Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Alarm/WordChallengeView.swift"
+      },
+      "Services": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:38.882Z",
+          "lastUpdated": "2026-04-10T06:51:19.853Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Core/Services/LegacyAlarmEngine.swift"
+      },
+      "Saved": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:46.684Z",
+          "lastUpdated": "2026-04-10T06:49:58.443Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Saved/SavedDetailView.swift"
+      },
+      "Settings": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T02:10:58.103Z",
+          "lastUpdated": "2026-04-09T02:11:03.520Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Settings/SettingsView.swift"
+      },
+      "Components": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T03:26:05.513Z",
+          "lastUpdated": "2026-04-09T07:09:25.061Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Common/Components/VerseDetailBottomSheet.swift"
+      },
+      "Home": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T03:45:56.258Z",
+          "lastUpdated": "2026-04-10T06:49:15.459Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Home/VerseCardView.swift"
+      },
+      "scripts": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T04:17:15.516Z",
+          "lastUpdated": "2026-04-10T07:28:45.784Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/scripts/upload_contemplation_ko.js"
+      },
+      "Auth": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-04-09T06:18:10.431Z",
+          "lastUpdated": "2026-04-09T07:35:17.657Z"
+        },
+        "lastFile": "/Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/Features/Auth/AuthWelcomeView.swift"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-04-09T01:30:21.234Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-04-10T07:28:45.785Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-04-09T02:03:49.315Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:04:04.455Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:04:21.122Z",
+        "feature": "Repositories",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:05:17.086Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:06:14.631Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:06:50.599Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:07:34.183Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:07:38.406Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:07:42.429Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:15.807Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:18.438Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:22.225Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:27.829Z",
+        "feature": "Extensions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:33.428Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:38.882Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:46.685Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:53.268Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:54.032Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:10:58.104Z",
+        "feature": "Settings",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:11:03.521Z",
+        "feature": "Settings",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T02:46:31.644Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:09:53.689Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:10:03.176Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:10:09.233Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:10:18.438Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:10:29.207Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:16:20.850Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:26:05.515Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:26:16.540Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:26:43.629Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:26:52.541Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:27:14.415Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:28:30.375Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:29:13.671Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:45:56.259Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:46:37.261Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:46:50.336Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:47:51.796Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T03:59:09.662Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:00:22.416Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:00:47.602Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:05:18.893Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:05:32.849Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:05:45.297Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:05:59.959Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:06:08.246Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:06:17.149Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:06:28.816Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:17:15.517Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:17:20.727Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:17:38.946Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:17:42.371Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:17:45.258Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:18:39.292Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:19:29.575Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:19:48.774Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:20:20.782Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:20:39.073Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:20:57.670Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:22:20.927Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:26:20.989Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:28:55.160Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:29:00.549Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:29:17.437Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:29:28.346Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:29:39.347Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:29:51.129Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:35:14.508Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T04:46:37.730Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:10:45.867Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:11:13.967Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:11:42.028Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:12:14.824Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:13:38.540Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:16:21.574Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:20:37.584Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:22:14.516Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:22:18.336Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:22:18.953Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:23:21.205Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:23:52.295Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:24:28.362Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:30:55.574Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:32:28.946Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:32:36.027Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T05:33:18.630Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:09:49.045Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:15:49.406Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:18:10.433Z",
+        "feature": "Auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:18:17.786Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:18:24.464Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:18:32.653Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:20:17.434Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:24:05.733Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:43:52.130Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T06:54:45.019Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:12.876Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:16.740Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:21.118Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:25.062Z",
+        "feature": "Components",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:31.877Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:09:57.043Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:02.598Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:12.420Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:18.005Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:23.250Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:29.570Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:37.047Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:10:49.357Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:01.999Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:05.814Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:09.521Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:13.379Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:16.653Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:21.994Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:26.897Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:31.043Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:23:38.165Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:25:22.084Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:25:29.022Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:25:37.918Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:25:46.885Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:25:52.785Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:26:02.122Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:31:13.760Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:31:22.544Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:31:28.507Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:31:34.743Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:35:08.145Z",
+        "feature": "Auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:35:17.658Z",
+        "feature": "Auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:51:23.491Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:51:48.606Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:51:55.119Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:52:02.251Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:52:11.483Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:52:21.116Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T07:52:28.403Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T08:59:19.742Z",
+        "feature": "App",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T08:59:31.065Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T08:59:41.740Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T08:59:48.831Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:04.849Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:12.340Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:18.193Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:26.786Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:32.538Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:40.316Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:00:52.185Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T09:29:53.407Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:37:16.550Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:37:22.493Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:37:27.188Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:37:40.146Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:37:47.497Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:38:02.694Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:38:41.389Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:38:55.199Z",
+        "feature": "Managers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:39:23.580Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:39:35.354Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:39:57.265Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:40:15.260Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:40:44.987Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:42:40.690Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:43:04.219Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-09T14:43:13.066Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:46:34.067Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:46:40.910Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:46:57.582Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:47:07.785Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:47:19.393Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:47:33.326Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:47:43.890Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:47:55.950Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:08.477Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:18.342Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:23.040Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:26.867Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:31.147Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:38.648Z",
+        "feature": "Models",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:50.339Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:48:54.441Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:02.454Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:06.698Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:11.325Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:15.459Z",
+        "feature": "Home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:20.804Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:27.613Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:32.469Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:36.461Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:40.944Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:45.383Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:48.850Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:49:58.444Z",
+        "feature": "Saved",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:06.013Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:10.287Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:17.891Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:30.160Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:35.495Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:44.539Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:50:57.920Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:51:03.729Z",
+        "feature": "Alarm",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T06:51:19.854Z",
+        "feature": "Services",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:06:44.254Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:06:44.527Z",
+        "feature": "Meditation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:17:24.647Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:18:05.660Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:21:43.902Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-04-10T07:28:45.785Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      }
+    ],
+    "stateMachine": {
+      "defaultWorkflow": "default",
+      "activeWorkflows": {},
+      "totalTransitions": 0
+    },
+    "automation": {
+      "globalLevel": 2,
+      "trustScore": 40,
+      "pendingApprovals": 0,
+      "lastGateResult": null
+    },
+    "team": {
+      "enabled": true,
+      "stateFile": ".bkit/runtime/agent-state.json",
+      "eventsFile": ".bkit/runtime/agent-events.jsonl"
+    }
+  }
+}

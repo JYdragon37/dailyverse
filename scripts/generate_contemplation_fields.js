@@ -142,7 +142,7 @@ async function generateFields(doc, mode) {
   const { system, user } = buildPrompt(doc, mode);
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 512,
     system,
     messages: [{ role: 'user', content: user }],
