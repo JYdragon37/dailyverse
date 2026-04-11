@@ -42,14 +42,12 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Init
 
-    init(
-        permissionManager: PermissionManager = PermissionManager(),
-        alarmRepository: AlarmRepository = AlarmRepository(),
-        notificationManager: NotificationManager = .shared
-    ) {
-        self.permissionManager = permissionManager
-        self.alarmRepository = alarmRepository
-        self.notificationManager = notificationManager
+    init() {
+        // @MainActor class이므로 default 파라미터 대신 init body에서 생성
+        // (default 파라미터 값은 nonisolated context에서 평가 → @MainActor 충돌)
+        self.permissionManager = PermissionManager()
+        self.alarmRepository = AlarmRepository()
+        self.notificationManager = .shared
 
         if !onboardingCompleted {
             currentPage = savedPage

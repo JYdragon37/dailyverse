@@ -50,6 +50,12 @@
 		7482202A63D5253F02E5086F /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CA09154554A3AED12231FA46 /* FirebaseAnalytics */; };
 		75DF612C1A308EC93651800F /* DailyVerseUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B1CA7D5CFA2423CC4A620C /* DailyVerseUITestsLaunchTests.swift */; };
 		7CC7030B66736E69655334E9 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */; };
+		D30000D3D30000D3D30000D3 /* ONBIntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D3D20000D3D20000D3 /* ONBIntroView.swift */; };
+		D30000D4D30000D4D30000D4 /* ONBExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */; };
+		D30000D5D30000D5D30000D5 /* ONBPersonalizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */; };
+		D30000D6D30000D6D30000D6 /* ONBAlarmPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */; };
+		D30000D7D30000D7D30000D7 /* ONBThemeChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D7D20000D7D20000D7 /* ONBThemeChip.swift */; };
+		D30000D8D30000D8D30000D8 /* ONBAlarmTimeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D8D20000D8D20000D8 /* ONBAlarmTimeRow.swift */; };
 		7CC89FC86604B52E6BA4837C /* SavedVerse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F004FBA3779E9B8B11DF240 /* SavedVerse.swift */; };
 		83BCDFD72B9827340708D0E0 /* AlarmAddEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */; };
 		84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01850BB01382CF53BBB11601 /* VerseSelector.swift */; };
@@ -217,6 +223,23 @@
 		E870C917F0630E3D848D0AC6 /* CoachMarkOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkOverlay.swift; sourceTree = "<group>"; };
 		EEC5DCA569D0C1CE12E3C454 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		D10000D2D10000D2D10000D2 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				D20000D3D20000D3D20000D3 /* ONBIntroView.swift */,
+				D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */,
+				D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */,
+				D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		D20000D3D20000D3D20000D3 /* ONBIntroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBIntroView.swift; sourceTree = "<group>"; };
+		D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBExperienceView.swift; sourceTree = "<group>"; };
+		D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBPersonalizeView.swift; sourceTree = "<group>"; };
+		D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBAlarmPermissionView.swift; sourceTree = "<group>"; };
+		D20000D7D20000D7D20000D7 /* ONBThemeChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBThemeChip.swift; sourceTree = "<group>"; };
+		D20000D8D20000D8D20000D8 /* ONBAlarmTimeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBAlarmTimeRow.swift; sourceTree = "<group>"; };
 		F8D76127093631BB4CCFF6D8 /* WeatherWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherWidgetView.swift; sourceTree = "<group>"; };
 		F97449D55F8DB9F917F590C3 /* SavedVerseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVerseRepository.swift; sourceTree = "<group>"; };
 		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
@@ -248,6 +271,8 @@
 		01F28048AAC18375B41DF90E /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				D10000D2D10000D2D10000D2 /* Screens */,
+				6243DE581081BF006D09B650 /* Components */,
 				CBEC0AAE65799B77F5146D29 /* OnboardingContainerView.swift */,
 				F217E9CDBB883964C90A71EE /* OnboardingViewModel.swift */,
 			);
