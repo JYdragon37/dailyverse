@@ -2,7 +2,7 @@
 
 > 이 파일은 DailyVerse 프로젝트의 단일 진실 원본(Single Source of Truth)입니다.
 > 어떤 LLM이든 이 파일 하나를 읽으면 전체 프로젝트를 즉시 파악할 수 있도록 작성되었습니다.
-> 최종 업데이트: 2026-03-31 (PRD v4.0 + 화면 설계 v1.1 기준)
+> 최종 업데이트: 2026-04-11 (PRD v4.0 + 화면 설계 v1.1 기준)
 
 ---
 
@@ -881,8 +881,30 @@ snooze_count: Int16
 
 ## 25. 콘텐츠 현황
 
-- 구절: v_001~v_008 (8개: 5 active, 2 draft, 1 inactive 예정)
-- 이미지: Unsplash CC0 기반 150장 큐레이션 예정
+### Firestore 컬렉션 구조
+
+| 컬렉션 | 범위 | 용도 |
+|--------|------|------|
+| `verses/` | v_001 ~ v_101 | 홈화면 + 알람 Stage 1/2 + 묵상 탭 말씀 (Daily Sync) |
+| `alarm_verses/` | av_001 ~ av_105 | 알람 탭 오늘의 말씀 카드 전용 (Random Access, `alarm_top_ko` 필드 보유) |
+
+### verses/ 컬렉션 필드 현황
+
+- 기본 필드(text_ko, reference, interpretation, application 등): v_001~v_101 전체 채워짐
+- `contemplation_interpretation`: 전체 빈값 — 묵상 탭용 콘텐츠 생성 필요
+- `contemplation_appliance`: 전체 빈값 — 묵상 탭용 콘텐츠 생성 필요
+- `question`: 전체 빈값 — 묵상 탭 질문 콘텐츠 생성 필요 (구버전 필드명 `devotion_question`은 deprecated)
+
+### 데이터 라이프사이클 정책
+
+| 주기 | 대상 | 방식 |
+|------|------|------|
+| 수시 | `alarm_verses/` (`alarm_top_ko` 보유 구절) | 알람 탭 카드에서 랜덤 호출 |
+| 일일 04:00 고정 | `verses/` | 5개 Sync Group(A/B/O/P/Q) 기반 배포 |
+
+### 기타
+
+- 이미지: Genspark Pro 플랜 기반 생성 (상업적 사용 가능), 시간대별 감성 배경 다수 확보
 - Google Sheets로 관리 → Apps Script로 Firestore 자동 업로드
 - 말씀 저작권: 자체 의역 (Claude/GPT-4 초안 + 신학 자문자 검수 후 curated=TRUE)
 
