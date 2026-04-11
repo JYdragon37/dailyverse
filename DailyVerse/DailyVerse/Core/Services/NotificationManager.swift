@@ -73,7 +73,7 @@ final class NotificationManager: NSObject {
     func rescheduleSnooze(alarmId: UUID, verse: Verse, minutes: Int = 5) {
         let content = UNMutableNotificationContent()
         content.title = "DailyVerse 🔔"
-        content.body = "\"\(verse.textKo)\"\n\(verse.reference)"
+        content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference)"
         content.sound = .default
         content.interruptionLevel = .timeSensitive
         content.userInfo = [
@@ -114,5 +114,39 @@ final class NotificationManager: NSObject {
 
     func stopAlarmAudio() {
         LegacyAlarmEngine.stopAudio()
+    }
+
+    // MARK: - 묵상 리마인더
+
+    /// 저녁 9시 묵상 리마인더 스케줄 (당일 묵상 미기록 시)
+    func scheduleMeditationEveningReminder() {
+        let center = UNUserNotificationCenter.current()
+
+        let content = UNMutableNotificationContent()
+        content.title = "DailyVerse"
+        content.body = "📿 오늘 묵상을 아직 기록하지 않으셨어요"
+        content.sound = .default
+
+        var components = DateComponents()
+        components.hour = 21
+        components.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+
+        let request = UNNotificationRequest(
+            identifier: "meditation.evening.reminder",
+            content: content,
+            trigger: trigger
+        )
+        center.add(request)
+    }
+
+    /// 오늘 묵상 완료 시 호출 — 당일 리마인더 취소 후 내일 재스케줄
+    func cancelTodayMeditationReminder() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(
+                withIdentifiers: ["meditation.evening.reminder"]
+            )
+        // 내일 것 재스케줄
+        scheduleMeditationEveningReminder()
     }
 }

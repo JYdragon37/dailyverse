@@ -18,6 +18,7 @@ struct VerseDetailBottomSheet: View {
     let onClose: () -> Void
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
+    @State private var justSaved = false
 
     var body: some View {
         NavigationStack {
@@ -30,11 +31,11 @@ struct VerseDetailBottomSheet: View {
                     // 1. 일상 적용 (닉네임 포함)
                     VStack(alignment: .leading, spacing: 6) {
                         Label("오늘의 적용", systemImage: "sparkles")
-                            .font(.dvSectionTitle)
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.secondary)
 
                         Text(applicationWithNickname)
-                            .font(.system(size: 17, weight: .regular))
+                            .font(.system(size: 19, weight: .regular))
                             .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(5)
@@ -45,11 +46,11 @@ struct VerseDetailBottomSheet: View {
                     // 3. 해석
                     VStack(alignment: .leading, spacing: 6) {
                         Label("해석", systemImage: "text.magnifyingglass")
-                            .font(.dvSectionTitle)
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.secondary)
 
                         Text(verse.interpretation)
-                            .font(.dvBody)
+                            .font(.system(size: 17, weight: .regular))
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(4)
@@ -78,21 +79,36 @@ struct VerseDetailBottomSheet: View {
 
     private var actionBar: some View {
         HStack(spacing: 10) {
-            Button(action: onSave) {
+            Button {
+                guard !justSaved else { return }
+                justSaved = true
+                onSave()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1.5))
+                    justSaved = false
+                }
+            } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "heart.fill").font(.system(size: 14))
-                    Text("저장").font(.system(size: 15, weight: .semibold))
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 14))
+                        .scaleEffect(justSaved ? 1.3 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: justSaved)
+                    Text(justSaved ? "저장됨 ✓" : "저장")
+                        .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 .background(
                     LinearGradient(
-                        colors: [Color.dvGold, Color.dvGold.opacity(0.8)],
+                        colors: justSaved
+                            ? [Color.green.opacity(0.7), Color.green.opacity(0.5)]
+                            : [Color.dvGold, Color.dvGold.opacity(0.8)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     )
                 )
                 .foregroundColor(.white)
                 .cornerRadius(14)
+                .animation(.easeInOut(duration: 0.3), value: justSaved)
             }
             .accessibilityLabel("말씀 저장하기")
 

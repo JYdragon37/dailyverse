@@ -21,19 +21,30 @@ final class NicknameManager: ObservableObject {
     private let firestoreService = FirestoreService()
 
     private init() {
-        nickname = UserDefaults.standard.string(forKey: Self.nicknameKey) ?? "친구"
+        // _nickname으로 Published 내부 저장소에 직접 접근 → didSet 미호출
+        // (nickname = ... 방식은 didSet을 트리거해서 nicknameSet = true가 잘못 저장됨)
+        _nickname = Published(initialValue: UserDefaults.standard.string(forKey: Self.nicknameKey) ?? "친구")
     }
 
+    /// 유저가 명시적으로 닉네임을 설정했는지 여부
+    /// - nicknameSet 플래그가 true이고 닉네임이 기본값("친구")이 아닌 경우만 true
     var isSet: Bool {
-        UserDefaults.standard.bool(forKey: Self.nicknameSetKey)
+        UserDefaults.standard.bool(forKey: Self.nicknameSetKey) && nickname != "친구"
     }
 
     // MARK: - 닉네임 설정
 
     /// 닉네임 설정 + Firestore 동기화 (로그인 시)
+    /// 한글 포함 여부 기준으로 최대 길이 결정 (한글 5자 / 영어·숫자 8자)
+    static func maxLength(for text: String) -> Int {
+        let hasKorean = text.unicodeScalars.contains { $0.value >= 0xAC00 && $0.value <= 0xD7A3 }
+        return hasKorean ? 5 : 8
+    }
+
     func setNickname(_ name: String, userId: String? = nil) async {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        nickname = trimmed.isEmpty ? "친구" : String(trimmed.prefix(10))
+        let limit = Self.maxLength(for: trimmed)
+        nickname = trimmed.isEmpty ? "친구" : String(trimmed.prefix(limit))
 
         if let uid = userId {
             try? await firestoreService.updateNickname(nickname, userId: uid)

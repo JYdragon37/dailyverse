@@ -37,7 +37,7 @@ struct AlarmListView: View {
                     }
                 }
             }
-            .navigationTitle("Alarm")
+            .navigationTitle("알람")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
@@ -105,7 +105,7 @@ struct AlarmListView: View {
                     alarmTopSection
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 28, bottom: 8, trailing: 28))
+                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 }
             }
 
@@ -125,7 +125,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 28, bottom: 6, trailing: 28))
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
         }
         .listStyle(.plain)
@@ -163,7 +163,7 @@ struct AlarmListView: View {
 
                 // 말씀 카드 — 가운데 정렬 고정 높이
                 VStack(alignment: .center, spacing: 8) {
-                    Text(verse.alarmTextKo ?? verse.textKo)
+                    Text(verse.alarmTopKo ?? verse.verseShortKo)
                         .font(.custom("Georgia-BoldItalic", size: 16))
                         .foregroundColor(.white.opacity(0.92))
                         .lineSpacing(4)
@@ -177,7 +177,7 @@ struct AlarmListView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
-                // 고정 높이: alarmTextKo 최대 50자 기준
+                // 고정 높이: alarmTopKo 최대 50자 기준
                 .frame(height: 110)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
@@ -196,7 +196,6 @@ struct AlarmListView: View {
                                 .stroke(Color.dvGold.opacity(0.22), lineWidth: 1)
                         )
                 )
-                .padding(.horizontal, 16)
             }
             .padding(.top, 10)
             .padding(.bottom, 8)
@@ -226,7 +225,7 @@ struct AlarmListView: View {
                 }
                 .listRowBackground(Color.clear)  // 카드 자체 배경 사용
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 28, bottom: 6, trailing: 28))
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
         }
         .listStyle(.plain)
@@ -262,7 +261,7 @@ struct AlarmListView: View {
                             )
                     )
                     .foregroundColor(.white)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 16)
                 }
                 .disabled(viewModel.alarms.count >= 3)

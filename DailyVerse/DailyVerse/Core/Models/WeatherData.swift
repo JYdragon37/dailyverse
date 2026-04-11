@@ -48,6 +48,7 @@ struct WeatherData: Codable, Equatable {
     var airStation: String?                     // 측정소명
     var uvIndex: Int?                              // 자외선 지수 0-11+
     var precipitationProbability: Int?             // 오늘 강수 확률 %
+    var precipitationAmountMM: Double?             // 오늘 예상 강수량 (mm)
     var tomorrowPrecipitationProbability: Int?     // 내일 강수 확률 %
     var dailyForecast: [DailyForecastItem]         // 7일 예보
 
@@ -72,6 +73,7 @@ struct WeatherData: Codable, Equatable {
         airStation: String? = nil,
         uvIndex: Int? = nil,
         precipitationProbability: Int? = nil,
+        precipitationAmountMM: Double? = nil,
         tomorrowPrecipitationProbability: Int? = nil,
         dailyForecast: [DailyForecastItem] = []
     ) {
@@ -95,8 +97,55 @@ struct WeatherData: Codable, Equatable {
         self.airStation = airStation
         self.uvIndex = uvIndex
         self.precipitationProbability = precipitationProbability
+        self.precipitationAmountMM = precipitationAmountMM
         self.tomorrowPrecipitationProbability = tomorrowPrecipitationProbability
         self.dailyForecast = dailyForecast
+    }
+
+    /// 강수 타일 표시값 — iOS Weather 패턴
+    /// 0% + nil  → "비 없음"
+    /// 0% + mm   → "0% · 0.0mm"
+    /// >0% + nil → "X%"
+    /// >0% + mm  → "X% · Y.Zmm"
+    var precipitationDisplay: String {
+        let prob = precipitationProbability ?? 0
+        if let mm = precipitationAmountMM {
+            // 강수량 0mm = 비 없음 처리 (WeatherKit이 맑은 날 0.0 반환)
+            if mm <= 0 {
+                return prob == 0 ? "비 없음" : "\(prob)%"
+            }
+            let mmStr = mm.truncatingRemainder(dividingBy: 1) == 0
+                ? "\(Int(mm))mm" : String(format: "%.1fmm", mm)
+            return prob == 0 ? "\(mmStr)" : "\(prob)% · \(mmStr)"
+        }
+        if prob == 0 { return "비 없음" }
+        return "\(prob)%"
+    }
+
+    /// 강수 타일 subtitle — 강수 있을 때만 표시
+    var precipitationAdvice: String? {
+        let prob = precipitationProbability ?? 0
+        if prob >= 70 { return "우산을 꼭 챙기세요" }
+        if prob >= 40 { return "우산 챙기는 게 좋아요" }
+        if prob >= 20 { return "가볍게 우산 챙겨요" }
+        return nil
+    }
+
+    /// PM2.5 기준 미세먼지 상세 설명 (일반인 친화적)
+    var dustDescription: String {
+        switch dustGrade {
+        case "좋음":    return "좋음 · 야외활동 최적"
+        case "보통":    return "보통 · 민감군 주의"
+        case "나쁨":    return "나쁨 · 외출 자제"
+        case "매우나쁨": return "매우나쁨 · 외출 금지"
+        default:      return dustGrade
+        }
+    }
+
+    /// PM2.5 수치 표시 문자열 (있을 때만)
+    var pm25DisplayText: String? {
+        guard let pm25 else { return nil }
+        return "PM2.5 \(Int(pm25.rounded()))㎍/㎥"
     }
 
     var uvIndexDescription: String {
@@ -109,6 +158,58 @@ struct WeatherData: Codable, Equatable {
         default:     return "위험"
         }
     }
+
+    /// UV 표시값 — "등급 · 숫자" 형식, nil 시 시간대 기반 처리
+    var uvDisplayValue: String {
+        if let uv = uvIndex {
+            switch uv {
+            case 0...2:  return "낮음 · \(uv)"
+            case 3...5:  return "보통 · \(uv)"
+            case 6...7:  return "높음 · \(uv)"
+            case 8...10: return "매우높음 · \(uv)"
+            default:     return "위험 · \(uv)"
+            }
+        }
+        let hour = Calendar.current.component(.hour, from: Date())
+        return (hour >= 20 || hour < 6) ? "없음" : "확인 중"
+    }
+
+    /// UV 권고 문구 — nil이면 subtitle 미표시
+    var uvAdvice: String? {
+        if let uv = uvIndex {
+            switch uv {
+            case 0...2:  return "외출 시 특별한 보호 불필요"
+            case 3...5:  return "긴 소매나 모자 권장"
+            case 6...7:  return "선크림 필수, 11-15시 자제"
+            case 8...10: return "11-15시 외출 최소화"
+            default:     return "외출을 피해주세요"
+            }
+        }
+        let hour = Calendar.current.component(.hour, from: Date())
+        return (hour >= 20 || hour < 6) ? "야간에는 자외선이 없어요" : nil
+    }
+
+    /// 미세먼지 표시값 — "등급 · 수치㎍" (pm25 없으면 등급만)
+    var dustDisplayValue: String {
+        if let pm25 {
+            return "\(dustGrade) · \(Int(pm25.rounded()))㎍"
+        }
+        return dustGrade
+    }
+
+    /// 미세먼지 권고 문구
+    var dustAdvice: String {
+        switch dustGrade {
+        case "좋음":    return "외출하기 좋은 날이에요"
+        case "보통":    return "민감한 분은 마스크 권장"
+        case "나쁨":    return "마스크 착용, 외출 자제"
+        case "매우나쁨": return "외출을 피해주세요"
+        default:      return ""
+        }
+    }
+
+    /// 홈 미니위젯용 — 등급 텍스트만 (공간 제약)
+    var dustSummary: String { dustGrade }
 
     var isValid: Bool {
         Date().timeIntervalSince(cachedAt) < 1800  // 30분

@@ -27,7 +27,7 @@ struct AlarmStage1View: View {
 
                 if let verse = coordinator.activeVerse {
                     VStack(spacing: 14) {
-                        Text(verse.textKo)
+                        Text(verse.verseShortKo)
                             .font(.system(size: 26, weight: .semibold, design: .serif))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)

@@ -14,6 +14,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
     let locationName: String
     let locationLat: Double?
     let locationLng: Double?
+    let verseFullKo: String?     // 썸네일 표시용 말씀 전체 구절
 
     enum CodingKeys: String, CodingKey {
         case id = "saved_id"
@@ -29,6 +30,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         case locationName = "location_name"
         case locationLat = "location_lat"
         case locationLng = "location_lng"
+        case verseFullKo = "verse_full_ko"
     }
 
     init(from decoder: Decoder) throws {
@@ -46,6 +48,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         locationName     = try container.decodeIfPresent(String.self, forKey: .locationName) ?? ""
         locationLat      = try container.decodeIfPresent(Double.self, forKey: .locationLat)
         locationLng      = try container.decodeIfPresent(Double.self, forKey: .locationLng)
+        verseFullKo      = try container.decodeIfPresent(String.self, forKey: .verseFullKo)
     }
 
     init(
@@ -61,7 +64,8 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         weatherDust: String? = nil,
         locationName: String = "",
         locationLat: Double? = nil,
-        locationLng: Double? = nil
+        locationLng: Double? = nil,
+        verseFullKo: String? = nil
     ) {
         self.id = id
         self.verseId = verseId
@@ -76,6 +80,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         self.locationName = locationName
         self.locationLat = locationLat
         self.locationLng = locationLng
+        self.verseFullKo = verseFullKo
     }
 
     var daysSinceSaved: Int {

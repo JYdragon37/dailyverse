@@ -8,4 +8,6 @@ extension Notification.Name {
     static let dvAlarmTriggered = Notification.Name("dvAlarmTriggered")
     /// 미디어 볼륨이 0에 가까울 때 — Stage 1에서 볼륨 경고 표시용
     static let dvAlarmVolumeTooLow = Notification.Name("dvAlarmVolumeTooLow")
+    /// 묵상 탭으로 전환 요청
+    static let dvSwitchToMeditationTab = Notification.Name("dvSwitchToMeditationTab")
 }

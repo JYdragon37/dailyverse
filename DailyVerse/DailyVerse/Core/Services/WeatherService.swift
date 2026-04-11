@@ -83,9 +83,12 @@ class WeatherService: WeatherServiceProtocol {
         // UV Index (현재 자외선 지수)
         let uvIndexVal = Int(current.uvIndex.value)
 
-        // 오늘/내일 강수 확률
+        // 오늘/내일 강수 확률 + 오늘 예상 강수량 (mm)
         let todayRainProb = daily.forecast.first.map { Int(($0.precipitationChance * 100).rounded()) }
         let tomorrowRainProb = daily.forecast.dropFirst().first.map { Int(($0.precipitationChance * 100).rounded()) }
+        let todayPrecipMM = daily.forecast.first.map {
+            $0.precipitationAmount.converted(to: .millimeters).value
+        }
 
         // 대기질 — 에어코리아 우선, 실패 시 OWM 폴백
         let airKorea = await fetchAirKorea(location: location)
@@ -135,6 +138,7 @@ class WeatherService: WeatherServiceProtocol {
             airStation: stationName,
             uvIndex: uvIndexVal,
             precipitationProbability: todayRainProb,
+            precipitationAmountMM: todayPrecipMM,
             tomorrowPrecipitationProbability: tomorrowRainProb,
             dailyForecast: sevenDayForecast
         )
@@ -362,6 +366,15 @@ class WeatherService: WeatherServiceProtocol {
             }
         }
 
+        // OWM One Call API로 UV Index 취득 시도
+        var owmUvIndex: Int? = nil
+        let oneCallUrl = "https://api.openweathermap.org/data/3.0/onecall?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&exclude=minutely,alerts&units=metric"
+        if let ocUrl = URL(string: oneCallUrl),
+           let (ocData, _) = try? await URLSession.shared.data(from: ocUrl),
+           let ocResp = try? JSONDecoder().decode(OWMOneCallResponse.self, from: ocData) {
+            owmUvIndex = Int(ocResp.current.uvi.rounded())
+        }
+
         return WeatherData(
             temperature: Int(response.main.temp.rounded()),
             condition: mapOWMId(weatherId),
@@ -378,7 +391,9 @@ class WeatherService: WeatherServiceProtocol {
             pm25: pm25_2,
             pm10: pm10_2,
             airStation: station2,
+            uvIndex: owmUvIndex,
             precipitationProbability: todayPop,
+            precipitationAmountMM: nil,   // OWM 폴백: 강수량 미제공
             tomorrowPrecipitationProbability: tomorrowPop,
             dailyForecast: sevenDayForecast2
         )
@@ -460,6 +475,13 @@ private struct OWMForecastResponse: Codable {
             case tempMax = "temp_max"
             case tempMin = "temp_min"
         }
+    }
+}
+
+private struct OWMOneCallResponse: Codable {
+    let current: OWMOneCallCurrent
+    struct OWMOneCallCurrent: Codable {
+        let uvi: Double
     }
 }
 

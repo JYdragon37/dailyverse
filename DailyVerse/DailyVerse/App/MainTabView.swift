@@ -30,23 +30,26 @@ struct MainTabView: View {
                 SavedView()
                     .tag(2)
 
-                GalleryView()
+                MeditationView()
                     .tag(3)
 
                 SettingsView()
                     .tag(4)
             }
 
-            // Calm 스타일 그라데이션 — 콘텐츠 하단이 탭바로 자연스럽게 페이드
-            VStack {
-                Spacer()
-                LinearGradient(
-                    colors: [.clear, Color.black.opacity(0.40), Color.black.opacity(0.80)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 100)
-                .allowsHitTesting(false)
+            // 홈탭 전용 그라데이션 — 배경 이미지와 탭바 경계 페이드
+            // ⚠️ 다른 탭에 적용 시 하단 버튼이 가려지므로 홈(0)에서만 표시
+            if selectedTab == 0 {
+                VStack {
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black.opacity(0.40), Color.black.opacity(0.80)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 100)
+                    .allowsHitTesting(false)
+                }
             }
         }
         // DVTabBar를 safe area 하단 경계에 배치 (home indicator 위)
@@ -58,6 +61,9 @@ struct MainTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .dvSwitchToHomeTab)) { _ in
             selectedTab = 0
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dvSwitchToMeditationTab)) { _ in
+            selectedTab = 3
         }
     }
 }
@@ -71,7 +77,7 @@ private struct DVTabBar: View {
         (0, "홈",     "house.fill"),
         (1, "알람",   "alarm.fill"),
         (2, "말씀들", "bookmark.fill"),
-        (3, "갤러리", "photo.on.rectangle"),
+        (3, "묵상", "leaf.fill"),
         (4, "프로필", "person.circle"),
     ]
 

@@ -8,7 +8,7 @@ struct VerseCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 본문 텍스트 — 핵심 메시지, 크게
-            Text(verse.textKo)
+            Text(verse.verseShortKo)
                 .font(.system(size: 26, weight: .semibold))
                 .foregroundColor(.white)
                 .lineSpacing(4)
@@ -42,7 +42,7 @@ struct VerseCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { onTap() }
-        .accessibilityLabel("\(verse.textKo). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseShortKo). \(verse.reference)")
         .accessibilityAddTraits(.isButton)
     }
 }

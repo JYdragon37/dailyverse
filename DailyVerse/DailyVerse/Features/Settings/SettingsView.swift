@@ -30,6 +30,7 @@ struct SettingsView: View {
                 subscriptionSection
                 permissionsSection
                 appearanceSection
+                homeBgSection
                 appInfoSection
                 feedbackSection
                 // Fix 3: 탭바 겹침 방지 — 하단 여백
@@ -58,7 +59,7 @@ struct SettingsView: View {
             } onDismiss: { showLoginPrompt = false }
         }
         .alert("닉네임 변경", isPresented: $showNicknameEdit) {
-            TextField("닉네임 (최대 10자)", text: $editingNickname)
+            TextField("한글 5자 / 영어 8자 이내", text: $editingNickname)
             Button("저장") {
                 Task {
                     await nicknameManager.setNickname(
@@ -68,7 +69,7 @@ struct SettingsView: View {
                 }
             }
             Button("취소", role: .cancel) {}
-        } message: { Text("새 닉네임을 입력해주세요") }
+        } message: { Text("한글 5자 또는 영어·숫자 8자 이내로 입력해주세요") }
     }
 
     // MARK: - Account
@@ -172,6 +173,24 @@ struct SettingsView: View {
                 Spacer()
                 Text("시스템 따라가기")
                     .font(.dvCaption).foregroundColor(.secondary)
+            }
+        }
+    }
+
+    // MARK: - Home Background
+
+    private var homeBgSection: some View {
+        Section("홈 배경") {
+            HStack {
+                Image(systemName: "photo.on.rectangle")
+                    .foregroundColor(.dvAccentGold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("배경 이미지 설정")
+                        .font(.dvBody)
+                    Text("말씀들 탭에서 저장한 말씀의 상세 화면에서 설정할 수 있어요")
+                        .font(.dvCaption)
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }

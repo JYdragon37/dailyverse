@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - WordChallengeView
-// #5/6 오늘의 한마디: 유저가 오늘의 한 문장(textKo)을 그대로 타이핑하면 Gallery에 저장
+// #5/6 오늘의 한마디: 유저가 오늘의 한 문장(verseShortKo)을 그대로 타이핑하면 Gallery에 저장
 
 struct WordChallengeView: View {
     let verse: Verse
@@ -16,7 +16,7 @@ struct WordChallengeView: View {
     @State private var showError = false
     @FocusState private var isFocused: Bool
 
-    private var targetText: String { verse.textKo }
+    private var targetText: String { verse.verseShortKo }
 
     private var progress: Double {
         guard !targetText.isEmpty else { return 0 }
@@ -129,7 +129,7 @@ struct WordChallengeView: View {
         let entry = DailyWordEntry(
             id: UUID().uuidString,
             verseId: verse.id,
-            textKo: verse.textKo,
+            textKo: verse.verseShortKo,
             reference: verse.reference,
             imageId: imageId,
             savedAt: Date(),

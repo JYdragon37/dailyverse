@@ -345,18 +345,22 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Private: SavedVerse Factory
 
     private func makeSavedVerse(from verse: Verse) -> SavedVerse {
-        SavedVerse(
+        // 유저가 실제로 본 배경: currentBackground (background_images) 우선, 없으면 currentImage
+        let displayImageUrl = currentBackground?.storageUrl ?? currentImage?.storageUrl
+        let displayImageId  = currentBackground?.id ?? currentImage?.id
+        return SavedVerse(
             id: UUID().uuidString,
             verseId: verse.id,
-            imageId: currentImage?.id,
-            imageUrl: currentImage?.storageUrl,  // 표시용 URL
+            imageId: displayImageId,
+            imageUrl: displayImageUrl,  // 유저가 본 배경 URL
             savedAt: Date(),
             mode: currentMode.rawValue,
             weatherTemp: weather?.temperature ?? 0,
             weatherCondition: weather?.condition ?? "any",
             weatherHumidity: weather?.humidity ?? 0,
             weatherDust: weather?.dustGrade,      // v5.1: 미세먼지 등급
-            locationName: weather?.cityName ?? ""
+            locationName: weather?.cityName ?? "",
+            verseFullKo: verse.verseFullKo
         )
     }
 
@@ -396,7 +400,7 @@ extension HomeViewModel {
         Text(vm.currentMode.greeting)
             .font(.headline)
         if let verse = vm.currentVerse {
-            Text(verse.textKo)
+            Text(verse.verseShortKo)
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .padding()

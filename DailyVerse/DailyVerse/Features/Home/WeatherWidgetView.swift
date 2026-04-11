@@ -51,11 +51,11 @@ struct WeatherWidgetView: View {
                         .font(.dvCaption)
                         .foregroundColor(.secondary)
 
-                    HStack(spacing: 4) {
+                    HStack(spacing: 3) {
                         Text(weather.dustEmoji)
-                        Text(weather.dustGrade)
+                        Text(weather.dustSummary)
                             .font(.dvCaption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(dustColor(weather.dustGrade))
                     }
                 }
             }
@@ -118,6 +118,14 @@ struct WeatherWidgetView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+
+    private func dustColor(_ grade: String) -> Color {
+        switch grade {
+        case "나쁨":    return Color(red: 0.94, green: 0.63, blue: 0.25)
+        case "매우나쁨": return Color(red: 0.88, green: 0.36, blue: 0.25)
+        default:      return .secondary
+        }
     }
 
     private func weatherIconName(_ condition: String) -> String {

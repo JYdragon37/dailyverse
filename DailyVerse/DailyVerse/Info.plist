@@ -47,7 +47,7 @@
 	<key>AIRKOREA_API_KEY</key>
 	<string>Mm87QYoZnDniZE0L1qBopn9I%2F%2F4gS2f4%2FVY14CzgBOx0DjB4pogtFF5fzJhkoaxEgqFrM0NTDA8u90wp1qgnQQ%3D%3D</string>
 	<key>OPENAI_API_KEY</key>
-	<string></string>
+	<string>$(OPENAI_API_KEY)</string>
 	<!-- 네트워크 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>

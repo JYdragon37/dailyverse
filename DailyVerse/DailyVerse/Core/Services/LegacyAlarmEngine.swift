@@ -269,7 +269,7 @@ final class LegacyAlarmEngine: AlarmEngine {
     private func makeContent(alarm: Alarm, verse: Verse) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = "DailyVerse 🔔"
-        content.body = "\"\(verse.textKo)\"\n\(verse.reference) • \(verse.theme.first?.capitalized ?? "")"
+        content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference) • \(verse.theme.first?.capitalized ?? "")"
         content.interruptionLevel = .timeSensitive
 
         // Bug 4 수정: alertStyle에 따른 올바른 sound 설정

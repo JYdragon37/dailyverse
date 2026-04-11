@@ -3,8 +3,18 @@ import UserNotifications
 
 struct AppRootView: View {
     @AppStorage("onboardingCompleted") private var onboardingCompleted = false
+    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var alarmCoordinator: AlarmCoordinator
     @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
+
+    /// 현재 세션에서 AuthWelcomeView를 보여줄지 여부
+    /// - 로그인된 상태라면 false (스킵)
+    @State private var showAuthWelcome: Bool = false
+    /// 세션 내에서만 유지되는 게스트 모드 플래그
+    /// - 앱 재실행 시 초기화됨 (영구 저장 안 함)
+    @State private var guestModeActive: Bool = false
+    /// 닉네임 미설정 유저에게 닉네임 입력 화면 표시
+    @State private var showNicknameSetup: Bool = false
 
     var body: some View {
         ZStack {
@@ -34,8 +44,18 @@ struct AppRootView: View {
                 SplashView()
                     .transition(.opacity)
                     .zIndex(20)
+            } else if showAuthWelcome && !authManager.isLoggedIn && !guestModeActive {
+                // AuthWelcomeView: 로그인 안 된 + 게스트 모드 아닌 경우만 표시
+                AuthWelcomeView(onSkip: {
+                    guestModeActive = true   // 세션 메모리에만 저장 (앱 재실행 시 초기화)
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showAuthWelcome = false
+                    }
+                })
+                .transition(.opacity)
+                .zIndex(5)
             } else {
-                // Stage 3: 온보딩 완료 여부에 따라 홈/온보딩 분기
+                // Stage 3: 로그인 여부 + 온보딩 완료 여부에 따라 홈/온보딩 분기
                 Group {
                     if onboardingCompleted {
                         MainTabView()
@@ -78,6 +98,17 @@ struct AppRootView: View {
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
             await loadingCoordinator.start()
+            // AuthWelcomeView 표시 여부 결정:
+            // - 이미 로그인된 경우 → 스킵
+            // - 그 외 미로그인 → 매 세션 표시 (게스트 모드 선택 시 세션 내 스킵)
+            if !authManager.isLoggedIn {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showAuthWelcome = true
+                }
+            } else if !NicknameManager.shared.isSet {
+                // 이미 로그인 상태인데 닉네임 미설정 → 입력 화면 표시
+                showNicknameSetup = true
+            }
             // 알림 권한이 아직 결정되지 않은 경우 자동 요청
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             if settings.authorizationStatus == .notDetermined {
@@ -98,6 +129,29 @@ struct AppRootView: View {
                             }
                         }
                     }
+            }
+        }
+        // MARK: - 로그인/로그아웃 감지
+        .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+            if isLoggedIn {
+                // 로그인 성공 → 게스트 모드 해제 + 닉네임 미설정 시 입력 화면 표시
+                guestModeActive = false
+                if !NicknameManager.shared.isSet {
+                    showNicknameSetup = true
+                }
+            } else {
+                // 로그아웃 → 게스트 모드 해제 + 로그인 화면 재표시
+                guestModeActive = false
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showAuthWelcome = true
+                    showNicknameSetup = false
+                }
+            }
+        }
+        // MARK: - 닉네임 입력 화면
+        .fullScreenCover(isPresented: $showNicknameSetup) {
+            NicknameSetupView {
+                showNicknameSetup = false
             }
         }
         // MARK: - dvAlarmTriggered 수신 → AlarmCoordinator 호출

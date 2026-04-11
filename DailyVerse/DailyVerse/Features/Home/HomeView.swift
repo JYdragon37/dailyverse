@@ -172,8 +172,8 @@ struct HomeView: View {
 
     private func verseCenter(verse: Verse) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 말씀 텍스트 — 21pt regular (textFullKo: 긴 텍스트라 lineSpacing 중요)
-            Text(verse.textFullKo)
+            // 말씀 텍스트 — 21pt regular (verseFullKo: 긴 텍스트라 lineSpacing 중요)
+            Text(verse.verseFullKo)
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
@@ -213,7 +213,7 @@ struct HomeView: View {
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { showVerseDetail = true }
-        .accessibilityLabel("\(verse.textFullKo). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseFullKo). \(verse.reference)")
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
@@ -264,6 +264,7 @@ struct HomeView: View {
         guard let verse = viewModel.currentVerse else { return }
         if authManager.isLoggedIn {
             viewModel.saveVerse()
+            showVerseDetail = false   // 저장 후 팝업 닫기
         } else {
             let pending = SavedVerse(
                 id: UUID().uuidString, verseId: verse.id, savedAt: Date(),
@@ -305,7 +306,14 @@ struct WeatherDetailSheet: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4).ignoresSafeArea()
+            // 동적 날씨 배경 (조건 변경 시 0.5s 전환)
+            weatherDetailBackground(condition: weather?.condition ?? "sunny", mode: mode)
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.5), value: weather?.condition)
+            // 가독성 보장용 darkScrim
+            Color.black.opacity(weatherScrimOpacity(condition: weather?.condition ?? "sunny", mode: mode))
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.5), value: weather?.condition)
 
             if let weather {
                 ScrollView(showsIndicators: false) {
@@ -378,20 +386,26 @@ struct WeatherDetailSheet: View {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             WeatherDetailTile(icon: "drop.fill", color: .cyan,
                                               label: "습도", value: "\(weather.humidity)%")
-                            WeatherDetailTile(icon: "cloud.rain.fill", color: .blue,
-                                              label: "강수 확률",
-                                              value: weather.precipitationProbability.map { "\($0)%" } ?? "--")
-                            WeatherDetailTile(icon: "sun.max.fill", color: .yellow,
-                                              label: "자외선지수",
-                                              value: weather.uvIndex.map { "\($0)  \(weather.uvIndexDescription)" } ?? "정보 없음")
+                            WeatherDetailTile(
+                                icon: "cloud.rain.fill",
+                                color: precipTileColor(weather.precipitationProbability ?? 0),
+                                label: "강수",
+                                value: weather.precipitationDisplay,
+                                subtitle: weather.precipitationAdvice
+                            )
+                            WeatherDetailTile(
+                                icon: "sun.max.fill",
+                                color: uvTileColor(weather.uvIndex),
+                                label: "자외선",
+                                value: weather.uvDisplayValue,
+                                subtitle: weather.uvAdvice
+                            )
                             WeatherDetailTile(
                                 icon: "aqi.low",
-                                color: aqiColor(weather.dustGrade),
+                                color: dustTileColor(weather.dustGrade),
                                 label: "미세먼지",
-                                value: weather.pm25.map { pm in
-                                    let grade = weather.dustGrade
-                                    return "\(grade)  \(Int(pm))μg"
-                                } ?? weather.dustGrade
+                                value: weather.dustDisplayValue,
+                                subtitle: weather.dustAdvice
                             )
                         }
                         .padding(.horizontal, 16)
@@ -418,12 +432,100 @@ struct WeatherDetailSheet: View {
         }
     }
 
-    private func aqiColor(_ grade: String) -> Color {
+    // MARK: - 날씨 상세 배경 그라데이션
+
+    /// 날씨 조건 + 시간대 기반 배경 그라데이션 (iOS Weather 앱 참고)
+    private func weatherDetailBackground(condition: String, mode: AppMode) -> LinearGradient {
+        let isNight   = mode == .deepDark || mode == .windDown || mode == .firstLight
+        let isEvening = mode == .goldenHour   // 18:00–21:00
+        switch condition {
+        case "sunny":
+            if isNight {
+                // 맑은 밤 — 딥 네이비 → 다크 퍼플 (DailyVerse 브랜드)
+                return LinearGradient(
+                    colors: [Color(red:0.08,green:0.10,blue:0.28), Color(red:0.22,green:0.12,blue:0.38)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            } else if isEvening {
+                // 맑은 저녁 — 앰버 오렌지 → 딥 로즈
+                return LinearGradient(
+                    colors: [Color(red:0.92,green:0.52,blue:0.22), Color(red:0.62,green:0.22,blue:0.32)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            } else {
+                // 맑은 낮 — 하늘색 → 코발트 블루
+                return LinearGradient(
+                    colors: [Color(red:0.38,green:0.62,blue:0.92), Color(red:0.18,green:0.42,blue:0.82)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            }
+        case "cloudy":
+            // 흐림 — 회청색 → 진회색
+            return LinearGradient(
+                colors: [Color(red:0.38,green:0.42,blue:0.52), Color(red:0.22,green:0.25,blue:0.32)],
+                startPoint: .top, endPoint: .bottom
+            )
+        case "rainy":
+            // 비 — 스틸 블루 → 다크 네이비
+            return LinearGradient(
+                colors: [Color(red:0.18,green:0.22,blue:0.38), Color(red:0.12,green:0.15,blue:0.28)],
+                startPoint: .top, endPoint: .bottom
+            )
+        case "snowy":
+            // 눈 — 아이스 블루 → 페일 블루
+            return LinearGradient(
+                colors: [Color(red:0.72,green:0.82,blue:0.92), Color(red:0.48,green:0.58,blue:0.72)],
+                startPoint: .top, endPoint: .bottom
+            )
+        default:
+            // 기본 — 딥 네이비 (기존과 유사)
+            return LinearGradient(
+                colors: [Color(red:0.10,green:0.12,blue:0.22), Color(red:0.08,green:0.08,blue:0.16)],
+                startPoint: .top, endPoint: .bottom
+            )
+        }
+    }
+
+    /// 배경 밝기에 따른 darkScrim opacity — 밝은 배경(sunny낮, snowy)은 강하게
+    private func weatherScrimOpacity(condition: String, mode: AppMode) -> Double {
+        let isNight   = mode == .deepDark || mode == .windDown || mode == .firstLight
+        let isEvening = mode == .goldenHour
+        switch condition {
+        case "sunny" where !isNight && !isEvening: return 0.28  // 밝은 하늘
+        case "sunny" where isEvening:              return 0.25  // 저녁 앰버
+        case "snowy":                              return 0.38  // 밝은 눈 배경
+        case "rainy", "cloudy":                    return 0.20  // 어두운 배경
+        default:                                   return 0.22
+        }
+    }
+
+    private func precipTileColor(_ prob: Int) -> Color {
+        switch prob {
+        case 0:      return .secondary
+        case 1...30: return Color(red: 0.55, green: 0.72, blue: 0.90)   // 연파랑
+        case 31...60: return Color(red: 0.30, green: 0.55, blue: 0.90)  // 파랑
+        default:     return Color(red: 0.18, green: 0.38, blue: 0.82)   // 딥 블루
+        }
+    }
+
+    private func uvTileColor(_ uvIndex: Int?) -> Color {
+        guard let uv = uvIndex else { return .secondary }
+        switch uv {
+        case 0...2:  return Color(red: 0.30, green: 0.85, blue: 0.75)  // 청록
+        case 3...5:  return Color(red: 0.66, green: 0.78, blue: 0.47)  // 연두
+        case 6...7:  return Color(red: 0.94, green: 0.63, blue: 0.25)  // 앰버
+        case 8...10: return Color(red: 0.88, green: 0.36, blue: 0.25)  // 레드오렌지
+        default:     return Color(red: 0.75, green: 0.25, blue: 0.78)  // 퍼플
+        }
+    }
+
+    private func dustTileColor(_ grade: String) -> Color {
         switch grade {
-        case "좋음": return .green
-        case "보통": return .yellow
-        case "나쁨": return .orange
-        default:    return .red
+        case "좋음":    return Color(red: 0.30, green: 0.85, blue: 0.75)  // 청록
+        case "보통":    return Color(red: 0.66, green: 0.78, blue: 0.47)  // 연두
+        case "나쁨":    return Color(red: 0.94, green: 0.63, blue: 0.25)  // 앰버
+        case "매우나쁨": return Color(red: 0.88, green: 0.36, blue: 0.25)  // 레드오렌지
+        default:      return .secondary
         }
     }
 }
@@ -809,12 +911,19 @@ private struct WeatherDetailTile: View {
     let color: Color
     let label: String
     let value: String
+    var subtitle: String? = nil
 
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon).font(.system(size: 22)).foregroundColor(color)
             Text(value).font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
             Text(label).font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
+            if let subtitle {
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.45))
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)

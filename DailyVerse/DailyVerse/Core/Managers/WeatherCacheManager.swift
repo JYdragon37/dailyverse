@@ -4,8 +4,8 @@ import CoreData
 class WeatherCacheManager {
     private let context = PersistenceController.shared.context
     /// 캐시 스키마 버전 — WeatherData 구조 변경 시 올려서 구 캐시 강제 무효화
-    // v5: OWM 경로 precipitationProbability/pm2.5 수정 후 구 캐시 강제 무효화
-    private static let schemaVersion = "v5"
+    // v7: precipitationAmountMM 필드 추가 (WeatherKit 강수량 mm)
+    private static let schemaVersion = "v7"
     private static let schemaKey = "weatherCacheSchemaVersion"
 
     init() {

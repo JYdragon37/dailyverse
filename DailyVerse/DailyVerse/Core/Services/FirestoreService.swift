@@ -14,6 +14,12 @@ class FirestoreService {
         return snapshot.documents.compactMap { try? $0.data(as: Verse.self) }
     }
 
+    /// 말씀 단건 조회 (저장 탭 상세 표시용)
+    func fetchVerse(id: String) async throws -> Verse? {
+        let doc = try await db.collection("verses").document(id).getDocument()
+        return try? doc.data(as: Verse.self)
+    }
+
     /// v5.1 — 말씀 노출 후 last_shown + show_count 업데이트 (Cooldown 로직)
     func markVerseAsShown(verseId: String) async {
         let formatter = DateFormatter()

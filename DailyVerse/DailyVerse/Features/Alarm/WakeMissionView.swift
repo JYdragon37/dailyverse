@@ -272,14 +272,14 @@ private struct MathProblem {
 private struct TypingMissionContent: View {
     let verse: Verse?
     let onComplete: () -> Void
-    var useShortText: Bool = false   // true: textKo(한 문장), false: textKo(동일)
+    var useShortText: Bool = false   // true: verseShortKo(한 문장), false: verseShortKo(동일)
     @State private var typedText = ""
     @FocusState private var isFocused: Bool
 
     private var targetText: String {
         // useShortText: 오늘의 한마디 미션 — 짧은 핵심 문장
-        // 기본 typing 미션과 동일하게 textKo 사용
-        verse?.textKo ?? "두려워하지 말라 내가 너와 함께 함이라"
+        // 기본 typing 미션과 동일하게 verseShortKo 사용
+        verse?.verseShortKo ?? "두려워하지 말라 내가 너와 함께 함이라"
     }
 
     private var progress: Double {

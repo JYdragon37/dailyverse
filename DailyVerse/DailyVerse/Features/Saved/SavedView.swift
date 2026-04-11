@@ -21,7 +21,7 @@ struct SavedView: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 contentBody
-                    .navigationTitle("Saved")
+                    .navigationTitle("말씀들")
                     .navigationBarTitleDisplayMode(.large)
 
                 if let message = viewModel.toastMessage {
@@ -57,6 +57,7 @@ struct SavedView: View {
         }
         .onChange(of: authManager.isLoggedIn) { isLoggedIn in
             if isLoggedIn, let userId = authManager.userId {
+                showLoginPrompt = false   // 로그인 성공 시 시트 자동 닫기
                 Task { await viewModel.loadSavedVerses(userId: userId) }
             } else if !isLoggedIn {
                 viewModel.savedVerses = []
@@ -85,12 +86,20 @@ struct SavedView: View {
         ScrollView {
             LazyVGrid(columns: gridColumns, spacing: 12) {
                 ForEach(viewModel.savedVerses) { savedVerse in
-                    SavedCardView(savedVerse: savedVerse) {
-                        selectedVerse = savedVerse
-                    }
+                    SavedCardView(
+                        savedVerse: savedVerse,
+                        onTap: { selectedVerse = savedVerse },
+                        onDelete: {
+                            Task {
+                                if let userId = authManager.userId {
+                                    await viewModel.deleteSavedVerse(savedVerse, userId: userId)
+                                }
+                            }
+                        }
+                    )
                 }
             }
-            .padding(.horizontal, 28)
+            .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
@@ -110,16 +119,42 @@ struct SavedView: View {
     // MARK: - Empty States (v5.1: 2가지만)
 
     private var emptyStateNotLoggedIn: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
-            Image(systemName: "bookmark.fill")
-                .font(.system(size: 56))
-                .foregroundColor(.dvAccentGold)
-            Text("말씀을 저장하려면 로그인이 필요해요")
-                .font(.dvTitle).multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            Button("Apple로 시작하기") { showLoginPrompt = true }
-                .buttonStyle(.borderedProminent)
+
+            Image(systemName: "heart.text.square.fill")
+                .font(.system(size: 52))
+                .foregroundColor(.dvAccentGold.opacity(0.85))
+                .padding(.bottom, 20)
+
+            Text("저장한 말씀이 여기에 모여요")
+                .font(.dvTitle)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .padding(.bottom, 8)
+
+            Text("로그인하면 말씀을 저장하고\n언제든 다시 꺼내볼 수 있어요")
+                .font(.dvBody)
+                .foregroundColor(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .padding(.horizontal, 40)
+
+            Spacer().frame(height: 36)
+
+            Button {
+                showLoginPrompt = true
+            } label: {
+                Text("로그인 하기")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.dvAccentGold)
+                    .cornerRadius(14)
+            }
+            .padding(.horizontal, 40)
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -147,90 +182,93 @@ struct SavedView: View {
     }
 }
 
-// MARK: - SavedCardView (v5.1: 이미지 썸네일 카드, 3:4 비율)
+// MARK: - SavedCardView (v5.2: 이미지 썸네일 카드, 3:4 비율 + 하단 시간/날씨 바)
 
 private struct SavedCardView: View {
     let savedVerse: SavedVerse
     let onTap: () -> Void
-
-    private var verseText: String {
-        Verse.fallbackVerses.first { $0.id == savedVerse.verseId }?.textKo ?? "저장된 말씀"
-    }
+    let onDelete: () -> Void
 
     private var formattedDate: String {
         let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
         f.dateFormat = "yyyy.M.d"
         return f.string(from: savedVerse.savedAt)
     }
 
-    private var modeEmoji: String {
-        switch savedVerse.mode {
-        case "deep_dark":   return "🌑"
-        case "first_light": return "🌒"
-        case "rise_ignite": return "🌅"
-        case "peak_mode":   return "⚡"
-        case "recharge":    return "☀️"
-        case "second_wind": return "🌤"
-        case "golden_hour": return "🌇"
-        case "wind_down":   return "🌙"
-        // 레거시 호환
-        case "morning":     return "🌅"
-        case "afternoon":   return "☀️"
-        case "evening":     return "🌇"
-        case "dawn":        return "🌒"
-        default:            return ""
+    private var weatherConditionEmoji: String {
+        switch savedVerse.weatherCondition {
+        case "sunny":  return "☀️"
+        case "cloudy": return "☁️"
+        case "rainy":  return "🌧️"
+        case "snowy":  return "❄️"
+        default:       return "🌤️"
         }
     }
 
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                // 배경: imageUrl 있으면 실제 이미지, 없으면 모드 그라데이션
-                if let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr) {
-                    RemoteImageView(url: url) { modeGradient }
-                        .scaledToFill()
-                        .clipped()
-                } else {
-                    modeGradient
-                }
-
-                // 하단 그라데이션 오버레이 (투명→블랙 40%)
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.7)],
-                    startPoint: .center, endPoint: .bottom
-                )
-
-                // 텍스트 오버레이
-                VStack(alignment: .leading, spacing: 4) {
-                    // 상단: 날짜 + 날씨
-                    HStack(spacing: 4) {
-                        Text(formattedDate)
-                            .font(.system(size: 10, weight: .medium))
-                        Text(modeEmoji).font(.system(size: 10))
-                        if savedVerse.weatherTemp != 0 {
-                            Text("\(savedVerse.weatherTemp)°")
-                                .font(.system(size: 10))
-                        }
+        VStack(spacing: 4) {
+            // 카드 이미지 영역
+            GeometryReader { geo in
+                ZStack {
+                    // 배경 이미지
+                    if let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr) {
+                        RemoteImageView(url: url) { modeGradient }
+                            .scaledToFill()
+                            .clipped()
+                    } else {
+                        modeGradient
                     }
-                    .foregroundColor(.white.opacity(0.8))
 
-                    // 말씀 텍스트
-                    Text(verseText)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
-                        .foregroundColor(.white)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
+                    // 글귀 가독성을 위한 다크 스크림
+                    if savedVerse.verseFullKo != nil {
+                        Color.black.opacity(0.38)
+                            .allowsHitTesting(false)
+                    }
+
+                    // 글귀 오버레이
+                    if let text = savedVerse.verseFullKo {
+                        Text(text)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white.opacity(0.88))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                            .padding(.horizontal, 14)
+                            .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 1)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .allowsHitTesting(false)
+                    }
                 }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: geo.size.width, height: geo.size.width * 4 / 3)
             }
-            .frame(width: geo.size.width, height: geo.size.width * 4 / 3)
+            .aspectRatio(3/4, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            // 이미지 아래 날짜 + 날씨 정보 바
+            HStack(spacing: 4) {
+                Text(formattedDate)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                if savedVerse.weatherTemp != 0 {
+                    Text("·")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    Text("\(weatherConditionEmoji) \(savedVerse.weatherTemp)°")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 4)
         }
-        .aspectRatio(3/4, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 3)
         .onTapGesture { onTap() }
-        .accessibilityLabel("\(formattedDate) 저장된 말씀: \(verseText)")
+        .contextMenu {
+            Button(role: .destructive) { onDelete() } label: {
+                Label("삭제", systemImage: "trash")
+            }
+        }
+        .accessibilityLabel("\(formattedDate) 저장된 말씀")
         .accessibilityAddTraits(.isButton)
     }
 

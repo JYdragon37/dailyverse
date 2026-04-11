@@ -62,7 +62,7 @@ struct AlarmStage2View: View {
             // 오늘의 한마디 시트
             .sheet(isPresented: $showWordSheet) {
                 if let verse = coordinator.activeVerse {
-                    WordOfDaySheet(verse: verse, mode: alarmMode) {
+                    WordOfDaySheet(verse: verse, mode: alarmMode, userId: authManager.userId ?? "local") {
                         showWordSheet = false
                     }
                 }
@@ -159,8 +159,8 @@ struct AlarmStage2View: View {
 
     private func verseCenter(verse: Verse) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 말씀 텍스트 (textFullKo)
-            Text(verse.textFullKo)
+            // 말씀 텍스트 (verseFullKo)
+            Text(verse.verseFullKo)
                 .font(.system(size: 21, weight: .semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
@@ -309,7 +309,10 @@ struct AlarmStage2View: View {
 private struct WordOfDaySheet: View {
     let verse: Verse
     let mode: AppMode
+    let userId: String
     let onDismiss: () -> Void
+
+    @State private var inputText: String = ""
 
     var body: some View {
         ZStack {
@@ -333,9 +336,9 @@ private struct WordOfDaySheet: View {
                 }
                 .padding(.bottom, 28)
 
-                // 말씀 카드 (text_ko)
+                // 말씀 카드 (verse_short_ko)
                 VStack(alignment: .center, spacing: 16) {
-                    Text(verse.textKo)
+                    Text(verse.verseShortKo)
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -354,9 +357,21 @@ private struct WordOfDaySheet: View {
                 .cornerRadius(18)
                 .padding(.horizontal, 28)
 
+                // 입력 필드
+                TextField("오늘 한 마디를 남겨보세요...", text: $inputText, axis: .vertical)
+                    .font(.dvBody)
+                    .foregroundColor(.white)
+                    .lineLimit(1...3)
+                    .padding(12)
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(10)
+                    .tint(.dvAccentGold)
+                    .padding(.horizontal, 28)
+                    .padding(.top, 20)
+
                 Spacer()
 
-                Button(action: onDismiss) {
+                Button(action: handleDismiss) {
                     Text("닫기")
                         .font(.dvBody)
                         .foregroundColor(.white.opacity(0.55))
@@ -366,6 +381,28 @@ private struct WordOfDaySheet: View {
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.hidden)
+    }
+
+    private func handleDismiss() {
+        let trimmed = inputText.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty {
+            Task {
+                let repo = MeditationRepository()
+                let item = PrayerItem.make(text: trimmed)
+                let entry = MeditationEntry.make(
+                    userId: userId,
+                    verseId: verse.id,
+                    verseReference: verse.reference,
+                    mode: mode.rawValue,
+                    prayerItems: [item],
+                    gratitudeNote: nil,
+                    source: "stage2"
+                )
+                try? await repo.save(entry)
+                await MainActor.run { StreakManager.shared.recordMeditation() }
+            }
+        }
+        onDismiss()
     }
 }
 
