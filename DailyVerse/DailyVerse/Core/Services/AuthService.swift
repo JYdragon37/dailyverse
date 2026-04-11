@@ -1,7 +1,10 @@
 import Foundation
 import FirebaseAuth
+import FirebaseCore
 import AuthenticationServices
 import CryptoKit
+import GoogleSignIn
+import UIKit
 
 class AuthService: NSObject {
     private var currentNonce: String?
@@ -44,6 +47,34 @@ class AuthService: NSObject {
             controller.presentationContextProvider = self  // 팝업 표시 창 연결
             controller.performRequests()
         }
+    }
+
+    // MARK: - Re-authenticate (Google)
+
+    /// Google 계정 탈퇴 전 재인증
+    func reauthenticateWithGoogle() async throws {
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            throw NSError(domain: "AuthService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Google 클라이언트 ID 없음"])
+        }
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else {
+            throw NSError(domain: "AuthService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "화면을 찾을 수 없어요"])
+        }
+
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
+        guard let idToken = result.user.idToken?.tokenString else {
+            throw NSError(domain: "AuthService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Google 토큰을 받지 못했어요"])
+        }
+        let credential = GoogleAuthProvider.credential(
+            withIDToken: idToken,
+            accessToken: result.user.accessToken.tokenString
+        )
+        try await Auth.auth().currentUser?.reauthenticate(with: credential)
     }
 
     // MARK: - Sign Out

@@ -153,16 +153,24 @@ class AuthManager: ObservableObject {
 
     // MARK: - Account Deletion
 
-    /// 계정 탈퇴 4단계:
-    /// 1. Apple 재인증
+    /// 계정 탈퇴:
+    /// 1. 로그인 제공자에 따라 재인증 (Apple만 재인증 팝업, Google/Email은 생략)
     /// 2. Firestore 데이터 삭제 (users/{uid} + saved_verses/{uid}/verses)
     /// 3. Firebase Auth 계정 삭제
     /// 4. RevenueCat 로그아웃 신호 + UserDefaults 초기화
     func deleteAccount(subscriptionManager: SubscriptionManager) async throws {
         guard let uid = user?.uid else { return }
 
-        // Step 1: Apple 재인증
-        try await authService.reauthenticate()
+        // Step 1: 로그인 제공자 확인 후 재인증
+        let provider = user?.providerData.first?.providerID ?? ""
+        if provider == "apple.com" {
+            // Apple 로그인: Apple 재인증 팝업 필요
+            try await authService.reauthenticate()
+        } else if provider == "google.com" {
+            // Google 로그인: Google 재인증
+            try await authService.reauthenticateWithGoogle()
+        }
+        // Email 로그인: 최근 로그인 상태이면 생략 (필요 시 Firebase가 requiresRecentLogin 에러 반환)
 
         // Step 2: Firestore 데이터 삭제
         try await firestoreService.deleteUserData(uid: uid)
