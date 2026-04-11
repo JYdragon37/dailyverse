@@ -11,8 +11,9 @@ final class OnboardingViewModel: ObservableObject {
     @Published var currentPage: Int = 0
     static let totalPages = 4  // 기존 6 → 4 (슬림 온보딩)
 
-    // MARK: - 기존 UserDefaults 키 (호환성 유지)
-    @AppStorage(OnboardingKey.completed.rawValue)              var onboardingCompleted = false
+    // MARK: - UserDefaults 키
+    // v2 신규 온보딩 키 사용 (AppRootView와 동일한 키)
+    @AppStorage(OnboardingKey.newCompleted.rawValue)           var onboardingCompleted = false
     @AppStorage(OnboardingKey.nicknameSet.rawValue)            var nicknameSet = false
     @AppStorage(OnboardingKey.notificationRequested.rawValue)  var notificationPermissionRequested = false
     @AppStorage(OnboardingKey.firstAlarmShown.rawValue)        var firstAlarmPromptShown = false

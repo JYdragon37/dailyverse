@@ -2,7 +2,8 @@ import SwiftUI
 import UserNotifications
 
 struct AppRootView: View {
-    @AppStorage("onboardingCompleted") private var onboardingCompleted = false
+    // v2 신규 온보딩 키 — 기존 onboardingCompleted(v1) 유저도 새 온보딩 경험
+    @AppStorage("onboardingV2Completed") private var onboardingCompleted = false
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var alarmCoordinator: AlarmCoordinator
     @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
