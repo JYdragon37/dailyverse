@@ -46,7 +46,7 @@ struct ONBExperienceView: View {
                 // 말씀 카드 (메인 앱과 동일한 스타일)
                 VStack(alignment: .leading, spacing: 14) {
                     Text(demoVerse.verseFullKo)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.custom("Georgia-BoldItalic", size: 20))
                         .foregroundColor(.white)
                         .lineSpacing(6)
                         .fixedSize(horizontal: false, vertical: true)

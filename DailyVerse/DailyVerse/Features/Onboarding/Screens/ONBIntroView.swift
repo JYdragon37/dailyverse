@@ -63,6 +63,9 @@ struct ONBIntroView: View {
                         .font(.system(size: 24, weight: .light))
                         .foregroundColor(.dvAccentGold)
                 }
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, 32)
                 .opacity(subCopyOpacity)
 
                 Spacer()

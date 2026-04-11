@@ -47,7 +47,7 @@ struct ONBAlarmPermissionView: View {
                             time: $vm.eveningAlarmTime
                         )
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 28)
 
                     // Permission Priming 섹션 (알람 하나라도 켜면 등장)
                     if hasAnyAlarm {
@@ -107,7 +107,7 @@ struct ONBAlarmPermissionView: View {
                             .stroke(Color.white.opacity(0.12), lineWidth: 1)
                     )
             )
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
 
             // 설명 문구
             Text("알람과 동시에 오늘의 말씀이 잠금화면에 나타나요\n허용하지 않으면 알람만 울립니다")
@@ -134,7 +134,7 @@ struct ONBAlarmPermissionView: View {
                             .fill(Color.dvAccentGold)
                     )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
             .accessibilityLabel("알림 권한 허용 후 시작하기")
 
             // 나중에 버튼
@@ -174,7 +174,7 @@ struct ONBAlarmPermissionView: View {
                             .fill(Color.white.opacity(0.06))
                     )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
         }
     }
 }

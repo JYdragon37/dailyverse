@@ -47,7 +47,7 @@ struct ONBPersonalizeView: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 28)
 
                     Spacer().frame(height: 40)
 
