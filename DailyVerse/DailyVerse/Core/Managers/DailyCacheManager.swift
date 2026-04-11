@@ -72,6 +72,23 @@ class DailyCacheManager {
         return try? JSONDecoder().decode(Verse.self, from: data)
     }
 
+    /// alarm_top_ko가 있는 구절 전체 로드 (알람 탭 Random Access 풀)
+    func loadAlarmTopKoPool(excluding currentId: String?) -> [Verse] {
+        let context = PersistenceController.shared.context
+        let request = CachedVerse.fetchRequest()
+        guard let entities = try? context.fetch(request) else { return [] }
+
+        return entities.compactMap { entity -> Verse? in
+            guard let json = entity.json,
+                  let data = json.data(using: .utf8),
+                  let verse = try? JSONDecoder().decode(Verse.self, from: data) else { return nil }
+            // alarm_top_ko가 있고, 현재 표시 중인 구절 제외
+            guard let alarmTopKo = verse.alarmTopKo, !alarmTopKo.isEmpty else { return nil }
+            if let currentId, verse.id == currentId { return nil }
+            return verse
+        }
+    }
+
     // MARK: - Private
 
     private func loadCache() -> DailyVerseCache? {

@@ -82,15 +82,24 @@ struct AlarmListView: View {
 
     private func refreshTodayVerse() {
         let mode = AppMode.current()
-        // Core Data 캐시에서 랜덤 말씀 선택 (현재 말씀 제외)
         let currentId = todayVerse?.id
+
+        // 1. Core Data 캐시에서 alarm_top_ko 있는 구절 전체 로드 (현재 말씀 제외)
+        let pool = DailyCacheManager.shared.loadAlarmTopKoPool(excluding: currentId)
+        if let verse = pool.randomElement() {
+            todayVerse = verse
+            return
+        }
+
+        // 2. alarm_top_ko 풀이 비어있으면 → DailyCacheManager 현재 모드 말씀으로 폴백
         if let id = DailyCacheManager.shared.getVerseId(for: mode),
            let verse = DailyCacheManager.shared.loadCachedVerse(id: id),
            verse.id != currentId {
             todayVerse = verse
             return
         }
-        // 폴백 구절 중 랜덤
+
+        // 3. 최종 폴백: fallbackVerses 랜덤
         let fallbacks = Verse.fallbackVerses.filter { $0.id != currentId }
         todayVerse = fallbacks.randomElement() ?? OfflineFallbackManager.shared.fallbackVerse(for: mode)
     }
