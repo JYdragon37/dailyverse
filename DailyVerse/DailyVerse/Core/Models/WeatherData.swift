@@ -171,7 +171,9 @@ struct WeatherData: Codable, Equatable {
             }
         }
         let hour = Calendar.current.component(.hour, from: Date())
-        return (hour >= 20 || hour < 6) ? "없음" : "확인 중"
+        if hour >= 20 || hour < 6 { return "없음" }
+        // 낮인데 uvIndex nil이면 날씨 조건 기반 추정
+        return condition == "rainy" || condition == "cloudy" ? "낮음 추정" : "보통 추정"
     }
 
     /// UV 권고 문구 — nil이면 subtitle 미표시

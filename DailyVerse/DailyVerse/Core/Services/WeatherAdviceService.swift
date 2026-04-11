@@ -69,13 +69,15 @@ actor WeatherAdviceService {
         - 이모지 1개 포함
         - 반말로 친근하게
         - 지금 이 시간대에 맞는 구체적 행동 제안
+        - 반드시 현재 날씨 상태(맑음/흐림/비/눈 등)나 온도를 언급하세요
+        - 평범한 날씨라도 '딱 좋은 봄 날씨', '선선한 날씨' 같은 구체적 날씨 묘사 포함
         """
 
         let userPrompt = """
         현재 시간대: \(context)
         \(weatherDesc)
 
-        이 시간대와 날씨에 맞는 조언을 한 문장으로 해줘.
+        이 시간대와 날씨에 맞는 조언을 한 문장으로 해줘. 날씨 상태를 반드시 언급해서 답해줘.
         """
 
         let body: [String: Any] = [
@@ -160,13 +162,18 @@ actor WeatherAdviceService {
             if temp <= 5 { return "🧣 내일 아침 꽤 추워요, 겉옷 챙겨요" }
             return "😊 내일 날씨 괜찮아요, 좋은 하루 되세요"
         } else {
-            if weather.condition == "rainy" { return "☂️ 오늘 비 와요, 우산 챙겨요" }
+            if weather.condition == "rainy" { return "☂️ 비 오는 날이에요, 우산 챙겨요" }
+            if weather.condition == "snowy" { return "❄️ 눈 내리는 날이에요, 따뜻하게 입어요" }
             let uv = weather.uvIndex ?? 0
             if uv >= 6 { return "🧴 자외선 강해요, 선크림 바르고 나가요" }
             if weather.dustGrade == "나쁨" || weather.dustGrade == "매우나쁨" {
                 return "😷 미세먼지 나빠요, 마스크 챙겨요"
             }
-            return "☀️ 오늘 날씨 좋아요, 나들이 어때요?"
+            let temp = weather.temperature
+            if temp <= 5 { return "🧣 꽤 추운 날씨예요, 따뜻하게 입어요" }
+            if temp >= 30 { return "☀️ 더운 날씨예요, 수분 충분히 챙겨요" }
+            if weather.condition == "cloudy" { return "☁️ 흐린 날씨지만 활동하기 좋아요" }
+            return "☀️ 맑고 쾌적한 날씨예요, 나들이 어때요?"
         }
     }
 }

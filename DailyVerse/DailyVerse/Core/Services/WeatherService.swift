@@ -12,10 +12,14 @@ class WeatherService: WeatherServiceProtocol {
 
     func fetchWeather(for location: CLLocation) async throws -> WeatherData {
         // precipitationProbability가 nil인 구 캐시도 무시 (OWM 강수확률 수정 반영)
+        // 낮 시간대(6~20시)에는 uvIndex가 없는 구 캐시도 무시하여 재조회
+        let hour = Calendar.current.component(.hour, from: Date())
+        let isDaytime = hour >= 6 && hour < 20
         if let cached = cacheManager.load(),
            cached.isValid,
            !cached.hourlyForecast.isEmpty,
-           cached.precipitationProbability != nil {
+           cached.precipitationProbability != nil,
+           !isDaytime || cached.uvIndex != nil {
             return cached
         }
         do {
@@ -354,7 +358,7 @@ class WeatherService: WeatherServiceProtocol {
             let grouped = Dictionary(grouping: fResp.list) {
                 cal.startOfDay(for: Date(timeIntervalSince1970: TimeInterval($0.dt)))
             }
-            sevenDayForecast2 = grouped.keys.sorted().prefix(5).compactMap { day in
+            sevenDayForecast2 = grouped.keys.sorted().prefix(7).compactMap { day in
                 let items = grouped[day] ?? []
                 guard let high = items.map({ $0.main.tempMax }).max(),
                       let low  = items.map({ $0.main.tempMin }).min(),

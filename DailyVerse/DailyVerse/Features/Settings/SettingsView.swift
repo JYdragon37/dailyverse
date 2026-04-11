@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var showLoginPrompt = false
     @State private var showNicknameEdit = false
     @State private var editingNickname = ""
+    @State private var deleteErrorMessage: String? = nil
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -46,11 +47,26 @@ struct SettingsView: View {
         } message: { Text("로그아웃 하시겠어요?") }
         .alert("계정을 탈퇴하시겠어요?", isPresented: $showDeleteAccountAlert) {
             Button("탈퇴하기", role: .destructive) {
-                Task { try? await authManager.deleteAccount(subscriptionManager: subscriptionManager) }
+                Task {
+                    do {
+                        try await authManager.deleteAccount(subscriptionManager: subscriptionManager)
+                    } catch {
+                        let msg = error.localizedDescription
+                        deleteErrorMessage = msg.isEmpty ? "탈퇴 중 오류가 발생했습니다. 다시 시도해주세요." : msg
+                    }
+                }
             }
             Button("취소", role: .cancel) {}
         } message: {
             Text("구독 중이라면 App Store에서 별도 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
+        }
+        .alert("탈퇴 실패", isPresented: .init(
+            get: { deleteErrorMessage != nil },
+            set: { if !$0 { deleteErrorMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { deleteErrorMessage = nil }
+        } message: {
+            Text(deleteErrorMessage ?? "")
         }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {

@@ -51,15 +51,22 @@ final class NicknameManager: ObservableObject {
         }
     }
 
+    /// 로그아웃/탈퇴 시 닉네임 초기화 (다음 로그인 계정 오염 방지)
+    func reset() {
+        _nickname = Published(initialValue: "친구")
+        UserDefaults.standard.removeObject(forKey: Self.nicknameKey)
+        UserDefaults.standard.set(false, forKey: Self.nicknameSetKey)
+    }
+
     /// 로그인 후 Firestore와 동기화 (서버 값 우선)
     func syncWithFirestore(userId: String) async {
         if let user = try? await firestoreService.fetchUser(uid: userId),
            !user.nickname.isEmpty, user.nickname != "친구" {
+            // Firestore 값이 있으면 → 로컬 업데이트
             nickname = user.nickname
             UserDefaults.standard.set(nickname, forKey: Self.nicknameKey)
-        } else if !nickname.isEmpty {
-            // 로컬 닉네임을 서버에 저장
-            try? await firestoreService.updateNickname(nickname, userId: userId)
         }
+        // else: 신규 유저면 로컬 "친구"(reset 후 상태) 유지, Firestore 저장 안 함
+        // (온보딩에서 직접 닉네임 입력 후 저장)
     }
 }

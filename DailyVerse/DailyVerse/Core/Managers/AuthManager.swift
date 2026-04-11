@@ -128,6 +128,10 @@ class AuthManager: ObservableObject {
     }
 
     func signOut() {
+        // 닉네임 초기화 (다음 로그인 계정 오염 방지)
+        Task { @MainActor in
+            NicknameManager.shared.reset()
+        }
         do {
             try authService.signOut()
         } catch {

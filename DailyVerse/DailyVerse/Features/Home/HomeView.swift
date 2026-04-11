@@ -300,6 +300,7 @@ struct WeatherDetailSheet: View {
     /// viewModel 직접 관찰 → 새로고침 후 AQI/미세먼지 즉시 반영
     @ObservedObject var viewModel: HomeViewModel
     @State private var isRefreshing = false
+    @State private var animating = false
 
     private var weather: WeatherData? { viewModel.weather }
     private var mode: AppMode { viewModel.currentMode }
@@ -314,6 +315,10 @@ struct WeatherDetailSheet: View {
             Color.black.opacity(weatherScrimOpacity(condition: weather?.condition ?? "sunny", mode: mode))
                 .ignoresSafeArea()
                 .animation(.easeInOut(duration: 0.5), value: weather?.condition)
+            // 날씨 파티클 애니메이션 오버레이
+            weatherAnimationOverlay(condition: weather?.condition ?? "sunny", mode: mode)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
             if let weather {
                 ScrollView(showsIndicators: false) {
@@ -420,6 +425,11 @@ struct WeatherDetailSheet: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.hidden)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                animating = true
+            }
+        }
     }
 
     private func conditionIcon(_ c: String) -> String {
@@ -432,6 +442,27 @@ struct WeatherDetailSheet: View {
         }
     }
 
+    // MARK: - 날씨 파티클 애니메이션 오버레이
+
+    @ViewBuilder
+    private func weatherAnimationOverlay(condition: String, mode: AppMode) -> some View {
+        let isNight = mode == .deepDark || mode == .windDown || mode == .firstLight
+        switch condition {
+        case "rainy":
+            RainParticlesView(animating: animating)
+        case "snowy":
+            SnowParticlesView(animating: animating)
+        case "cloudy":
+            CloudDriftView(animating: animating)
+        case "sunny" where isNight:
+            StarTwinkleView(animating: animating)
+        case "sunny":
+            SunGlintView(animating: animating)
+        default:
+            Color.clear
+        }
+    }
+
     // MARK: - 날씨 상세 배경 그라데이션
 
     /// 날씨 조건 + 시간대 기반 배경 그라데이션 (iOS Weather 앱 참고)
@@ -441,44 +472,44 @@ struct WeatherDetailSheet: View {
         switch condition {
         case "sunny":
             if isNight {
-                // 맑은 밤 — 딥 네이비 → 다크 퍼플 (DailyVerse 브랜드)
+                // 맑은 밤 — 더 어두운 미드나잇 네이비 → 딥 미드나잇 퍼플
                 return LinearGradient(
-                    colors: [Color(red:0.08,green:0.10,blue:0.28), Color(red:0.22,green:0.12,blue:0.38)],
+                    colors: [Color(red:0.04,green:0.06,blue:0.22), Color(red:0.14,green:0.08,blue:0.32)],
                     startPoint: .top, endPoint: .bottom
                 )
             } else if isEvening {
-                // 맑은 저녁 — 앰버 오렌지 → 딥 로즈
+                // 맑은 저녁 — 앰버 오렌지 → 딥 로즈 (기존 유지)
                 return LinearGradient(
                     colors: [Color(red:0.92,green:0.52,blue:0.22), Color(red:0.62,green:0.22,blue:0.32)],
                     startPoint: .top, endPoint: .bottom
                 )
             } else {
-                // 맑은 낮 — 하늘색 → 코발트 블루
+                // 맑은 낮 — 더 생생한 하늘색 → 밝은 코발트
                 return LinearGradient(
-                    colors: [Color(red:0.38,green:0.62,blue:0.92), Color(red:0.18,green:0.42,blue:0.82)],
+                    colors: [Color(red:0.28,green:0.62,blue:0.98), Color(red:0.10,green:0.36,blue:0.88)],
                     startPoint: .top, endPoint: .bottom
                 )
             }
         case "cloudy":
-            // 흐림 — 회청색 → 진회색
+            // 흐림 — 쿨 그레이 (더 차갑고 단조롭게)
             return LinearGradient(
-                colors: [Color(red:0.38,green:0.42,blue:0.52), Color(red:0.22,green:0.25,blue:0.32)],
+                colors: [Color(red:0.32,green:0.35,blue:0.42), Color(red:0.18,green:0.20,blue:0.26)],
                 startPoint: .top, endPoint: .bottom
             )
         case "rainy":
-            // 비 — 스틸 블루 → 다크 네이비
+            // 비 — 더 어둡고 무거운 스틸 그레이 블루
             return LinearGradient(
-                colors: [Color(red:0.18,green:0.22,blue:0.38), Color(red:0.12,green:0.15,blue:0.28)],
+                colors: [Color(red:0.12,green:0.16,blue:0.30), Color(red:0.07,green:0.09,blue:0.20)],
                 startPoint: .top, endPoint: .bottom
             )
         case "snowy":
-            // 눈 — 아이스 블루 → 페일 블루
+            // 눈 — 아이시 화이트 블루
             return LinearGradient(
-                colors: [Color(red:0.72,green:0.82,blue:0.92), Color(red:0.48,green:0.58,blue:0.72)],
+                colors: [Color(red:0.82,green:0.90,blue:0.98), Color(red:0.58,green:0.70,blue:0.86)],
                 startPoint: .top, endPoint: .bottom
             )
         default:
-            // 기본 — 딥 네이비 (기존과 유사)
+            // 기본 — 딥 네이비
             return LinearGradient(
                 colors: [Color(red:0.10,green:0.12,blue:0.22), Color(red:0.08,green:0.08,blue:0.16)],
                 startPoint: .top, endPoint: .bottom
@@ -491,7 +522,7 @@ struct WeatherDetailSheet: View {
         let isNight   = mode == .deepDark || mode == .windDown || mode == .firstLight
         let isEvening = mode == .goldenHour
         switch condition {
-        case "sunny" where !isNight && !isEvening: return 0.28  // 밝은 하늘
+        case "sunny" where !isNight && !isEvening: return 0.35  // 밝은 하늘 — 가독성 위해 강하게
         case "sunny" where isEvening:              return 0.25  // 저녁 앰버
         case "snowy":                              return 0.38  // 밝은 눈 배경
         case "rainy", "cloudy":                    return 0.20  // 어두운 배경
@@ -527,6 +558,293 @@ struct WeatherDetailSheet: View {
         case "매우나쁨": return Color(red: 0.88, green: 0.36, blue: 0.25)  // 레드오렌지
         default:      return .secondary
         }
+    }
+}
+
+// MARK: - 날씨 파티클 애니메이션 뷰들
+
+/// 빗방울: 대각선으로 떨어지는 얇은 선 (15개)
+private struct RainParticlesView: View {
+    let animating: Bool
+
+    // 각 빗방울의 초기 오프셋 및 타이밍 오프셋 (15개)
+    private let drops: [(xFrac: CGFloat, delay: Double)] = (0..<15).map { i in
+        let x = CGFloat(i) / 14.0
+        let delay = Double(i) * 0.055
+        return (x, delay)
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            // 빗방울 1개: 세로로 긴 선, 대각선으로 이동
+            ForEach(0..<drops.count, id: \.self) { i in
+                let drop = drops[i]
+                RainDrop(
+                    startX: w * drop.xFrac - 40,
+                    screenHeight: h,
+                    animating: animating,
+                    delay: drop.delay
+                )
+            }
+        }
+    }
+}
+
+private struct RainDrop: View {
+    let startX: CGFloat
+    let screenHeight: CGFloat
+    let animating: Bool
+    let delay: Double
+
+    @State private var offsetY: CGFloat = 0
+    @State private var opacity: Double = 0
+
+    var body: some View {
+        Capsule()
+            .fill(Color.white.opacity(0.22))
+            .frame(width: 1.2, height: 28)
+            .rotationEffect(.degrees(-15))
+            .offset(x: startX + (animating ? 30 : 0), y: animating ? offsetY : -screenHeight * 0.2)
+            .opacity(opacity)
+            .onAppear {
+                // 초기 위치를 화면 위 랜덤 지점으로
+                offsetY = CGFloat.random(in: -screenHeight * 0.3 ... 0)
+                withAnimation(
+                    .linear(duration: 0.75)
+                    .repeatForever(autoreverses: false)
+                    .delay(delay)
+                ) {
+                    offsetY = screenHeight * 1.1
+                    opacity = 0.20
+                }
+            }
+    }
+}
+
+/// 눈송이: 천천히 흔들리며 떨어지는 작은 원 (12개)
+private struct SnowParticlesView: View {
+    let animating: Bool
+
+    private let flakes: [(xFrac: CGFloat, size: CGFloat, delay: Double)] = (0..<12).map { i in
+        let x = CGFloat(i) / 11.0
+        let size = CGFloat.random(in: 4...8)
+        let delay = Double(i) * 0.28
+        return (x, size, delay)
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            ForEach(0..<flakes.count, id: \.self) { i in
+                let flake = flakes[i]
+                SnowFlake(
+                    startX: geo.size.width * flake.xFrac,
+                    screenHeight: geo.size.height,
+                    size: flake.size,
+                    animating: animating,
+                    delay: flake.delay
+                )
+            }
+        }
+    }
+}
+
+private struct SnowFlake: View {
+    let startX: CGFloat
+    let screenHeight: CGFloat
+    let size: CGFloat
+    let animating: Bool
+    let delay: Double
+
+    @State private var offsetY: CGFloat = 0
+    @State private var offsetX: CGFloat = 0
+
+    var body: some View {
+        Circle()
+            .fill(Color.white.opacity(0.25))
+            .frame(width: size, height: size)
+            .offset(x: startX + offsetX, y: animating ? offsetY : -80)
+            .onAppear {
+                offsetY = CGFloat.random(in: -screenHeight * 0.1 ... 0)
+                withAnimation(
+                    .easeInOut(duration: Double.random(in: 3.5...5.0))
+                    .repeatForever(autoreverses: false)
+                    .delay(delay)
+                ) {
+                    offsetY = screenHeight * 1.1
+                }
+                withAnimation(
+                    .easeInOut(duration: 2.2)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay * 0.5)
+                ) {
+                    offsetX = CGFloat.random(in: -18...18)
+                }
+            }
+    }
+}
+
+/// 흐림: 반투명 타원이 가로로 천천히 흘러가는 구름 느낌 (4개)
+private struct CloudDriftView: View {
+    let animating: Bool
+
+    private let clouds: [(yFrac: CGFloat, widthFrac: CGFloat, delay: Double)] = [
+        (0.12, 0.55, 0.0),
+        (0.30, 0.45, 2.5),
+        (0.55, 0.60, 5.0),
+        (0.75, 0.40, 7.0)
+    ]
+
+    var body: some View {
+        GeometryReader { geo in
+            ForEach(0..<clouds.count, id: \.self) { i in
+                let c = clouds[i]
+                CloudBlob(
+                    startY: geo.size.height * c.yFrac,
+                    blobWidth: geo.size.width * c.widthFrac,
+                    screenWidth: geo.size.width,
+                    animating: animating,
+                    delay: c.delay
+                )
+            }
+        }
+    }
+}
+
+private struct CloudBlob: View {
+    let startY: CGFloat
+    let blobWidth: CGFloat
+    let screenWidth: CGFloat
+    let animating: Bool
+    let delay: Double
+
+    @State private var offsetX: CGFloat = 0
+
+    var body: some View {
+        Ellipse()
+            .fill(Color.white.opacity(0.10))
+            .frame(width: blobWidth, height: blobWidth * 0.28)
+            .offset(x: animating ? offsetX : -blobWidth, y: startY)
+            .onAppear {
+                offsetX = -blobWidth * 0.3
+                withAnimation(
+                    .linear(duration: 9.0)
+                    .repeatForever(autoreverses: false)
+                    .delay(delay)
+                ) {
+                    offsetX = screenWidth + blobWidth * 0.2
+                }
+            }
+    }
+}
+
+/// 맑은 낮: 은은한 빛 반짝임 (3개)
+private struct SunGlintView: View {
+    let animating: Bool
+
+    private let glints: [(xFrac: CGFloat, yFrac: CGFloat, delay: Double)] = [
+        (0.15, 0.08, 0.0),
+        (0.72, 0.18, 0.9),
+        (0.45, 0.05, 1.8)
+    ]
+
+    var body: some View {
+        GeometryReader { geo in
+            ForEach(0..<glints.count, id: \.self) { i in
+                let g = glints[i]
+                SunGlint(
+                    x: geo.size.width * g.xFrac,
+                    y: geo.size.height * g.yFrac,
+                    animating: animating,
+                    delay: g.delay
+                )
+            }
+        }
+    }
+}
+
+private struct SunGlint: View {
+    let x: CGFloat
+    let y: CGFloat
+    let animating: Bool
+    let delay: Double
+
+    @State private var glintOpacity: Double = 0.05
+
+    var body: some View {
+        Circle()
+            .fill(Color.white)
+            .frame(width: 80, height: 80)
+            .blur(radius: 28)
+            .opacity(animating ? glintOpacity : 0.05)
+            .position(x: x, y: y)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 2.2)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    glintOpacity = 0.22
+                }
+            }
+    }
+}
+
+/// 맑은 밤: 별빛 반짝임 (7개)
+private struct StarTwinkleView: View {
+    let animating: Bool
+
+    private let stars: [(xFrac: CGFloat, yFrac: CGFloat, size: CGFloat, delay: Double)] = [
+        (0.12, 0.06, 3.0, 0.0),
+        (0.35, 0.12, 2.5, 0.6),
+        (0.62, 0.04, 4.0, 1.2),
+        (0.80, 0.15, 2.0, 0.3),
+        (0.25, 0.20, 3.5, 1.8),
+        (0.55, 0.08, 2.5, 0.9),
+        (0.90, 0.10, 3.0, 1.5)
+    ]
+
+    var body: some View {
+        GeometryReader { geo in
+            ForEach(0..<stars.count, id: \.self) { i in
+                let s = stars[i]
+                StarDot(
+                    x: geo.size.width * s.xFrac,
+                    y: geo.size.height * s.yFrac,
+                    size: s.size,
+                    animating: animating,
+                    delay: s.delay
+                )
+            }
+        }
+    }
+}
+
+private struct StarDot: View {
+    let x: CGFloat
+    let y: CGFloat
+    let size: CGFloat
+    let animating: Bool
+    let delay: Double
+
+    @State private var starOpacity: Double = 0.10
+
+    var body: some View {
+        Circle()
+            .fill(Color.white)
+            .frame(width: size, height: size)
+            .opacity(animating ? starOpacity : 0.10)
+            .position(x: x, y: y)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 1.8)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    starOpacity = 0.80
+                }
+            }
     }
 }
 
@@ -925,7 +1243,7 @@ private struct WeatherDetailTile: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 110)
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 14)
