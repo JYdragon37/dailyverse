@@ -96,6 +96,10 @@ struct AppRootView: View {
         .animation(.easeInOut(duration: 0.4), value: loadingCoordinator.state == .ready)
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
+            // ⚠️ TEMPORARY: 온보딩 디자인 점검용 — 매 실행마다 온보딩 강제 표시
+            // 완료 후 이 줄 제거하면 기존 유저는 온보딩 스킵
+            onboardingCompleted = false
+
             await loadingCoordinator.start()
             // AuthWelcomeView 표시 여부 결정:
             // - 이미 로그인된 경우 → 스킵
