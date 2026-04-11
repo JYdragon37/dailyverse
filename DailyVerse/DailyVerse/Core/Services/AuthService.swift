@@ -57,8 +57,12 @@ class AuthService: NSObject {
             throw NSError(domain: "AuthService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "Google 클라이언트 ID 없음"])
         }
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let rootVC = windowScene.windows.first?.rootViewController else {
+        // @MainActor isolated 프로퍼티 접근 — Swift 6 준수
+        let rootVC: UIViewController? = await MainActor.run {
+            (UIApplication.shared.connectedScenes.first as? UIWindowScene)?
+                .windows.first?.rootViewController
+        }
+        guard let rootVC else {
             throw NSError(domain: "AuthService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "화면을 찾을 수 없어요"])
         }
