@@ -26,7 +26,7 @@ struct HomeView: View {
             .overlay(alignment: .topLeading) {
                 greetingHeader
                     .padding(.top, 60)
-                    .padding(.horizontal, 28)
+                    .padding(.horizontal, 24)
             }
             // #2 말씀 카드: 중앙보다 살짝 위, 가로 반응형
             .overlay {

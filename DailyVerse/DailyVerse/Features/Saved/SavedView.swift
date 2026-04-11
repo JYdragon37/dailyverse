@@ -141,7 +141,7 @@ struct SavedView: View {
                 .foregroundColor(.white.opacity(0.5))
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 32)
 
             Spacer().frame(height: 36)
 
@@ -156,7 +156,7 @@ struct SavedView: View {
                     .background(Color.dvAccentGold)
                     .cornerRadius(14)
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 32)
 
             Spacer()
         }
