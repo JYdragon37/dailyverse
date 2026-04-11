@@ -134,10 +134,15 @@ struct AppRootView: View {
         // MARK: - 로그인/로그아웃 감지
         .onChange(of: authManager.isLoggedIn) { isLoggedIn in
             if isLoggedIn {
-                // 로그인 성공 → 게스트 모드 해제 + 닉네임 미설정 시 입력 화면 표시
+                // 로그인 성공 → 게스트 모드 해제
                 guestModeActive = false
-                if !NicknameManager.shared.isSet {
-                    showNicknameSetup = true
+                // syncWithFirestore(AuthManager.signIn 내부)가 완료된 후 isSet 체크해야
+                // 기존 닉네임 유저에게 NicknameSetupView가 불필요하게 뜨지 않음 (타이밍 버그 방지)
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    if !NicknameManager.shared.isSet {
+                        showNicknameSetup = true
+                    }
                 }
             } else {
                 // 로그아웃 → 게스트 모드 해제 + 로그인 화면 재표시
