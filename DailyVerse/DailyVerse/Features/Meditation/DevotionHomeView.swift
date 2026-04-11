@@ -15,6 +15,7 @@ struct DevotionHomeView: View {
     @State private var verseAppeared = false
     @State private var displayedStreak = 0
     @State private var hasLoadedOnce = false
+    @State private var selectedMeditationEntry: MeditationEntry? = nil
 
     // MARK: - Greeting
 
@@ -63,6 +64,9 @@ struct DevotionHomeView: View {
             .padding(.bottom, 40)
         }
         .background(Color.dvBgDeep.ignoresSafeArea())
+        .fullScreenCover(item: $selectedMeditationEntry) { entry in
+            MeditationEntryDetailView(entry: entry)
+        }
         .task {
             let userId = authManager.userId ?? "local"
             await viewModel.load(userId: userId)
@@ -200,7 +204,9 @@ struct DevotionHomeView: View {
 
             // 14일 캘린더 그리드
             DevotionCalendarGrid(
-                streakManager: viewModel.streakManager
+                streakManager: viewModel.streakManager,
+                history: viewModel.history,
+                onEntryTap: { entry in selectedMeditationEntry = entry }
             )
         }
         .padding(24)
@@ -232,6 +238,8 @@ struct DevotionHomeView: View {
 private struct DevotionCalendarGrid: View {
 
     @ObservedObject var streakManager: StreakManager
+    var history: [MeditationEntry]
+    var onEntryTap: (MeditationEntry) -> Void
 
     private static let isoFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -277,12 +285,19 @@ private struct DevotionCalendarGrid: View {
             ForEach(last14Days, id: \.dateKey) { item in
                 let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
                 let isToday = item.dateKey == todayKey
+                let entry = history.first { $0.dateKey == item.dateKey }
 
                 DevotionDayDotCell(
                     dayNum: item.dayNum,
                     isMeditated: isMeditated,
                     isToday: isToday
                 )
+                .onTapGesture {
+                    if isMeditated, let entry {
+                        onEntryTap(entry)
+                    }
+                }
+                .contentShape(Rectangle())
             }
         }
     }

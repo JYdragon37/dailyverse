@@ -47,16 +47,20 @@ struct DevotionVerseView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             stickyCTA
         }
-        .navigationTitle("오늘의 묵상")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Text(formattedDate)
-                    .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.55))
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 2) {
+                    Text("오늘의 묵상")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                    Text(formattedDate)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.5))
+                }
             }
         }
     }
