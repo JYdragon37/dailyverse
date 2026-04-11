@@ -23,6 +23,7 @@ class AuthService: NSObject {
             request.nonce = sha256(nonce)
             let controller = ASAuthorizationController(authorizationRequests: [request])
             controller.delegate = self
+            controller.presentationContextProvider = self  // 팝업 표시 창 연결
             controller.performRequests()
         }
     }
@@ -40,6 +41,7 @@ class AuthService: NSObject {
             request.nonce = sha256(nonce)
             let controller = ASAuthorizationController(authorizationRequests: [request])
             controller.delegate = self
+            controller.presentationContextProvider = self  // 팝업 표시 창 연결
             controller.performRequests()
         }
     }
@@ -65,6 +67,19 @@ class AuthService: NSObject {
         let inputData = Data(input.utf8)
         let hashed = SHA256.hash(data: inputData)
         return hashed.compactMap { String(format: "%02x", $0) }.joined()
+    }
+}
+
+// MARK: - ASAuthorizationControllerPresentationContextProviding
+
+extension AuthService: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        // Sign-In 및 재인증 팝업이 표시될 창 제공
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first else {
+            return UIWindow()
+        }
+        return window
     }
 }
 

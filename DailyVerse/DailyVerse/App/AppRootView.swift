@@ -44,10 +44,14 @@ struct AppRootView: View {
                 SplashView()
                     .transition(.opacity)
                     .zIndex(20)
+            } else if !onboardingCompleted {
+                // 온보딩 미완료 → 항상 온보딩 먼저 (로그인 여부 무관)
+                OnboardingContainerView()
+                    .transition(.opacity)
             } else if showAuthWelcome && !authManager.isLoggedIn && !guestModeActive {
-                // AuthWelcomeView: 로그인 안 된 + 게스트 모드 아닌 경우만 표시
+                // 온보딩 완료 + 미로그인 → 로그인 유도
                 AuthWelcomeView(onSkip: {
-                    guestModeActive = true   // 세션 메모리에만 저장 (앱 재실행 시 초기화)
+                    guestModeActive = true
                     withAnimation(.easeInOut(duration: 0.4)) {
                         showAuthWelcome = false
                     }
@@ -55,15 +59,9 @@ struct AppRootView: View {
                 .transition(.opacity)
                 .zIndex(5)
             } else {
-                // Stage 3: 로그인 여부 + 온보딩 완료 여부에 따라 홈/온보딩 분기
-                Group {
-                    if onboardingCompleted {
-                        MainTabView()
-                    } else {
-                        OnboardingContainerView()
-                    }
-                }
-                .transition(.opacity)
+                // 온보딩 완료 + 로그인 or 게스트 → 메인
+                MainTabView()
+                    .transition(.opacity)
             }
 
             // MARK: - Stage 1 — 전체화면 알람 (TabBar 없음)
