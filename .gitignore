@@ -17,10 +17,9 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 scripts/serviceAccountKey.json
-scripts/images_to_upload/
-scripts/background_images_to_upload/*.jpg
-scripts/background_images_to_upload/*.jpeg
+scripts/verse-images/
+scripts/zone-backgrounds/*.jpg
+scripts/zone-backgrounds/*.jpeg
 scripts/node_modules/
 scripts/dailyverse-*.json
-read/audio-*.mp3
-read/*.mp3
+**/GoogleService-Info*.plist

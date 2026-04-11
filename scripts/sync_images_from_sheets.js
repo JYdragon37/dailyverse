@@ -3,7 +3,7 @@
  *
  * 동작 방식:
  *   A. 외부 공개 URL (Unsplash, Pexels, Genspark 공개공유 등) → 직접 다운로드 → 업로드
- *   B. 로컬 파일 (images_to_upload/ 폴더) → 업로드
+ *   B. 로컬 파일 (verse-images/ 폴더) → 업로드
  *      우선순위: storage_url이 http로 시작하면 A, 아니면 B 시도
  *
  *   - storage_url이 이미 Firebase URL이면 건너뜀 (중복 방지)
@@ -19,7 +19,7 @@
  * 사용법:
  *   1. IMAGES 시트에 메타데이터 입력
  *      - 공개 URL이 있으면 storage_url에 입력
- *      - 로컬 파일이면 filename 입력 후 images_to_upload/ 폴더에 파일 넣기
+ *      - 로컬 파일이면 filename 입력 후 verse-images/ 폴더에 파일 넣기
  *   2. node sync_images_from_sheets.js
  */
 
@@ -36,7 +36,7 @@ const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
 const SHEET_ID            = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
 const SHEET_NAME          = 'IMAGES';
 const FIREBASE_URL_PREFIX = 'https://storage.googleapis.com';
-const LOCAL_IMAGES_DIR    = './images_to_upload';
+const LOCAL_IMAGES_DIR    = './verse-images';
 
 // ─── 초기화 ────────────────────────────────────────────────────────────────
 
@@ -208,7 +208,7 @@ async function main() {
       } catch (err) {
         if (err.message.includes('403') || err.message.includes('401')) {
           console.error(`   ❌ 접근 거부 (${err.message})`);
-          console.error(`      → 이미지를 PC에 직접 다운로드 후 images_to_upload/ 폴더에 넣어주세요`);
+          console.error(`      → 이미지를 PC에 직접 다운로드 후 verse-images/ 폴더에 넣어주세요`);
           console.error(`      → 그 다음 시트의 storage_url을 비우고 filename만 입력하세요`);
         } else {
           console.error(`   ❌ 다운로드 실패: ${err.message}`);
@@ -228,7 +228,7 @@ async function main() {
       console.log(`\n📤 [${imageId}] 로컬 파일 읽는 중: ${localPath}`);
       if (!fs.existsSync(localPath)) {
         console.error(`   ❌ 파일 없음: ${localPath}`);
-        console.error(`      → images_to_upload/ 폴더에 ${filename} 파일을 넣어주세요`);
+        console.error(`      → verse-images/ 폴더에 ${filename} 파일을 넣어주세요`);
         failed++;
         continue;
       }

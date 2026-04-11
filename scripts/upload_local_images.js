@@ -1,5 +1,5 @@
 /**
- * DailyVerse — images_to_upload/ 하위 모든 이미지 자동 업로드
+ * DailyVerse — verse-images/ 하위 모든 이미지 자동 업로드
  *
  * 특징:
  *   - 하위 폴더 포함 재귀 탐색 (압축 해제 후 폴더째로 넣어도 OK)
@@ -19,7 +19,7 @@ const fs     = require('fs');
 const PROJECT_ID           = 'dailyverse-9260d';
 const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
 const SHEET_ID             = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
-const IMAGES_DIR           = './images_to_upload';
+const IMAGES_DIR           = './verse-images';
 
 // ─── 파일명 키워드 → 메타데이터 추론 ────────────────────────────────────────
 

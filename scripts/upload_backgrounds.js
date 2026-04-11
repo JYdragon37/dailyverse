@@ -2,7 +2,7 @@
  * DailyVerse — 홈 배경 이미지 업로드 스크립트 (v6.0 — 8 Zone)
  *
  * 사용법:
- *   1. background_images_to_upload/ 폴더에 이미지 파일 넣기
+ *   1. zone-backgrounds/ 폴더에 이미지 파일 넣기
  *      파일명 규칙 (확장자 jpg / jpeg / png 모두 가능):
  *        bg_deep_dark.jpg     🌑 Zone 1: 00–03시
  *        bg_first_light.jpg   🌒 Zone 2: 03–06시
@@ -24,7 +24,7 @@ const path = require('path');
 
 const PROJECT_ID = 'dailyverse-9260d';
 const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
-const IMAGES_DIR = './background_images_to_upload';
+const IMAGES_DIR = './zone-backgrounds';
 
 // 8 Zone 설정
 const BACKGROUND_ZONES = [

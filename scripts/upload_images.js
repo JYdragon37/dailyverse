@@ -2,7 +2,7 @@
  * DailyVerse — 이미지 일괄 업로드 스크립트
  *
  * 사용법:
- *   1. Genspark에서 이미지 다운로드 → scripts/images_to_upload/ 폴더에 넣기
+ *   1. Genspark에서 이미지 다운로드 → scripts/verse-images/ 폴더에 넣기
  *   2. 각 이미지 파일명을 메타데이터와 매핑 (아래 IMAGE_METADATA 수정)
  *   3. node upload_images.js 실행
  *
@@ -17,7 +17,7 @@ const path = require('path');
 
 const PROJECT_ID = 'dailyverse-9260d';
 const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
-const IMAGES_DIR = './images_to_upload';  // 업로드할 이미지 폴더
+const IMAGES_DIR = './verse-images';  // 업로드할 이미지 폴더
 
 // ─── 이미지 메타데이터 정의 ───────────────────────────────────────────────────
 // 파일명 → Firestore 메타데이터 매핑
