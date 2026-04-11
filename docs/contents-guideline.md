@@ -1,13 +1,14 @@
 # DailyVerse 콘텐츠 가이드라인
 
-> **상태**: 확정 — v6.2
-> 마지막 업데이트: 2026-04-10 (devotion_question 필드 추가)
+> **상태**: 확정 — v7.0
+> 마지막 업데이트: 2026-04-11 (데이터 라이프사이클 및 화면별 필드 매핑 가이드 추가, Sync Group 체계 확립)
 
 ---
 
 ## 목차
 1. [콘텐츠 전체 구조](#1-콘텐츠-전체-구조)
 2. [필드명 전체 매핑 (v6.0 확정)](#2-필드명-전체-매핑-v60-확정)
+- [2-1. 데이터 라이프사이클 및 화면별 필드 매핑 가이드](#2-1-데이터-라이프사이클-및-화면별-필드-매핑-가이드)
 3. [컬럼명 변경 이력](#3-컬럼명-변경-이력)
 4. [Verse — 홈 말씀](#4-verse--홈-말씀)
 5. [Alarm Verse — 알람 말씀](#5-alarm-verse--알람-말씀)
@@ -54,15 +55,94 @@ Firebase Storage
 | 1.2.1 | 홈 | 팝업 | application | 오늘의 적용 | verses | application |
 | 1.2.2 | 홈 | 팝업 | interpretation | 해석 | verses | interpretation |
 | 2.1.1 | 알람 | 알람 목록 상단 | alarm_main | 오늘의 말씀 | verses | alarm_top_ko → 없으면 verse_short_ko |
-| 2.2.1 | 알람 | Stage 1 전체화면 | alarm_popup1 | 알람 메인 글귀 | alarm_verses | verse_short_ko |
-| 2.3.1 | 알람 | Stage 2 웰컴 | alarm_popup2 | 알람 전문 글귀 | alarm_verses | verse_full_ko |
-| 2.3.2 | 알람 | Stage 2 한마디 | alarm_mission | 오늘의 한마디 참조 | alarm_verses | verse_short_ko |
+| 2.2.1 | 알람 | Stage 1 전체화면 | alarm_stage1 | 알람 메인 글귀 | verses | verse_short_ko (Group B) |
+| 2.3.1 | 알람 | Stage 2 웰컴 | alarm_stage2 | 알람 전문 글귀 | verses | verse_full_ko (Group A) |
+| 2.3.2 | 알람 | Stage 2 한마디 | alarm_word | 오늘의 한마디 | verses | verse_short_ko (Group B) |
 | 3.1.1 | 말씀들 | 썸네일 카드 | saved_title | 저장 메인 글귀 | saved_verses | verse_full_ko (저장 시 복사) |
 | 3.2.1 | 말씀들 | 저장 상세화면 | saved_application | 저장된 적용 | verses (동적) | application |
 | 3.2.2 | 말씀들 | 저장 상세화면 | saved_interpretation | 저장된 해석 | verses (동적) | interpretation |
 | 4.1.1 | 묵상 | 오늘의 묵상 카드 | contemplation_main | 오늘의 묵상 | verses | verse_short_ko |
 | 4.2.1 | 묵상 | 묵상 작성 시트 | contemplation_mission | 묵상 한 구절 | verses | contemplation_ko + contemplation_reference |
-| 4.3.1 | 묵상 | 묵상 응답 화면 | devotion_question | 묵상 질문 | verses | devotion_question |
+| 4.2.2 | 묵상 | 묵상 S2 해석 섹션 | contemplation_interpretation | 묵상 해석 | verses | contemplation_interpretation (Group P) |
+| 4.2.3 | 묵상 | 묵상 S3 일상 적용 | contemplation_appliance | 묵상 일상 적용 | verses | contemplation_appliance (Group O) |
+| 4.3.1 | 묵상 | 묵상 응답 화면 | devotion_question | 묵상 질문 | verses | question |
+
+---
+
+## 2-1. 데이터 라이프사이클 및 화면별 필드 매핑 가이드
+
+> 말씀 데이터의 갱신 주기와 화면 간 데이터 동기화 구조를 정의합니다.
+
+### 갱신 정책 (Lifecycle)
+
+#### 🔄 수시 변경 (Random Access)
+| 항목 | 내용 |
+|------|------|
+| 대상 화면 | ⏰ 알람 탭 — 오늘의 말씀 카드 |
+| 대상 필드 | `alarm_top_ko` (없으면 `verse_short_ko` 폴백) |
+| 로직 | 페이지 진입/오픈 시마다 `alarm_top_ko` 필드가 있는 구절만 풀에서 무작위 호출 |
+| 컬렉션 | `verses/` |
+
+#### 📅 일일 고정 (Daily Sync)
+| 항목 | 내용 |
+|------|------|
+| 기준 시간 | 매일 오전 04:00 KST |
+| 로직 | 해당 시간에 그날의 '오늘의 말씀' 데이터셋 확정 → 아래 5개 Sync Group으로 앱 전반 배포 |
+
+---
+
+### 동기화 그룹 (Sync Groups)
+
+오전 4시 갱신 이후, 동일한 데이터 소스를 공유하는 화면 그룹입니다.
+
+#### 🅰️ Group A — Full Verse (상세 구절)
+> 가장 완전한 형태의 말씀 정보를 노출
+
+| 연동 화면 | 주요 필드 |
+|---------|---------|
+| 🏠 홈 탭 메인 | `verse_full_ko`, `reference`, `theme[0]` |
+| ⏰ 알람 Stage 2 (웰컴) | `verse_full_ko`, `reference`, `theme[0]` |
+| 🔖 말씀들 그리드 카드 | `verse_full_ko` (SavedVerse 저장 시 스냅샷 — 갱신 불변) |
+| 🔖 말씀들 저장 상세 | `verse_full_ko`, `reference` (스냅샷 유지) |
+| 🍃 묵상 S2 말씀 카드 | `verse_full_ko`, `reference` |
+
+#### 🅱️ Group B — Short Verse (요약/가독성)
+> 빠른 인지가 필요한 전체화면 또는 요약 섹션
+
+| 연동 화면 | 주요 필드 |
+|---------|---------|
+| ⏰ 알람 Stage 1 (전체화면) | `verse_short_ko` |
+| ⏰ 알람 Stage 2 → 오늘의 한마디 시트 | `verse_short_ko` |
+| 🍃 묵상 탭 홈 (오늘의 말씀 카드) | `verse_short_ko`, `reference` |
+| 🍃 묵상 S2 읽기 섹션 | `contemplation_ko` → (없으면) `verse_short_ko` |
+| 🍃 묵상 S4 완료 미니카드 | `verse_short_ko`, `reference` |
+
+#### 🅾️ Group O — Application (오늘의 적용)
+> 말씀을 삶에 적용하는 가이드 콘텐츠
+
+| 연동 화면 | 주요 필드 |
+|---------|---------|
+| 🏠 홈 말씀 상세 바텀시트 (적용) | `application` |
+| 🔖 말씀들 저장 상세 → 해석시트 (적용) | `application` |
+| 🍃 묵상 S3 일상 적용 | `contemplation_appliance` → (없으면) `application` |
+
+#### 🅿️ Group P — Interpretation (해석)
+> 말씀의 신학적/내용적 풀이 콘텐츠
+
+| 연동 화면 | 주요 필드 |
+|---------|---------|
+| 🏠 홈 말씀 상세 바텀시트 (해석) | `interpretation` |
+| 🔖 말씀들 저장 상세 → 해석시트 (해석) | `interpretation` |
+| 🍃 묵상 S2 해석 섹션 | `contemplation_interpretation` → (없으면) `interpretation` |
+
+#### 🆀 Group Q — Unique (단독 항목)
+> 독립적으로 관리되는 항목
+
+| 연동 화면 | 주요 필드 |
+|---------|---------|
+| 🍃 묵상 S3 묵상 질문 | `question` (없으면 기본 문구 하드코딩) |
+
+> ⚠️ **규칙**: `question`은 동일 구절의 `verse_full_ko` / `contemplation_ko`와 맥락이 연관된 질문이어야 합니다.
 
 ---
 
@@ -184,7 +264,7 @@ contemplation_ko: "나의 영혼아 잠잠히 하나님만 바라라. 무릇 나
 
 ---
 
-#### `devotion_question` — 묵상 응답 질문 (신규)
+#### `question` — 묵상 응답 질문 (신규)
 
 | 항목 | 기준 |
 |------|------|
@@ -205,7 +285,7 @@ contemplation_ko: "나의 영혼아 잠잠히 하나님만 바라라. 무릇 나
 | 필드 | 역할 |
 |------|------|
 | `contemplation_ko` | 묵상 작성 시트에 표시되는 성경 구절 (핵심 구절 요약) |
-| `devotion_question` | 묵상 응답 화면에 표시되는 삶 적용 질문 (개인화된 일상 질문) |
+| `question` | 묵상 응답 화면에 표시되는 삶 적용 질문 (개인화된 일상 질문) |
 
 ---
 
@@ -221,6 +301,32 @@ contemplation_ko: "나의 영혼아 잠잠히 하나님만 바라라. 무릇 나
 ```
 contemplation_reference: "시편 62:5"
 ```
+
+---
+
+#### `contemplation_interpretation` — 묵상 해석 (신규)
+
+| 항목 | 기준 |
+|------|------|
+| 용도 | 묵상 S2 해석 섹션 — contemplation_ko 구절에 특화된 해석 (없으면 interpretation으로 폴백) |
+| 분량 | **80~150자** |
+| 구조 | ① 구절 배경 1문장 → ② 핵심 의미 1~2문장 → ③ 묵상 연결 1문장 |
+| 말투 | ~야, ~이야, ~거야 (interpretation과 동일 기준) |
+| 금지 | 원어 직접 표기, 설교조, ~입니다 |
+| contemplation_ko와의 관계 | contemplation_ko 구절을 해석하는 내용이어야 함 |
+
+---
+
+#### `contemplation_appliance` — 묵상 일상 적용 (신규)
+
+| 항목 | 기준 |
+|------|------|
+| 용도 | 묵상 S3 일상 적용 섹션 — contemplation_ko 구절 기반 삶 적용 (없으면 application으로 폴백) |
+| 분량 | **40~80자** |
+| 구조 | 오늘 바로 할 수 있는 구체적 행동 또는 태도 1가지 |
+| 말투 | ~해봐, ~기억해, ~생각해봐 (application과 동일 기준) |
+| 금지 | 반드시 ~해야, 설교조 |
+| contemplation_ko와의 관계 | contemplation_ko/contemplation_interpretation과 맥락 연결 |
 
 ---
 
@@ -596,7 +702,9 @@ Google Sheets IMAGES 탭에 행 추가
 | interpretation | 128자 | 102~154자 | 80~120% |
 | application | 61자 | 49~73자 | 80~120% |
 | contemplation_ko | (신규) | 50~200자 | — |
-| devotion_question | (신규) | 40~80자 | — |
+| question | (신규) | 40~80자 | — |
+| contemplation_interpretation | (신규) | 80~150자 | — |
+| contemplation_appliance | (신규) | 40~80자 | — |
 
 ---
 

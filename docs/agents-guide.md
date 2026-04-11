@@ -2,7 +2,7 @@
 
 > 이 프로젝트에서 Claude Code가 활용하는 서브 에이전트 목록입니다.
 > 각 에이전트는 특정 역할에 특화되어 있으며, 복잡한 작업을 병렬/순차로 처리합니다.
-> 마지막 업데이트: 2026-04-10 (v6.1 — devotion_question 신규 추가 + devotion-question-writer 에이전트)
+> 마지막 업데이트: 2026-04-11 (v7.0 — Sync Group 정책 반영)
 
 ---
 
@@ -197,6 +197,13 @@ DailyVerse의 알람 시스템 관련 작업입니다.
 주요 엣지케이스 9가지 처리 필수:
 - 오프라인, 스누즈 강제종료, 복수 알람 동시 발동 등
 ```
+
+**⚠️ 중요 변경 (v7.0)**:
+- `AlarmStage1View`, `AlarmStage2View`는 이제 `verses` 컬렉션 Daily Sync를 사용
+- `alarm_verses` 컬렉션은 알람 탭 오늘의 말씀 카드(`alarm_top_ko`, Random Access)에만 사용
+- Stage1: Group B → `verses`의 `verse_short_ko` 사용
+- Stage2: Group A → `verses`의 `verse_full_ko` 사용
+- 오프라인 폴백: `fallbackVerses` 유지
 
 ---
 
@@ -477,6 +484,13 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 참조: {책 이름 장:절}
 모드: {morning/afternoon/evening/alarm 중 해당}
 
+[콘텐츠 Sync Group 인식]
+- Group O (Application): application → 홈 바텀시트/말씀들 해석시트/묵상 S3 적용에 표시
+  contemplation_appliance → 묵상 S3 일상 적용 전용 (없으면 application으로 폴백)
+- Group P (Interpretation): interpretation → 홈 바텀시트/말씀들 해석시트/묵상 S2 해석에 표시
+  contemplation_interpretation → 묵상 S2 해석 전용 (없으면 interpretation으로 폴백)
+- 각 필드가 어느 화면에서 노출되는지 인식하고 해당 화면의 맥락에 맞게 작성
+
 [interpretation 작성 규칙]
 - 분량: 102~154자 (기준 128자, ±20%)
 - 성경 시대 배경 또는 저자의 상황을 1문장으로 먼저 소개
@@ -583,7 +597,7 @@ contemplation_reference: "시편 62:5"
 
 ### `devotion-question-writer` (general-purpose 활용)
 **역할**: 특정 말씀에 대한 묵상 응답 화면용 개인화 질문 생성
-**주로 사용**: 새 verse 배치 추가 시, 또는 devotion_question 일괄 생성 시
+**주로 사용**: 새 verse 배치 추가 시, 또는 question 일괄 생성 시
 
 **입력 필드**:
 - `verse_short_ko`: 핵심 요약 구절 (카드 표시용)
@@ -592,18 +606,24 @@ contemplation_reference: "시편 62:5"
 - `contemplation_ko`: 묵상 작성 시트용 구절
 
 **출력 필드**:
-- `devotion_question`: 40~80자 질문형 문장 (닉네임 없이 저장)
+- `question`: 40~80자 질문형 문장 (닉네임 없이 저장)
+
+**핵심 규칙**:
+- `question` 필드는 동일 구절의 `verse_full_ko` 또는 `contemplation_ko`와 맥락이 연관되어야 함
+- 묵상 S3에서 표시되는 질문은 묵상 S2에서 읽은 말씀카드(`verse_full_ko`)와 맥락이 이어져야 함
+- 필드명: `question` (Firestore 키 = "question", 구버전 `devotion_question` 사용 금지)
+- Group Q (Unique): 독립 관리, 다른 필드와 Sync 없음
 
 **프롬프트 패턴**:
 ```
-아래 말씀에 대한 묵상 질문(devotion_question)을 생성해줘.
+아래 말씀에 대한 묵상 질문(question)을 생성해줘.
 
 말씀: {verse_short_ko}
 참조: {reference}
 해석: {interpretation}
 묵상 구절: {contemplation_ko}
 
-[devotion_question 작성 규칙]
+[question 작성 규칙]
 - 분량: 40~80자 (1~2문장)
 - 형식: 질문형 문장
 - 닉네임 없이 저장 (앱에서 "{name}님, " 앞붙임으로 동적 합성)
@@ -626,13 +646,21 @@ contemplation_reference: "시편 62:5"
 - "여러분은 어떻게 생각하십니까?" (경어체, 방송 어투)
 ```
 
-**산출물**: `devotion_question` 필드값 → `generate_devotion_questions.js` 스크립트로 Firebase 반영
+**산출물**: `question` 필드값 → `generate_devotion_questions.js` 스크립트로 Firebase 반영
 
 ---
 
 ### `content-patcher` (Node.js 스크립트)
 **역할**: 검수 완료된 문구를 Google Sheets 또는 Firestore에 배치 업로드
 **주로 사용**: 문구 수정 완료 후 실제 반영
+
+**업로드 시 Sync Group 인식**:
+- Group A 필드: `verse_full_ko`, `reference` → 홈/알람S2/말씀들/묵상S2
+- Group B 필드: `verse_short_ko`, `contemplation_ko` → 알람S1/묵상홈/묵상S2읽기
+- Group O 필드: `application`, `contemplation_appliance` → 바텀시트/묵상S3
+- Group P 필드: `interpretation`, `contemplation_interpretation` → 해석시트/묵상S2해석
+- Group Q 필드: `question` → 묵상S3질문
+- Random Access: `alarm_top_ko` → 알람탭 카드 (`alarm_top_ko` 있는 구절만 풀 대상)
 
 **스크립트 패턴** (`scripts/` 디렉토리):
 ```javascript

@@ -8,6 +8,7 @@ struct AlarmStage2View: View {
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = false
     @State private var showWordSheet: Bool = false
+    @State private var todayVerse: Verse? = nil
 
     // 알람 발동 시간 기준 zone (현재 시간 아님)
     private var alarmMode: AppMode { coordinator.activeMode }
@@ -30,7 +31,7 @@ struct AlarmStage2View: View {
             }
             // 말씀 카드: 중앙보다 살짝 위, 가로 반응형 (HomeView와 동일)
             .overlay {
-                if let verse = coordinator.activeVerse {
+                if let verse = todayVerse {
                     GeometryReader { geo in
                         let w = geo.size.width
                         let hPad = max(w * 0.13, 40.0)
@@ -49,6 +50,15 @@ struct AlarmStage2View: View {
             .opacity(isVisible ? 1 : 0)
             .onAppear {
                 withAnimation(.easeInOut(duration: 0.6)) { isVisible = true }
+                // DailyCacheManager에서 오늘의 말씀 로드
+                let mode = coordinator.activeMode
+                if let id = DailyCacheManager.shared.getVerseId(for: mode),
+                   let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                    todayVerse = verse
+                } else {
+                    todayVerse = Verse.fallbackVerses.first { $0.mode.contains(mode.rawValue) }
+                                 ?? Verse.fallbackRiseIgnite
+                }
             }
             // 로그인 유도 시트
             .sheet(isPresented: $showLoginPrompt) {
@@ -61,7 +71,7 @@ struct AlarmStage2View: View {
             }
             // 오늘의 한마디 시트
             .sheet(isPresented: $showWordSheet) {
-                if let verse = coordinator.activeVerse {
+                if let verse = todayVerse {
                     WordOfDaySheet(verse: verse, mode: alarmMode, userId: authManager.userId ?? "local") {
                         showWordSheet = false
                     }
@@ -279,7 +289,7 @@ struct AlarmStage2View: View {
     // MARK: - Save Action
 
     private func handleSave() {
-        guard let verse = coordinator.activeVerse else { return }
+        guard let verse = todayVerse else { return }
         guard authManager.isLoggedIn else {
             showLoginPrompt = true
             return
@@ -410,7 +420,6 @@ private struct WordOfDaySheet: View {
 
 #Preview {
     let coordinator = AlarmCoordinator()
-    coordinator.activeVerse = .fallbackMorning
     coordinator.activeWeather = .placeholder
     coordinator.activeMode = .riseIgnite
 

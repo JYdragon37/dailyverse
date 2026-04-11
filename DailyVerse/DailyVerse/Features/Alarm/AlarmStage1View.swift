@@ -5,6 +5,7 @@ struct AlarmStage1View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
     @State private var weatherForForecast: WeatherData?
     @State private var showVolumeWarning: Bool = false
+    @State private var todayVerse: Verse? = nil
 
     var body: some View {
         ZStack {
@@ -25,7 +26,7 @@ struct AlarmStage1View: View {
                         .padding(.horizontal, 20)
                 }
 
-                if let verse = coordinator.activeVerse {
+                if let verse = todayVerse {
                     VStack(spacing: 14) {
                         Text(verse.verseShortKo)
                             .font(.system(size: 26, weight: .semibold, design: .serif))
@@ -102,11 +103,21 @@ struct AlarmStage1View: View {
         .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(true)
         .task {
+            // 날씨 로드
             if let w = coordinator.activeWeather, !w.hourlyForecast.isEmpty {
                 weatherForForecast = w
             } else if let cached = WeatherCacheManager().load() {
                 weatherForForecast = cached
                 coordinator.activeWeather = cached
+            }
+            // DailyCacheManager에서 오늘의 말씀 로드
+            let mode = coordinator.activeMode
+            if let id = DailyCacheManager.shared.getVerseId(for: mode),
+               let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                todayVerse = verse
+            } else {
+                todayVerse = Verse.fallbackVerses.first { $0.mode.contains(mode.rawValue) }
+                             ?? Verse.fallbackRiseIgnite
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dvAlarmVolumeTooLow)) { _ in
@@ -250,7 +261,6 @@ private struct CompactHourlyItem: View {
 
 #Preview {
     let coordinator = AlarmCoordinator()
-    coordinator.activeVerse = .fallbackMorning
     coordinator.activeWeather = WeatherData(
         temperature: 14, condition: "sunny", conditionKo: "맑음",
         humidity: 67, dustGrade: "보통", cityName: "Seoul", cachedAt: Date(),
