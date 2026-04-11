@@ -171,7 +171,7 @@ struct AlarmStage2View: View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 (verseFullKo)
             Text(verse.verseFullKo)
-                .font(.system(size: 21, weight: .semibold))
+                .font(.custom("Georgia-BoldItalic", size: 21))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
@@ -349,7 +349,7 @@ private struct WordOfDaySheet: View {
                 // 말씀 카드 (verse_short_ko)
                 VStack(alignment: .center, spacing: 16) {
                     Text(verse.verseShortKo)
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.custom("Georgia-BoldItalic", size: 22))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineSpacing(6)

@@ -29,7 +29,7 @@ struct AlarmStage1View: View {
                 if let verse = todayVerse {
                     VStack(spacing: 14) {
                         Text(verse.verseShortKo)
-                            .font(.system(size: 26, weight: .semibold, design: .serif))
+                            .font(.dvStage1Verse)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .lineSpacing(6)

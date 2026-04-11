@@ -50,7 +50,7 @@ struct SavedDetailView: View {
     private var verseBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verseText)
-                .font(.system(size: 21, weight: .semibold))
+                .font(.custom("Georgia-BoldItalic", size: 21))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
