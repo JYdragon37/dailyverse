@@ -12,6 +12,7 @@ struct DevotionCompleteView: View {
     let prayer: String
     @ObservedObject var viewModel: MeditationViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
 
     // MARK: - Animation State
 
@@ -216,7 +217,8 @@ struct DevotionCompleteView: View {
     // MARK: - Share Handler
 
     private func handleShare() {
-        let image = DevotionShareCardRenderer.render(verse: verse, prayer: prayer)
+        let bgImage = loadingCoordinator.zoneBgImage
+        let image = DevotionShareCardRenderer.render(verse: verse, prayer: prayer, backgroundImage: bgImage)
         shareImage = image
         showShareSheet = true
     }
@@ -233,5 +235,6 @@ struct DevotionCompleteView: View {
     .environmentObject(AuthManager())
     .environmentObject(SubscriptionManager())
     .environmentObject(UpsellManager())
+    .environmentObject(AppLoadingCoordinator())
     .preferredColorScheme(.dark)
 }

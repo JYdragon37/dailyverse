@@ -38,7 +38,7 @@ final class AlarmViewModel: ObservableObject {
     func saveAlarm(_ alarm: Alarm) {
         do {
             try alarmRepository.save(alarm)
-            let verse = fallbackVerse(for: alarm)
+            let verse = notificationVerse(for: alarm)
             notificationManager.cancel(alarmId: alarm.id)
             if alarm.isEnabled {
                 notificationManager.schedule(alarm, verse: verse)
@@ -100,7 +100,7 @@ final class AlarmViewModel: ObservableObject {
 
         notificationManager.cancel(alarmId: alarm.id)
         if alarm.isEnabled {
-            let verse = fallbackVerse(for: alarm)
+            let verse = notificationVerse(for: alarm)
             notificationManager.schedule(alarm, verse: verse)
         }
     }
@@ -145,6 +145,16 @@ final class AlarmViewModel: ObservableObject {
     }
 
     // MARK: - Private Helpers
+
+    /// 알람 알림용 말씀: Daily Sync 구절 우선, 없으면 fallback
+    private func notificationVerse(for alarm: Alarm) -> Verse {
+        let mode = AppMode.fromTime(alarm.time)
+        if let id = DailyCacheManager.shared.getVerseId(for: mode),
+           let cached = DailyCacheManager.shared.loadCachedVerse(id: id) {
+            return cached
+        }
+        return fallbackVerse(for: alarm)
+    }
 
     private func fallbackVerse(for alarm: Alarm) -> Verse {
         switch AppMode.fromTime(alarm.time) {
