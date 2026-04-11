@@ -94,6 +94,9 @@ final class HomeViewModel: ObservableObject {
 
         // 알람 CTA 재평가
         evaluateAlarmCTA()
+
+        // Design Ref: §6 — 위치권한 온보딩 제거 → 홈탭 첫 진입 시 요청
+        checkAndRequestLocationIfNeeded()
     }
 
     /// 포그라운드 복귀 시 날씨만 갱신 (백그라운드 복귀 등 자동 갱신)
@@ -277,6 +280,19 @@ final class HomeViewModel: ObservableObject {
         case 6...8: return "summer"
         case 9...11: return "autumn"
         default: return "winter"
+        }
+    }
+
+    // MARK: - Private: Location Permission (Design Ref: §6)
+
+    /// 온보딩에서 제거된 위치권한 → 홈탭 첫 진입 시 한 번만 요청
+    private func checkAndRequestLocationIfNeeded() {
+        let alreadyRequested = UserDefaults.standard.bool(forKey: OnboardingKey.locationRequested.rawValue)
+        guard !alreadyRequested else { return }
+        guard permissionManager.locationStatus == .notDetermined else { return }
+        Task {
+            await permissionManager.requestLocationPermission()
+            UserDefaults.standard.set(true, forKey: OnboardingKey.locationRequested.rawValue)
         }
     }
 

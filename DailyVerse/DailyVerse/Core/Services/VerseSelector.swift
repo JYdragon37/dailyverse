@@ -44,6 +44,13 @@ class VerseSelector {
         let currentSeason = currentSeasonTag()
         let currentWeather = weather?.condition ?? "any"
 
+        // Design Ref: §7 — 온보딩 선호 테마 +5점 보너스
+        let preferredThemes: [String] = {
+            guard let data = UserDefaults.standard.data(forKey: "preferredThemes"),
+                  let themes = try? JSONDecoder().decode([String].self, from: data) else { return [] }
+            return themes
+        }()
+
         let scored: [(Verse, Int)] = verses.map { verse in
             var score = 0
             // theme: "all" → +3, 특정 테마 매칭 → 매칭 수 × 3
@@ -56,6 +63,10 @@ class VerseSelector {
                 : verse.mood.filter { currentMoods.contains($0) }.count * 2
             if verse.weather.contains(currentWeather) || verse.weather.contains("any") { score += 2 }
             if verse.season.contains(currentSeason)  || verse.season.contains("all")  { score += 1 }
+            // 온보딩 선호 테마 보너스 (겹치는 테마 하나라도 있으면 +5)
+            if !preferredThemes.isEmpty && !Set(verse.theme).isDisjoint(with: Set(preferredThemes)) {
+                score += 5
+            }
             return (verse, score)
         }
 

@@ -1,54 +1,57 @@
 import SwiftUI
 
-// v5.1 — 6단계 온보딩
-// 0: Welcome → 1: 닉네임 → 2: First Verse → 3: Location → 4: Notification → 5: First Alarm
+// Design Ref: §5 — ZStack + offset 기반 커스텀 전환, TabView swipe 완전 제거
+// Plan SC: 온보딩 완료율 85%+ / 60초 이내
 
 struct OnboardingContainerView: View {
-    @StateObject private var viewModel = OnboardingViewModel()
+    @StateObject private var vm = OnboardingViewModel()
+    @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
+
+    private let screenWidth = UIScreen.main.bounds.width
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $viewModel.currentPage) {
-                OnboardingWelcomeView(viewModel: viewModel)
-                    .tag(0)
-                OnboardingNicknameView(viewModel: viewModel)   // v5.1 신규
-                    .tag(1)
-                OnboardingFirstVerseView(viewModel: viewModel)
-                    .tag(2)
-                OnboardingLocationView(viewModel: viewModel)
-                    .tag(3)
-                OnboardingNotificationView(viewModel: viewModel)
-                    .tag(4)
-                OnboardingFirstAlarmView(viewModel: viewModel)
-                    .tag(5)
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(.dvOnboardingTransition, value: viewModel.currentPage)
+        ZStack {
+            // Screen 0: 감성 인트로
+            ONBIntroView(vm: vm)
+                .offset(x: pageOffset(for: 0))
+                .opacity(nearPage(0) ? 1 : 0)
 
-            // 페이지 인디케이터 (6개 점)
-            HStack(spacing: 8) {
-                ForEach(0..<6, id: \.self) { index in
-                    Circle()
-                        .fill(
-                            index == viewModel.currentPage
-                                ? Color.dvAccentGold
-                                : Color.secondary.opacity(0.4)
-                        )
-                        .frame(
-                            width: index == viewModel.currentPage ? 10 : 6,
-                            height: index == viewModel.currentPage ? 10 : 6
-                        )
-                        .animation(.spring(), value: viewModel.currentPage)
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("온보딩 진행 단계 \(viewModel.currentPage + 1) / 6")
-            .padding(.bottom, 20)
+            // Screen 1: Value-First 체험
+            ONBExperienceView(vm: vm)
+                .offset(x: pageOffset(for: 1))
+                .opacity(nearPage(1) ? 1 : 0)
+
+            // Screen 2: 테마 + 닉네임
+            ONBPersonalizeView(vm: vm)
+                .offset(x: pageOffset(for: 2))
+                .opacity(nearPage(2) ? 1 : 0)
+
+            // Screen 3: 알람 + Permission Priming
+            ONBAlarmPermissionView(vm: vm)
+                .offset(x: pageOffset(for: 3))
+                .opacity(nearPage(3) ? 1 : 0)
         }
+        .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentPage)
         .ignoresSafeArea()
+        // 스와이프 제스처 비활성화 (실수 방지, 버튼으로만 진행)
+        .gesture(DragGesture())
+    }
+
+    // MARK: - 전환 헬퍼
+
+    /// 화면 인덱스에 따른 X offset — 현재 페이지 기준 좌우 배치
+    private func pageOffset(for page: Int) -> CGFloat {
+        CGFloat(page - vm.currentPage) * screenWidth
+    }
+
+    /// 인접 화면(현재 ±1)만 렌더링해 메모리 절약
+    private func nearPage(_ page: Int) -> Bool {
+        abs(vm.currentPage - page) <= 1
     }
 }
 
 #Preview {
     OnboardingContainerView()
+        .environmentObject(AppLoadingCoordinator())
+        .preferredColorScheme(.dark)
 }
