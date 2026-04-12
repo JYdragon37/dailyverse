@@ -24,7 +24,7 @@ struct ONBIntroView: View {
             bgGradient.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer(minLength: 0)
+                Spacer(minLength: 60)
 
                 // ── 브랜드 블록 ──────────────────────────────
                 VStack(spacing: 20) {
@@ -49,7 +49,7 @@ struct ONBIntroView: View {
 
                     // 앱 이름 (커시브 스크립트)
                     Text("DailyVerse")
-                        .font(.custom("SnellRoundhand", size: 50))
+                        .font(.custom("DancingScript-Regular", size: 50))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
 

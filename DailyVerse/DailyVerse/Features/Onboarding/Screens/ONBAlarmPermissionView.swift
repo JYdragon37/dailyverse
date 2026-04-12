@@ -23,7 +23,7 @@ struct ONBAlarmPermissionView: View {
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Spacer().frame(height: 40)
+                        Spacer().frame(height: 80)
 
                         // 헤더
                         VStack(alignment: .leading, spacing: 8) {
@@ -56,12 +56,7 @@ struct ONBAlarmPermissionView: View {
                         .padding(.horizontal, 28)
 
                         // 알림 미리보기 영역 (CTA 제외)
-                        if hasAnyAlarm {
-                            permissionInfoSection
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                        } else {
-                            skipInfoSection
-                        }
+                        permissionInfoSection
 
                         Spacer().frame(height: 24)
                     }
@@ -178,25 +173,35 @@ struct ONBAlarmPermissionView: View {
                 }
                 .accessibilityLabel("알림 허용 건너뛰기")
             } else {
-                // 건너뛰기 버튼
+                // 알림 허용 버튼 (알람 없어도 알림은 받을 수 있음)
                 Button {
-                    vm.completeOnboarding()
+                    Task {
+                        await vm.requestNotification()
+                        vm.completeOnboarding()
+                    }
                 } label: {
-                    Text("건너뛰기")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.65))
+                    Text("알림 허용하기")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(hex: "#1A2340"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 60)
                         .background(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.white.opacity(0.15))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                )
+                                .fill(Color.white)
                         )
                 }
-                .accessibilityLabel("알람 설정 건너뛰기")
+                .accessibilityLabel("알림 권한 허용 후 시작하기")
+
+                // 나중에 (텍스트 버튼)
+                Button {
+                    vm.completeOnboarding()
+                } label: {
+                    Text("나중에")
+                        .font(.system(size: 15))
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(height: 44)
+                }
+                .accessibilityLabel("알림 건너뛰기")
             }
         }
         .padding(.horizontal, 24)

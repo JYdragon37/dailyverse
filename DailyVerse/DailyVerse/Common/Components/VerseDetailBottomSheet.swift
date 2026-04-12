@@ -14,7 +14,6 @@ struct VerseSheetDetent: CustomPresentationDetent {
 struct VerseDetailBottomSheet: View {
     let verse: Verse
     let onSave: () -> Void
-    let onNext: () -> Void
     let onClose: () -> Void
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
@@ -112,20 +111,6 @@ struct VerseDetailBottomSheet: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
-            Button(action: onNext) {
-                Text("다음 말씀")
-                    .font(.system(size: 15, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.10))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
-                    )
-                    .foregroundColor(.white)
-            }
-            .accessibilityLabel("다음 말씀 보기")
-
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 13, weight: .semibold))
@@ -196,7 +181,6 @@ private struct PresentationCornerRadiusModifier: ViewModifier {
             VerseDetailBottomSheet(
                 verse: .fallbackRiseIgnite,
                 onSave: {},
-                onNext: {},
                 onClose: {}
             )
         }

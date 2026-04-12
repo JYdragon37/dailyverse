@@ -17,35 +17,110 @@ struct MeditationEntryDetailView: View {
         return LinearGradient(colors: mode.gradientColors, startPoint: .top, endPoint: .bottom)
     }
 
-    // MARK: - Verse Block
+    // MARK: - 4-Stop 감성 오버레이
+    // 상단(날짜) · 중앙(배경 노출) · 말씀 블록 · 하단(버튼) 구간별 독립 처리
+
+    private var overlayGradient: some View {
+        LinearGradient(
+            stops: [
+                .init(color: .black.opacity(0.70), location: 0.00),
+                .init(color: .black.opacity(0.15), location: 0.28),
+                .init(color: .black.opacity(0.35), location: 0.55),
+                .init(color: .black.opacity(0.78), location: 1.00),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+
+    // MARK: - 날짜 블록
+    // 연도(작게·흐리게) / 구분선 / 월·일(크게·선명하게) / 요일(보통·중간)
+    // 설계 의도: 이 날의 묵상이 인생의 고정된 한 순간임을 시각적 계층으로 표현
+
+    private var dateBlock: some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // 연도 — 맥락 레이어, 작고 흐릿하게
+            Text(entryYear)
+                .font(.system(size: 11, weight: .medium))
+                .tracking(3)
+                .foregroundColor(.white.opacity(0.45))
+
+            // 시각적 구분선
+            Rectangle()
+                .fill(Color.white.opacity(0.35))
+                .frame(width: 20, height: 1)
+                .padding(.vertical, 6)
+
+            // 월·일 — 핵심 정보, 가장 크고 선명하게
+            Text(entryMonthDay)
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.white)
+
+            // 요일 — 보조 정보, 날짜 바로 아래 2pt 간격
+            Text(entryWeekday)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.white.opacity(0.65))
+                .padding(.top, 2)
+
+            // 도시명 — 위치 컨텍스트, 없으면 숨김
+            if let city = entry.locationName, !city.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 9))
+                    Text(city)
+                        .font(.system(size: 12, weight: .regular))
+                }
+                .foregroundColor(.white.opacity(0.45))
+                .padding(.top, 6)
+            }
+        }
+        .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
+    }
+
+    // MARK: - 말씀 블록
+    // 26pt semibold, 행간 1.6, 강한 그림자로 배경 위 선명도 확보
 
     private var verseBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
+
+            // 말씀 본문 — 화면의 주인공
             Text(verse?.verseFullKo ?? entry.verseReference)
-                .font(.system(size: 21, weight: .semibold))
+                .font(.system(size: 26, weight: .semibold))
                 .foregroundColor(.white)
-                .lineSpacing(8)
+                .lineSpacing(11)
                 .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
+                .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 4)
 
+            // 참조 — em dash로 시작, 중간 크기·중간 투명도
+            Text("— \(entry.verseReference)")
+                .font(.system(size: 14, weight: .medium))
+                .tracking(0.5)
+                .foregroundColor(.white.opacity(0.75))
+                .shadow(color: .black.opacity(0.7), radius: 6, x: 0, y: 2)
+                .padding(.top, 20)
+
+            // 묵상 기록 보기 힌트 — 선(rule) + 텍스트 + 아이콘 순서
+            // 시선이 왼쪽에서 오른쪽으로 흐르며 위로 올리는 동작을 자연스럽게 유도
             HStack(spacing: 8) {
-                Text(entry.verseReference)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            .padding(.top, 18)
-
-            // #15: 항상 탭 힌트 표시
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 10, weight: .medium))
+                Rectangle()
+                    .fill(Color.white.opacity(0.35))
+                    .frame(width: 20, height: 1)
                 Text("묵상 기록 보기")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.white.opacity(0.5))
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
             }
-            .foregroundColor(.white.opacity(0.5))
-            .padding(.top, 20)
+            .padding(.top, 28)
         }
-        .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
+        .onTapGesture {
+            showDetailSheet = true
+        }
+        .accessibilityLabel("묵상 기록 보기")
+        .accessibilityHint("탭하면 묵상 내용을 확인할 수 있어요")
     }
 
     // MARK: - Detail Sheet
@@ -137,7 +212,7 @@ struct MeditationEntryDetailView: View {
         .presentationDragIndicator(.visible)
     }
 
-    // MARK: - 해석 섹션 (contemplationInterpretation 우선, 없으면 interpretation)
+    // MARK: - 해석 섹션
 
     @ViewBuilder
     private var interpretationSection: some View {
@@ -184,23 +259,54 @@ struct MeditationEntryDetailView: View {
             ?? "이 말씀이 오늘 나의 삶에 어떻게 다가왔나요?"
     }
 
-    private var formattedEntryDate: String {
+    private var parsedEntryDate: Date? {
         let parser = DateFormatter()
         parser.dateFormat = "yyyy-MM-dd"
-        let display = DateFormatter()
-        display.locale = Locale(identifier: "ko_KR")
-        display.dateFormat = "yyyy년 M월 d일 EEEE"
-        if let date = parser.date(from: entry.dateKey) {
-            return display.string(from: date)
-        }
-        return entry.dateKey
+        return parser.date(from: entry.dateKey)
+    }
+
+    /// "2026" 연도만 추출 — 날짜 블록 최상단 맥락 레이어
+    private var entryYear: String {
+        guard let date = parsedEntryDate else { return "" }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "yyyy"
+        return fmt.string(from: date)
+    }
+
+    /// "4월 12일" 형식
+    private var entryMonthDay: String {
+        guard let date = parsedEntryDate else { return entry.dateKey }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "M월 d일"
+        return fmt.string(from: date)
+    }
+
+    /// "토요일" 형식
+    private var entryWeekday: String {
+        guard let date = parsedEntryDate else { return "" }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "EEEE"
+        return fmt.string(from: date)
+    }
+
+    /// 바텀시트 날짜 전체 표시용
+    private var formattedEntryDate: String {
+        guard let date = parsedEntryDate else { return entry.dateKey }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "yyyy년 M월 d일 EEEE"
+        return fmt.string(from: date)
     }
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // 배경: imageUrl 있으면 저장 당시 이미지, 없으면 모드 그라데이션
+
+            // 레이어 1: 배경 이미지 또는 모드 그라데이션
             if let urlString = entry.imageUrl, let url = URL(string: urlString) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -216,52 +322,42 @@ struct MeditationEntryDetailView: View {
                 backgroundGradient.ignoresSafeArea()
             }
 
-            // 다크 오버레이 (이미지/그라데이션 위 가독성 확보)
-            LinearGradient(
-                colors: [Color.black.opacity(0.25), Color.black.opacity(0.55)],
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // 레이어 2: 4-stop 감성 오버레이
+            overlayGradient
 
-            // 말씀 블록 — 48% 위치
+            // 레이어 3: 말씀 블록 — GeometryReader로 y 50% 위치 고정
             GeometryReader { geo in
                 let w = geo.size.width
-                let hPad = max(w * 0.13, 40.0)
+                let hPad: CGFloat = max(w * 0.10, 24.0)
+
                 verseBlock
                     .padding(.horizontal, hPad)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .position(x: w / 2, y: geo.size.height * 0.48)
-                    .onTapGesture {
-                        showDetailSheet = true  // #15: 항상 탭 가능
-                    }
-                    .accessibilityLabel("묵상 기록 보기")
-                    .accessibilityHint("탭하면 묵상 내용을 확인할 수 있어요")
+                    .position(x: w / 2, y: geo.size.height * 0.50)
             }
         }
-        // #16: 상단 오버레이 — 날짜(좌) + 닫기(우)
+        // 레이어 4: 상단 오버레이 — 날짜(좌) + 닫기(우)
         .overlay(alignment: .top) {
-            HStack(alignment: .center) {
-                // 날짜 (상단 좌측, 일기처럼)
-                Text(formattedEntryDate)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.75))
-                    .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+            HStack(alignment: .top, spacing: 0) {
+
+                // 날짜 블록: 연도 / 구분선 / 월·일 / 요일 3단 수직
+                dateBlock
 
                 Spacer()
 
-                // 닫기 버튼 (우상단)
+                // 닫기 버튼 — 배경 최소화, 아이콘 차분하게
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.85))
-                        .padding(8)
-                        .background(Color.white.opacity(0.18))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.55))
+                        .padding(10)
+                        .background(Color.white.opacity(0.10))
                         .clipShape(Circle())
                 }
                 .accessibilityLabel("닫기")
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 56)
+            .padding(.horizontal, 24)
+            .padding(.top, 60)
         }
         .sheet(isPresented: $showDetailSheet) {
             meditationDetailSheet

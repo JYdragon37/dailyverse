@@ -220,19 +220,23 @@ struct DevotionResponseView: View {
             .allowsHitTesting(false)
 
             Button { handleComplete() } label: {
-                Text("✨ 오늘의 묵상 마치기")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(.black)
+                Text("✨ 묵상 마치기")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
+                    .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.dvAccentGold)
+                            .fill(Color.dvAccentGold.opacity(0.10))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.dvAccentGold.opacity(0.35), lineWidth: 1)
+                            )
                     )
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
-            .padding(.bottom, 76)  // 16 + DVTabBar 높이(~60pt)
+            .padding(.bottom, 76)  // DVTabBar 위 여백 유지
         }
         .background(Color.dvBgDeep)
     }

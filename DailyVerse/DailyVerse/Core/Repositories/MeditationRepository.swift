@@ -52,7 +52,16 @@ final class MeditationRepository {
     // MARK: - Fetch History
 
     func fetchHistory(userId: String, limit: Int = 30) async -> [MeditationEntry] {
-        guard userId != "local" else { return [] }
+        guard userId != "local" else {
+            // 로컬(비로그인) 유저: Firestore 없음 → 오늘 캐시만 history에 포함
+            // history가 빈 배열이면 달력 탭 조건(entry != nil)이 충족되지 않고
+            // updateMeditatedDates([])가 meditatedDatesThisMonth를 초기화해 동그라미가 사라짐
+            if let cached = loadTodayCache(),
+               cached.dateKey == MeditationEntry.todayKey() {
+                return [cached]
+            }
+            return []
+        }
         let snapshot = try? await db
             .collection("meditation_logs")
             .document(userId)

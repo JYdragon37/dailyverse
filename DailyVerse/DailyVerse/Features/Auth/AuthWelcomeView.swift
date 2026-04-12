@@ -28,14 +28,14 @@ struct AuthWelcomeView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer()
+                Spacer().frame(height: 56)
 
                 // MARK: - 로고 영역
                 logoSection
                     .opacity(logoAppeared ? 1 : 0)
                     .offset(y: logoAppeared ? 0 : 20)
 
-                Spacer().frame(height: 48)
+                Spacer().frame(height: 32)
 
                 // MARK: - 가치 선언
                 valueSection
@@ -66,17 +66,16 @@ struct AuthWelcomeView: View {
     // MARK: - 로고 섹션
 
     private var logoSection: some View {
-        VStack(spacing: 20) {
-            // SplashView와 동일한 앱 로고
+        VStack(spacing: 16) {
+            // 로그인 화면 — 아이콘 축소
             Image("AppLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 120, height: 120)
+                .frame(width: 80, height: 80)
                 .shadow(color: .black.opacity(0.18), radius: 24, x: 0, y: 10)
 
-            // SplashView와 동일한 Dancing Script 폰트
             Text("DailyVerse")
-                .font(.custom("DancingScript-Regular", size: 48))
+                .font(.custom("DancingScript-Regular", size: 40))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
         }
@@ -86,16 +85,10 @@ struct AuthWelcomeView: View {
 
     private var valueSection: some View {
         VStack(spacing: 12) {
-            VStack(spacing: 2) {
-                Text("하루의 끝과 시작을")
-                    .font(.dvTitle)
-                    .foregroundColor(.white.opacity(0.85))
-
-                Text("경건하게")
-                    .font(.dvTitle)
-                    .foregroundColor(.dvAccentGold)
-            }
-            .multilineTextAlignment(.center)
+            Text("말씀과 함께 시작해요")
+                .font(.dvTitle)
+                .foregroundColor(.dvAccentGold)
+                .multilineTextAlignment(.center)
 
             Spacer().frame(height: 4)
 
@@ -132,7 +125,7 @@ struct AuthWelcomeView: View {
             }) {
                 Text("로그인 없이 둘러보기")
                     .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.35))
+                    .foregroundColor(.white.opacity(0.55))
                     .padding(.vertical, 12)
             }
         }

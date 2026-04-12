@@ -18,6 +18,7 @@ struct MeditationEntry: Identifiable, Codable, Hashable {
     var prayer: String?                // 한 줄 기도 (max 50자) — guided flow용
     var readingText: String?           // 읽기 타이핑 텍스트 — guided flow용
     var imageUrl: String? = nil        // 저장 당시 배경 이미지 URL (랜덤 선택)
+    var locationName: String? = nil    // 저장 당시 도시명 (영문, 예: "Seoul")
 
     var isToday: Bool {
         dateKey == Self.todayKey()
@@ -43,6 +44,7 @@ struct MeditationEntry: Identifiable, Codable, Hashable {
         prayer: String? = nil,
         readingText: String? = nil,
         imageUrl: String? = nil,
+        locationName: String? = nil,
         source: String = "manual"
     ) -> MeditationEntry {
         MeditationEntry(
@@ -59,7 +61,8 @@ struct MeditationEntry: Identifiable, Codable, Hashable {
             source: source,
             prayer: prayer?.isEmpty == true ? nil : prayer,
             readingText: readingText?.isEmpty == true ? nil : readingText,
-            imageUrl: imageUrl
+            imageUrl: imageUrl,
+            locationName: locationName
         )
     }
 
@@ -79,6 +82,7 @@ struct MeditationEntry: Identifiable, Codable, Hashable {
         case prayer
         case readingText  = "reading_text"
         case imageUrl     = "image_url"
+        case locationName = "location_name"
     }
 }
 

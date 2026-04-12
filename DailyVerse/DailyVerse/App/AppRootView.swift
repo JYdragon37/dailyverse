@@ -116,6 +116,9 @@ struct AppRootView: View {
         }
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
+            // TEMP: 온보딩 성능 점검용 — 매 실행마다 온보딩 강제 표시 (배포 전 제거)
+            onboardingCompleted = false
+            showAuthWelcome = false
             await loadingCoordinator.start()
             // AuthWelcomeView 표시 여부 결정:
             // - 이미 로그인된 경우 → 스킵
@@ -180,10 +183,11 @@ struct AppRootView: View {
                 guestModeActive = false
                 showNicknameSetup = false
                 if !authManager.isDeletingAccount {
-                    // 로그아웃: 온보딩 초기화 → 기존 유저도 온보딩 → 로그인 순서
-                    // onboardingCompleted=false → OnboardingContainerView
-                    // 온보딩 완료 후 onChange(of: onboardingCompleted)에서 showAuthWelcome=true 자동 세팅
-                    onboardingCompleted = false
+                    // 로그아웃: 온보딩은 최초 1회만 — 로그인 화면으로 바로 이동
+                    // (탈퇴는 deleteAccount()에서 UserDefaults 전체 초기화 → onboardingCompleted=false 자동)
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showAuthWelcome = true
+                    }
                 }
             }
         }

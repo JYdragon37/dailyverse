@@ -27,7 +27,7 @@ struct ONBExperienceView: View {
 
             VStack(spacing: 0) {
                 // 도트 아래 여유
-                Spacer().frame(height: 40)
+                Spacer().frame(height: 80)
 
                 // 시간대 인사 (데모 — 실제 앱과 동일 스타일, 상단 고정)
                 HStack(spacing: 8) {
@@ -44,7 +44,7 @@ struct ONBExperienceView: View {
                 .padding(.horizontal, 28)
                 .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 2)
 
-                Spacer().frame(height: 24)
+                Spacer().frame(height: 32)
 
                 // 말씀 카드 (메인 앱과 동일한 스타일 — VerseCardView와 동일하게 verseShortKo 사용)
                 VStack(alignment: .leading, spacing: 14) {
@@ -62,10 +62,14 @@ struct ONBExperienceView: View {
                 .padding(24)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.09))
+                        .fill(Color.white.opacity(0.14))
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(.ultraThinMaterial)
+                        )
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.dvAccentGold.opacity(0.25), lineWidth: 1)
+                                .stroke(Color.dvAccentGold.opacity(0.30), lineWidth: 1)
                         )
                 )
                 .padding(.horizontal, 28)

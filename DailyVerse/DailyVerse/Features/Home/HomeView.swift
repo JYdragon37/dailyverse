@@ -253,7 +253,6 @@ struct HomeView: View {
                 VerseDetailBottomSheet(
                     verse: verse,
                     onSave: handleSave,
-                    onNext: handleNext,
                     onClose: { showVerseDetail = false }
                 )
             }
@@ -278,8 +277,6 @@ struct HomeView: View {
             showLoginPrompt = true
         }
     }
-
-    private func handleNext() { Task { await viewModel.nextVerse() } }
 
     // MARK: - Toast
 

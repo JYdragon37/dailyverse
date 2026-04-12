@@ -28,7 +28,7 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Screen 4: 알람
     @Published var morningAlarmEnabled: Bool = true
-    @Published var eveningAlarmEnabled: Bool = false
+    @Published var eveningAlarmEnabled: Bool = true
     @Published var morningAlarmTime: Date = {
         Calendar.current.date(bySettingHour: 6, minute: 0, second: 0, of: Date()) ?? Date()
     }()

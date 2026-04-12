@@ -92,6 +92,7 @@ final class MeditationViewModel: ObservableObject {
                 prayerItems: [newItem],
                 gratitudeNote: nil,
                 imageUrl: imgUrl,
+                locationName: cachedCityName(),
                 source: "quick"
             )
             do {
@@ -122,6 +123,7 @@ final class MeditationViewModel: ObservableObject {
             prayerItems: [],          // 텍스트 없음 — 읽음만
             gratitudeNote: nil,
             imageUrl: imgUrl,
+            locationName: cachedCityName(),
             source: "read_only"
         )
         do {
@@ -155,6 +157,7 @@ final class MeditationViewModel: ObservableObject {
             prayerItems: prayerItems,
             gratitudeNote: gratitudeNote,
             imageUrl: imgUrl,
+            locationName: cachedCityName(),
             source: source
         )
         do {
@@ -230,6 +233,7 @@ final class MeditationViewModel: ObservableObject {
                 prayer: prayer,
                 readingText: readingText,
                 imageUrl: imgUrl,
+                locationName: cachedCityName(),
                 source: "guided"
             )
             do {
@@ -244,6 +248,11 @@ final class MeditationViewModel: ObservableObject {
     }
 
     // MARK: - Random Image URL
+
+    /// 날씨 캐시에서 도시명 반환 (저장 당시 위치 기록용, 영문)
+    private func cachedCityName() -> String? {
+        WeatherCacheManager().load()?.cityName
+    }
 
     /// 현재 모드에 맞는 이미지 중 랜덤 선택 (저장 당시 배경 이미지 기록용)
     private func randomImageUrl(for mode: AppMode) async -> String? {

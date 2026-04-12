@@ -93,34 +93,28 @@ struct DevotionVerseView: View {
         )
     }
 
-    // MARK: - 2. 텍스트 입력 (#6 이동)
+    // MARK: - 2. 텍스트 입력
 
     private var writingInput: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("말씀을 따라 적어보세요. (선택)")
-                .font(.dvCaption)
-                .foregroundColor(.white.opacity(0.55))
-
-            TextField("", text: $readingText, axis: .vertical)
-                .font(contentFont)
-                .foregroundColor(.white)
-                .tint(.dvAccentGold)
-                .lineLimit(1...5)
-                .focused($isReadingFocused)
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white.opacity(0.06))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isReadingFocused ? Color.dvAccentGold.opacity(0.5) : Color.white.opacity(0.10), lineWidth: 1)
-                        )
-                )
-                .animation(.easeInOut(duration: 0.2), value: isReadingFocused)
-        }
+        TextField("말씀을 따라 적어보세요 (선택)", text: $readingText, axis: .vertical)
+            .font(contentFont)
+            .foregroundColor(.white)
+            .tint(.dvAccentGold)
+            .lineLimit(1...5)
+            .focused($isReadingFocused)
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isReadingFocused ? Color.dvAccentGold.opacity(0.5) : Color.white.opacity(0.10), lineWidth: 1)
+                    )
+            )
+            .animation(.easeInOut(duration: 0.2), value: isReadingFocused)
     }
 
-    // MARK: - 3. 말씀 읽기 (텍스트만)
+    // MARK: - 3. 말씀 읽기
 
     private var readingSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -128,17 +122,31 @@ struct DevotionVerseView: View {
 
             let readingTarget = verse?.contemplationKo ?? verse?.verseShortKo ?? ""
             if !readingTarget.isEmpty {
-                Text(readingTarget)
-                    .font(contentFont)
-                    .foregroundColor(contentColor)
-                    .lineSpacing(17 * 0.7)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.dvBgSurface)
-                    )
+                VStack(alignment: .trailing, spacing: 12) {
+                    Text(readingTarget)
+                        .font(contentFont)
+                        .foregroundColor(contentColor)
+                        .lineSpacing(17 * 0.7)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // 오늘의 묵상 카드와 동일한 출처 표기
+                    VStack(alignment: .trailing, spacing: 4) {
+                        if let reference = verse?.reference {
+                            Text("— \(reference)")
+                                .font(.dvReference)
+                                .foregroundColor(.dvAccentGold)
+                        }
+                        Text("개역개정")
+                            .font(.dvCaption)
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.dvBgSurface)
+                )
             }
         }
     }
@@ -163,7 +171,7 @@ struct DevotionVerseView: View {
         )
     }
 
-    // MARK: - Sticky CTA (#9: VStack 전체에 background 적용)
+    // MARK: - Sticky CTA
 
     private var stickyCTA: some View {
         VStack(spacing: 0) {
@@ -183,18 +191,22 @@ struct DevotionVerseView: View {
                 )
             ) {
                 Text("다음 →")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.85))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
+                    .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.dvAccentGold)
+                            .fill(Color.white.opacity(0.07))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                            )
                     )
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
-            .padding(.bottom, 76)  // 16 + DVTabBar 높이(~60pt)
+            .padding(.bottom, 76)  // DVTabBar 위 여백 유지
         }
         .background(Color.dvBgDeep)
     }

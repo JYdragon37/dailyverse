@@ -32,6 +32,9 @@ final class StreakManager: ObservableObject {
         let today = MeditationEntry.todayKey()
         let lastDate = UserDefaults.standard.string(forKey: kLastDate) ?? ""
 
+        // 달력 dot 즉시 반영 (Firestore fetch 결과 대기 없이)
+        meditatedDatesThisMonth.insert(today)
+
         guard lastDate != today else {
             didMeditateToday = true
             return
@@ -73,13 +76,17 @@ final class StreakManager: ObservableObject {
     /// dateKeys 기반으로 연속 스트릭을 정확히 재계산 (UserDefaults 보정)
     private func recalculateStreak(from dateKeys: Set<String>) {
         let today = MeditationEntry.todayKey()
-        didMeditateToday = dateKeys.contains(today)
 
         guard !dateKeys.isEmpty else {
-            currentStreak = 0
-            UserDefaults.standard.set(0, forKey: kCurrent)
+            // Firestore가 빈 배열을 반환한 경우 (로컬 유저·네트워크 지연 등)
+            // recordMeditation()이 이미 UserDefaults에 올바른 값을 기록했으므로
+            // streak 초기화 없이 UserDefaults 기준으로만 didMeditateToday 갱신
+            let lastDate = UserDefaults.standard.string(forKey: kLastDate) ?? ""
+            didMeditateToday = (lastDate == today)
             return
         }
+
+        didMeditateToday = dateKeys.contains(today)
 
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"

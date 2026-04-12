@@ -19,7 +19,7 @@ struct ONBPersonalizeView: View {
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Spacer().frame(height: 40)
+                        Spacer().frame(height: 80)
 
                         // 질문 헤더
                         VStack(alignment: .leading, spacing: 8) {
@@ -49,6 +49,7 @@ struct ONBPersonalizeView: View {
                                     emoji: theme.emoji,
                                     label: theme.label,
                                     isSelected: vm.selectedThemes.contains(theme.id),
+                                    isDisabled: vm.selectedThemes.count >= 3 && !vm.selectedThemes.contains(theme.id),
                                     onTap: { vm.toggleTheme(theme.id) }
                                 )
                             }
@@ -108,42 +109,57 @@ struct ONBPersonalizeView: View {
                         Spacer().frame(height: 24)
                     }
                 }
-                .scrollDismissesKeyboard(.immediately)
+                .scrollDismissesKeyboard(.interactively)
 
                 // CTA — ScrollView 밖에 항상 하단 고정
-                Button {
-                    isNicknameFocused = false
-                    vm.next()
-                } label: {
-                    HStack(spacing: 8) {
-                        if !vm.selectedThemes.isEmpty {
-                            Text(vm.selectedThemes.prefix(3).map { id in
-                                OnboardingViewModel.themes.first { $0.id == id }?.emoji ?? ""
-                            }.joined())
-                            .font(.system(size: 16))
+                VStack(spacing: 0) {
+                    // 건너뛰기 (테마 미선택 시만 노출)
+                    if vm.selectedThemes.isEmpty {
+                        Button {
+                            isNicknameFocused = false
+                            vm.next()
+                        } label: {
+                            Text("건너뛰기")
+                                .font(.system(size: 15))
+                                .foregroundColor(.white.opacity(0.45))
+                                .frame(height: 36)
                         }
-                        Text(vm.selectedThemes.isEmpty ? "건너뛰기" : "선택 완료 →")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(vm.selectedThemes.isEmpty ? .white.opacity(0.6) : Color(hex: "#1A2340"))
+                        .padding(.top, 8)
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 60)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(vm.selectedThemes.isEmpty
-                                  ? Color.white.opacity(0.15)
-                                  : Color.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(Color.white.opacity(vm.selectedThemes.isEmpty ? 0.3 : 0), lineWidth: 1)
-                            )
-                    )
+
+                    // 주 CTA — 항상 "다음으로 →" 고정
+                    Button {
+                        isNicknameFocused = false
+                        vm.next()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if !vm.selectedThemes.isEmpty {
+                                Text(vm.selectedThemes.prefix(3).map { id in
+                                    OnboardingViewModel.themes.first { $0.id == id }?.emoji ?? ""
+                                }.joined())
+                                .font(.system(size: 16))
+                            }
+                            Text("다음으로 →")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(vm.selectedThemes.isEmpty ? .white.opacity(0.6) : Color(hex: "#1A2340"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(vm.selectedThemes.isEmpty ? Color.white.opacity(0.15) : Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(Color.white.opacity(vm.selectedThemes.isEmpty ? 0.3 : 0), lineWidth: 1)
+                                )
+                        )
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 4)
+                    .padding(.bottom, 20)
+                    .animation(.spring(response: 0.3), value: vm.selectedThemes.isEmpty)
+                    .accessibilityLabel(vm.selectedThemes.isEmpty ? "테마 없이 다음으로" : "테마 선택 완료")
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-                .padding(.bottom, 20)
-                .animation(.spring(response: 0.3), value: vm.selectedThemes.isEmpty)
-                .accessibilityLabel(vm.selectedThemes.isEmpty ? "건너뛰기" : "테마 선택 완료")
             }
         }
     }
