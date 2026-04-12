@@ -1,7 +1,18 @@
 # DailyVerse 콘텐츠 가이드라인
 
-> **상태**: 확정 — v7.0
-> 마지막 업데이트: 2026-04-11 (데이터 라이프사이클 및 화면별 필드 매핑 가이드 추가, Sync Group 체계 확립)
+> **상태**: 확정 — v8.0
+> 마지막 업데이트: 2026-04-12 (수식 필드 동기화 정책 확립, 묵상 화면 필드 변경, 컨텐츠 맵 추가)
+
+---
+
+## 📌 데이터 소스 접근
+
+| 항목 | 내용 |
+|------|------|
+| **Google Sheets** | [DailyVerse 콘텐츠 시트 열기](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **편집 권한** | ✅ Claude Code가 `scripts/serviceAccountKey.json`으로 직접 편집 가능 |
+| **Sheets → Firestore** | `node scripts/sync_sheets_to_firestore.js` |
+| **수식 재적용** | `node scripts/apply_formula_fields.js` |
 
 ---
 
@@ -104,7 +115,7 @@ Firebase Storage
 | ⏰ 알람 Stage 2 (웰컴) | `verse_full_ko`, `reference`, `theme[0]` |
 | 🔖 말씀들 그리드 카드 | `verse_full_ko` (SavedVerse 저장 시 스냅샷 — 갱신 불변) |
 | 🔖 말씀들 저장 상세 | `verse_full_ko`, `reference` (스냅샷 유지) |
-| 🍃 묵상 S2 말씀 카드 | `verse_full_ko`, `reference` |
+| 🍃 묵상 S2 말씀 카드 | `verse_short_ko`, `reference` |
 
 #### 🅱️ Group B — Short Verse (요약/가독성)
 > 빠른 인지가 필요한 전체화면 또는 요약 섹션
@@ -141,12 +152,64 @@ Firebase Storage
 | 연동 화면 | 주요 필드 |
 |---------|---------|
 | 🍃 묵상 S3 묵상 질문 | `question` (없으면 기본 문구 하드코딩) |
+| 🍃 묵상 S3 묵상 질문 | `question` (없으면 기본 문구 하드코딩) |
+| 🍃 묵상 기록보기 → 해석 | `contemplation_interpretation` (=`interpretation` 수식) — 질문 위 |
+| 🍃 묵상 기록보기 → 일상 적용 | `application` — 질문 위 |
 
-> ⚠️ **규칙**: `question`은 동일 구절의 `verse_full_ko` / `contemplation_ko`와 맥락이 연관된 질문이어야 합니다.
+> ⚠️ **규칙**: `question`은 동일 구절의 `verse_short_ko` / `contemplation_ko`와 맥락이 연관된 질문이어야 합니다.
 
 ---
 
-## 3. 컬럼명 변경 이력
+## 3. 필드 동기화 정책 (수식 참조)
+
+> 아래 컬럼들은 Google Sheets에서 수식으로 원본 컬럼을 자동 참조합니다.
+> 원본 컬럼(`interpretation`, `application` 등)을 수정하면 contemplation 컬럼이 자동 반영됩니다.
+> **별도로 작성 불필요 — 원본만 관리하면 됩니다.**
+
+| 시트 컬럼 (자동) | 참조 원본 | Sheets 열 | 이유 |
+|----------------|---------|---------|-----|
+| `contemplation_interpretation` | `interpretation` | Y ← M | interpretation 내용이 더 좋음 |
+| `contemplation_appliance` | `application` | Z ← N | application 내용이 더 좋음 |
+| `contemplation_ko` | `verse_full_ko` | W ← C | verse_full_ko 내용이 더 좋음 |
+| `contemplation_reference` | `reference` | X ← D | reference와 동일 출처 |
+
+> 📌 수식 재적용 필요 시: `node scripts/apply_formula_fields.js` 실행
+> 📌 Firestore 반영: `node scripts/sync_sheets_to_firestore.js` 실행
+
+---
+
+## 3-1. 현재 버전 항목별 컨텐츠 사용 맵
+
+> 앱 각 화면에서 실제로 사용하는 필드를 정리합니다. (v8.0 기준)
+
+| 탭 | 화면 / 섹션 | 표시 필드 | 원본 | 비고 |
+|----|------------|---------|------|------|
+| **홈** | 메인 말씀 카드 | `verse_full_ko`, `reference`, `theme[0]` | `verses/` | 일일 갱신 (06:00) |
+| **홈** | 말씀 상세 바텀시트 → 해석 | `interpretation` | `verses/` | |
+| **홈** | 말씀 상세 바텀시트 → 적용 | `application` | `verses/` | |
+| **알람** | 알람 탭 상단 카드 | `alarm_top_ko` → 없으면 `verse_short_ko` | `verses/` | 수시 랜덤 |
+| **알람** | Stage 0 잠금화면 배너 | `verse_short_ko`, `reference` | `verses/` | |
+| **알람** | Stage 1 전체화면 | `verse_short_ko`, `reference` | `verses/` | |
+| **알람** | Stage 2 웰컴 — 말씀 | `verse_full_ko`, `reference` | `verses/` | |
+| **알람** | Stage 2 오늘의 한마디 시트 | `verse_short_ko` | `verses/` | |
+| **말씀들** | 그리드 썸네일 카드 | `verse_full_ko` | `saved_verses/` | 저장 시 스냅샷, 갱신 불변 |
+| **말씀들** | 저장 상세 — 말씀 | `verse_full_ko`, `reference` | `saved_verses/` | 스냅샷 유지 |
+| **말씀들** | 저장 상세 → 해석 | `interpretation` | `verses/` | 동적 참조 |
+| **말씀들** | 저장 상세 → 적용 | `application` | `verses/` | 동적 참조 |
+| **묵상** | 홈 — 오늘의 말씀 카드 | `verse_short_ko`, `reference` | `verses/` | |
+| **묵상** | S2 말씀 카드 (오늘의 묵상) | `verse_short_ko`, `reference` | `verses/` | ← v8.0 변경: full→short |
+| **묵상** | S2 읽기 섹션 — 구절 | `contemplation_ko` (=`verse_full_ko`) | `verses/` | 수식 자동 참조 |
+| **묵상** | S2 읽기 섹션 — 출처 | `contemplation_reference` (=`reference`) | `verses/` | 수식 자동 참조 |
+| **묵상** | S2 해석 섹션 | `contemplation_interpretation` (=`interpretation`) | `verses/` | 수식 자동 참조 |
+| **묵상** | S3 일상 적용 | `contemplation_appliance` (=`application`) | `verses/` | 수식 자동 참조 |
+| **묵상** | S3 묵상 질문 | `question` | `verses/` | 없으면 기본 문구 표시 |
+| **묵상** | 기록보기 — 해석 | `contemplation_interpretation` (=`interpretation`) | `verses/` | 묵상 질문 위에 표시 |
+| **묵상** | 기록보기 — 일상 적용 | `application` | `verses/` | 묵상 질문 위에 표시 |
+| **묵상** | 기록보기 — 묵상 질문 | `question` | `verses/` | |
+
+---
+
+## 4. 컬럼명 변경 이력
 
 > v6.0 기준으로 아래 컬럼명이 변경되었습니다. deprecated 이름은 사용하지 않습니다.
 
@@ -174,15 +237,19 @@ Firebase Storage
 | 항목 | 기준 |
 |------|------|
 | 용도 | 알람 목록 오늘의 말씀, 묵상 카드 메인, Stage 2 한마디 |
-| 분량 | **15~40자** |
+| 분량 | **20~60자** |
 | 형식 | 현대어 의역 — 직역 아님, 의미가 살아있는 자연스러운 표현 |
 | 말투 | 친근체 (`~야`, `~이야`, `~거야`) 또는 성경 인용체 |
 | 예시 | "두려워하지 말라 내가 너와 함께 함이라" (23자) ✅ |
+| **구두점** | **마침표(`.`), 쉼표(`,`)를 철저하게 지킨다. 문장 구분이 필요한 곳에는 반드시 사용** |
+| 수집 순서 | `verse_full_ko`를 먼저 확정한 뒤 핵심 문장을 추출하여 작성 |
 | 이전 이름 | ~~text_ko~~ (deprecated) |
 
 ---
 
 #### `verse_full_ko` — 전체 구절 (홈 메인 카드 + 바텀시트 + 저장 썸네일)
+
+> ⚠️ **수집 우선순위**: `verse_full_ko`를 항상 먼저 수집·확정한다. `verse_short_ko`는 full에서 핵심 문장을 추출하여 작성한다.
 
 | 항목 | 기준 |
 |------|------|
@@ -190,7 +257,8 @@ Firebase Storage
 | 분량 | **40~120자** |
 | 형식 | 전체 구절 의역 — 끊기지 않게 자연스럽게 |
 | 말투 | 성경 인용체 또는 현대어 의역 |
-| 예시 | "두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라" ✅ |
+| **구두점** | **띄어쓰기, 줄바꿈(`\n`), 마침표(`.`), 쉼표(`,`)를 철저하게 지킨다. 두 문장 이상이면 쉼표 또는 줄바꿈으로 호흡을 구분한다** |
+| 예시 | "두려워하지 말라, 내가 너와 함께 함이라.\n놀라지 말라, 나는 네 하나님이 됨이라.\n내가 너를 굳세게 하리라." ✅ |
 | 이전 이름 | ~~text_full_ko~~ (deprecated) |
 
 ---
@@ -694,10 +762,10 @@ Google Sheets IMAGES 탭에 행 추가
 
 > 스크린샷 실측 기준. 신규 콘텐츠 작성 시 아래 범위를 반드시 준수합니다.
 
-| 컬럼명 | 기준 글자수 | 범위 | 비율 |
+| 컬럼명 | 기준 글자수 | 범위 | 비고 |
 |--------|-----------|------|------|
-| verse_full_ko | 40자 | 40~120자 | 100~300% |
-| verse_short_ko | verse_full_ko보다 짧게 | 15~40자 | — |
+| verse_full_ko | 40자 | 40~120자 | **먼저 수집**. 띄어쓰기·줄바꿈·마침표·쉼표 철저 준수 |
+| verse_short_ko | verse_full_ko에서 추출 | **20~60자** | full 확정 후 작성. 마침표·쉼표 철저 준수 |
 | alarm_top_ko | verse_short_ko 이하 | 15~35자 | — |
 | interpretation | 128자 | 102~154자 | 80~120% |
 | application | 61자 | 49~73자 | 80~120% |

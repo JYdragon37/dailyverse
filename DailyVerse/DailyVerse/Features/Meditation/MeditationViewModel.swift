@@ -43,10 +43,15 @@ final class MeditationViewModel: ObservableObject {
     // MARK: - Today Verse
 
     func loadTodayVerse() async {
-        // VerseRepository.currentVerse() 사용 — HomeViewModel과 동일한 로직
-        // daily_cards(Firestore) → DailyCacheManager → 알고리즘 선택 → 번들 폴백 순으로
-        // 항상 Verse를 반환하므로 nil 없음
         let mode = AppMode.current()
+        // 홈 탭이 이미 오늘 말씀을 결정해 캐시에 저장했으면 그대로 사용
+        // → 홈과 묵상이 항상 동일한 말씀을 표시하도록 보장
+        // 캐시 없을 때만 Repository 호출 (이때는 weather: nil이지만 cache에 저장되므로 이후엔 동일)
+        if let cachedId = DailyCacheManager.shared.getVerseId(for: mode),
+           let cached = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
+            todayVerse = cached
+            return
+        }
         let verse = await VerseRepository.shared.currentVerse(for: mode, weather: nil)
         todayVerse = verse
     }
@@ -78,6 +83,7 @@ final class MeditationViewModel: ObservableObject {
             let mode = AppMode.current()
             let verseId = DailyCacheManager.shared.getVerseId(for: mode) ?? ""
             let verseRef = todayVerse?.reference ?? ""
+            let imgUrl = await randomImageUrl(for: mode)
             let entry = MeditationEntry.make(
                 userId: uid,
                 verseId: verseId,
@@ -85,6 +91,7 @@ final class MeditationViewModel: ObservableObject {
                 mode: mode.rawValue,
                 prayerItems: [newItem],
                 gratitudeNote: nil,
+                imageUrl: imgUrl,
                 source: "quick"
             )
             do {
@@ -106,6 +113,7 @@ final class MeditationViewModel: ObservableObject {
         let uid = userId.isEmpty ? "local" : userId
         let mode = AppMode.current()
         let verseId = DailyCacheManager.shared.getVerseId(for: mode) ?? ""
+        let imgUrl = await randomImageUrl(for: mode)
         let entry = MeditationEntry.make(
             userId: uid,
             verseId: verseId,
@@ -113,6 +121,7 @@ final class MeditationViewModel: ObservableObject {
             mode: mode.rawValue,
             prayerItems: [],          // 텍스트 없음 — 읽음만
             gratitudeNote: nil,
+            imageUrl: imgUrl,
             source: "read_only"
         )
         do {
@@ -136,6 +145,8 @@ final class MeditationViewModel: ObservableObject {
         source: String = "manual"
     ) async {
         let uid = userId.isEmpty ? "local" : userId
+        let appMode = AppMode(rawValue: mode) ?? AppMode.current()
+        let imgUrl = await randomImageUrl(for: appMode)
         let entry = MeditationEntry.make(
             userId: uid,
             verseId: verseId,
@@ -143,6 +154,7 @@ final class MeditationViewModel: ObservableObject {
             mode: mode,
             prayerItems: prayerItems,
             gratitudeNote: gratitudeNote,
+            imageUrl: imgUrl,
             source: source
         )
         do {
@@ -207,6 +219,7 @@ final class MeditationViewModel: ObservableObject {
                 return
             }
         } else {
+            let imgUrl = await randomImageUrl(for: mode)
             let entry = MeditationEntry.make(
                 userId: uid,
                 verseId: verseId,
@@ -216,6 +229,7 @@ final class MeditationViewModel: ObservableObject {
                 gratitudeNote: nil,
                 prayer: prayer,
                 readingText: readingText,
+                imageUrl: imgUrl,
                 source: "guided"
             )
             do {
@@ -227,6 +241,18 @@ final class MeditationViewModel: ObservableObject {
                 return
             }
         }
+    }
+
+    // MARK: - Random Image URL
+
+    /// 현재 모드에 맞는 이미지 중 랜덤 선택 (저장 당시 배경 이미지 기록용)
+    private func randomImageUrl(for mode: AppMode) async -> String? {
+        guard let images = try? await VerseRepository.shared.fetchImages() else { return nil }
+        let modeMatched = images.filter {
+            $0.status == "active" && ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
+        }
+        let pool = modeMatched.isEmpty ? images.filter { $0.status == "active" } : modeMatched
+        return pool.randomElement()?.storageUrl
     }
 
     // MARK: - History Access Control (v5.1: 단일플랜 → 항상 잠금 없음)

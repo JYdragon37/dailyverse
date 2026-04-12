@@ -1,6 +1,9 @@
 import SwiftUI
 
-// MARK: - DevotionVerseView (Screen 2 — 오늘의 말씀 + 읽기 + 해석)
+// MARK: - DevotionVerseView (Screen 2 — 오늘의 말씀 + 텍스트 입력 + 읽기 + 해석)
+// #6: 텍스트 입력칸을 '오늘의 묵상' 카드 바로 아래로 이동
+// #7: 세 영역(말씀/읽기/해석) 폰트 통일 + 해석 들여쓰기 수정
+// #9: CTA 버튼 배경을 전체 VStack에 적용
 
 struct DevotionVerseView: View {
 
@@ -11,42 +14,39 @@ struct DevotionVerseView: View {
     @State private var readingText: String = ""
     @FocusState private var isReadingFocused: Bool
 
+    // 통일 폰트
+    private let contentFont = Font.system(size: 17, weight: .regular)
+    private let contentColor = Color.white.opacity(0.88)
+
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            Color.dvBgDeep.ignoresSafeArea()
-
+        VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-
-                    // 1. 오늘의 묵상 말씀
                     verseSectionHeader("📖 오늘의 묵상")
                     verseCard
-
+                    writingInput
                     dashedDivider
-
-                    // 2. 말씀 읽기 / 쓰기 입력
                     readingSection
-
                     dashedDivider
 
-                    // 3. 해석 (contemplationInterpretation 우선, 없으면 interpretation)
                     let interp = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
                     if !interp.isEmpty {
                         verseSectionHeader("💡 해석")
                         interpretationText(interp)
                     }
 
-                    Color.clear.frame(height: 88)
+                    Color.clear.frame(height: 16)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+            .scrollDismissesKeyboard(.immediately)
+
             stickyCTA
         }
+        .background(Color.dvBgDeep.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -65,14 +65,14 @@ struct DevotionVerseView: View {
         }
     }
 
-    // MARK: - 말씀 카드
+    // MARK: - 1. 말씀 카드
 
     private var verseCard: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            Text(verse?.verseFullKo ?? "말씀을 불러오는 중이에요...")
-                .font(.dvVerseText)
-                .foregroundColor(.white)
-                .lineSpacing(18 * 0.8)
+            Text(verse?.verseShortKo ?? "말씀을 불러오는 중이에요...")
+                .font(contentFont)
+                .foregroundColor(contentColor)
+                .lineSpacing(17 * 0.7)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(alignment: .trailing, spacing: 4) {
@@ -93,64 +93,77 @@ struct DevotionVerseView: View {
         )
     }
 
-    // MARK: - 읽기 섹션
+    // MARK: - 2. 텍스트 입력 (#6 이동)
+
+    private var writingInput: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("말씀을 따라 적어보세요. (선택)")
+                .font(.dvCaption)
+                .foregroundColor(.white.opacity(0.55))
+
+            TextField("", text: $readingText, axis: .vertical)
+                .font(contentFont)
+                .foregroundColor(.white)
+                .tint(.dvAccentGold)
+                .lineLimit(1...5)
+                .focused($isReadingFocused)
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isReadingFocused ? Color.dvAccentGold.opacity(0.5) : Color.white.opacity(0.10), lineWidth: 1)
+                        )
+                )
+                .animation(.easeInOut(duration: 0.2), value: isReadingFocused)
+        }
+    }
+
+    // MARK: - 3. 말씀 읽기 (텍스트만)
 
     private var readingSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             verseSectionHeader("✏️ 말씀 읽기")
 
-            Text("오늘의 말씀을 천천히 읽거나 써보세요.")
-                .font(.dvCaption)
-                .foregroundColor(.white.opacity(0.55))
-
-            VStack(alignment: .leading, spacing: 10) {
-                // contemplationKo 우선, 없으면 verseShortKo
-                let readingTarget = verse?.contemplationKo ?? verse?.verseShortKo ?? ""
-                if !readingTarget.isEmpty {
-                    Text(readingTarget)
-                        .font(.custom("Georgia-Italic", size: 16))
-                        .foregroundColor(.white.opacity(0.75))
-                        .lineSpacing(5)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                TextField("말씀을 따라 적어보세요... (선택)", text: $readingText, axis: .vertical)
-                    .font(.dvBody)
-                    .foregroundColor(.white)
-                    .tint(.dvAccentGold)
-                    .lineLimit(1...5)
-                    .focused($isReadingFocused)
-                    .padding(10)
+            let readingTarget = verse?.contemplationKo ?? verse?.verseShortKo ?? ""
+            if !readingTarget.isEmpty {
+                Text(readingTarget)
+                    .font(contentFont)
+                    .foregroundColor(contentColor)
+                    .lineSpacing(17 * 0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.white.opacity(0.06))
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.dvBgSurface)
                     )
             }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.dvBgSurface)
-            )
         }
     }
 
-    // MARK: - 해석 텍스트
+    // MARK: - 4. 해석 텍스트 (#7 들여쓰기 수정 — padding 제거)
 
     private func interpretationText(_ text: String) -> some View {
         let paragraphs = text.components(separatedBy: "\n\n").filter { !$0.isEmpty }
         return VStack(alignment: .leading, spacing: 12) {
             ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, paragraph in
                 Text(paragraph)
-                    .font(.dvBody)
-                    .foregroundColor(.white.opacity(0.85))
-                    .lineSpacing(15 * 0.7)
+                    .font(contentFont)
+                    .foregroundColor(contentColor)
+                    .lineSpacing(17 * 0.7)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 4)
             }
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.dvBgSurface)
+        )
     }
 
-    // MARK: - Sticky CTA
+    // MARK: - Sticky CTA (#9: VStack 전체에 background 적용)
 
     private var stickyCTA: some View {
         VStack(spacing: 0) {
@@ -160,6 +173,7 @@ struct DevotionVerseView: View {
                 endPoint: .bottom
             )
             .frame(height: 24)
+            .allowsHitTesting(false)
 
             NavigationLink(
                 destination: DevotionResponseView(
@@ -180,9 +194,9 @@ struct DevotionVerseView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .background(Color.dvBgDeep)
+            .padding(.bottom, 76)  // 16 + DVTabBar 높이(~60pt)
         }
+        .background(Color.dvBgDeep)
     }
 
     // MARK: - Helpers

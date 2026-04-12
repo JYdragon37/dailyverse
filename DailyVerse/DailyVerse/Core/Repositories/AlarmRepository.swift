@@ -15,8 +15,13 @@ class AlarmRepository {
     }
 
     func save(_ alarm: Alarm) throws {
-        // upsert: 기존 항목 있으면 삭제 후 재생성
+        // 최대 3개 제한: 신규 추가 시에만 체크 (수정은 허용)
         let existing = fetchEntity(id: alarm.id)
+        if existing == nil && count() >= 3 {
+            throw NSError(domain: "AlarmRepository", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "알람은 최대 3개까지 설정할 수 있어요."])
+        }
+        // upsert: 기존 항목 있으면 삭제 후 재생성
         if let existing {
             context.delete(existing)
         }

@@ -20,7 +20,8 @@ struct DevotionCompleteView: View {
     @State private var emojiOpacity: Double = 0
     @State private var glowOpacity: Double = 0
     @State private var cardOpacity: Double = 0
-    @State private var displayedStreak: Int = 0
+    // #13: StreakManager 직접 observe → recordMeditation() 후 currentStreak 즉시 반영
+    @ObservedObject private var streakManager = StreakManager.shared
 
     // MARK: - Share State
 
@@ -107,7 +108,7 @@ struct DevotionCompleteView: View {
     // MARK: - 3. Streak Counter
 
     private var streakCounter: some View {
-        Text("🔥 \(displayedStreak)일 연속 묵상!")
+        Text("🔥 \(streakManager.currentStreak)일 연속 묵상!")
             .font(.system(size: 22, weight: .semibold))
             .foregroundColor(.dvAccentGold)
             .multilineTextAlignment(.center)
@@ -162,13 +163,29 @@ struct DevotionCompleteView: View {
             }
             .buttonStyle(.plain)
 
+            // #14: 수정하기 — fullScreenCover 닫고 이전 화면으로 복귀
+            Button {
+                dismiss()
+            } label: {
+                HStack {
+                    Spacer()
+                    Text("✏️ 묵상 수정하기")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.75))
+                    Spacer()
+                }
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.08))
+                )
+            }
+            .buttonStyle(.plain)
+
             // Secondary: 홈으로 돌아가기
             Button {
-                // 1. 즉시 홈 탭으로 전환 (유저가 바로 홈을 봄)
                 NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
-                // 2. fullScreenCover 닫기
                 dismiss()
-                // 3. 묵상 탭 NavigationStack 루트 리셋 (백그라운드에서, 유저 보이지 않음)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     NotificationCenter.default.post(name: .dvResetMeditationNav, object: nil)
                 }
@@ -176,15 +193,11 @@ struct DevotionCompleteView: View {
                 HStack {
                     Spacer()
                     Text("🏠 홈으로 돌아가기")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.85))
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundColor(.white.opacity(0.45))
                     Spacer()
                 }
-                .frame(height: 52)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.1))
-                )
+                .frame(height: 44)
             }
             .buttonStyle(.plain)
         }
@@ -199,19 +212,11 @@ struct DevotionCompleteView: View {
             emojiOpacity = 1.0
             glowOpacity = 0.15
         }
-
         // 2. 말씀 카드 fade-in
         withAnimation(.easeIn(duration: 0.4).delay(0.5)) {
             cardOpacity = 1
         }
-
-        // 3. 스트릭 카운트업
-        let target = viewModel.streakManager.currentStreak
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.easeOut(duration: 0.8)) {
-                displayedStreak = target
-            }
-        }
+        // 스트릭: @ObservedObject streakManager가 currentStreak 변화를 직접 반영
     }
 
     // MARK: - Share Handler

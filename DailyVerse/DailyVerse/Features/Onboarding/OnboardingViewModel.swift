@@ -71,6 +71,14 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
+    func previous() {
+        guard currentPage > 0 else { return }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            currentPage -= 1
+            savedPage = currentPage
+        }
+    }
+
     func skip() {
         // v2.0: 단순 skip (스킵 카운트 제거 — 4단계면 충분)
         next()
@@ -124,6 +132,10 @@ final class OnboardingViewModel: ObservableObject {
 
     private func saveFirstAlarms() {
         guard morningAlarmEnabled || eveningAlarmEnabled else { return }
+
+        // 이미 알람이 존재하면 중복 생성 방지 (다계정/재테스트 시 누적 방지)
+        let existing = alarmRepository.fetchAll()
+        guard existing.isEmpty else { return }
 
         if morningAlarmEnabled {
             let alarm = Alarm(

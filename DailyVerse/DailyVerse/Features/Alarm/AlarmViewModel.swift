@@ -57,6 +57,8 @@ final class AlarmViewModel: ObservableObject {
 
         notificationManager.cancel(alarmId: id)
         alarms.removeAll { $0.id == id }
+        // Core Data 즉시 삭제 — onAppear 재로드 시 복구 방지
+        try? alarmRepository.delete(id: id)
         pendingDeleteAlarm = alarm
         toastMessage = "알람이 삭제되었습니다."
 
@@ -64,11 +66,8 @@ final class AlarmViewModel: ObservableObject {
         undoTask = Task { @MainActor [weak self] in
             do { try await Task.sleep(for: .seconds(3)) } catch { return }
             guard let self else { return }
-            if let toDelete = self.pendingDeleteAlarm, toDelete.id == id {
-                try? self.alarmRepository.delete(id: id)
-                self.pendingDeleteAlarm = nil
-                self.toastMessage = nil
-            }
+            self.pendingDeleteAlarm = nil
+            self.toastMessage = nil
         }
     }
 
@@ -78,7 +77,12 @@ final class AlarmViewModel: ObservableObject {
         undoTask = nil
         pendingDeleteAlarm = nil
         do {
+            // Core Data 재저장 + 알림 재등록
             try alarmRepository.save(alarm)
+            if alarm.isEnabled {
+                let verse = notificationVerse(for: alarm)
+                notificationManager.schedule(alarm, verse: verse)
+            }
         } catch { }
         loadAlarms()
         toastMessage = nil

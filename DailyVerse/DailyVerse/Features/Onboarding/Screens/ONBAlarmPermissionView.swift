@@ -13,60 +13,70 @@ struct ONBAlarmPermissionView: View {
 
     var body: some View {
         ZStack {
-            Color.dvBgDeep.ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(hex: "#4EC4B0"), Color(hex: "#7A9AD0"), Color(hex: "#9080CC")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer().frame(height: 64)
+            VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Spacer().frame(height: 40)
 
-                    // 헤더
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("언제 말씀을 받고 싶으신가요?")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("알람이 울릴 때 함께 도착해요")
-                            .font(.dvBody)
-                            .foregroundColor(.white.opacity(0.55))
+                        // 헤더
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("언제 말씀을 받고 싶으신가요?")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("알람이 울릴 때 함께 도착해요")
+                                .font(.dvBody)
+                                .foregroundColor(.white.opacity(0.55))
+                        }
+                        .padding(.horizontal, 28)
+
+                        Spacer().frame(height: 32)
+
+                        // 알람 시간 카드
+                        VStack(spacing: 12) {
+                            ONBAlarmTimeRow(
+                                icon: "☀️",
+                                label: "아침",
+                                isEnabled: $vm.morningAlarmEnabled,
+                                time: $vm.morningAlarmTime
+                            )
+                            ONBAlarmTimeRow(
+                                icon: "🌙",
+                                label: "저녁",
+                                isEnabled: $vm.eveningAlarmEnabled,
+                                time: $vm.eveningAlarmTime
+                            )
+                        }
+                        .padding(.horizontal, 28)
+
+                        // 알림 미리보기 영역 (CTA 제외)
+                        if hasAnyAlarm {
+                            permissionInfoSection
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        } else {
+                            skipInfoSection
+                        }
+
+                        Spacer().frame(height: 24)
                     }
-                    .padding(.horizontal, 28)
-
-                    Spacer().frame(height: 32)
-
-                    // 알람 시간 카드
-                    VStack(spacing: 12) {
-                        ONBAlarmTimeRow(
-                            icon: "☀️",
-                            label: "아침",
-                            isEnabled: $vm.morningAlarmEnabled,
-                            time: $vm.morningAlarmTime
-                        )
-                        ONBAlarmTimeRow(
-                            icon: "🌙",
-                            label: "저녁",
-                            isEnabled: $vm.eveningAlarmEnabled,
-                            time: $vm.eveningAlarmTime
-                        )
-                    }
-                    .padding(.horizontal, 28)
-
-                    // Permission Priming 섹션 (알람 하나라도 켜면 등장)
-                    if hasAnyAlarm {
-                        permissionPrimingSection
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else {
-                        skipSection
-                    }
-
-                    Spacer().frame(height: 60)
                 }
+
+                // CTA — ScrollView 밖에 항상 하단 고정
+                pinnedCTASection
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: hasAnyAlarm)
     }
 
-    // MARK: - Permission Priming 섹션
+    // MARK: - 알림 미리보기 (스크롤 영역, CTA 제외)
 
-    private var permissionPrimingSection: some View {
+    private var permissionInfoSection: some View {
         VStack(spacing: 20) {
             Spacer().frame(height: 32)
 
@@ -115,43 +125,13 @@ struct ONBAlarmPermissionView: View {
                 .foregroundColor(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
-                .padding(.horizontal, 40)
-
-            // 알림 허용 버튼 (Pre-prompt CTA)
-            Button {
-                Task {
-                    await vm.requestNotification()
-                    vm.completeOnboarding()
-                }
-            } label: {
-                Text("알림 허용하기")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.dvAccentGold)
-                    )
-            }
-            .padding(.horizontal, 28)
-            .accessibilityLabel("알림 권한 허용 후 시작하기")
-
-            // 나중에 버튼
-            Button {
-                vm.completeOnboarding()
-            } label: {
-                Text("나중에")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.4))
-            }
-            .accessibilityLabel("알림 허용 건너뛰기")
+                .padding(.horizontal, 28)
         }
     }
 
-    // MARK: - 알람 미설정 시 스킵 섹션
+    // MARK: - 알람 미설정 시 안내 텍스트 (스크롤 영역, CTA 제외)
 
-    private var skipSection: some View {
+    private var skipInfoSection: some View {
         VStack(spacing: 16) {
             Spacer().frame(height: 40)
 
@@ -159,23 +139,70 @@ struct ONBAlarmPermissionView: View {
                 .font(.system(size: 14))
                 .foregroundColor(.white.opacity(0.4))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Button {
-                vm.completeOnboarding()
-            } label: {
-                Text("건너뛰기")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.06))
-                    )
-            }
-            .padding(.horizontal, 28)
+                .padding(.horizontal, 28)
         }
+    }
+
+    // MARK: - 하단 고정 CTA (ScrollView 밖)
+
+    private var pinnedCTASection: some View {
+        VStack(spacing: 12) {
+            if hasAnyAlarm {
+                // 알림 허용 버튼
+                Button {
+                    Task {
+                        await vm.requestNotification()
+                        vm.completeOnboarding()
+                    }
+                } label: {
+                    Text("알림 허용하기")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(hex: "#1A2340"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.white)
+                        )
+                }
+                .accessibilityLabel("알림 권한 허용 후 시작하기")
+
+                // 나중에 버튼
+                Button {
+                    vm.completeOnboarding()
+                } label: {
+                    Text("나중에")
+                        .font(.system(size: 15))
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(height: 44)
+                }
+                .accessibilityLabel("알림 허용 건너뛰기")
+            } else {
+                // 건너뛰기 버튼
+                Button {
+                    vm.completeOnboarding()
+                } label: {
+                    Text("건너뛰기")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.white.opacity(0.15))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                }
+                .accessibilityLabel("알람 설정 건너뛰기")
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 20)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: hasAnyAlarm)
     }
 }
 

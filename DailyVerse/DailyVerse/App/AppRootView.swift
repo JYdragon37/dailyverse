@@ -22,20 +22,31 @@ struct AppRootView: View {
             // MARK: - [베이스 레이어] Zone 배경 이미지
             // 스플래시 중에 미리 로드됨 → state=.ready 전환 순간 이미지가 이미 보임
             // SplashView / MainTabView / AlarmView 모두 이 위에 올라탐
-            if let bgImage = loadingCoordinator.zoneBgImage {
-                Image(uiImage: bgImage)
-                    .resizable()
-                    .scaledToFill()
+            // Zone 배경: 온보딩 완료 후(메인 앱)에서만 표시
+            // 온보딩 중 표시 시 scaledToFill이 우측으로 overflow되어 온보딩 화면에 비침
+            if onboardingCompleted {
+                if let bgImage = loadingCoordinator.zoneBgImage {
+                    Color.clear
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(
+                            Image(uiImage: bgImage)
+                                .resizable()
+                                .scaledToFill()
+                        )
+                        .clipped()
+                        .ignoresSafeArea()
+                        .zIndex(0)
+                } else {
+                    LinearGradient(
+                        colors: AppMode.current().gradientColors,
+                        startPoint: .top, endPoint: .bottom
+                    )
                     .ignoresSafeArea()
                     .zIndex(0)
+                }
             } else {
-                // 이미지 로드 전: Zone 다크 그라데이션 (플래시 없음)
-                LinearGradient(
-                    colors: AppMode.current().gradientColors,
-                    startPoint: .top, endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                .zIndex(0)
+                // 온보딩 중: 각 온보딩 화면이 자체 배경 관리 → 순수 다크 베이스
+                Color.dvBgDeep.ignoresSafeArea().zIndex(0)
             }
 
             // MARK: - 로딩 상태에 따른 화면 분기
@@ -94,12 +105,17 @@ struct AppRootView: View {
         }
         .animation(.dvStageTransition, value: alarmCoordinator.stage)
         .animation(.easeInOut(duration: 0.4), value: loadingCoordinator.state == .ready)
+        // MARK: - 탈퇴 완료 알림 (SettingsView 소멸 후에도 표시)
+        .alert("탈퇴 완료", isPresented: .init(
+            get: { authManager.deletionCompleteMessage != nil },
+            set: { if !$0 { authManager.deletionCompleteMessage = nil } }
+        )) {
+            Button("확인") { authManager.deletionCompleteMessage = nil }
+        } message: {
+            Text(authManager.deletionCompleteMessage ?? "")
+        }
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
-            // ⚠️ TEMPORARY: 온보딩 디자인 점검용 — 매 실행마다 온보딩 강제 표시
-            // 완료 후 이 줄 제거하면 기존 유저는 온보딩 스킵
-            onboardingCompleted = false
-
             await loadingCoordinator.start()
             // AuthWelcomeView 표시 여부 결정:
             // - 이미 로그인된 경우 → 스킵
@@ -160,11 +176,14 @@ struct AppRootView: View {
                     }
                 }
             } else {
-                // 로그아웃 → 게스트 모드 해제 + 로그인 화면 재표시
+                // 로그아웃 or 탈퇴
                 guestModeActive = false
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showAuthWelcome = true
-                    showNicknameSetup = false
+                showNicknameSetup = false
+                if !authManager.isDeletingAccount {
+                    // 로그아웃: 온보딩 초기화 → 기존 유저도 온보딩 → 로그인 순서
+                    // onboardingCompleted=false → OnboardingContainerView
+                    // 온보딩 완료 후 onChange(of: onboardingCompleted)에서 showAuthWelcome=true 자동 세팅
+                    onboardingCompleted = false
                 }
             }
         }

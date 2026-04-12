@@ -5,7 +5,8 @@ class WeatherCacheManager {
     private let context = PersistenceController.shared.context
     /// 캐시 스키마 버전 — WeatherData 구조 변경 시 올려서 구 캐시 강제 무효화
     // v7: precipitationAmountMM 필드 추가 (WeatherKit 강수량 mm)
-    private static let schemaVersion = "v7"
+    // v8: 습도 stale 캐시 강제 무효화 (항상 100% 이슈 대응)
+    private static let schemaVersion = "v8"
     private static let schemaKey = "weatherCacheSchemaVersion"
 
     init() {

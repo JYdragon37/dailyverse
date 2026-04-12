@@ -881,6 +881,20 @@ snooze_count: Int16
 
 ## 25. 콘텐츠 현황
 
+### 데이터 소스 접근 정보
+
+| 항목 | 내용 |
+|------|------|
+| **Google Sheets** | [DailyVerse 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **편집 권한** | ✅ 서비스 계정 직접 편집 가능 (`scripts/serviceAccountKey.json`) |
+| **Sheets → Firestore 동기화** | `node scripts/sync_sheets_to_firestore.js` |
+| **수식 필드 재적용** | `node scripts/apply_formula_fields.js` |
+
+> Claude Code는 `scripts/serviceAccountKey.json`을 통해 Google Sheets API 편집 권한을 보유합니다.
+> 시트 수정이 필요한 경우 `apply_formula_fields.js` 또는 커스텀 스크립트를 직접 실행하세요.
+
+---
+
 ### Firestore 컬렉션 구조
 
 | 컬렉션 | 범위 | 용도 |
@@ -891,8 +905,9 @@ snooze_count: Int16
 ### verses/ 컬렉션 필드 현황
 
 - 기본 필드(text_ko, reference, interpretation, application 등): v_001~v_101 전체 채워짐
-- `contemplation_interpretation`: 전체 빈값 — 묵상 탭용 콘텐츠 생성 필요
-- `contemplation_appliance`: 전체 빈값 — 묵상 탭용 콘텐츠 생성 필요
+- `contemplation_interpretation` = `interpretation` (Google Sheets 수식 참조 — 별도 생성 불필요)
+- `contemplation_appliance` = `application` (Google Sheets 수식 참조 — 별도 생성 불필요)
+- `contemplation_ko` = `verse_full_ko` (Google Sheets 수식 참조 — 별도 생성 불필요)
 - `question`: 전체 빈값 — 묵상 탭 질문 콘텐츠 생성 필요 (구버전 필드명 `devotion_question`은 deprecated)
 
 ### 데이터 라이프사이클 정책

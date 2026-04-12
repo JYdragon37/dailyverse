@@ -2,7 +2,27 @@
 
 > 이 프로젝트에서 Claude Code가 활용하는 서브 에이전트 목록입니다.
 > 각 에이전트는 특정 역할에 특화되어 있으며, 복잡한 작업을 병렬/순차로 처리합니다.
-> 마지막 업데이트: 2026-04-11 (v7.0 — Sync Group 정책 반영)
+> 마지막 업데이트: 2026-04-12 (v8.0 — 수식 필드 정책, Sheets 직접 편집 권한 추가)
+
+---
+
+## 📌 데이터 소스 직접 접근
+
+| 항목 | 내용 |
+|------|------|
+| **Google Sheets** | [DailyVerse 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **편집 권한** | ✅ `scripts/serviceAccountKey.json`으로 Claude Code가 직접 편집 가능 |
+| **Sheets ID** | `1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig` |
+| **시트 탭** | `VERSES` (v_001~v_180+), `ALARM_VERSES` (av_001~av_105) |
+
+**주요 스크립트**:
+```bash
+cd /Users/jeongyong/workspace/dailyverse/scripts
+
+node apply_formula_fields.js    # contemplation_* 수식 재적용 (4개 컬럼)
+node sync_sheets_to_firestore.js  # Sheets 전체 → Firestore 동기화
+node upload_verses.js           # 신규 말씀 업로드
+```
 
 ---
 
@@ -478,11 +498,28 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 
 **프롬프트 패턴**:
 ```
-아래 성경 구절의 interpretation, application, contemplation_ko를 작성해줘.
+아래 성경 구절의 verse_full_ko, verse_short_ko, interpretation, application, contemplation_ko를 작성해줘.
 
-구절: {성경 구절 전문}
+구절: {성경 원문 또는 참고 번역}
 참조: {책 이름 장:절}
 모드: {morning/afternoon/evening/alarm 중 해당}
+
+⚠️ 수집 순서 규칙:
+1. verse_full_ko 먼저 확정 (40~120자)
+2. verse_short_ko는 full에서 핵심 문장 추출 (20~60자)
+
+[verse_full_ko 작성 규칙]
+- 분량: 40~120자 (전체 구절 의역)
+- 형식: 끊기지 않게 자연스럽게 — 두 문장 이상은 쉼표 또는 줄바꿈(`\n`)으로 호흡 구분
+- 띄어쓰기, 줄바꿈(\n), 마침표(.), 쉼표(,)를 철저하게 지킨다
+- 말투: 성경 인용체 또는 현대어 의역
+
+[verse_short_ko 작성 규칙]
+- verse_full_ko 확정 후 작성 — full의 핵심 문장을 추출하거나 요약
+- 분량: 20~60자
+- 마침표(.), 쉼표(,)를 철저하게 지킨다
+- 형식: 현대어 의역, 의미가 살아있는 자연스러운 표현
+- 말투: 친근체(`~야`, `~이야`) 또는 성경 인용체
 
 [콘텐츠 Sync Group 인식]
 - Group O (Application): application → 홈 바텀시트/말씀들 해석시트/묵상 S3 적용에 표시
@@ -523,7 +560,11 @@ contemplation_ko: "나의 영혼아 잠잠히 하나님만 바라라. 무릇 나
 contemplation_reference: "시편 62:5"
 ```
 
-**산출물**: Google Sheets `interpretation`, `application`, `contemplation_ko`, `contemplation_reference` 컬럼에 입력할 텍스트
+**산출물**: Google Sheets `interpretation`, `application` 컬럼에 입력할 텍스트
+
+> ✅ **v8.0 변경**: `contemplation_interpretation`, `contemplation_appliance`, `contemplation_ko`, `contemplation_reference`는
+> 수식으로 자동 참조되므로 **별도 작성 불필요**. `interpretation`과 `application`만 작성하면 됩니다.
+> `question` 필드는 별도 `devotion-question-writer`로 생성합니다.
 
 ---
 
@@ -681,9 +722,11 @@ for (const [id, data] of Object.entries(updates)) {
 **사용 방법**:
 ```bash
 cd /Users/jeongyong/workspace/dailyverse/scripts
-node fix_tone_v3.js      # 톤 수정 반영
-node patch_final.js      # 최종 패치
-node upload_verses_*.js  # 신규 말씀 업로드
+node fix_tone_v3.js            # 톤 수정 반영
+node patch_final.js            # 최종 패치
+node upload_verses_*.js        # 신규 말씀 업로드
+node apply_formula_fields.js   # contemplation_* 수식 재적용 (4개 컬럼)
+node sync_sheets_to_firestore.js  # Sheets 전체 → Firestore 동기화
 ```
 
 ---
@@ -697,7 +740,8 @@ node upload_verses_*.js  # 신규 말씀 업로드
 
 [2] 초안 작성 (verse-writer)
     Claude 대화에서 interpretation + application 작성
-    → 분량: interpretation 102~154자 / application 49~73자 / contemplation_ko 50~200자
+    → 분량: interpretation 102~154자 / application 49~73자
+    → contemplation_* 4개 필드는 수식으로 자동 참조 (별도 작성 불필요)
 
 [3] 톤 검수 (tone-reviewer)
     작성된 문구를 톤 기준표로 일괄 검토
@@ -712,10 +756,11 @@ node upload_verses_*.js  # 신규 말씀 업로드
 [5] Firebase 반영 (content-patcher)
     ! node fix_tone_v3.js
     ! node patch_alarm_interpretations.js
+    → 또는 전체 동기화: node sync_sheets_to_firestore.js
 
 [6] 최종 확인
     ! node read_tone_check.js
-    → Google Sheets에서 최종 내용 재확인
+    → Google Sheets 확인: https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit
 ```
 
 ---

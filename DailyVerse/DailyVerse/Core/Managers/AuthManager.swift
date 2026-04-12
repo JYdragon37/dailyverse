@@ -13,6 +13,10 @@ class AuthManager: ObservableObject {
     @Published var errorMessage: String?
     @Published var pendingSave: SavedVerse?
     @Published var authError: String?
+    /// 계정 탈퇴 진행 중 플래그 — AppRootView에서 탈퇴/로그아웃 라우팅 구분용
+    @Published var isDeletingAccount: Bool = false
+    /// 탈퇴 완료 메시지 — AppRootView에서 alert 표시 (SettingsView는 이미 dismiss되므로)
+    @Published var deletionCompleteMessage: String? = nil
 
     private let authService = AuthService()
     private let firestoreService = FirestoreService()
@@ -154,37 +158,50 @@ class AuthManager: ObservableObject {
     // MARK: - Account Deletion
 
     /// 계정 탈퇴:
-    /// 1. 로그인 제공자에 따라 재인증 (Apple만 재인증 팝업, Google/Email은 생략)
-    /// 2. Firestore 데이터 삭제 (users/{uid} + saved_verses/{uid}/verses)
-    /// 3. Firebase Auth 계정 삭제
-    /// 4. RevenueCat 로그아웃 신호 + UserDefaults 초기화
+    /// 1. isDeletingAccount = true  → onChange(isLoggedIn) 에서 showAuthWelcome 차단
+    /// 2. 재인증 (Google/Apple 팝업)
+    /// 3. Firestore 데이터 삭제 (try? — 권한 오류 등 비치명적 실패 무시)
+    /// 4. Firebase Auth 삭제 (실패 시 throw → SettingsView 에 오류 표시)
+    /// 5. UserDefaults 전체 초기화 → onboardingCompleted=false → OnboardingContainerView
     func deleteAccount(subscriptionManager: SubscriptionManager) async throws {
-        guard let uid = user?.uid else { return }
-
-        // Step 1: 로그인 제공자 확인 후 재인증
-        let provider = user?.providerData.first?.providerID ?? ""
-        if provider == "apple.com" {
-            // Apple 로그인: Apple 재인증 팝업 필요
-            try await authService.reauthenticate()
-        } else if provider == "google.com" {
-            // Google 로그인: Google 재인증
-            try await authService.reauthenticateWithGoogle()
+        // user 참조를 미리 캡처 — async 작업 중 self.user가 nil이 되어도 삭제 보장
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthManager", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "로그인 상태가 아닙니다."])
         }
-        // Email 로그인: 최근 로그인 상태이면 생략 (필요 시 Firebase가 requiresRecentLogin 에러 반환)
+        let uid = currentUser.uid
 
-        // Step 2: Firestore 데이터 삭제
-        try await firestoreService.deleteUserData(uid: uid)
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
 
-        // Step 3: Firebase Auth 계정 삭제
-        try await user?.delete()
+        let provider = currentUser.providerData.first?.providerID ?? ""
 
-        // Step 4: RevenueCat 로그아웃 + UserDefaults 초기화
+        // Step 1: Firestore 데이터 삭제 (비치명적)
+        try? await firestoreService.deleteUserData(uid: uid)
+
+        // Step 2: Firebase Auth 삭제 — 최근 로그인이면 바로 성공, 아니면 재인증 후 재시도
+        do {
+            try await currentUser.delete()
+        } catch let error as NSError where error.code == 17014 {
+            // 17014 = requiresRecentLogin → 재인증 후 재시도
+            if provider == "apple.com" {
+                try await authService.reauthenticate()
+            } else if provider == "google.com" {
+                try await authService.reauthenticateWithGoogle()
+            }
+            try await currentUser.delete()
+        }
+
+        // Step 4: UserDefaults 전체 초기화
         subscriptionManager.logOut()
         if let bundleId = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleId)
         }
 
         Analytics.logEvent("account_deleted", parameters: nil)
+
+        // AppRootView에서 알림 표시 (SettingsView는 이 시점에 이미 dismiss됨)
+        deletionCompleteMessage = "계정이 삭제되었습니다.\n그동안 함께해서 감사했어요 🙏"
     }
 
     // MARK: - Error Handling

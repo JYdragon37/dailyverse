@@ -24,13 +24,13 @@ struct DevotionHomeView: View {
         let name = nicknameManager.nickname
         switch hour {
         case 5..<12:
-            return ("☀️", "\(name), 좋은 아침이야. 오늘 하루를 말씀과 함께 시작해볼까?")
+            return ("sun.max.fill", "\(name), 좋은 아침이야. 오늘 하루를 말씀과 함께 시작해볼까?")
         case 12..<18:
-            return ("🌤️", "\(name), 잠깐 쉬어가자. 바쁜 하루 중에 잠시 멈추는 시간.")
+            return ("cloud.sun.fill", "\(name), 잠깐 쉬어가자. 바쁜 하루 중에 잠시 멈추는 시간.")
         case 18..<23:
-            return ("🌙", "\(name), 오늘 하루도 벌써 해가지고 저녁 시간이네. 고생 많았어.")
+            return ("moon.fill", "\(name), 오늘 하루도 벌써 해가지고 저녁 시간이네. 고생 많았어.")
         default:
-            return ("🌌", "\(name), 늦은 밤이네. 오늘 하루를 말씀으로 마무리해볼까.")
+            return ("sparkles", "\(name), 늦은 밤이네. 오늘 하루를 말씀으로 마무리해볼까.")
         }
     }
 
@@ -61,7 +61,7 @@ struct DevotionHomeView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 16)
-            .padding(.bottom, 40)
+            .padding(.bottom, 100)
         }
         .background(Color.dvBgDeep.ignoresSafeArea())
         .fullScreenCover(item: $selectedMeditationEntry) { entry in
@@ -86,8 +86,9 @@ struct DevotionHomeView: View {
 
     private var greetingBlock: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text(greeting.icon)
-                .font(.system(size: 28))
+            Image(systemName: greeting.icon)
+                .font(.system(size: 24))
+                .foregroundColor(.dvAccentGold)
 
             Text(greeting.text)
                 .font(.dvBody)

@@ -23,30 +23,24 @@ struct DevotionResponseView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            Color.dvBgDeep.ignoresSafeArea()
-
+        VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-
-                    // 섹션 1 — 묵상 일상 적용
-                    applianceSection
-
-                    dashedDivider
-
-                    // 섹션 2 — 묵상 질문
-                    questionSection
-
-                    dashedDivider
-
-                    // 섹션 3 — 한 줄 기도
-                    prayerSection
+                VStack(alignment: .leading, spacing: 0) {
+                    applianceSection.padding(.bottom, 20)
+                    dashedDivider.padding(.bottom, 20)
+                    questionSection.padding(.bottom, 20)
+                    dashedDivider.padding(.bottom, 20)
+                    prayerSection.padding(.bottom, 20)
+                    Spacer(minLength: 16)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
+                .frame(maxWidth: .infinity)
             }
-            .stickyCTA(onTap: handleComplete)
+
+            bottomCTA
         }
+        .background(Color.dvBgDeep.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -85,14 +79,18 @@ struct DevotionResponseView: View {
                     v.application.isEmpty ? nil : v.application
                 } ?? "오늘 이 말씀을 삶 속 어느 순간에 떠올릴 수 있을까요?"
 
-                Text(appliance)
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white.opacity(0.85))
-                    .lineSpacing(16 * 0.6)
+                // #11: 닉네임 prefix
+                let nickname = NicknameManager.shared.nickname
+                let prefixed = "\(nickname), \(appliance)"
+
+                Text(prefixed)
+                    .font(.system(size: 17, weight: .regular))
+                    .foregroundColor(.white.opacity(0.88))
+                    .lineSpacing(17 * 0.65)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(12)
+            .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 14)
                     .fill(Color.dvBgSurface)
@@ -209,40 +207,34 @@ struct DevotionResponseView: View {
         f.dateFormat = "M월 d일"
         return f.string(from: Date())
     }
-}
 
-// MARK: - Sticky CTA Extension
+    // MARK: - Bottom CTA (VStack 하단 고정)
 
-private extension View {
-    func stickyCTA(onTap: @escaping () -> Void) -> some View {
-        self.safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [Color.dvBgDeep.opacity(0), Color.dvBgDeep],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 20)
+    private var bottomCTA: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                colors: [Color.dvBgDeep.opacity(0), Color.dvBgDeep],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 20)
+            .allowsHitTesting(false)
 
-                Button {
-                    onTap()
-                } label: {
-                    Text("✨ 오늘의 묵상 마치기")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.dvAccentGold)
-                        )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
-                .background(Color.dvBgDeep)
+            Button { handleComplete() } label: {
+                Text("✨ 오늘의 묵상 마치기")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.dvAccentGold)
+                    )
             }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 76)  // 16 + DVTabBar 높이(~60pt)
         }
+        .background(Color.dvBgDeep)
     }
 }
 

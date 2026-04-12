@@ -429,6 +429,8 @@ struct WeatherDetailSheet: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 animating = true
             }
+            // 시트 열릴 때 최신 날씨 재조회 → 습도/강수/자외선/미세먼지 즉시 갱신
+            Task { await viewModel.forceRefreshWeather() }
         }
     }
 

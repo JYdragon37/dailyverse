@@ -17,35 +17,38 @@ struct ONBExperienceView: View {
             // 배경: 앱 Zone 이미지 또는 그라데이션 폴백
             backgroundLayer.ignoresSafeArea()
 
-            // 다크 오버레이
+            // 오버레이 (배경 이미지 있을 때)
             LinearGradient(
-                colors: [Color.black.opacity(0.30), Color.black.opacity(0.60)],
+                colors: [Color.black.opacity(0.20), Color.black.opacity(0.50)],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer()
+                // 도트 아래 여유
+                Spacer().frame(height: 40)
 
-                // 시간대 인사 (데모 — 실제 앱과 동일 스타일)
+                // 시간대 인사 (데모 — 실제 앱과 동일 스타일, 상단 고정)
                 HStack(spacing: 8) {
                     Image(systemName: AppMode.current().greetingIcon)
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundColor(.white)
-                    Text("\(AppMode.current().greeting), 친구")
-                        .font(.dvLargeTitle)
+                    Text(AppMode.current().greeting)
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 28)
                 .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 2)
 
-                Spacer().frame(height: 28)
+                Spacer().frame(height: 24)
 
-                // 말씀 카드 (메인 앱과 동일한 스타일)
+                // 말씀 카드 (메인 앱과 동일한 스타일 — VerseCardView와 동일하게 verseShortKo 사용)
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(demoVerse.verseFullKo)
+                    Text(demoVerse.verseShortKo)
                         .font(.custom("Georgia-BoldItalic", size: 20))
                         .foregroundColor(.white)
                         .lineSpacing(6)
@@ -80,14 +83,15 @@ struct ONBExperienceView: View {
 
                     Text("알람은 이미 쓰고 있어요\n거기에 말씀만 얹는 거예요")
                         .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
+                        .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 1)
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 28)
                 .opacity(cardAppeared ? 1 : 0)
 
-                Spacer()
+                Spacer(minLength: 40)
 
                 // CTA
                 Button {
@@ -95,16 +99,16 @@ struct ONBExperienceView: View {
                 } label: {
                     Text("이런 말씀을 받고 싶어요 →")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color(hex: "#1A2340"))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 56)
+                        .frame(height: 60)
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.dvAccentGold)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.white)
                         )
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 60)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
                 .opacity(cardAppeared ? 1 : 0)
                 .accessibilityLabel("다음 단계로 이동")
             }
@@ -121,14 +125,17 @@ struct ONBExperienceView: View {
     @ViewBuilder
     private var backgroundLayer: some View {
         if let bgImage = loadingCoordinator.zoneBgImage {
-            Image(uiImage: bgImage)
-                .resizable()
-                .scaledToFill()
-                .clipped()
+            GeometryReader { geo in
+                Image(uiImage: bgImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
         } else {
-            // 폴백: Zone 그라데이션
+            // 폴백: 온보딩 그라데이션 (dark zone 색상 대신 밝은 그라데이션)
             LinearGradient(
-                colors: AppMode.current().gradientColors,
+                colors: [Color(hex: "#4EC4B0"), Color(hex: "#7A9AD0"), Color(hex: "#9080CC")],
                 startPoint: .top,
                 endPoint: .bottom
             )

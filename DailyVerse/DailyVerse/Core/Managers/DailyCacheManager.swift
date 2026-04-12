@@ -4,17 +4,57 @@ import Combine
 
 class DailyCacheManager {
     static let shared = DailyCacheManager()
-    private let cacheKey = "dailyVerseCache_v4"  // v4: 다수 구절 추가로 캐시 강제 초기화
+    private let cacheKey = "dailyVerseCache_v6"  // v6: todayVerseId 추가 (하루 1개 verse 통일)
 
-    // MARK: - Verse ID
+    /// Core Data verse JSON 캐시 스키마 버전
+    /// 버전이 다르면 CachedVerse 전체 삭제 → Firestore에서 최신 데이터 재취득
+    private static let verseSchemVersion = "verse_cache_v2"
+    private static let verseSchemaKey    = "cachedVerseSchemaVersion"
+
+    init() {
+        let stored = UserDefaults.standard.string(forKey: Self.verseSchemaKey)
+        if stored != Self.verseSchemVersion {
+            clearAllCachedVerses()
+            UserDefaults.standard.set(Self.verseSchemVersion, forKey: Self.verseSchemaKey)
+        }
+    }
+
+    private func clearAllCachedVerses() {
+        let context = PersistenceController.shared.context
+        let request = CachedVerse.fetchRequest()
+        if let all = try? context.fetch(request) {
+            all.forEach { context.delete($0) }
+            PersistenceController.shared.save()
+        }
+    }
+
+    // MARK: - Today Verse ID (하루 1개 — 모든 탭 공유)
+
+    /// 오늘의 verse ID 조회 (04:00 기준 일일 고정)
+    func getTodayVerseId() -> String? {
+        guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
+        return cache.todayVerseId
+    }
+
+    /// 오늘의 verse ID 저장 (최초 1회 결정 후 하루 동안 변경 없음)
+    func setTodayVerseId(_ verseId: String) {
+        var cache = loadCache() ?? DailyVerseCache(date: Date())
+        cache.todayVerseId = verseId
+        saveCache(cache)
+    }
+
+    // MARK: - Verse ID (Zone별 — 레거시 호환)
 
     func getVerseId(for mode: AppMode) -> String? {
+        // 하루 1개 verse 우선, 없으면 Zone별 폴백
+        if let todayId = getTodayVerseId() { return todayId }
         guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
         return cache.verseId(for: mode)
     }
 
     func setVerseId(_ verseId: String, for mode: AppMode) {
         var cache = loadCache() ?? DailyVerseCache(date: Date())
+        cache.todayVerseId = verseId  // 항상 todayVerseId도 동시 세팅
         cache.setVerseId(verseId, for: mode)
         saveCache(cache)
     }
@@ -69,6 +109,12 @@ class DailyCacheManager {
         guard let entity = try? context.fetch(request).first,
               let json = entity.json,
               let data = json.data(using: .utf8) else { return nil }
+        // 24시간 TTL: 만료 시 삭제 → fetchVerses()가 Firestore에서 최신 데이터 재취득
+        if let cachedAt = entity.cachedAt, Date().timeIntervalSince(cachedAt) > 86400 {
+            context.delete(entity)
+            PersistenceController.shared.save()
+            return nil
+        }
         return try? JSONDecoder().decode(Verse.self, from: data)
     }
 

@@ -11,12 +11,14 @@ struct SettingsView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
-    @State private var showDeleteAccountAlert = false
+    @State private var showRetentionAlert = false       // 1단계: 붙잡기
+    @State private var showDeleteAccountAlert = false   // 2단계: 최종 확인
     @State private var showSignOutAlert = false
     @State private var showLoginPrompt = false
     @State private var showNicknameEdit = false
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
+    // deleteSuccessMessage는 AuthManager.deletionCompleteMessage로 이동 (AppRootView에서 표시)
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -45,6 +47,15 @@ struct SettingsView: View {
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
         }
         .task { await permissionManager.checkAll() }
+        // 1단계: 리텐션 팝업 (붙잡기)
+        .alert("잠깐만요 🙏", isPresented: $showRetentionAlert) {
+            Button("그래도 탈퇴할게요", role: .destructive) {
+                showDeleteAccountAlert = true
+            }
+            Button("머물게요", role: .cancel) {}
+        } message: {
+            Text("지금까지 쌓아온 말씀과 묵상 기록이 모두 사라져요.\n정말 떠나실 건가요?")
+        }
         .alert("로그아웃", isPresented: $showSignOutAlert) {
             Button("로그아웃", role: .destructive) { authManager.signOut() }
             Button("취소", role: .cancel) {}
@@ -126,7 +137,7 @@ struct SettingsView: View {
                 Button("로그아웃") { showSignOutAlert = true }
                     .foregroundColor(.primary)
 
-                Button("계정 탈퇴", role: .destructive) { showDeleteAccountAlert = true }
+                Button("계정 탈퇴", role: .destructive) { showRetentionAlert = true }
             } else {
                 Button {
                     showLoginPrompt = true

@@ -18,14 +18,14 @@ struct ONBThemeChip: View {
                     .foregroundColor(isSelected ? .black : .white)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: 52)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isSelected ? Color.dvAccentGold : Color.white.opacity(0.08))
+                    .fill(isSelected ? Color.dvAccentGold : Color.white.opacity(0.14))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
                             .stroke(
-                                isSelected ? Color.clear : Color.white.opacity(0.15),
+                                isSelected ? Color.clear : Color.white.opacity(0.28),
                                 lineWidth: 1
                             )
                     )

@@ -8,6 +8,7 @@ struct AlarmListView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
 
     @State private var todayVerse: Verse?
+    @State private var showMaxAlarmsAlert = false
 
     var body: some View {
         NavigationStack {
@@ -243,7 +244,11 @@ struct AlarmListView: View {
         Group {
             if !viewModel.alarms.isEmpty {
                 Button {
-                    viewModel.showAddEdit = true
+                    if viewModel.alarms.count >= 3 {
+                        showMaxAlarmsAlert = true
+                    } else {
+                        viewModel.showAddEdit = true
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
@@ -267,11 +272,14 @@ struct AlarmListView: View {
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 72)
                 }
-                .disabled(viewModel.alarms.count >= 3)
-                .opacity(viewModel.alarms.count >= 3 ? 0.45 : 1.0)
                 .accessibilityLabel(viewModel.alarms.count >= 3 ? "알람 최대 3개 도달" : "새 알람 추가")
+                .alert("알람은 최대 3개까지\n설정할 수 있어요", isPresented: $showMaxAlarmsAlert) {
+                    Button("확인", role: .cancel) {}
+                } message: {
+                    Text("기존 알람을 삭제한 뒤 새 알람을 추가해주세요.")
+                }
             }
         }
     }

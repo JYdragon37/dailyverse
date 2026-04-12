@@ -9,130 +9,142 @@ struct ONBPersonalizeView: View {
 
     var body: some View {
         ZStack {
-            Color.dvBgDeep.ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(hex: "#4EC4B0"), Color(hex: "#7A9AD0"), Color(hex: "#9080CC")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer().frame(height: 64)
+            VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Spacer().frame(height: 40)
 
-                    // 질문 헤더
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("지금 당신에게 필요한 건")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("어떤 말씀인가요?")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.dvAccentGold)
+                        // 질문 헤더
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("지금 당신에게 필요한 건")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("어떤 말씀인가요?")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.dvAccentGold)
 
-                        Text("최대 3개까지 선택할 수 있어요")
-                            .font(.dvCaption)
-                            .foregroundColor(.white.opacity(0.5))
-                            .padding(.top, 4)
-                    }
-                    .padding(.horizontal, 28)
-
-                    Spacer().frame(height: 28)
-
-                    // 테마 그리드 (2열 × 4행)
-                    LazyVGrid(
-                        columns: [GridItem(.flexible()), GridItem(.flexible())],
-                        spacing: 12
-                    ) {
-                        ForEach(OnboardingViewModel.themes) { theme in
-                            ONBThemeChip(
-                                emoji: theme.emoji,
-                                label: theme.label,
-                                isSelected: vm.selectedThemes.contains(theme.id),
-                                onTap: { vm.toggleTheme(theme.id) }
-                            )
+                            Text("최대 3개까지 선택할 수 있어요")
+                                .font(.dvCaption)
+                                .foregroundColor(.white.opacity(0.5))
+                                .padding(.top, 4)
                         }
-                    }
-                    .padding(.horizontal, 28)
+                        .padding(.horizontal, 28)
 
-                    Spacer().frame(height: 40)
+                        Spacer().frame(height: 28)
 
-                    // 구분선
-                    HStack(spacing: 12) {
-                        Rectangle()
-                            .fill(Color.white.opacity(0.12))
-                            .frame(height: 1)
-                        Text("그리고")
-                            .font(.dvCaption)
-                            .foregroundColor(.white.opacity(0.4))
-                            .fixedSize()
-                        Rectangle()
-                            .fill(Color.white.opacity(0.12))
-                            .frame(height: 1)
-                    }
-                    .padding(.horizontal, 28)
-
-                    Spacer().frame(height: 28)
-
-                    // 닉네임
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("우리가 어떻게 불러드릴까요?")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-
-                        TextField("친구", text: $vm.nicknameInput)
-                            .font(.system(size: 18))
-                            .foregroundColor(.white)
-                            .tint(.dvAccentGold)
-                            .focused($isNicknameFocused)
-                            .submitLabel(.done)
-                            .onSubmit { isNicknameFocused = false }
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.07))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(
-                                                isNicknameFocused
-                                                    ? Color.dvAccentGold.opacity(0.6)
-                                                    : Color.white.opacity(0.15),
-                                                lineWidth: 1
-                                            )
-                                    )
-                            )
-                            .animation(.easeInOut(duration: 0.2), value: isNicknameFocused)
-                    }
-                    .padding(.horizontal, 28)
-
-                    Spacer().frame(height: 40)
-
-                    // CTA
-                    Button {
-                        isNicknameFocused = false
-                        vm.next()
-                    } label: {
-                        HStack(spacing: 8) {
-                            if !vm.selectedThemes.isEmpty {
-                                Text(vm.selectedThemes.prefix(3).map { id in
-                                    OnboardingViewModel.themes.first { $0.id == id }?.emoji ?? ""
-                                }.joined())
-                                .font(.system(size: 16))
+                        // 테마 그리드 (2열 × 4행)
+                        LazyVGrid(
+                            columns: [GridItem(.flexible()), GridItem(.flexible())],
+                            spacing: 12
+                        ) {
+                            ForEach(OnboardingViewModel.themes) { theme in
+                                ONBThemeChip(
+                                    emoji: theme.emoji,
+                                    label: theme.label,
+                                    isSelected: vm.selectedThemes.contains(theme.id),
+                                    onTap: { vm.toggleTheme(theme.id) }
+                                )
                             }
-                            Text(vm.selectedThemes.isEmpty ? "건너뛰기" : "선택 완료 →")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(vm.selectedThemes.isEmpty ? .white.opacity(0.5) : .black)
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(vm.selectedThemes.isEmpty
-                                      ? Color.white.opacity(0.08)
-                                      : Color.dvAccentGold)
-                        )
+                        .padding(.horizontal, 28)
+
+                        Spacer().frame(height: 40)
+
+                        // 구분선
+                        HStack(spacing: 12) {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.12))
+                                .frame(height: 1)
+                            Text("그리고")
+                                .font(.dvCaption)
+                                .foregroundColor(.white.opacity(0.4))
+                                .fixedSize()
+                            Rectangle()
+                                .fill(Color.white.opacity(0.12))
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 28)
+
+                        Spacer().frame(height: 28)
+
+                        // 닉네임
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("우리가 어떻게 불러드릴까요?")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+
+                            TextField("닉네임을 입력해주세요", text: $vm.nicknameInput)
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .tint(.dvAccentGold)
+                                .focused($isNicknameFocused)
+                                .submitLabel(.done)
+                                .onSubmit { isNicknameFocused = false }
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.07))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(
+                                                    isNicknameFocused
+                                                        ? Color.dvAccentGold.opacity(0.6)
+                                                        : Color.white.opacity(0.15),
+                                                    lineWidth: 1
+                                                )
+                                        )
+                                )
+                                .animation(.easeInOut(duration: 0.2), value: isNicknameFocused)
+                        }
+                        .padding(.horizontal, 28)
+
+                        Spacer().frame(height: 24)
                     }
-                    .padding(.horizontal, 28)
-                    .padding(.bottom, 60)
-                    .animation(.spring(response: 0.3), value: vm.selectedThemes.isEmpty)
-                    .accessibilityLabel(vm.selectedThemes.isEmpty ? "건너뛰기" : "테마 선택 완료")
                 }
+                .scrollDismissesKeyboard(.immediately)
+
+                // CTA — ScrollView 밖에 항상 하단 고정
+                Button {
+                    isNicknameFocused = false
+                    vm.next()
+                } label: {
+                    HStack(spacing: 8) {
+                        if !vm.selectedThemes.isEmpty {
+                            Text(vm.selectedThemes.prefix(3).map { id in
+                                OnboardingViewModel.themes.first { $0.id == id }?.emoji ?? ""
+                            }.joined())
+                            .font(.system(size: 16))
+                        }
+                        Text(vm.selectedThemes.isEmpty ? "건너뛰기" : "선택 완료 →")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(vm.selectedThemes.isEmpty ? .white.opacity(0.6) : Color(hex: "#1A2340"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(vm.selectedThemes.isEmpty
+                                  ? Color.white.opacity(0.15)
+                                  : Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.white.opacity(vm.selectedThemes.isEmpty ? 0.3 : 0), lineWidth: 1)
+                            )
+                    )
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+                .animation(.spring(response: 0.3), value: vm.selectedThemes.isEmpty)
+                .accessibilityLabel(vm.selectedThemes.isEmpty ? "건너뛰기" : "테마 선택 완료")
             }
-            .scrollDismissesKeyboard(.immediately)
         }
     }
 }

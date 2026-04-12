@@ -48,13 +48,20 @@ class VerseRepository {
             }
         }
 
-        // 2. 오늘의 캐시 확인
-        if let cachedId = cacheManager.getVerseId(for: mode),
-           let verse = cacheManager.loadCachedVerse(id: cachedId) {
-            return verse
+        // 2. 오늘의 캐시 확인 (verseId가 있으면 반드시 같은 verse 유지)
+        if let cachedId = cacheManager.getVerseId(for: mode) {
+            // Core Data에서 로드 (TTL 이내)
+            if let verse = cacheManager.loadCachedVerse(id: cachedId) {
+                return verse
+            }
+            // Core Data TTL 만료 시 Firestore에서 동일 verseId 재로드 (verse 변경 방지)
+            if let verses = try? await fetchVerses(),
+               let found = verses.first(where: { $0.id == cachedId }) {
+                return found
+            }
         }
 
-        // 3. Cooldown 알고리즘 선택
+        // 3. Cooldown 알고리즘 선택 (캐시 없을 때만 — 최초 또는 06:00 이후 갱신)
         if let verses = try? await fetchVerses(),
            let selected = selector.select(from: verses, mode: mode, weather: weather) {
             cacheManager.setVerseId(selected.id, for: mode)
