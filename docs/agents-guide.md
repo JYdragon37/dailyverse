@@ -489,148 +489,50 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 
 > 말씀 해석·일상 적용 문구를 작성하고 DailyVerse 톤에 맞게 다듬는 파이프라인입니다.
 > Google Sheets(원본) → Claude 작성 → 톤 검수 → Firebase 업로드 순서로 진행됩니다.
+>
+> 📖 **상세 규칙·LLM 프롬프트**: [`docs/contents-guideline.md`](./contents-guideline.md) §4~§6
+> - §4: 콘텐츠 생성 파이프라인 (Zone 기준표 + 생성 흐름)
+> - §5: Verse 필드 규격 + 통합 생성 프롬프트 + 검수 체크리스트
+> - §6: Alarm Verse 필드 규격 + 알람 심리 + 생성 프롬프트
 
 ---
 
 ### `verse-writer` (general-purpose 활용)
-**역할**: 성경 구절의 해석(interpretation) + 일상 적용(application) 문구 초안 작성
+**역할**: 성경 구절의 전체 텍스트 필드 초안 작성
 **주로 사용**: 새 말씀 배치 추가, 기존 문구 전면 재작성
 
-**프롬프트 패턴**:
-```
-아래 성경 구절의 verse_full_ko, verse_short_ko, interpretation, application, contemplation_ko를 작성해줘.
+> 📖 **상세 규칙·프롬프트**: `docs/contents-guideline.md` §5-4 "신규 Verse 통합 생성 프롬프트"
 
-구절: {성경 원문 또는 참고 번역}
-참조: {책 이름 장:절}
-모드: {morning/afternoon/evening/alarm 중 해당}
-
-⚠️ 수집 순서 규칙:
-1. verse_full_ko 먼저 확정 (40~120자)
-2. verse_short_ko는 full에서 핵심 문장 추출 (20~60자)
-
-[verse_full_ko 작성 규칙]
-- 분량: 40~120자 (전체 구절 의역)
-- 형식: 끊기지 않게 자연스럽게 — 두 문장 이상은 쉼표 또는 줄바꿈(`\n`)으로 호흡 구분
-- 띄어쓰기, 줄바꿈(\n), 마침표(.), 쉼표(,)를 철저하게 지킨다
-- 말투: 성경 인용체 또는 현대어 의역
-
-[verse_short_ko 작성 규칙]
-- verse_full_ko 확정 후 작성 — full의 핵심 문장을 추출하거나 요약
-- 분량: 20~60자
-- 마침표(.), 쉼표(,)를 철저하게 지킨다
-- 형식: 현대어 의역, 의미가 살아있는 자연스러운 표현
-- 말투: 친근체(`~야`, `~이야`) 또는 성경 인용체
-
-[콘텐츠 Sync Group 인식]
-- Group O (Application): application → 홈 바텀시트/말씀들 해석시트/묵상 S3 적용에 표시
-  contemplation_appliance → 묵상 S3 일상 적용 전용 (없으면 application으로 폴백)
-- Group P (Interpretation): interpretation → 홈 바텀시트/말씀들 해석시트/묵상 S2 해석에 표시
-  contemplation_interpretation → 묵상 S2 해석 전용 (없으면 interpretation으로 폴백)
-- 각 필드가 어느 화면에서 노출되는지 인식하고 해당 화면의 맥락에 맞게 작성
-
-[interpretation 작성 규칙]
-- 분량: 102~154자 (기준 128자, ±20%)
-- 성경 시대 배경 또는 저자의 상황을 1문장으로 먼저 소개
-- 원어(히브리어·헬라어) 표기 절대 금지
-  → 원어 뜻이 중요하면 한국어로 풀어서 설명
-- 마지막 문장은 오늘 나의 상황과 연결되도록 마무리
-- 말투: ~야, ~이야, ~거야, ~있어, ~돼 (친근한 대화체)
-
-[application 작성 규칙]
-- 분량: 49~73자 (기준 61자, ±20%)
-- 오늘 바로 실천할 수 있는 구체적 행동 1가지 포함
-- 말투: ~봐, ~해봐, ~해도 돼, ~기억해 (부드러운 권유체)
-- 설교조·명령조 금지: "반드시 ~해야", "~하십시오" 사용 금지
-- {모드}의 시간대(아침/오후/저녁/취침)에 맞는 상황 반영
-
-[contemplation_ko 작성 규칙] (신규)
-- 분량: 50~200자
-- verse_full_ko와 동일한 구절이어도 되지만, 묵상에 더 적합한 다른 구절 선정도 가능
-- 긴 묵상 시간에 천천히 읽을 수 있는 구절 (verse_short_ko보다 깊이 있게)
-- 말투: 성경 인용체 (의역 허용)
-
-[contemplation_reference 작성 규칙] (신규)
-- 형식: "책이름 장:절" (예: "시편 23:1-2", "이사야 40:31")
-- contemplation_ko의 출처
-
-예시:
-interpretation: "이 말씀은 바울이 로마 감옥에서 빌립보 교인들에게 쓴 편지야..."
-application: "오늘 버거운 일이 있어도 기억해. 능력 주시는 분께 연결된 채로 시작해봐..."
-contemplation_ko: "나의 영혼아 잠잠히 하나님만 바라라. 무릇 나의 소망이 그로부터 나오는도다."
-contemplation_reference: "시편 62:5"
-```
+**빠른 참고**:
+- 생성 순서: `verse_full_ko` → `verse_short_ko` → `interpretation` + `application` → `alarm_top_ko`
+- 원어(히브리어·헬라어) 직접 표기 절대 금지
+- `application`은 대상 Zone의 시간대 상황 직접 반영 필수
+- `contemplation_*` 필드는 수식 자동 참조 — 별도 작성 불필요
 
 **산출물**: Google Sheets `interpretation`, `application` 컬럼에 입력할 텍스트
-
-> ✅ **v8.0 변경**: `contemplation_interpretation`, `contemplation_appliance`, `contemplation_ko`, `contemplation_reference`는
-> 수식으로 자동 참조되므로 **별도 작성 불필요**. `interpretation`과 `application`만 작성하면 됩니다.
-> `question` 필드는 별도 `devotion-question-writer`로 생성합니다.
 
 ---
 
 ### `tone-reviewer` (general-purpose 활용)
 **역할**: 작성된 문구의 말투가 DailyVerse 기준에 맞는지 점검·수정
-**주로 사용**: 새 문구 배치 전 QA, 기존 문구 일괄 리뷰 (`fix_tone_v1~v3.js` 패턴)
+**주로 사용**: 새 문구 배치 전 QA (`fix_tone_v1~v3.js` 패턴)
 
-**톤 기준표**:
+> 📖 **상세 규칙**: `docs/contents-guideline.md` §5-5 "콘텐츠 검수 체크리스트"
 
-| 구분 | 허용 표현 | 금지 표현 |
-|------|---------|---------|
-| 문장 종결 | ~야, ~이야, ~거야, ~느껴, ~일 거야, ~봐, ~해도 돼, ~있어, ~계셔 | ~이다, ~합니다, ~입니다, ~이라, ~하는 것이다 |
-| 권유 | ~해봐, ~기억해, ~말해봐, ~생각해봐 | 반드시 ~해야, 꼭 ~하라, ~하십시오 |
-| 설명 | 배경 서사 + 현재 연결 | 설교체 독백, 신학 강의조 |
-| 원어 | 한국어로 풀어 설명 | 히브리어·헬라어 직접 표기 (예: "헤세드", "케코스미카") |
+| 허용 | 금지 |
+|------|------|
+| ~야, ~이야, ~거야, ~있어, ~봐, ~해도 돼 | ~이다, ~합니다, ~입니다, 반드시 ~해야 |
+| 배경 서사 + 현재 연결 | 설교체 독백, 히브리어·헬라어 직접 표기 |
 
-**프롬프트 패턴**:
-```
-아래 말씀 문구들의 말투를 DailyVerse 톤 기준으로 점검해줘.
-
-[톤 기준]
-좋음: ~야, ~이야, ~거야, ~있어, ~봐, ~해도 돼
-나쁨: ~이다, ~합니다, ~입니다, 반드시 ~해야, 설교조
-
-검토할 문구:
-{verse_id}: verse_short_ko = "{텍스트}"
-{verse_id}: verse_full_ko = "{텍스트}"
-{verse_id}: interpretation = "{텍스트}"
-{verse_id}: application = "{텍스트}"
-{verse_id}: contemplation_ko = "{텍스트}"
-...
-
-결과 형식:
-- OK: 수정 불필요
-- 수정 필요: 문제 부분 → 수정안
-
-수정이 필요한 항목만 수정안을 제시하고, OK인 건 "OK"만 표시해줘.
-```
-
-**산출물**: 수정 필요 항목 목록 + 수정안 → `fix_tone_v{N}.js` 스크립트로 반영
+**산출물**: 수정 필요 항목 목록 → `fix_tone_v{N}.js` 스크립트로 반영
 
 ---
 
 ### `scripture-checker` (general-purpose 활용)
 **역할**: 원어 표기 제거 + 성경 역사적 배경 팩트체크
-**주로 사용**: 초안 작성 후 원어 표기 여부 스캔 (`patch_alarm_interpretations.js` 패턴)
+**주로 사용**: 초안 작성 후 원어 표기 여부 스캔
 
-**프롬프트 패턴**:
-```
-아래 interpretation 문구들에서 히브리어·헬라어 원어 표기가 있으면 모두 찾아줘.
-원어 표기를 한국어 풀이로 대체한 수정안도 함께 제시해줘.
-
-금지 패턴 예시:
-- "히브리어 '라아'는..." → "히브리어 표현이지만 풀이로: '풍성하게 이끈다'는 뜻인데..."
-- "헬라어 '케코스미카'는..." → "'이미 완전히 이겼다'는 완료형 표현인데..."
-- "헤세드의 흔적이..." → "변함없는 사랑의 흔적이..."
-
-검토할 문구:
-{verse_id}: interpretation = "{interpretation 텍스트}"
-{verse_id}: contemplation_ko = "{contemplation_ko 텍스트}"
-...
-
-결과:
-- 원어 없음: OK
-- 원어 발견: 해당 부분 → 대체 수정안
-```
+> 📖 **금지 패턴**: `docs/contents-guideline.md` §5-5 "원어 표기 감지 패턴"
 
 **산출물**: 패치 대상 리스트 → `patch_alarm_interpretations.js` 형태로 Firebase 반영
 
@@ -640,52 +542,12 @@ contemplation_reference: "시편 62:5"
 **역할**: 특정 말씀에 대한 묵상 응답 화면용 개인화 질문 생성
 **주로 사용**: 새 verse 배치 추가 시, 또는 question 일괄 생성 시
 
-**입력 필드**:
-- `verse_short_ko`: 핵심 요약 구절 (카드 표시용)
-- `reference`: 성경 참조 (예: "이사야 41:10")
-- `interpretation`: 말씀 해석 문구
-- `contemplation_ko`: 묵상 작성 시트용 구절
-
-**출력 필드**:
-- `question`: 40~80자 질문형 문장 (닉네임 없이 저장)
+> 📖 **상세 규칙·프롬프트**: `docs/contents-guideline.md` §5-1 "`question` 필드"
 
 **핵심 규칙**:
-- `question` 필드는 동일 구절의 `verse_full_ko` 또는 `contemplation_ko`와 맥락이 연관되어야 함
-- 묵상 S3에서 표시되는 질문은 묵상 S2에서 읽은 말씀카드(`verse_full_ko`)와 맥락이 이어져야 함
-- 필드명: `question` (Firestore 키 = "question", 구버전 `devotion_question` 사용 금지)
+- `question` 필드는 동일 구절 `verse_full_ko`/`contemplation_ko`와 맥락 연결 필수
+- 필드명: `question` (구버전 `devotion_question` 사용 금지)
 - Group Q (Unique): 독립 관리, 다른 필드와 Sync 없음
-
-**프롬프트 패턴**:
-```
-아래 말씀에 대한 묵상 질문(question)을 생성해줘.
-
-말씀: {verse_short_ko}
-참조: {reference}
-해석: {interpretation}
-묵상 구절: {contemplation_ko}
-
-[question 작성 규칙]
-- 분량: 40~80자 (1~2문장)
-- 형식: 질문형 문장
-- 닉네임 없이 저장 (앱에서 "{name}님, " 앞붙임으로 동적 합성)
-- 톤: 따뜻하고 개인적인 어조, 일상 언어 사용, 종교적 어조 최소화
-- 대답 형태: 선택형 / 회상형 / 상상형 중 하나로
-- 연결: 말씀의 핵심 메시지를 일상 삶과 연결
-- 금지: 설교조 질문, 신앙 점검 형태 ("기도했나요?", "말씀을 읽었나요?")
-- 금지: "~해야 합니까?", "~하셨나요?" 등 경어체
-- 누구나 공감할 수 있는 보편적 질문 (신앙 유무와 관계없이)
-
-[좋은 예시]
-- "요즘 당신을 가장 두렵게 만드는 것은 무엇인가요?"
-- "오늘 이 말씀이 가장 필요한 순간은 언제일까요?"
-- "지금 당신의 시선은 어디를 향해 있나요?"
-- "힘든 시간 속에서 당신을 위로해준 것이 있나요?"
-
-[나쁜 예시]
-- "오늘 하나님께 기도했나요?" (종교적 점검)
-- "말씀을 암송해봤나요?" (신앙 행위 점검)
-- "여러분은 어떻게 생각하십니까?" (경어체, 방송 어투)
-```
 
 **산출물**: `question` 필드값 → `generate_devotion_questions.js` 스크립트로 Firebase 반영
 

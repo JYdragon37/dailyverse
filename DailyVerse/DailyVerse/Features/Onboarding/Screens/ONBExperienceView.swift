@@ -14,6 +14,7 @@ struct ONBExperienceView: View {
     @State private var card2Appeared = false
 
     @State private var currentTimeString: String = ""
+    @State private var currentDateString: String = ""
 
     var body: some View {
         ZStack {
@@ -88,6 +89,10 @@ struct ONBExperienceView: View {
             Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                 currentTimeString = f.string(from: Date())
             }
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "ko_KR")
+            df.dateFormat = "M월 d일"
+            currentDateString = df.string(from: Date())
         }
     }
 
@@ -116,7 +121,7 @@ struct ONBExperienceView: View {
                 // 시간 + 장소 + 날씨
                 HStack(spacing: 4) {
                     Color.clear.frame(width: 26, height: 1)
-                    Text("08:00  ·  Seoul  18°C")
+                    Text("\(currentDateString)  ·  08:00  ·  Seoul  18°C")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.white.opacity(0.75))
                     Image(systemName: "sun.max.fill")
@@ -189,26 +194,15 @@ struct ONBExperienceView: View {
             VStack(spacing: 0) {
                 Spacer().frame(height: 60)
 
-                // 인사말 (Zone7: goldenHour — 한국어)
-                HStack(spacing: 8) {
-                    Image(systemName: AppMode.goldenHour.greetingIcon)
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
-                    Text("수고했어요 오늘 하루도.")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(.white)
-                        .minimumScaleFactor(0.8)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 28)
-                .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 2)
+                // 인사말 (Zone7: goldenHour — 닉네임 포함)
+                greetingRow(mode: .goldenHour)
 
                 Spacer().frame(height: 6)
 
                 // 시간 + 장소 + 날씨
                 HStack(spacing: 4) {
                     Color.clear.frame(width: 26, height: 1)
-                    Text("22:00  ·  Seoul  18°C")
+                    Text("\(currentDateString)  ·  22:00  ·  Seoul  18°C")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.white.opacity(0.75))
                     Image(systemName: "moon.fill")
@@ -229,16 +223,23 @@ struct ONBExperienceView: View {
 
                 Spacer().frame(height: 64)
 
-                // 설명 문구
+                // 배너 (첫번째 장과 동일한 Capsule 스타일)
                 HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.90))
                     Text("매일 빠짐없는 묵상에 도움줄게요!")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white.opacity(0.80))
-                    Image(systemName: "cross.fill")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.80))
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.90))
                 }
                 .padding(.horizontal, 28)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Color.white.opacity(0.12))
+                        .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                )
+                .padding(.horizontal, 20)
                 .opacity(card2Appeared ? 1 : 0)
 
                 Spacer()
