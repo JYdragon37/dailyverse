@@ -14,6 +14,7 @@ struct DailyVerseApp: App {
     @StateObject private var upsellManager = UpsellManager()
     @StateObject private var alarmCoordinator = AlarmCoordinator()
     @StateObject private var loadingCoordinator = AppLoadingCoordinator()
+    @StateObject private var greetingService = GreetingService()
 
     init() {
         // Firebase 초기화
@@ -65,6 +66,7 @@ struct DailyVerseApp: App {
                 .environmentObject(upsellManager)
                 .environmentObject(alarmCoordinator)
                 .environmentObject(loadingCoordinator)
+                .environmentObject(greetingService)
                 .task {
                     // v5.1: 단일 플랜 — 구독 상태 확인 생략
                     // 닉네임 동기화 (로그인 유저만)

@@ -11,6 +11,9 @@ struct SettingsView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
+    // Design Ref: §6 — 인사말 언어 설정 (ko/en/random, 기본값: random)
+    @AppStorage("greetingLanguage") private var greetingLanguage: String = "random"
+
     @State private var showRetentionAlert = false       // 1단계: 붙잡기
     @State private var showDeleteAccountAlert = false   // 2단계: 최종 확인
     @State private var showSignOutAlert = false
@@ -205,6 +208,21 @@ struct SettingsView: View {
                 Text("시스템 따라가기")
                     .font(.dvCaption).foregroundColor(.secondary)
             }
+
+            // 인사말 언어 설정
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Image(systemName: "text.bubble.fill").foregroundColor(.dvAccentGold)
+                    Text("인사말 언어")
+                }
+                Picker("인사말 언어", selection: $greetingLanguage) {
+                    Text("한국어").tag("ko")
+                    Text("English").tag("en")
+                    Text("랜덤").tag("random")
+                }
+                .pickerStyle(.segmented)
+            }
+            .padding(.vertical, 4)
         }
     }
 

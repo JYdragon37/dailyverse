@@ -7,7 +7,10 @@ struct HomeView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var upsellManager: UpsellManager
     @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
+    @EnvironmentObject private var greetingService: GreetingService
     @ObservedObject private var nicknameManager = NicknameManager.shared
+    // Design Ref: §7-1 — 언어 설정 읽기
+    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
 
     @State private var showVerseDetail = false
     @State private var showLoginPrompt = false
@@ -58,6 +61,18 @@ struct HomeView: View {
                 WeatherDetailSheet(viewModel: viewModel)
             }
             .task { await viewModel.loadData() }
+            .task {
+                // Design Ref: §7-1 — Zone 진입 시 greeting 로드
+                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                await greetingService.load(for: viewModel.currentMode, language: lang)
+            }
+            .onChange(of: viewModel.currentMode) { newMode in
+                // Plan SC: Zone 전환 시 새 greeting 선택
+                Task {
+                    let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                    await greetingService.load(for: newMode, language: lang)
+                }
+            }
     }
 
     // MARK: - Background
@@ -118,13 +133,14 @@ struct HomeView: View {
     // MARK: - Greeting Header
 
     /// greeting + 닉네임 조합 — greeting이 구두점으로 끝나면 쉼표 없이 공백만 추가
+    /// Design Ref: §7-1 — greetingService 우선, 비어있으면 AppMode 폴백
     private var greetingText: String {
-        let g = viewModel.currentMode.greeting
+        let g = greetingService.currentGreeting.isEmpty
+            ? viewModel.currentMode.greeting
+            : greetingService.currentGreeting
         let name = nicknameManager.nickname
         let lastChar = g.last
         if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
-            // "Breathe. Reset." → "Breathe. Reset. 친구"
-            // "In the Zone," → "In the Zone, 친구"
             return "\(g) \(name)"
         }
         return "\(g), \(name)"
@@ -137,8 +153,11 @@ struct HomeView: View {
                 Image(systemName: viewModel.currentMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
+                // Plan SC: 최장 EN 31자도 레이아웃 깨짐 없음
                 Text(greetingText)
                     .font(.dvLargeTitle).foregroundColor(.white)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(2)
             }
 
             // Fix 1: 시간/날씨 — 아이콘 너비(26)+간격(8)=34pt leading으로 G,D와 수직 정렬
@@ -156,11 +175,16 @@ struct HomeView: View {
                     } label: {
                         // 날씨 아이콘 제거 (Zone 인사말 아이콘과 중복)
                         // lineLimit(1) + minimumScaleFactor로 한 줄 유지
-                        Text("\(weather.cityName) \(weather.temperature)°C · 💧\(weather.humidity)%")
-                            .font(.system(size: 15, weight: .medium))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                            .foregroundColor(.white.opacity(0.95))
+                        HStack(spacing: 3) {
+                            Text("\(weather.cityName) \(weather.temperature)°C ·")
+                            Image(systemName: "drop.fill")
+                                .font(.system(size: 11))
+                            Text("\(weather.humidity)%")
+                        }
+                        .font(.system(size: 15, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .foregroundColor(.white.opacity(0.95))
                     }
                 } else {
                     Text("·").foregroundColor(.white.opacity(0.4))

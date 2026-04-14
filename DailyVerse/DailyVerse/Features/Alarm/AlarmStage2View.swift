@@ -4,6 +4,9 @@ import Combine
 struct AlarmStage2View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var greetingService: GreetingService
+    // Design Ref: §7-2 — 언어 설정 읽기
+    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
     @State private var showLoginPrompt: Bool = false
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = false
@@ -48,6 +51,11 @@ struct AlarmStage2View: View {
                 actionBar
             }
             .opacity(isVisible ? 1 : 0)
+            .task {
+                // Design Ref: §7-2 — Zone 진입 시 greeting 로드
+                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                await greetingService.load(for: alarmMode, language: lang)
+            }
             .onAppear {
                 withAnimation(.easeInOut(duration: 0.6)) { isVisible = true }
                 // DailyCacheManager에서 오늘의 말씀 로드 (홈/묵상과 동일한 말씀 — B안 통일)
@@ -137,9 +145,14 @@ struct AlarmStage2View: View {
                 Image(systemName: alarmMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
-                Text(alarmMode.greeting)
+                // Design Ref: §7-2 — greetingService 우선, 비어있으면 AppMode 폴백
+                Text(greetingService.currentGreeting.isEmpty
+                     ? alarmMode.greeting
+                     : greetingService.currentGreeting)
                     .font(.dvLargeTitle)
                     .foregroundColor(.white)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(2)
             }
 
             // 2행: 날짜 · 날씨 인라인 (아이콘 너비 들여쓰기 맞춤)
@@ -155,8 +168,13 @@ struct AlarmStage2View: View {
                     HStack(spacing: 5) {
                         Image(systemName: weatherIcon(w.condition))
                             .font(.system(size: 15))
-                        Text("\(w.cityName) \(w.temperature)°C · 💧\(w.humidity)%")
-                            .font(.system(size: 16, weight: .medium))
+                        HStack(spacing: 3) {
+                            Text("\(w.cityName) \(w.temperature)°C ·")
+                            Image(systemName: "drop.fill")
+                                .font(.system(size: 12))
+                            Text("\(w.humidity)%")
+                        }
+                        .font(.system(size: 16, weight: .medium))
                     }
                     .foregroundColor(.white.opacity(0.95))
                 }

@@ -192,9 +192,12 @@ private struct Stage1WeatherStrip: View {
                 Text("·")
                     .foregroundColor(.white.opacity(0.35))
 
-                Text("💧\(weather.humidity)%")
-                    .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.55))
+                HStack(spacing: 2) {
+                    Image(systemName: "drop.fill")
+                    Text("\(weather.humidity)%")
+                }
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.55))
             }
 
             // 줄 2: 시간별 예보 — 5개, ScrollView 없이 HStack으로 균등 배분

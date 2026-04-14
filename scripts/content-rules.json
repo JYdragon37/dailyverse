@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "updated": "2026-04-14",
+    "description": "DailyVerse 콘텐츠 품질 기준 — 모든 에이전트/스크립트의 단일 진실 원본"
+  },
+
+  "char_limits": {
+    "verse_short_ko":               { "min": 10, "max": 50,  "label": "핵심 구절 (카드)" },
+    "verse_full_ko":                { "min": 20, "max": 200, "label": "전체 구절 (바텀시트)" },
+    "interpretation":               { "min": 80, "max": 200, "label": "해석" },
+    "application":                  { "min": 30, "max": 100, "label": "일상 적용" },
+    "alarm_top_ko":                 { "min": 10, "max": 50,  "label": "알람 탭 헤더" },
+    "question":                     { "min": 20, "max": 80,  "label": "묵상 질문" }
+  },
+
+  "forbidden_tone_patterns": [
+    { "pattern": "기억해\\.",       "reason": "마침표 단독 명령형", "suggest": "생각해봐. / 떠올려봐." },
+    { "pattern": "반드시",          "reason": "훈계체 단언",        "suggest": "분명 / 꼭" },
+    { "pattern": "해야 합니다",     "reason": "설교조 명령",        "suggest": "~해봐 / ~해도 돼" },
+    { "pattern": "하십시오",        "reason": "설교조 명령",        "suggest": "~해봐 / ~해줄래?" },
+    { "pattern": "명심",            "reason": "훈계체",             "suggest": "기억해봐 / ~거 알아?" },
+    { "pattern": "해야 한다",       "reason": "훈계체",             "suggest": "~해봐 / ~도 돼" }
+  ],
+
+  "forbidden_original_language_patterns": [
+    { "pattern": "\"[가-힣a-zA-Z]+\"는",     "reason": "따옴표 안 원어 음역 후 설명" },
+    { "pattern": "히브리어[\\s'\"]+[가-힣]+", "reason": "히브리어 단어 직접 표기" },
+    { "pattern": "헬라어[\\s'\"]+[가-힣]+",   "reason": "헬라어 단어 직접 표기" },
+    { "pattern": "그리스어[\\s'\"]+[가-힣]+", "reason": "그리스어 단어 직접 표기" }
+  ],
+
+  "known_original_language_words": [
+    "헤세드", "샬롬", "아몬", "야웨", "엘로힘", "루아흐", "에무나", "체다카",
+    "아가페", "필리아", "에이레네", "카리스", "피스티스", "로고스", "파루시아",
+    "아나파우오", "휘포모네", "휘포스타시스", "카이로", "카린 안티 카리토스",
+    "알레테이아", "미쉬파트", "두나토스", "프루레오", "로기켄", "토브 바헤세드",
+    "카와", "카이로스", "크로노스",
+    "메타모르포오", "파라클레시스", "포이에마", "메노",
+    "아나바이노", "마카리오스", "테텔레스타이", "에페파넨"
+  ],
+
+  "interpretation_structure": {
+    "required_steps": 4,
+    "steps": [
+      { "id": 1, "name": "배경/맥락",     "desc": "누가, 어떤 상황에서 이 말씀이 나왔는지 (1~2문장)" },
+      { "id": 2, "name": "원어/뉘앙스",   "desc": "핵심 단어의 깊은 의미 — 원어 단어 직접 표기 금지" },
+      { "id": 3, "name": "오늘날 연결",   "desc": "이 말씀이 지금 우리 삶에 어떻게 닿는지 (1문장)" },
+      { "id": 4, "name": "Zone 맥락",     "desc": "배정된 시간대 감성과 자연스럽게 연결 (1문장)" }
+    ],
+    "tone": "대화체, 고요하고 따뜻한 크리스천 감성. ~이야, ~거야, ~해봐 등",
+    "forbidden_endings": ["이다.", "것이다.", "합니다.", "입니다."]
+  },
+
+  "application_structure": {
+    "style": "유저에게 직접 말 걸기 — 2인칭 어투",
+    "good_patterns": ["~해봐", "~해도 돼", "~해도 괜찮아", "~인 거 알아?", "~해볼까?"],
+    "max_actions": 1,
+    "note": "실천 가능한 행동 1가지만"
+  },
+
+  "zones": {
+    "deep_dark":   { "time": "00:00-03:00", "themes": ["stillness","surrender","grace","faith"],   "moods": ["serene","calm"],    "tone": "잠 못 드는 고요한 밤, 내면 성찰" },
+    "first_light": { "time": "03:00-06:00", "themes": ["faith","renewal","stillness","hope"],      "moods": ["serene","calm"],    "tone": "새벽 예열, 조용한 시작" },
+    "rise_ignite": { "time": "06:00-09:00", "themes": ["hope","courage","strength","renewal"],     "moods": ["bright","dramatic"],"tone": "아침 점화, 에너지 상승" },
+    "peak_mode":   { "time": "09:00-12:00", "themes": ["wisdom","focus","courage","strength"],     "moods": ["bright","dramatic"],"tone": "집중력 최고, 의사결정" },
+    "recharge":    { "time": "12:00-15:00", "themes": ["rest","patience","gratitude","comfort"],   "moods": ["calm","warm"],      "tone": "점심 후 회복, 리셋" },
+    "second_wind": { "time": "15:00-18:00", "themes": ["strength","focus","patience","wisdom"],    "moods": ["warm","calm"],      "tone": "오후 재점화, 마무리" },
+    "golden_hour": { "time": "18:00-21:00", "themes": ["gratitude","reflection","comfort","peace"],"moods": ["warm","serene"],    "tone": "하루 수확 정리, 감성 개방" },
+    "wind_down":   { "time": "21:00-24:00", "themes": ["peace","rest","comfort","stillness"],      "moods": ["cozy","calm"],      "tone": "하루 마무리, 수면 준비" },
+    "all":         { "time": "all",          "themes": ["all"],                                     "moods": ["all"],              "tone": "범용" }
+  },
+
+  "severity_levels": {
+    "critical":  "즉시 수정 — 앱 노출 불가 수준 (성경 오류, 번영신학, 빈값)",
+    "high":      "단기 수정 — 룰 명백 위반 (원어 표기, 어투, Zone 불일치)",
+    "medium":    "중기 개선 — 품질 저하 (구조 미흡, 문체 이질감)",
+    "low":       "장기 개선 — 미세 조정 수준"
+  },
+
+  "spreadsheet": {
+    "id": "1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig",
+    "tabs": {
+      "verses":    "VERSES",
+      "alarm":     "ALARM_VERSES",
+      "tag_guide": "TAG_GUIDE",
+      "llm_guide": "LLM_GUIDE",
+      "qa_log":    "QA_LOG",
+      "greeting":  "greeting"
+    },
+    "verses_columns": {
+      "A": "verse_id",    "B": "verse_short_ko", "C": "verse_full_ko",
+      "D": "reference",   "E": "book",            "F": "chapter",
+      "G": "verse",       "H": "mode",            "I": "theme",
+      "J": "mood",        "K": "season",          "L": "weather",
+      "M": "interpretation", "N": "application",  "O": "curated",
+      "P": "status",      "Q": "notes"
+    }
+  }
+}

@@ -194,15 +194,10 @@ struct ONBExperienceView: View {
                     Image(systemName: AppMode.goldenHour.greetingIcon)
                         .font(.system(size: 18))
                         .foregroundColor(.white)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("수고했어요,")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("오늘 하루도 \(vm.nicknameDisplay)")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .minimumScaleFactor(0.8)
+                    Text("수고했어요 오늘 하루도.")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
+                        .minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 28)
@@ -213,7 +208,7 @@ struct ONBExperienceView: View {
                 // 시간 + 장소 + 날씨
                 HStack(spacing: 4) {
                     Color.clear.frame(width: 26, height: 1)
-                    Text("\(currentTimeString)  ·  Seoul  18°C")
+                    Text("22:00  ·  Seoul  18°C")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.white.opacity(0.75))
                     Image(systemName: "moon.fill")
