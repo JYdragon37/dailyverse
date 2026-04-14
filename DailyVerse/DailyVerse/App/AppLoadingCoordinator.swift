@@ -23,6 +23,8 @@ final class AppLoadingCoordinator: ObservableObject {
     /// AppRootView 베이스 레이어에서 사용 → 스플래시 종료 즉시 올바른 이미지 표시
     @Published var zoneBgImage: UIImage? = nil
     @Published var zoneBgUrl: URL? = nil
+    @Published var zone4BgImage: UIImage? = nil
+    @Published var windDownBgImage: UIImage? = nil
 
     // MARK: - Dependencies
 
@@ -47,7 +49,10 @@ final class AppLoadingCoordinator: ObservableObject {
         // Stage 2: 캐시 확인 (동기, @MainActor 안에서 직접 호출)
         // + 배경 이미지 비동기 로드
         let hasCached = cacheManager.hasValidCache()
-        await loadZoneBackground()
+        async let zoneLoad: Void = loadZoneBackground()
+        async let zone4Load: Void = loadFixedBackground(mode: .peakMode, assign: { self.zone4BgImage = $0 })
+        async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
+        _ = await (zoneLoad, zone4Load, goldenLoad)
 
         // Stage 3: 유효 캐시 있으면 즉시 ready
         if hasCached {
@@ -116,6 +121,31 @@ final class AppLoadingCoordinator: ObservableObject {
               let image = UIImage(data: data) else { return }
         ImageDiskCache.shared.save(image, for: freshUrl)
         zoneBgImage = image
+    }
+
+    /// 특정 Zone 배경 이미지 로드 — ONBExperienceView 고정 카드용
+    private func loadFixedBackground(mode: AppMode, assign: @MainActor @escaping (UIImage) -> Void) async {
+        if AppMode.current() == mode, let img = zoneBgImage {
+            assign(img); return
+        }
+        let cacheKey = Self.bgUrlCacheKeyPrefix + mode.rawValue
+        if let str = UserDefaults.standard.string(forKey: cacheKey),
+           let u = URL(string: str),
+           let cached = ImageDiskCache.shared.load(for: u) {
+            assign(cached); return
+        }
+        guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
+              let freshUrl = URL(string: bg.storageUrl) else { return }
+        UserDefaults.standard.set(freshUrl.absoluteString, forKey: cacheKey)
+        if let cached = ImageDiskCache.shared.load(for: freshUrl) {
+            assign(cached); return
+        }
+        var request = URLRequest(url: freshUrl, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
+        request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              let image = UIImage(data: data) else { return }
+        ImageDiskCache.shared.save(image, for: freshUrl)
+        assign(image)
     }
 
     /// 백그라운드에서 URL만 최신화 (이미지는 이미 표시 중)

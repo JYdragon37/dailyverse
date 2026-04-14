@@ -5,13 +5,16 @@ import SwiftUI
 struct ONBAlarmTimeRow: View {
     let icon: String
     let label: String
+    var iconColor: Color = .white
     @Binding var isEnabled: Bool
     @Binding var time: Date
 
     var body: some View {
         HStack(spacing: 16) {
-            Text(icon)
-                .font(.system(size: 26))
+            Image(systemName: icon)
+                .symbolRenderingMode(.monochrome)
+                .font(.system(size: 22))
+                .foregroundColor(isEnabled ? iconColor : iconColor.opacity(0.4))
                 .frame(width: 34)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -57,14 +60,14 @@ struct ONBAlarmTimeRow: View {
         Color.dvBgDeep.ignoresSafeArea()
         VStack(spacing: 12) {
             ONBAlarmTimeRow(
-                icon: "☀️", label: "아침",
+                icon: "sunrise.fill", label: "아침",
                 isEnabled: .constant(true),
                 time: .constant(
                     Calendar.current.date(bySettingHour: 6, minute: 0, second: 0, of: Date()) ?? Date()
                 )
             )
             ONBAlarmTimeRow(
-                icon: "🌙", label: "저녁",
+                icon: "moon.fill", label: "저녁",
                 isEnabled: .constant(false),
                 time: .constant(
                     Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()

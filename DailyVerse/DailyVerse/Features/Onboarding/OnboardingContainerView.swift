@@ -23,20 +23,25 @@ struct OnboardingContainerView: View {
                 .offset(x: pageOffset(for: 0))
                 .opacity(nearPage(0) ? 1 : 0)
 
-            // Screen 1: Value-First 체험 — 현재 페이지일 때만 활성
-            ONBExperienceView(vm: vm)
+            // Screen 1: 닉네임 입력 (타이핑 애니메이션)
+            ONBNicknameView(vm: vm)
                 .offset(x: pageOffset(for: 1))
-                .opacity(vm.currentPage == 1 ? 1 : 0)
+                .opacity(nearPage(1) ? 1 : 0)
 
-            // Screen 2: 테마 + 닉네임
-            ONBPersonalizeView(vm: vm)
+            // Screen 2: Value-First 체험 2장 — 현재 페이지일 때만 활성
+            ONBExperienceView(vm: vm)
                 .offset(x: pageOffset(for: 2))
-                .opacity(nearPage(2) ? 1 : 0)
+                .opacity(vm.currentPage == 2 ? 1 : 0)
 
-            // Screen 3: 알람 + Permission Priming
-            ONBAlarmPermissionView(vm: vm)
+            // Screen 3: 테마 선택
+            ONBPersonalizeView(vm: vm)
                 .offset(x: pageOffset(for: 3))
                 .opacity(nearPage(3) ? 1 : 0)
+
+            // Screen 4: 알람 + Permission Priming
+            ONBAlarmPermissionView(vm: vm)
+                .offset(x: pageOffset(for: 4))
+                .opacity(nearPage(4) ? 1 : 0)
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentPage)
         .gesture(DragGesture())

@@ -9,7 +9,7 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - 네비게이션
     @Published var currentPage: Int = 0
-    static let totalPages = 4  // 기존 6 → 4 (슬림 온보딩)
+    static let totalPages = 5  // 닉네임 단독 페이지 추가 → 5
 
     // MARK: - UserDefaults 키
     // v2 신규 온보딩 키 사용 (AppRootView와 동일한 키)
@@ -22,8 +22,14 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 재개용
     @AppStorage("onboardingCurrentPage") private var savedPage: Int = 0
 
-    // MARK: - Screen 3: 개인화
+    // MARK: - 닉네임
     @Published var nicknameInput: String = ""
+
+    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "NY" 표시
+    var nicknameDisplay: String {
+        let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? "NY" : t
+    }
     @Published var selectedThemes: [String] = []   // 최대 3개
 
     // MARK: - Screen 4: 알람
@@ -174,16 +180,17 @@ extension OnboardingViewModel {
         let id: String   // Verse theme key
         let emoji: String
         let label: String
+        let color: Color
     }
 
     static let themes: [Theme] = [
-        Theme(id: "courage",   emoji: "🌟", label: "용기"),
-        Theme(id: "peace",     emoji: "🕊️", label: "평안"),
-        Theme(id: "wisdom",    emoji: "💡", label: "지혜"),
-        Theme(id: "gratitude", emoji: "🙏", label: "감사"),
-        Theme(id: "strength",  emoji: "💪", label: "힘"),
-        Theme(id: "renewal",   emoji: "✨", label: "회복"),
-        Theme(id: "comfort",   emoji: "🤍", label: "위로"),
-        Theme(id: "hope",      emoji: "🌱", label: "소망"),
+        Theme(id: "courage",   emoji: "star.fill",               label: "용기",     color: Color(red: 1.00, green: 0.84, blue: 0.00)),
+        Theme(id: "peace",     emoji: "bird.fill",               label: "평안",     color: Color(red: 0.53, green: 0.81, blue: 0.98)),
+        Theme(id: "wisdom",    emoji: "lightbulb.fill",          label: "지혜",     color: Color(red: 1.00, green: 0.75, blue: 0.20)),
+        Theme(id: "gratitude", emoji: "hands.and.sparkles.fill", label: "감사",     color: Color(red: 0.87, green: 0.63, blue: 0.87)),
+        Theme(id: "strength",  emoji: "bolt.fill",               label: "힘",       color: Color(red: 1.00, green: 0.50, blue: 0.20)),
+        Theme(id: "renewal",   emoji: "sparkles",                label: "회복",     color: Color(red: 0.60, green: 0.90, blue: 0.70)),
+        Theme(id: "comfort",   emoji: "heart.fill",              label: "위로",     color: Color(red: 1.00, green: 0.55, blue: 0.70)),
+        Theme(id: "all",       emoji: "book.fill",               label: "모든 말씀", color: Color(red: 0.25, green: 0.80, blue: 0.75)),
     ]
 }

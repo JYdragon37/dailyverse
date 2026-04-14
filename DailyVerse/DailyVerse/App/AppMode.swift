@@ -42,10 +42,10 @@ enum AppMode: String, CaseIterable {
     /// 영문 인사말
     var greeting: String {
         switch self {
-        case .deepDark:   return "Still up, Night Owl?"
+        case .deepDark:   return "Still up,\nNight Owl?"
         case .firstLight: return "Rise before the world."
         case .riseIgnite: return "Good Morning"
-        case .peakMode:   return "In the Zone"
+        case .peakMode:   return "In the Zone,"
         case .recharge:   return "Breathe. Reset."
         case .secondWind: return "Second Wind's here."
         case .goldenHour: return "Good Evening"

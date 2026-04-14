@@ -1,3 +1,4 @@
+require('dotenv').config();
 /**
  * generate_contemplation_fields.js
  *

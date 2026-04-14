@@ -8,7 +8,6 @@ struct AuthWelcomeView: View {
     @State private var isLoadingApple = false
     @State private var errorMessage: String?
     @State private var logoAppeared = false
-    @State private var textAppeared = false
     @State private var buttonsAppeared = false
 
     private var isLoading: Bool { isLoadingGoogle || isLoadingApple }
@@ -35,13 +34,6 @@ struct AuthWelcomeView: View {
                     .opacity(logoAppeared ? 1 : 0)
                     .offset(y: logoAppeared ? 0 : 20)
 
-                Spacer().frame(height: 32)
-
-                // MARK: - 가치 선언
-                valueSection
-                    .opacity(textAppeared ? 1 : 0)
-                    .offset(y: textAppeared ? 0 : 16)
-
                 Spacer()
 
                 // MARK: - 버튼 영역
@@ -58,44 +50,40 @@ struct AuthWelcomeView: View {
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) { logoAppeared = true }
-            withAnimation(.easeOut(duration: 0.5).delay(0.2)) { textAppeared = true }
-            withAnimation(.easeOut(duration: 0.5).delay(0.4)) { buttonsAppeared = true }
+            withAnimation(.easeOut(duration: 0.5).delay(0.2)) { buttonsAppeared = true }
         }
     }
 
     // MARK: - 로고 섹션
 
     private var logoSection: some View {
-        VStack(spacing: 16) {
-            // 로그인 화면 — 아이콘 축소
+        VStack(spacing: 20) {
             Image("AppLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 80, height: 80)
-                .shadow(color: .black.opacity(0.18), radius: 24, x: 0, y: 10)
+                .frame(width: 140, height: 140)
+                .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 8)
 
             Text("DailyVerse")
-                .font(.custom("DancingScript-Regular", size: 40))
+                .font(.custom("DancingScript-Regular", size: 64))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
-        }
-    }
 
-    // MARK: - 가치 선언 섹션
+            VStack(spacing: 6) {
+                Text("하루의 시작과 끝을")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                Text("경건하게")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color(hex: "#FFD84D"))
+            }
 
-    private var valueSection: some View {
-        VStack(spacing: 12) {
-            Text("말씀과 함께 시작해요")
-                .font(.dvTitle)
-                .foregroundColor(.dvAccentGold)
+            Spacer().frame(height: 8)
+            Text("하나님의 말씀으로 알람을 듣고\n환상적인 배경과 함께 묵상하세요")
+                .font(.system(size: 17, weight: .regular))
+                .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
-
-            Spacer().frame(height: 4)
-
-            Text("알람이 울릴 때 말씀이 함께 옵니다")
-                .font(.dvBody)
-                .foregroundColor(.white.opacity(0.55))
-                .multilineTextAlignment(.center)
+                .lineSpacing(4)
         }
     }
 

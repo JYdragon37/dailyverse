@@ -17,6 +17,7 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 scripts/serviceAccountKey.json
+scripts/.env
 scripts/verse-images/
 scripts/zone-backgrounds/*.jpg
 scripts/zone-backgrounds/*.jpeg

@@ -41,11 +41,11 @@ struct MeditationEntryDetailView: View {
     private var dateBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // 연도 — 맥락 레이어, 작고 흐릿하게
+            // 연도 — 맥락 레이어
             Text(entryYear)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .tracking(3)
-                .foregroundColor(.white.opacity(0.45))
+                .foregroundColor(.white.opacity(0.50))
 
             // 시각적 구분선
             Rectangle()
@@ -58,21 +58,21 @@ struct MeditationEntryDetailView: View {
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(.white)
 
-            // 요일 — 보조 정보, 날짜 바로 아래 2pt 간격
+            // 요일 — 보조 정보
             Text(entryWeekday)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundColor(.white.opacity(0.65))
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white.opacity(0.70))
                 .padding(.top, 2)
 
             // 도시명 — 위치 컨텍스트, 없으면 숨김
             if let city = entry.locationName, !city.isEmpty {
                 HStack(spacing: 4) {
                     Image(systemName: "location.fill")
-                        .font(.system(size: 9))
+                        .font(.system(size: 11))
                     Text(city)
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 14, weight: .regular))
                 }
-                .foregroundColor(.white.opacity(0.45))
+                .foregroundColor(.white.opacity(0.55))
                 .padding(.top, 6)
             }
         }
@@ -85,13 +85,15 @@ struct MeditationEntryDetailView: View {
     private var verseBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // 말씀 본문 — 화면의 주인공
-            Text(verse?.verseFullKo ?? entry.verseReference)
-                .font(.system(size: 26, weight: .semibold))
-                .foregroundColor(.white)
-                .lineSpacing(11)
-                .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 4)
+            // 말씀 본문 — 화면의 주인공 (verse 로드 전에는 숨김)
+            if let verseText = verse?.verseFullKo, !verseText.isEmpty {
+                Text(verseText)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineSpacing(11)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 4)
+            }
 
             // 참조 — em dash로 시작, 중간 크기·중간 투명도
             Text("— \(entry.verseReference)")
@@ -363,8 +365,22 @@ struct MeditationEntryDetailView: View {
             meditationDetailSheet
         }
         .task {
-            verse = DailyCacheManager.shared.loadCachedVerse(id: entry.verseId)
-                ?? Verse.fallbackVerses.first { $0.id == entry.verseId }
+            let id = entry.verseId
+            guard !id.isEmpty else { return }
+
+            // 1. Core Data 캐시 (가장 빠름)
+            if let v = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                verse = v; return
+            }
+            // 2. 번들 폴백 (오프라인 안전망)
+            if let v = Verse.fallbackVerses.first(where: { $0.id == id }) {
+                verse = v; return
+            }
+            // 3. VerseRepository — 메모리 캐시 우선, 없으면 Firestore 호출
+            //    (fetchVerses는 30분 내 재호출 시 in-memory 반환 → 네트워크 불필요)
+            if let verses = try? await VerseRepository.shared.fetchVerses() {
+                verse = verses.first { $0.id == id }
+            }
         }
     }
 }

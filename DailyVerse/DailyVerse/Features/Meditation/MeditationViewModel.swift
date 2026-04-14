@@ -206,7 +206,9 @@ final class MeditationViewModel: ObservableObject {
     func saveGuided(userId: String, prayer: String, readingText: String) async {
         let uid = userId.isEmpty ? "local" : userId
         let mode = AppMode.current()
-        let verseId = DailyCacheManager.shared.getVerseId(for: mode) ?? ""
+        // todayVerse?.id 우선 — 실제 화면에 표시된 말씀 ID를 직접 사용
+        // DailyCacheManager 타이밍 이슈로 빈 문자열이 저장되는 버그 방지
+        let verseId = todayVerse?.id ?? DailyCacheManager.shared.getVerseId(for: mode) ?? ""
         let verseRef = todayVerse?.reference ?? ""
 
         if var existing = todayEntry {

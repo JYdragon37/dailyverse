@@ -1,3 +1,4 @@
+require('dotenv').config();
 /**
  * generate_alarm_top_ko.js
  *

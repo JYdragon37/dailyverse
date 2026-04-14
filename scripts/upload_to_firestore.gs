@@ -1,5 +1,5 @@
 /**
- * DailyVerse — Google Sheets → Firestore 업로드 스크립트
+ * DailyVerse — Google Sheets → Firestore 업로드 스크립트계회
  *
  * 사용 방법:
  *   1. Google Sheets 메뉴 → 확장 프로그램 → Apps Script

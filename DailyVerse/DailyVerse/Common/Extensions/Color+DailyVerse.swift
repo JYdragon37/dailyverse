@@ -86,8 +86,8 @@ extension Color {
     static let dvBgSurface  = Color(hex: "#0F1420")
     /// Elevated 서피스 #1C2333
     static let dvBgElevated = Color(hex: "#1C2333")
-    /// v3.0 골드 #C9A84C (dvAccentGold와 별도 유지)
-    static let dvGold       = Color(hex: "#C9A84C")
+    /// dvAccentGold와 통일
+    static let dvGold       = dvAccentGold
     /// 세이지 그린 #7A9E87
     static let dvSage       = Color(hex: "#7A9E87")
     /// 힌트 텍스트 — white 30%

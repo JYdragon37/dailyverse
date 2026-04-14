@@ -9,7 +9,7 @@ const db = admin.firestore();
 
 // 글자수 기준
 const CHAR_LIMITS = {
-  verse_short_ko:                { min: 15, max: 40 },
+  verse_short_ko:                { min: 20, max: 60 },
   verse_full_ko:                 { min: 40, max: 120 },
   interpretation:                { min: 102, max: 154 },
   application:                   { min: 49, max: 73 },

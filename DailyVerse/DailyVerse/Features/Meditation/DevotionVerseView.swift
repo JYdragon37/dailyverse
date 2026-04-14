@@ -24,11 +24,11 @@ struct DevotionVerseView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    readingSection
+                    dashedDivider
                     verseSectionHeader("📖 오늘의 묵상")
                     verseCard
                     writingInput
-                    dashedDivider
-                    readingSection
                     dashedDivider
 
                     let interp = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
@@ -75,16 +75,6 @@ struct DevotionVerseView: View {
                 .lineSpacing(17 * 0.7)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .trailing, spacing: 4) {
-                if let reference = verse?.reference {
-                    Text("— \(reference)")
-                        .font(.dvReference)
-                        .foregroundColor(.dvAccentGold)
-                }
-                Text("개역개정")
-                    .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.45))
-            }
         }
         .padding(20)
         .background(

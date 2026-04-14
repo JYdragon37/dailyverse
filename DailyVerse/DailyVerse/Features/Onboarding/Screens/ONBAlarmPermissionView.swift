@@ -8,7 +8,7 @@ struct ONBAlarmPermissionView: View {
 
     // 알람 설정 여부 (Priming 섹션 표시 트리거)
     private var hasAnyAlarm: Bool {
-        vm.morningAlarmEnabled || vm.eveningAlarmEnabled
+        vm.morningAlarmEnabled
     }
 
     var body: some View {
@@ -27,12 +27,12 @@ struct ONBAlarmPermissionView: View {
 
                         // 헤더
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("언제 말씀을 받고 싶으신가요?")
-                                .font(.system(size: 26, weight: .bold))
+                            Text("매일 아침,\n알람 시간을 설정해주세요")
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("알람이 울릴 때 함께 도착해요")
+                            Text("말씀이 알람과 함께 도착해요")
                                 .font(.dvBody)
-                                .foregroundColor(.white.opacity(0.55))
+                                .foregroundColor(.white.opacity(0.75))
                         }
                         .padding(.horizontal, 28)
 
@@ -41,16 +41,11 @@ struct ONBAlarmPermissionView: View {
                         // 알람 시간 카드
                         VStack(spacing: 12) {
                             ONBAlarmTimeRow(
-                                icon: "☀️",
+                                icon: "sunrise.fill",
                                 label: "아침",
+                                iconColor: Color(red: 1.0, green: 0.78, blue: 0.25),
                                 isEnabled: $vm.morningAlarmEnabled,
                                 time: $vm.morningAlarmTime
-                            )
-                            ONBAlarmTimeRow(
-                                icon: "🌙",
-                                label: "저녁",
-                                isEnabled: $vm.eveningAlarmEnabled,
-                                time: $vm.eveningAlarmTime
                             )
                         }
                         .padding(.horizontal, 28)
@@ -73,7 +68,7 @@ struct ONBAlarmPermissionView: View {
 
     private var permissionInfoSection: some View {
         VStack(spacing: 20) {
-            Spacer().frame(height: 32)
+            Spacer().frame(height: 16)
 
             // 구분선
             Rectangle()
@@ -82,28 +77,33 @@ struct ONBAlarmPermissionView: View {
                 .padding(.horizontal, 28)
 
             // 알림 배너 목업 (Permission Priming 핵심)
-            HStack(spacing: 14) {
+            HStack(spacing: 16) {
                 ZStack {
                     Circle()
                         .fill(Color.dvAccentGold.opacity(0.18))
-                        .frame(width: 44, height: 44)
+                        .frame(width: 54, height: 54)
                     Image(systemName: "bell.fill")
-                        .font(.system(size: 18))
+                        .font(.system(size: 22))
                         .foregroundColor(.dvAccentGold)
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("DailyVerse 🔔")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.white)
+                    HStack(spacing: 4) {
+                        Text("DailyVerse")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                    }
                     Text("\"두려워하지 말라 내가 너와 함께 함이라\"")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.6))
-                        .lineLimit(1)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineLimit(2)
                 }
                 Spacer()
             }
-            .padding(16)
+            .padding(20)
             .background(
                 RoundedRectangle(cornerRadius: 14)
                     .fill(Color.white.opacity(0.07))
@@ -114,12 +114,14 @@ struct ONBAlarmPermissionView: View {
             )
             .padding(.horizontal, 28)
 
+            Spacer().frame(height: 16)
+
             // 설명 문구
-            Text("알람과 동시에 오늘의 말씀이 잠금화면에 나타나요\n허용하지 않으면 알람만 울립니다")
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.55))
+            Text("시끄러운 알람 소리 대신, 마음을 울리는 말씀으로\n하루를 뜻깊게 시작하세요")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
+                .lineSpacing(5)
                 .padding(.horizontal, 28)
         }
     }

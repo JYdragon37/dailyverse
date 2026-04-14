@@ -122,8 +122,9 @@ struct HomeView: View {
         let g = viewModel.currentMode.greeting
         let name = nicknameManager.nickname
         let lastChar = g.last
-        if lastChar == "." || lastChar == "!" || lastChar == "?" {
+        if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
             // "Breathe. Reset." → "Breathe. Reset. 친구"
+            // "In the Zone," → "In the Zone, 친구"
             return "\(g) \(name)"
         }
         return "\(g), \(name)"
@@ -161,6 +162,11 @@ struct HomeView: View {
                             .minimumScaleFactor(0.75)
                             .foregroundColor(.white.opacity(0.95))
                     }
+                } else {
+                    Text("·").foregroundColor(.white.opacity(0.4))
+                    Text("Seoul --°C")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.6))
                 }
             }
         }
@@ -209,6 +215,20 @@ struct HomeView: View {
                     .foregroundColor(.white.opacity(0.5))
             }
             .padding(.top, 18)  // 출처: 말씀과 2줄 간격
+
+            // 말씀 깊게 보기 힌트
+            HStack(spacing: 8) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.30))
+                    .frame(width: 20, height: 1)
+                Text("말씀 깊게 보기")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.white.opacity(0.45))
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+            .padding(.top, 12)
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
@@ -239,10 +259,14 @@ struct HomeView: View {
     }
 
     private var currentTimeString: String {
-        let f = DateFormatter()
-        f.dateFormat = "hh:mm a"
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f.string(from: Date())
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "ko_KR")
+        df.dateFormat = "M월 d일 EEE"
+        let dateStr = df.string(from: Date())
+        let tf = DateFormatter()
+        tf.locale = Locale(identifier: "en_US_POSIX")
+        tf.dateFormat = "h:mm a"
+        return "\(dateStr)  \(tf.string(from: Date()))"
     }
 
     // MARK: - Verse Detail Sheet

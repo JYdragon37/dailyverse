@@ -5,8 +5,8 @@ import SwiftUI
 struct ONBIntroView: View {
     @ObservedObject var vm: OnboardingViewModel
 
-    @State private var contentOpacity: Double = 0
-    @State private var ctaOpacity: Double = 0
+    @State private var contentOpacity: Double = 1
+    @State private var ctaOpacity: Double = 1
 
     // 온보딩 전용 배경 그라데이션
     private let bgGradient = LinearGradient(
@@ -23,55 +23,50 @@ struct ONBIntroView: View {
         ZStack {
             bgGradient.ignoresSafeArea()
 
+            GeometryReader { geo in
             VStack(spacing: 0) {
-                Spacer(minLength: 60)
+                Spacer().frame(height: geo.size.height * 0.12)
+
 
                 // ── 브랜드 블록 ──────────────────────────────
                 VStack(spacing: 20) {
-                    // 앱 아이콘 (그라데이션 컨테이너 + AppLogo)
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "#5AC8C0"), Color(hex: "#9878D0")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 108, height: 108)
-                            .shadow(color: .black.opacity(0.25), radius: 16, x: 0, y: 8)
-
-                        Image("AppLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 72, height: 72)
-                    }
+                    // 앱 아이콘 (바깥 컨테이너 제거, AppLogo만 크게 표시)
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 140, height: 140)
+                        .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 8)
 
                     // 앱 이름 (커시브 스크립트)
                     Text("DailyVerse")
-                        .font(.custom("DancingScript-Regular", size: 50))
+                        .font(.custom("DancingScript-Regular", size: 64))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
 
                     // 태그라인
                     VStack(spacing: 6) {
-                        Text("하루의 끝과 시작을")
+                        Text("하루의 시작과 끝을")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
                         Text("경건하게")
                             .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(Color.dvAccentGold)
+                            .foregroundColor(Color(hex: "#FFD84D"))
                     }
 
-                    // 서브카피
-                    Text("알람이 울릴 때 말씀이 함께 옵니다")
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundColor(.white.opacity(0.65))
+                    // 서브카피 (태그라인 아래 여백 추가)
+                    Spacer().frame(height: 8)
+                    Text("하나님의 말씀으로 알람을 듣고\n환상적인 배경과 함께 묵상하세요")
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(.white.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
                 }
                 .opacity(contentOpacity)
 
-                Spacer(minLength: 0)
+                Spacer()
             }
+            .frame(maxWidth: .infinity)
+            } // GeometryReader
         }
         // CTA: safeAreaInset으로 home indicator 위에 자동 배치
         .safeAreaInset(edge: .bottom, spacing: 0) {

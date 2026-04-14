@@ -54,6 +54,7 @@
 		D30000D4D30000D4D30000D4 /* ONBExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */; };
 		D30000D5D30000D5D30000D5 /* ONBPersonalizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */; };
 		D30000D6D30000D6D30000D6 /* ONBAlarmPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */; };
+		D30000D9D30000D9D30000D9 /* ONBNicknameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D9D20000D9D20000D9 /* ONBNicknameView.swift */; };
 		D30000D7D30000D7D30000D7 /* ONBThemeChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D7D20000D7D20000D7 /* ONBThemeChip.swift */; };
 		D30000D8D30000D8D30000D8 /* ONBAlarmTimeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000D8D20000D8D20000D8 /* ONBAlarmTimeRow.swift */; };
 		7CC89FC86604B52E6BA4837C /* SavedVerse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F004FBA3779E9B8B11DF240 /* SavedVerse.swift */; };
@@ -239,6 +240,7 @@
 				D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */,
 				D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */,
 				D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */,
+				D20000D9D20000D9D20000D9 /* ONBNicknameView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -247,6 +249,7 @@
 		D20000D4D20000D4D20000D4 /* ONBExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBExperienceView.swift; sourceTree = "<group>"; };
 		D20000D5D20000D5D20000D5 /* ONBPersonalizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBPersonalizeView.swift; sourceTree = "<group>"; };
 		D20000D6D20000D6D20000D6 /* ONBAlarmPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBAlarmPermissionView.swift; sourceTree = "<group>"; };
+		D20000D9D20000D9D20000D9 /* ONBNicknameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBNicknameView.swift; sourceTree = "<group>"; };
 		D20000D7D20000D7D20000D7 /* ONBThemeChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBThemeChip.swift; sourceTree = "<group>"; };
 		D20000D8D20000D8D20000D8 /* ONBAlarmTimeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBAlarmTimeRow.swift; sourceTree = "<group>"; };
 		F8D76127093631BB4CCFF6D8 /* WeatherWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherWidgetView.swift; sourceTree = "<group>"; };
@@ -760,6 +763,7 @@
 				D30000D4D30000D4D30000D4 /* ONBExperienceView.swift in Sources */,
 				D30000D5D30000D5D30000D5 /* ONBPersonalizeView.swift in Sources */,
 				D30000D6D30000D6D30000D6 /* ONBAlarmPermissionView.swift in Sources */,
+				D30000D9D30000D9D30000D9 /* ONBNicknameView.swift in Sources */,
 				D30000D7D30000D7D30000D7 /* ONBThemeChip.swift in Sources */,
 				D30000D8D30000D8D30000D8 /* ONBAlarmTimeRow.swift in Sources */,
 				FA5699AAD11898B968DE8EA3 /* OnboardingKey.swift in Sources */,
