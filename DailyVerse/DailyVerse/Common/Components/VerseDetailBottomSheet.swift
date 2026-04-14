@@ -14,6 +14,7 @@ struct VerseSheetDetent: CustomPresentationDetent {
 struct VerseDetailBottomSheet: View {
     let verse: Verse
     let onSave: () -> Void
+    let onMeditation: () -> Void
     let onClose: () -> Void
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
@@ -78,6 +79,7 @@ struct VerseDetailBottomSheet: View {
 
     private var actionBar: some View {
         HStack(spacing: 10) {
+            // 저장 버튼
             Button {
                 guard !justSaved else { return }
                 justSaved = true
@@ -111,6 +113,29 @@ struct VerseDetailBottomSheet: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
+            // 묵상 버튼
+            Button(action: onMeditation) {
+                HStack(spacing: 6) {
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 14))
+                    Text("묵상")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                        )
+                )
+                .foregroundColor(.white)
+            }
+            .accessibilityLabel("묵상 탭으로 이동")
+
+            // 닫기 버튼
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 13, weight: .semibold))
@@ -181,6 +206,7 @@ private struct PresentationCornerRadiusModifier: ViewModifier {
             VerseDetailBottomSheet(
                 verse: .fallbackRiseIgnite,
                 onSave: {},
+                onMeditation: {},
                 onClose: {}
             )
         }

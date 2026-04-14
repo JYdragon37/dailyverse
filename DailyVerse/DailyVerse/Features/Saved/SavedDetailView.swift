@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Photos
 
 struct SavedDetailView: View {
     let savedVerse: SavedVerse
@@ -8,9 +9,10 @@ struct SavedDetailView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showBgHint = false
     @State private var showVerseDetail = false
     @State private var loadedVerse: Verse? = nil
+    @State private var isSavingImage = false
+    @State private var imageSaveMessage: String? = nil
 
     // MARK: - Computed Properties
 
@@ -213,17 +215,28 @@ struct SavedDetailView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
 
-                Button {
-                    showBgHint = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showBgHint = false }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "photo.on.rectangle").font(.system(size: 13))
-                        Text("홈 배경으로 설정").font(.dvCaption)
+                // 이미지 저장 버튼 (imageUrl 있을 때만 표시)
+                if savedVerse.imageUrl != nil {
+                    Button {
+                        guard !isSavingImage else { return }
+                        downloadImage()
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isSavingImage {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .scaleEffect(0.7)
+                                    .tint(.white.opacity(0.6))
+                            } else {
+                                Image(systemName: "square.and.arrow.down").font(.system(size: 13))
+                            }
+                            Text(isSavingImage ? "저장 중..." : "이미지 저장")
+                                .font(.dvCaption)
+                        }
+                        .foregroundColor(.white.opacity(0.6))
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
                     }
-                    .foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 8)
                 }
             }
             .background(
@@ -234,19 +247,19 @@ struct SavedDetailView: View {
                 .ignoresSafeArea()
             )
         }
-        // BgHint 토스트
+        // 이미지 저장 결과 토스트
         .overlay(alignment: .bottom) {
-            if showBgHint {
-                Text("홈 배경 설정은 설정 탭에서 할 수 있어요")
+            if let msg = imageSaveMessage {
+                Text(msg)
                     .font(.dvCaption)
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color.black.opacity(0.65))
+                    .background(Color.black.opacity(0.70))
                     .cornerRadius(10)
                     .padding(.bottom, 110)
                     .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.3), value: showBgHint)
+                    .animation(.easeInOut(duration: 0.3), value: imageSaveMessage)
             }
         }
         .presentationDetents([.large])
@@ -268,6 +281,40 @@ struct SavedDetailView: View {
         if let verse = try? await FirestoreService().fetchVerse(id: savedVerse.verseId) {
             await MainActor.run { loadedVerse = verse }
         }
+    }
+
+    // MARK: - Image Download
+
+    private func downloadImage() {
+        guard let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr) else { return }
+        isSavingImage = true
+        Task {
+            // 사진 권한 요청
+            let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+            guard status == .authorized || status == .limited else {
+                await show(message: "사진 접근 권한이 필요해요. 설정에서 허용해주세요.")
+                return
+            }
+            // 이미지 다운로드
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard let image = UIImage(data: data) else { throw URLError(.badServerResponse) }
+                try await PHPhotoLibrary.shared().performChanges {
+                    PHAssetChangeRequest.creationRequestForAsset(from: image)
+                }
+                await show(message: "사진첩에 저장됐어요 ✓")
+            } catch {
+                await show(message: "저장에 실패했어요. 다시 시도해주세요.")
+            }
+        }
+    }
+
+    @MainActor
+    private func show(message: String) async {
+        isSavingImage = false
+        imageSaveMessage = message
+        try? await Task.sleep(for: .seconds(2.5))
+        imageSaveMessage = nil
     }
 
     // MARK: - Delete

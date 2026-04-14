@@ -29,6 +29,9 @@
 	<!-- 날씨 -->
 	<key>NSWeatherKitUsageDescription</key>
 	<string>현재 날씨에 맞는 말씀을 제공하기 위해 날씨 정보가 필요합니다.</string>
+	<!-- 사진첩 저장 (말씀 배경 이미지 저장) -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>말씀 배경 이미지를 사진첩에 저장하기 위해 접근이 필요합니다.</string>
 	<!-- 카메라 (v5.1: 사진 촬영 미션) -->
 	<key>NSCameraUsageDescription</key>
 	<string>알람 미션에서 장소 사진을 촬영하기 위해 카메라 접근이 필요합니다.</string>

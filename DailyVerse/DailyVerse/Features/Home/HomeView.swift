@@ -283,9 +283,15 @@ struct HomeView: View {
     }
 
     private var currentTimeString: String {
+        let isKorean = greetingLanguagePref == "ko"
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ko_KR")
-        df.dateFormat = "M월 d일 EEE"
+        if isKorean {
+            df.locale = Locale(identifier: "ko_KR")
+            df.dateFormat = "M월 d일 EEE"
+        } else {
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "MMM d, EEE"
+        }
         let dateStr = df.string(from: Date())
         let tf = DateFormatter()
         tf.locale = Locale(identifier: "en_US_POSIX")
@@ -301,6 +307,10 @@ struct HomeView: View {
                 VerseDetailBottomSheet(
                     verse: verse,
                     onSave: handleSave,
+                    onMeditation: {
+                        showVerseDetail = false
+                        NotificationCenter.default.post(name: .dvSwitchToMeditationTab, object: nil)
+                    },
                     onClose: { showVerseDetail = false }
                 )
             }

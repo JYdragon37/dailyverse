@@ -79,34 +79,48 @@ function extractNumber(id) {
   return match ? parseInt(match[1], 10) : 0;
 }
 
-// ── 프롬프트 빌더 ──────────────────────────────────────────────
+// ── 프롬프트 빌더 (v9.0) ────────────────────────────────────────
 function buildPrompt(doc) {
   const ref = doc.reference || '';
-  const verseText = doc.verse_short_ko || doc.text_ko || doc.verseShortKo || doc.textKo || '';
+  // verse_full_ko 우선, 없으면 short 폴백
+  const verseText = doc.verse_full_ko || doc.verse_short_ko || doc.text_ko || '';
   const interpretation = doc.interpretation || '';
-  const application = doc.application || '';
 
-  const system = `너는 DailyVerse 앱의 콘텐츠 작성자야.
-성경 말씀을 읽은 사용자에게 보여줄 묵상 질문을 한 문장으로 작성해.
-질문은 따뜻하고 개인적인 톤으로, 말씀의 핵심을 일상과 연결해야 해.
-닉네임은 포함하지 마. 설교조나 신앙 점검 형태는 금지야.`;
+  // interpretation 핵심 1줄 추출 (첫 \n 이전)
+  const interpCore = interpretation.split('\n')[0] || interpretation.slice(0, 50);
 
-  const user = `다음 성경 말씀에 대한 question을 작성해줘.
+  const system = `너는 DailyVerse 앱의 말씀 콘텐츠 작가야.
+성경 말씀을 읽은 사용자에게 보여줄 묵상 질문을 작성해.
+설교자가 아닌 유저의 신앙 친구. 교회 강단 언어 아님.`;
+
+  const user = `아래 말씀의 핵심을 일상 삶에 연결하는 질문 1개를 작성해줘.
 
 말씀: ${verseText}
 출처: ${ref}
-${interpretation ? `해석: ${interpretation}` : ''}
-${application ? `적용: ${application}` : ''}
+${interpCore ? `해석 핵심: ${interpCore}` : ''}
 
-규칙:
-- 40~80자 이내 (공백 포함)
-- 질문형 1~2문장
-- 따뜻하고 개인적인 톤
-- 말씀 핵심과 독자의 일상을 자연스럽게 연결
-- 닉네임 직접 포함 금지 ("당신", "오늘" 등 일반 호칭만 사용)
-- 설교조, 훈계조, 신앙 점검 형태 금지
-- 원어 표기(히브리어, 헬라어) 금지
-- 예시 스타일: "오늘 이 말씀이 가장 필요한 순간은 언제일까요?"
+[규칙]
+- 40~80자 이내
+- 질문형 문장
+- 닉네임 없이 작성 (앱이 "{name}님, " 자동 합성하므로)
+- 형태: 선택형("A와 B 중") / 회상형("~했던 경험이 있나요?") / 상상형("~라면 어떨까요?") 중 1가지
+- 일상 언어, 종교 어조 최소화
+- 신앙 유무와 무관하게 누구나 공감 가능해야 함
+
+[금지]
+- "기도했나요?", "말씀을 읽었나요?" (신앙 행위 점검)
+- "~해야 합니까?", "~하셨나요?" (경어체)
+- 닉네임 직접 포함
+- 원어(히브리어·헬라어) 표기
+
+[좋은 예]
+- "요즘 가장 두렵게 느껴지는 것은 무엇인가요?" (회상형)
+- "지금 당신의 시선은 어디를 향해 있나요?" (성찰형)
+- "두려움보다 더 크다고 느껴지는 것이 있나요?" (선택형)
+
+[나쁜 예]
+- "오늘 하나님께 기도하셨나요?" → 신앙 행위 점검
+- "두려움이 찾아올 때 어떻게 해야 합니까?" → 경어·강요
 
 출력은 JSON만: {"question": "..."}`;
 
