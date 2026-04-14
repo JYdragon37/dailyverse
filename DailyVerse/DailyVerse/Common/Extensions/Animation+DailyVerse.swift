@@ -74,4 +74,14 @@ extension View {
     func dvButtonEffect() -> some View {
         modifier(DVButtonPressEffect())
     }
+
+    /// 빈 공간 탭 시 키보드 닫기 — 타이핑 후 화면 터치로 키보드 해제
+    func hideKeyboardOnTap() -> some View {
+        onTapGesture {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil, from: nil, for: nil
+            )
+        }
+    }
 }

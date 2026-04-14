@@ -31,6 +31,7 @@ struct MeditationWriteSheet: View {
         NavigationStack {
             ZStack {
                 Color.dvBgDeep.ignoresSafeArea()
+                    .hideKeyboardOnTap()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {

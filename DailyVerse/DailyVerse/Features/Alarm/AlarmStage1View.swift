@@ -6,6 +6,7 @@ struct AlarmStage1View: View {
     @State private var weatherForForecast: WeatherData?
     @State private var showVolumeWarning: Bool = false
     @State private var todayVerse: Verse? = nil
+    @State private var weatherAdvice: String = ""
 
     var body: some View {
         ZStack {
@@ -13,13 +14,37 @@ struct AlarmStage1View: View {
             backgroundLayer
             Color.black.opacity(0.50).ignoresSafeArea()
 
-            // ── 콘텐츠: 원래 레이아웃(Spacer-말씀-Spacer-버튼)을 유지 ──
+            // ── 콘텐츠: 날씨 조언 + 시간별 예보(상단) → 날씨 스트립 → 말씀 → 버튼 ──
             VStack(spacing: 0) {
 
-                // 원래 레이아웃: Spacer - 날씨 - 말씀 - Spacer - 버튼
+                // ── 상단: 날씨 GPT 조언 pill ──
+                if !weatherAdvice.isEmpty {
+                    Text(weatherAdvice)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.90))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(Color.white.opacity(0.12))
+                                .overlay(Capsule().stroke(Color.white.opacity(0.20), lineWidth: 1))
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 60)
+                }
+
+                // ── 시간별 일기예보 카드 ──
+                if let weather = weatherForForecast {
+                    AlarmHourlyForecast(weather: weather)
+                        .padding(.horizontal, 20)
+                        .padding(.top, weatherAdvice.isEmpty ? 60 : 12)
+                }
+
                 Spacer()
 
-                // 날씨 — 말씀 바로 위에 배치
+                // 날씨 스트립 — 말씀 바로 위에 배치
                 if let weather = weatherForForecast {
                     Stage1WeatherStrip(weather: weather)
                         .padding(.bottom, 16)
@@ -104,12 +129,28 @@ struct AlarmStage1View: View {
         .navigationBarHidden(true)
         .task {
             // 날씨 로드
+            let resolvedWeather: WeatherData?
             if let w = coordinator.activeWeather, !w.hourlyForecast.isEmpty {
                 weatherForForecast = w
+                resolvedWeather = w
             } else if let cached = WeatherCacheManager().load() {
                 weatherForForecast = cached
                 coordinator.activeWeather = cached
+                resolvedWeather = cached
+            } else {
+                resolvedWeather = nil
             }
+
+            // 날씨 GPT 조언 로드 (forceCurrentWeather: true — zone 무관하게 현재 날씨 기준)
+            if let w = resolvedWeather {
+                let mode = AppMode.current()
+                weatherAdvice = await WeatherAdviceService.shared.fetchAdvice(
+                    for: w,
+                    zone: mode.rawValue,
+                    forceCurrentWeather: true
+                )
+            }
+
             // DailyCacheManager에서 오늘의 말씀 로드 (홈/묵상과 동일한 말씀 — B안 통일)
             let mode = AppMode.current()
             if let id = DailyCacheManager.shared.getVerseId(for: mode),
@@ -146,6 +187,104 @@ struct AlarmStage1View: View {
             startPoint: .top, endPoint: .bottom
         )
         .ignoresSafeArea()
+    }
+}
+
+// MARK: - 시간별 일기예보 카드 (AlarmStage1 상단 전용)
+
+private struct AlarmHourlyForecast: View {
+    let weather: WeatherData
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // 헤더
+            HStack(spacing: 6) {
+                Image(systemName: "clock")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.70))
+                Text("시간별 일기예보")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.70))
+            }
+
+            // 시간별 아이템 (현재 + hourlyForecast 전체)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 20) {
+                    // 현재 날씨 (isNow: true)
+                    AlarmHourlyItem(
+                        time: Date(),
+                        temperature: weather.temperature,
+                        condition: weather.condition,
+                        isNow: true
+                    )
+
+                    // 나머지 시간별 예보
+                    ForEach(weather.hourlyForecast, id: \.time) { item in
+                        AlarmHourlyItem(
+                            time: item.time,
+                            temperature: item.temperature,
+                            condition: item.condition,
+                            isNow: false
+                        )
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                )
+        )
+    }
+}
+
+private struct AlarmHourlyItem: View {
+    let time: Date
+    let temperature: Int
+    let condition: String
+    let isNow: Bool
+
+    private var timeLabel: String {
+        if isNow { return "지금" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "a\nh시"
+        return f.string(from: time)
+    }
+
+    private var conditionIcon: String {
+        switch condition {
+        case "sunny":  return "sun.max.fill"
+        case "cloudy": return "cloud.fill"
+        case "rainy":  return "cloud.rain.fill"
+        case "snowy":  return "cloud.snow.fill"
+        default:       return "cloud.fill"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(timeLabel)
+                .font(.system(size: 12, weight: isNow ? .semibold : .regular))
+                .foregroundColor(isNow ? .white : .white.opacity(0.70))
+                .multilineTextAlignment(.center)
+                .frame(height: 32)
+
+            Image(systemName: conditionIcon)
+                .font(.system(size: 20))
+                .foregroundColor(.white.opacity(0.90))
+                .frame(width: 28, height: 28)
+
+            Text("\(temperature)°")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
     }
 }
 

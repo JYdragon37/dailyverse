@@ -116,9 +116,7 @@ struct DevotionResponseView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("입력 없음. 마음속으로 생각해보세요.")
-                    .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.35))
+
             }
             .padding(12)
             .background(

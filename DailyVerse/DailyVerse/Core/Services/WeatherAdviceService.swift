@@ -13,8 +13,13 @@ actor WeatherAdviceService {
     private let udKeyPrefix = "weatherAdvice_"
 
     /// Zone 변경 시 호출 — Zone + 날짜 기반 캐시 확인 후 필요 시 GPT 호출
-    func fetchAdvice(for weather: WeatherData, zone: String) async -> String {
-        let key = cacheKey(zone: zone)
+    ///
+    /// - Parameters:
+    ///   - weather: 현재 날씨 데이터
+    ///   - zone: 현재 시간 Zone (예: "rise_ignite", "golden_hour")
+    ///   - forceCurrentWeather: true이면 golden_hour/wind_down이어도 현재 날씨 기준 조언 생성
+    func fetchAdvice(for weather: WeatherData, zone: String, forceCurrentWeather: Bool = false) async -> String {
+        let key = cacheKey(zone: zone, forceCurrentWeather: forceCurrentWeather)
 
         // UserDefaults 영구 캐시 확인
         if let cached = UserDefaults.standard.string(forKey: udKeyPrefix + key),
@@ -23,8 +28,8 @@ actor WeatherAdviceService {
         }
 
         // 새 조언 생성
-        let advice = await callGPT(weather: weather, zone: zone)
-                     ?? fallbackAdvice(weather: weather, zone: zone)
+        let advice = await callGPT(weather: weather, zone: zone, forceCurrentWeather: forceCurrentWeather)
+                     ?? fallbackAdvice(weather: weather, zone: zone, forceCurrentWeather: forceCurrentWeather)
 
         // 영구 캐시 저장 (다음 Zone 전환까지 유지)
         UserDefaults.standard.set(advice, forKey: udKeyPrefix + key)
@@ -33,10 +38,15 @@ actor WeatherAdviceService {
     }
 
     /// Zone + 오늘 날짜 기반 캐시 키
-    private func cacheKey(zone: String) -> String {
+    /// - forceCurrentWeather = true이면 "{zone}_current_{date}" 형식으로 구분
+    private func cacheKey(zone: String, forceCurrentWeather: Bool = false) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return "\(zone)_\(formatter.string(from: Date()))"
+        let dateStr = formatter.string(from: Date())
+        if forceCurrentWeather {
+            return "\(zone)_current_\(dateStr)"
+        }
+        return "\(zone)_\(dateStr)"
     }
 
     /// 이전 Zone 캐시 정리 (불필요한 UserDefaults 누적 방지)
@@ -51,7 +61,7 @@ actor WeatherAdviceService {
 
     // MARK: - GPT 호출
 
-    private func callGPT(weather: WeatherData, zone: String) async -> String? {
+    private func callGPT(weather: WeatherData, zone: String, forceCurrentWeather: Bool = false) async -> String? {
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String,
               !apiKey.isEmpty,
               let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
@@ -59,7 +69,7 @@ actor WeatherAdviceService {
         }
 
         let context = zoneContext(zone: zone)
-        let weatherDesc = buildWeatherDescription(weather: weather, zone: zone)
+        let weatherDesc = buildWeatherDescription(weather: weather, zone: zone, forceCurrentWeather: forceCurrentWeather)
 
         let systemPrompt = """
         당신은 한국 사용자를 위한 친근한 날씨 비서입니다.
@@ -124,11 +134,11 @@ actor WeatherAdviceService {
         }
     }
 
-    private func buildWeatherDescription(weather: WeatherData, zone: String) -> String {
+    private func buildWeatherDescription(weather: WeatherData, zone: String, forceCurrentWeather: Bool = false) -> String {
         var lines: [String] = []
 
-        // 저녁/취침 전 → 내일 날씨 중심
-        let isFutureFocus = zone == "golden_hour" || zone == "wind_down"
+        // 저녁/취침 전 → 내일 날씨 중심 (forceCurrentWeather = true이면 무시)
+        let isFutureFocus = !forceCurrentWeather && (zone == "golden_hour" || zone == "wind_down")
 
         if isFutureFocus {
             lines.append("내일 날씨: \(weather.tomorrowMorningConditionKo ?? weather.conditionKo)")
@@ -150,8 +160,8 @@ actor WeatherAdviceService {
 
     // MARK: - 룰 기반 폴백
 
-    private func fallbackAdvice(weather: WeatherData, zone: String) -> String {
-        let isFutureFocus = zone == "golden_hour" || zone == "wind_down"
+    private func fallbackAdvice(weather: WeatherData, zone: String, forceCurrentWeather: Bool = false) -> String {
+        let isFutureFocus = !forceCurrentWeather && (zone == "golden_hour" || zone == "wind_down")
 
         if isFutureFocus {
             let prob = weather.tomorrowPrecipitationProbability ?? 0

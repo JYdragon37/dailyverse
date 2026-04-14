@@ -5,6 +5,7 @@ struct AlarmStage2View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var greetingService: GreetingService
+    @ObservedObject private var nicknameManager = NicknameManager.shared
     // Design Ref: §7-2 — 언어 설정 읽기
     @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
     @State private var showLoginPrompt: Bool = false
@@ -17,10 +18,30 @@ struct AlarmStage2View: View {
     private var alarmMode: AppMode { coordinator.activeMode }
 
     private var todayString: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy년 M월 d일 EEEE"
-        return formatter.string(from: Date())
+        let isKorean = greetingLanguagePref == "ko"
+        let df = DateFormatter()
+        if isKorean {
+            df.locale = Locale(identifier: "ko_KR")
+            df.dateFormat = "M월 d일 EEE"
+        } else {
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "MMM d, EEE"
+        }
+        return df.string(from: Date())
+    }
+
+    /// greeting + 닉네임 조합 — greeting이 구두점으로 끝나면 쉼표 없이 공백만 추가
+    /// Design Ref: §7-2 — greetingService 우선, 비어있으면 AppMode 폴백
+    private var greetingText: String {
+        let g = greetingService.currentGreeting.isEmpty
+            ? alarmMode.greeting
+            : greetingService.currentGreeting
+        let name = nicknameManager.nickname
+        let lastChar = g.last
+        if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
+            return "\(g) \(name)"
+        }
+        return "\(g), \(name)"
     }
 
     var body: some View {
@@ -145,10 +166,8 @@ struct AlarmStage2View: View {
                 Image(systemName: alarmMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
-                // Design Ref: §7-2 — greetingService 우선, 비어있으면 AppMode 폴백
-                Text(greetingService.currentGreeting.isEmpty
-                     ? alarmMode.greeting
-                     : greetingService.currentGreeting)
+                // Design Ref: §7-2 — greetingText: greetingService 우선 + 닉네임 조합
+                Text(greetingText)
                     .font(.dvLargeTitle)
                     .foregroundColor(.white)
                     .minimumScaleFactor(0.7)
@@ -189,7 +208,7 @@ struct AlarmStage2View: View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 (verseFullKo)
             Text(verse.verseFullKo)
-                .font(.custom("Georgia-BoldItalic", size: 21))
+                .font(.custom("Georgia-BoldItalic", size: 22))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
@@ -328,7 +347,11 @@ struct AlarmStage2View: View {
             weatherDust: coordinator.activeWeather?.dustGrade,
             locationName: coordinator.activeWeather?.cityName ?? ""
         )
-        authManager.setPendingSave(savedVerse)
+        // 로그인 상태 → Firestore 직접 저장
+        Task {
+            guard let uid = authManager.userId else { return }
+            try? await FirestoreService().saveVerse(savedVerse, userId: uid)
+        }
     }
 }
 
