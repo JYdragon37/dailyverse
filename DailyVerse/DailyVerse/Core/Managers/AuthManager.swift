@@ -157,50 +157,49 @@ class AuthManager: ObservableObject {
 
     // MARK: - Account Deletion
 
-    /// 계정 탈퇴:
-    /// 1. isDeletingAccount = true  → onChange(isLoggedIn) 에서 showAuthWelcome 차단
-    /// 2. 재인증 (Google/Apple 팝업)
-    /// 3. Firestore 데이터 삭제 (try? — 권한 오류 등 비치명적 실패 무시)
-    /// 4. Firebase Auth 삭제 (실패 시 throw → SettingsView 에 오류 표시)
-    /// 5. UserDefaults 전체 초기화 → onboardingCompleted=false → OnboardingContainerView
+    /// 계정 탈퇴
+    /// 순서: Auth 삭제 시도 → 17014 시 재인증 → 재시도 → Firestore 삭제 → UserDefaults 초기화
+    ///
+    /// Firestore 삭제를 Auth 삭제 성공 이후로 배치하는 이유:
+    ///   재인증 취소(throw) 시 Auth 삭제가 실행되지 않아 Firestore 데이터가 보존됨
     func deleteAccount(subscriptionManager: SubscriptionManager) async throws {
-        // user 참조를 미리 캡처 — async 작업 중 self.user가 nil이 되어도 삭제 보장
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "AuthManager", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "로그인 상태가 아닙니다."])
         }
         let uid = currentUser.uid
+        let provider = currentUser.providerData.first?.providerID ?? ""
 
         isDeletingAccount = true
         defer { isDeletingAccount = false }
 
-        let provider = currentUser.providerData.first?.providerID ?? ""
-
-        // Step 1: Firestore 데이터 삭제 (비치명적)
-        try? await firestoreService.deleteUserData(uid: uid)
-
-        // Step 2: Firebase Auth 삭제 — 최근 로그인이면 바로 성공, 아니면 재인증 후 재시도
+        // Step 1: Auth 삭제 시도
+        // 최근 로그인한 경우 → 바로 성공 (재인증 불필요)
+        // 토큰 만료된 경우 → 17014 에러 → Step 2로
         do {
             try await currentUser.delete()
         } catch let error as NSError where error.code == 17014 {
-            // 17014 = requiresRecentLogin → 재인증 후 재시도
+            // Step 2: 재인증 (17014 발생 시에만)
+            // 취소 시 throw → Firestore 삭제 실행 안 됨 → 데이터 보존
             if provider == "apple.com" {
                 try await authService.reauthenticate()
             } else if provider == "google.com" {
                 try await authService.reauthenticateWithGoogle()
             }
+            // Step 3: 재인증 직후 재시도 (17014 없음)
             try await currentUser.delete()
         }
 
-        // Step 4: UserDefaults 전체 초기화
+        // Step 4: Firestore 삭제 — Auth 삭제 성공 후에만 실행됨
+        try? await firestoreService.deleteUserData(uid: uid)
+
+        // Step 5: UserDefaults 전체 초기화
         subscriptionManager.logOut()
         if let bundleId = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleId)
         }
 
         Analytics.logEvent("account_deleted", parameters: nil)
-
-        // AppRootView에서 알림 표시 (SettingsView는 이 시점에 이미 dismiss됨)
         deletionCompleteMessage = "계정이 삭제되었습니다.\n그동안 함께해서 감사했어요 🙏"
     }
 

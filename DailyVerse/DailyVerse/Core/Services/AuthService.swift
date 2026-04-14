@@ -52,12 +52,20 @@ class AuthService: NSObject {
     // MARK: - Re-authenticate (Google)
 
     /// Google 계정 탈퇴 전 재인증
+    /// 1단계: silent 재인증 (UI 없음) — restorePreviousSignIn + refreshTokensIfNeeded
+    /// 2단계: silent 실패 시 interactive 로그인 fallback
     func reauthenticateWithGoogle() async throws {
+        // 1단계: UI 없이 조용히 재인증 시도
+        if let credential = await silentGoogleCredential() {
+            try await Auth.auth().currentUser?.reauthenticate(with: credential)
+            return
+        }
+
+        // 2단계: Silent 실패 → Interactive Google 로그인
         guard let clientID = FirebaseApp.app()?.options.clientID else {
             throw NSError(domain: "AuthService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "Google 클라이언트 ID 없음"])
         }
-        // @MainActor isolated 프로퍼티 접근 — Swift 6 준수
         let rootVC: UIViewController? = await MainActor.run {
             (UIApplication.shared.connectedScenes.first as? UIWindowScene)?
                 .windows.first?.rootViewController
@@ -66,7 +74,6 @@ class AuthService: NSObject {
             throw NSError(domain: "AuthService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "화면을 찾을 수 없어요"])
         }
-
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
@@ -79,6 +86,22 @@ class AuthService: NSObject {
             accessToken: result.user.accessToken.tokenString
         )
         try await Auth.auth().currentUser?.reauthenticate(with: credential)
+    }
+
+    /// 기존 Google 세션에서 토큰을 조용히 갱신해 Firebase credential 반환
+    /// 실패하면 nil 반환 (interactive fallback으로 넘어감)
+    private func silentGoogleCredential() async -> AuthCredential? {
+        do {
+            let gidUser = try await GIDSignIn.sharedInstance.restorePreviousSignIn()
+            let freshUser = try await gidUser.refreshTokensIfNeeded()
+            guard let idToken = freshUser.idToken?.tokenString else { return nil }
+            return GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: freshUser.accessToken.tokenString
+            )
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - Sign Out

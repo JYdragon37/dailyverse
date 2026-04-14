@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import CoreLocation
 import UserNotifications
+import AuthenticationServices
 
 // v5.1 — Settings 탭 (닉네임 추가, 단일 플랜, 외관 섹션)
 
@@ -68,6 +69,10 @@ struct SettingsView: View {
                 Task {
                     do {
                         try await authManager.deleteAccount(subscriptionManager: subscriptionManager)
+                    } catch let error as NSError
+                        where error.domain == ASAuthorizationError.errorDomain
+                           || error.code == ASAuthorizationError.canceled.rawValue {
+                        // 유저가 Apple 인증을 취소한 경우 — 에러 없이 조용히 종료
                     } catch {
                         let msg = error.localizedDescription
                         deleteErrorMessage = msg.isEmpty ? "탈퇴 중 오류가 발생했습니다. 다시 시도해주세요." : msg
@@ -76,7 +81,7 @@ struct SettingsView: View {
             }
             Button("취소", role: .cancel) {}
         } message: {
-            Text("구독 중이라면 App Store에서 별도 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
+            Text("Apple 계정 인증 후 탈퇴가 진행됩니다.\n구독 중이라면 App Store에서 별도 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
         }
         .alert("탈퇴 실패", isPresented: .init(
             get: { deleteErrorMessage != nil },
