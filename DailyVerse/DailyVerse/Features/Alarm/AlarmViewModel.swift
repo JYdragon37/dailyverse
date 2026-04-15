@@ -83,9 +83,11 @@ final class AlarmViewModel: ObservableObject {
                 let verse = notificationVerse(for: alarm)
                 notificationManager.schedule(alarm, verse: verse)
             }
-        } catch { }
+        } catch {
+            toastMessage = "되돌리기에 실패했습니다."
+        }
         loadAlarms()
-        toastMessage = nil
+        if toastMessage == nil { toastMessage = nil }
     }
 
     // MARK: - Toggle

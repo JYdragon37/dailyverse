@@ -36,14 +36,35 @@ struct HomeView: View {
                 if let verse = viewModel.currentVerse {
                     GeometryReader { geo in
                         let w = geo.size.width
-                        // 가로 여백: 화면 너비의 13% (최소 40pt) → 텍스트 블록 더 좁게
                         let hPad = max(w * 0.13, 40.0)
                         verseCenter(verse: verse)
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            // 화면 상단 42% 위치 (이전 52%보다 위)
                             .position(x: geo.size.width / 2,
                                       y: geo.size.height * 0.48)
+                    }
+                } else {
+                    // 로딩 스켈레톤 — 말씀이 아직 로드되지 않은 동안 표시
+                    GeometryReader { geo in
+                        let w = geo.size.width
+                        let hPad = max(w * 0.13, 40.0)
+                        VStack(alignment: .leading, spacing: 12) {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.white.opacity(0.15))
+                                .frame(width: w * 0.72, height: 22)
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.white.opacity(0.10))
+                                .frame(width: w * 0.55, height: 22)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.08))
+                                .frame(width: w * 0.35, height: 16)
+                                .padding(.top, 4)
+                        }
+                        .padding(.horizontal, hPad)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .position(x: geo.size.width / 2,
+                                  y: geo.size.height * 0.48)
+                        .animation(.dvShimmer, value: viewModel.currentVerse == nil)
                     }
                 }
             }

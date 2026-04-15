@@ -163,7 +163,8 @@ struct ONBNicknameView: View {
         }
         // 커서 깜빡임
         .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            if isAnimating { cursorVisible.toggle() }
+            // nearPage로 미리 렌더링되므로 currentPage 조건 필수 — 비활성 페이지에서 타이머 낭비 방지
+            if isAnimating && vm.currentPage == 1 { cursorVisible.toggle() }
         }
     }
 

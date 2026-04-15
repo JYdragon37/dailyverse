@@ -180,6 +180,15 @@ struct DevotionHomeView: View {
                 )
             }
             .disabled(viewModel.todayVerse == nil)
+
+            // 첫 방문 힌트 — 묵상 기록이 한 번도 없는 유저에게만 표시
+            if viewModel.history.isEmpty {
+                Text("💡 처음이라면, 마음에 걸리는 한 단어만 적어도 돼요")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.40))
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 6)
+            }
         }
     }
 

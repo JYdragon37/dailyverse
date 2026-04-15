@@ -86,7 +86,7 @@ struct AlarmStage1View: View {
                     }
 
                     Button { coordinator.dismissToStage2() } label: {
-                        Text("종료")
+                        Text("말씀 보기")
                             .font(.system(size: 17, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
