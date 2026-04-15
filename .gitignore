@@ -24,3 +24,10 @@ scripts/zone-backgrounds/*.jpeg
 scripts/node_modules/
 scripts/dailyverse-*.json
 **/GoogleService-Info*.plist
+
+# bkit 내부 상태 파일 (API 키 포함 가능)
+.bkit/
+
+# 임시 patch 스크립트
+scripts/fix_verses.js
+scripts/fix_verses_sheets.js

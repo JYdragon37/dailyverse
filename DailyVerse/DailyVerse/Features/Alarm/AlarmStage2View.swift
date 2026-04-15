@@ -13,6 +13,7 @@ struct AlarmStage2View: View {
     @State private var isVisible: Bool = false
     @State private var showWordSheet: Bool = false
     @State private var todayVerse: Verse? = nil
+    @State private var toastMessage: String? = nil
 
     // 알람 발동 시간 기준 zone (현재 시간 아님)
     private var alarmMode: AppMode { coordinator.activeMode }
@@ -79,8 +80,9 @@ struct AlarmStage2View: View {
             }
             .onAppear {
                 withAnimation(.easeInOut(duration: 0.6)) { isVisible = true }
-                // DailyCacheManager에서 오늘의 말씀 로드 (홈/묵상과 동일한 말씀 — B안 통일)
-                let mode = AppMode.current()
+                // 알람 발동 시점의 Zone 기준으로 말씀 로드 (coordinator.activeMode 우선)
+                // AppMode.current()를 사용하면 앱 진입 시점이 다를 경우 Zone이 달라질 수 있음
+                let mode = coordinator.activeMode
                 if let id = DailyCacheManager.shared.getVerseId(for: mode),
                    let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
                     todayVerse = verse
@@ -108,6 +110,15 @@ struct AlarmStage2View: View {
             }
             .toolbar(.hidden, for: .tabBar)
             .navigationBarHidden(true)
+            // 저장 성공/실패 토스트
+            .overlay(alignment: .bottom) {
+                if let message = toastMessage {
+                    ToastView(message: message)
+                        .padding(.bottom, 100)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: toastMessage)
+                }
+            }
     }
 
     // MARK: - Background (HomeView와 동일한 구조)
@@ -348,10 +359,25 @@ struct AlarmStage2View: View {
             locationName: coordinator.activeWeather?.cityName ?? "",
             verseFullKo: verse.verseFullKo
         )
-        // 로그인 상태 → Firestore 직접 저장
+        // 로그인 상태 → Firestore 직접 저장 (성공/실패 토스트 피드백)
         Task {
             guard let uid = authManager.userId else { return }
-            try? await FirestoreService().saveVerse(savedVerse, userId: uid)
+            do {
+                try await FirestoreService().saveVerse(savedVerse, userId: uid)
+                showToast("말씀이 저장되었습니다")
+            } catch {
+                showToast("저장에 실패했습니다. 다시 시도해주세요")
+            }
+        }
+    }
+
+    // MARK: - Toast
+
+    private func showToast(_ message: String) {
+        toastMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            toastMessage = nil
         }
     }
 }

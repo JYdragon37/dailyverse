@@ -170,10 +170,13 @@ struct AppRootView: View {
             if isLoggedIn {
                 // 로그인 성공 → 게스트 모드 해제
                 guestModeActive = false
-                // syncWithFirestore(AuthManager.signIn 내부)가 완료된 후 isSet 체크해야
-                // 기존 닉네임 유저에게 NicknameSetupView가 불필요하게 뜨지 않음 (타이밍 버그 방지)
+                // syncWithFirestore가 완료된 후에만 isSet 체크해야 기존 닉네임 유저에게
+                // NicknameSetupView가 불필요하게 뜨지 않음.
+                // 1초 고정 sleep → 실제 sync 완료 대기로 교체하여 race condition 해결.
                 Task {
-                    try? await Task.sleep(for: .seconds(1))
+                    if let userId = authManager.userId {
+                        await NicknameManager.shared.syncWithFirestore(userId: userId)
+                    }
                     if !NicknameManager.shared.isSet {
                         showNicknameSetup = true
                     }

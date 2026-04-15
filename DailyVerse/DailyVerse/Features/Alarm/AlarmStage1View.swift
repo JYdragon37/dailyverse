@@ -144,8 +144,9 @@ struct AlarmStage1View: View {
                 )
             }
 
-            // DailyCacheManager에서 오늘의 말씀 로드 (홈/묵상과 동일한 말씀 — B안 통일)
-            let mode = AppMode.current()
+            // 알람 발동 시점의 Zone 기준으로 말씀 로드 (coordinator.activeMode 우선)
+            // AppMode.current()를 사용하면 앱 진입 시점이 다를 경우 Zone이 달라질 수 있음
+            let mode = coordinator.activeMode
             if let id = DailyCacheManager.shared.getVerseId(for: mode),
                let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
                 todayVerse = verse

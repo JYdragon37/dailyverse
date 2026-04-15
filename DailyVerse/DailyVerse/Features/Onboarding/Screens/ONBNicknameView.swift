@@ -114,18 +114,29 @@ struct ONBNicknameView: View {
         }
         // ── 하단 고정 CTA ──
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            Button {
-                vm.next()
-            } label: {
-                Text("시작하기 →")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(Color(hex: "#1A2340"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 60)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.white)
-                    )
+            let isNicknameEmpty = vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            VStack(spacing: 0) {
+                if isNicknameEmpty {
+                    Text("이름을 입력해야 계속할 수 있어요")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.6))
+                        .padding(.bottom, 8)
+                }
+                Button {
+                    guard !isNicknameEmpty else { return }
+                    vm.next()
+                } label: {
+                    Text("시작하기 →")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(isNicknameEmpty ? Color(hex: "#1A2340").opacity(0.4) : Color(hex: "#1A2340"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(isNicknameEmpty ? Color.white.opacity(0.4) : Color.white)
+                        )
+                }
+                .disabled(isNicknameEmpty)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
