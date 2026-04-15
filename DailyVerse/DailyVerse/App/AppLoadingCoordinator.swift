@@ -68,8 +68,13 @@ final class AppLoadingCoordinator: ObservableObject {
             return
         }
 
-        // Stage 5: Firestore 말씀 프리로드 (HomeViewModel 첫 진입 속도 향상)
+        // Stage 5: Firestore 말씀 프리로드 + 오늘 말씀 캐싱
+        // fetchVerses()로 목록 로드 후, currentVerse()로 오늘 말씀을 선택·캐싱한다.
+        // → HomeViewModel/MeditationViewModel이 동시에 로드될 때 같은 캐시를 읽어
+        //   두 화면에 항상 동일한 말씀이 표시된다. (레이스 컨디션 방지)
         _ = try? await verseRepository.fetchVerses()
+        let mode = AppMode.current()
+        _ = await verseRepository.currentVerse(for: mode, weather: nil)
 
         state = .ready
     }
