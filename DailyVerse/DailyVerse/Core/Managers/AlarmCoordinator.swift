@@ -108,6 +108,20 @@ final class AlarmCoordinator: ObservableObject {
 
         // Bug 1 수정: Stage 1 진입 시 소리/진동 시작
         startAlarmFeedback()
+
+        // 연속 알람 백업 취소 — Stage 1이 표시되면 더 이상 배너 반복 불필요
+        cancelBackupNotifications(for: alarmId)
+    }
+
+    /// 연속 알람 백업 알림 전체 취소
+    private func cancelBackupNotifications(for alarmId: UUID) {
+        var ids: [String] = []
+        for day in 0...6 {
+            ids.append("\(alarmId.uuidString)_day\(day)_backup1")
+            ids.append("\(alarmId.uuidString)_day\(day)_backup2")
+        }
+        for i in 1...5 { ids.append("\(alarmId.uuidString)_once_backup\(i)") }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
 
     // MARK: - Stage Transitions

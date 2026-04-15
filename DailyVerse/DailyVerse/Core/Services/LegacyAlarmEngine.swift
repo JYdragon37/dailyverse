@@ -77,8 +77,9 @@ final class LegacyAlarmEngine: AlarmEngine {
             do {
                 let player = try AVAudioPlayer(contentsOf: url)
                 player.numberOfLoops = -1
-                player.volume = volume
+                player.volume = 0.15              // 시작 볼륨 15%
                 let started = player.play()
+                player.setVolume(volume, fadeDuration: 30.0)  // 30초에 걸쳐 목표 볼륨으로 점진적 증가
                 audioPlayer = player
                 #if DEBUG
                 print("🔊 [LegacyAlarmEngine] play() 결과: \(started)  playerVolume: \(player.volume)")
@@ -219,8 +220,56 @@ final class LegacyAlarmEngine: AlarmEngine {
         }
     }
 
-    // MARK: - AlarmEngine
+    func cancelAll() async throws {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        Self.stopAudio()
+    }
 
+    // MARK: - AlarmEngine + Helpers
+
+    private func makeContent(alarm: Alarm, verse: Verse) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title    = "DailyVerse 🔔"
+        content.subtitle = verse.verseShortKo          // 말씀 텍스트 (잠금화면 배너 2행)
+        content.body     = verse.reference             // 성경 참조 (잠금화면 배너 3행)
+        content.interruptionLevel = .timeSensitive
+        content.sound = .default
+
+        content.userInfo = [
+            "alarm_id":       alarm.id.uuidString,
+            "verse_id":       verse.id,
+            "mode":           AppMode.fromTime(alarm.time).rawValue,
+            "sound_id":       alarm.soundId,
+            "volume":         alarm.volume,
+            "alert_style":    alarm.alertStyle,
+            "verse_short_ko": verse.verseShortKo,  // 백업 알림 배너용
+            "verse_reference": verse.reference      // 백업 알림 배너용
+        ]
+        return content
+    }
+
+    /// 단발성 알람 예약 + 연속 알람 백업 5개 (+1~+5분)
+    /// 앱 종료 상태에서도 최대 5분간 배너가 반복 표시됨
+    private func scheduleOnce(alarmId: UUID, content: UNMutableNotificationContent, interval: TimeInterval) {
+        let center = UNUserNotificationCenter.current()
+
+        // 메인 알람
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+        center.add(UNNotificationRequest(identifier: "\(alarmId.uuidString)_once",
+                                          content: content, trigger: trigger))
+
+        // 백업 알람: +1분, +2분, +3분, +4분, +5분
+        for i in 1...5 {
+            let backupInterval = interval + TimeInterval(i * 60)
+            guard backupInterval > 1 else { continue }
+            let backupTrigger = UNTimeIntervalNotificationTrigger(timeInterval: backupInterval, repeats: false)
+            center.add(UNNotificationRequest(identifier: "\(alarmId.uuidString)_once_backup\(i)",
+                                              content: content, trigger: backupTrigger))
+        }
+    }
+
+    /// 반복 알람 예약 (요일별) + 연속 알람 백업 2개 (+1분, +2분)
+    /// iOS 64개 한도: 3알람 × 7요일 × 3트리거(main+2backup) = 63개 ✅
     func schedule(alarm: DailyVerseAlarm) async throws {
         let a = alarm.alarm
         let verse = alarm.verse
@@ -229,80 +278,58 @@ final class LegacyAlarmEngine: AlarmEngine {
         let content = makeContent(alarm: a, verse: verse)
 
         if a.repeatDays.isEmpty {
-            // 단발성
             let components = Calendar.current.dateComponents([.hour, .minute], from: a.time)
             guard let fireDate = nextFireDate(from: components) else { return }
             let interval = fireDate.timeIntervalSinceNow
             guard interval > 0 else { return }
             scheduleOnce(alarmId: a.id, content: content, interval: interval)
         } else {
-            // 반복: 요일별 UNCalendarNotificationTrigger
             let hourMinute = Calendar.current.dateComponents([.hour, .minute], from: a.time)
+            let center = UNUserNotificationCenter.current()
+
             for day in a.repeatDays {
                 var components = DateComponents()
                 components.hour = hourMinute.hour
                 components.minute = hourMinute.minute
                 components.weekday = day + 1
+
+                // 메인 알람
                 let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-                let request = UNNotificationRequest(
-                    identifier: "\(a.id.uuidString)_day\(day)",
-                    content: content, trigger: trigger
-                )
-                try await UNUserNotificationCenter.current().add(request)
+                try await center.add(UNNotificationRequest(identifier: "\(a.id.uuidString)_day\(day)",
+                                                            content: content, trigger: trigger))
+
+                // 백업 +1분, +2분
+                for backupMin in 1...2 {
+                    let backupComponents = addMinutes(backupMin, to: components)
+                    let backupTrigger = UNCalendarNotificationTrigger(dateMatching: backupComponents, repeats: true)
+                    try await center.add(UNNotificationRequest(identifier: "\(a.id.uuidString)_day\(day)_backup\(backupMin)",
+                                                               content: content, trigger: backupTrigger))
+                }
             }
         }
     }
 
     func cancel(alarmId: UUID) async throws {
         var ids = ["\(alarmId.uuidString)_once", "\(alarmId.uuidString)_snooze"]
-        for day in 0...6 { ids.append("\(alarmId.uuidString)_day\(day)") }
+        for day in 0...6 {
+            ids.append("\(alarmId.uuidString)_day\(day)")
+            ids.append("\(alarmId.uuidString)_day\(day)_backup1")
+            ids.append("\(alarmId.uuidString)_day\(day)_backup2")
+        }
+        for i in 1...5 { ids.append("\(alarmId.uuidString)_once_backup\(i)") }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
-    }
-
-    func cancelAll() async throws {
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        Self.stopAudio()
     }
 
     // MARK: - Helpers
 
-    private func makeContent(alarm: Alarm, verse: Verse) -> UNMutableNotificationContent {
-        let content = UNMutableNotificationContent()
-        content.title = "DailyVerse 🔔"
-        content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference) • \(verse.theme.first?.capitalized ?? "")"
-        content.interruptionLevel = .timeSensitive
-
-        // Bug 4 수정: alertStyle에 따른 올바른 sound 설정
-        // iOS에서 content.sound = nil이면 소리도 진동도 없음
-        // 진동 전용: 시스템 기본음 사용 (알람 앱 공통 방식 — 실제 진동은 포그라운드에서 AudioServices 처리)
-        switch alarm.alertStyle {
-        case "vibration":
-            // 백그라운드: 최소한의 알림음(시스템이 진동 트리거) + 포그라운드에서 AudioServices 진동 루프
-            content.sound = .default
-        case "sound":
-            content.sound = .default
-        default: // "soundAndVibration"
-            content.sound = .default
-        }
-
-        content.userInfo = [
-            "alarm_id":    alarm.id.uuidString,
-            "verse_id":    verse.id,
-            "mode":        AppMode.fromTime(alarm.time).rawValue,
-            "sound_id":    alarm.soundId,
-            "volume":      alarm.volume,
-            "alert_style": alarm.alertStyle
-        ]
-        return content
-    }
-
-    private func scheduleOnce(alarmId: UUID, content: UNMutableNotificationContent, interval: TimeInterval) {
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
-        let request = UNNotificationRequest(
-            identifier: "\(alarmId.uuidString)_once",
-            content: content, trigger: trigger
-        )
-        UNUserNotificationCenter.current().add(request)
+    /// DateComponents에 분 추가 (시/분 overflow 처리)
+    private func addMinutes(_ minutes: Int, to components: DateComponents) -> DateComponents {
+        var result = DateComponents()
+        result.weekday = components.weekday
+        let total = (components.hour ?? 0) * 60 + (components.minute ?? 0) + minutes
+        result.hour   = (total / 60) % 24
+        result.minute = total % 60
+        return result
     }
 
     private func nextFireDate(from components: DateComponents) -> Date? {
