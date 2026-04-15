@@ -33,6 +33,9 @@ const anthropic = new Anthropic({ apiKey });
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
 const isAll    = args.includes('--all');
+// --deep: Sonnet으로 2차 정밀 검증 (기본: Haiku 1차)
+const isDeep   = args.includes('--deep');
+const MODEL    = isDeep ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
 
 const rangeFilter = (() => {
   const idx = args.indexOf('--range');
@@ -97,7 +100,7 @@ question: ${d.question || '(없음)'}
 {"pass": false, "issues": ["interpretation: ③오늘연결 문장 없음", "application: mode(rise_ignite) 대비 저녁 언급"]}`;
 
   const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL,
     max_tokens: 256,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -108,12 +111,16 @@ question: ${d.question || '(없음)'}
 }
 
 async function main() {
-  console.log(`=== qa_ai_check.js | dry-run: ${isDryRun} ===\n`);
+  console.log(`=== qa_ai_check.js | dry-run: ${isDryRun} | model: ${MODEL} (${isDeep ? '2차 정밀' : '1차 기본'}) ===\n`);
 
-  // auto_passed 또는 --all이면 ai_failed도 포함
-  const targetStatuses = isAll
-    ? ['auto_passed', 'ai_failed']
-    : ['auto_passed'];
+  // --deep: Sonnet 2차 검증 — 1차(Haiku) 통과한 ai_passed 대상
+  // --all:  1차 실패한 ai_failed도 포함하여 재검증
+  // 기본:   auto_passed만
+  const targetStatuses = isDeep
+    ? ['ai_passed']
+    : isAll
+      ? ['auto_passed', 'ai_failed']
+      : ['auto_passed'];
 
   const snap = await db.collection('verses').where('status', '==', 'active').orderBy('__name__').get();
   const docs = [];
