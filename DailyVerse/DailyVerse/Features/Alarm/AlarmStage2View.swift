@@ -345,7 +345,8 @@ struct AlarmStage2View: View {
             weatherCondition: coordinator.activeWeather?.condition ?? "any",
             weatherHumidity: coordinator.activeWeather?.humidity ?? 0,
             weatherDust: coordinator.activeWeather?.dustGrade,
-            locationName: coordinator.activeWeather?.cityName ?? ""
+            locationName: coordinator.activeWeather?.cityName ?? "",
+            verseFullKo: verse.verseFullKo
         )
         // 로그인 상태 → Firestore 직접 저장
         Task {

@@ -283,29 +283,89 @@ struct SavedDetailView: View {
         }
     }
 
-    // MARK: - Image Download
+    // MARK: - Image Download (말씀 합성)
 
     private func downloadImage() {
         guard let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr) else { return }
         isSavingImage = true
+        let text = verseText
+        let ref  = verseReference
         Task {
-            // 사진 권한 요청
             let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
             guard status == .authorized || status == .limited else {
                 await show(message: "사진 접근 권한이 필요해요. 설정에서 허용해주세요.")
                 return
             }
-            // 이미지 다운로드
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
-                guard let image = UIImage(data: data) else { throw URLError(.badServerResponse) }
+                guard let bgImage = UIImage(data: data) else { throw URLError(.badServerResponse) }
+                let composited = compositeVerseImage(background: bgImage, verseText: text, reference: ref)
                 try await PHPhotoLibrary.shared().performChanges {
-                    PHAssetChangeRequest.creationRequestForAsset(from: image)
+                    PHAssetChangeRequest.creationRequestForAsset(from: composited)
                 }
                 await show(message: "사진첩에 저장됐어요 ✓")
             } catch {
                 await show(message: "저장에 실패했어요. 다시 시도해주세요.")
             }
+        }
+    }
+
+    /// 배경 이미지에 말씀 텍스트 + 레퍼런스를 합성해 UIImage 반환
+    private func compositeVerseImage(background: UIImage, verseText: String, reference: String) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = background.scale
+        let renderer = UIGraphicsImageRenderer(size: background.size, format: format)
+
+        return renderer.image { ctx in
+            let size    = background.size
+            let cgCtx   = ctx.cgContext
+            let hPad    = size.width * 0.10
+
+            // 1. 배경 이미지
+            background.draw(in: CGRect(origin: .zero, size: size))
+
+            // 2. 다크 그라데이션 오버레이
+            let colors = [UIColor.black.withAlphaComponent(0.20).cgColor,
+                          UIColor.black.withAlphaComponent(0.62).cgColor] as CFArray
+            if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                         colors: colors, locations: [0, 1]) {
+                cgCtx.drawLinearGradient(gradient,
+                    start: .zero,
+                    end: CGPoint(x: 0, y: size.height),
+                    options: [])
+            }
+
+            // 3. 말씀 텍스트 (Georgia-BoldItalic)
+            let verseFont = UIFont(name: "Georgia-BoldItalic", size: size.width * 0.057)
+                         ?? UIFont.boldSystemFont(ofSize: size.width * 0.057)
+            let paraStyle = NSMutableParagraphStyle()
+            paraStyle.lineSpacing = size.width * 0.018
+            let verseAttr: [NSAttributedString.Key: Any] = [
+                .font: verseFont,
+                .foregroundColor: UIColor.white,
+                .paragraphStyle: paraStyle
+            ]
+            let verseAS  = NSAttributedString(string: verseText, attributes: verseAttr)
+            let maxW     = size.width - hPad * 2
+            let verseH   = verseAS.boundingRect(
+                with: CGSize(width: maxW, height: size.height * 0.55),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                context: nil
+            ).height
+            let verseY   = size.height * 0.38
+            verseAS.draw(with: CGRect(x: hPad, y: verseY, width: maxW, height: verseH),
+                         options: .usesLineFragmentOrigin, context: nil)
+
+            // 4. 성경 레퍼런스
+            let refFont = UIFont.systemFont(ofSize: size.width * 0.038, weight: .medium)
+            let refAttr: [NSAttributedString.Key: Any] = [
+                .font: refFont,
+                .foregroundColor: UIColor.white.withAlphaComponent(0.80)
+            ]
+            let refY = verseY + verseH + size.width * 0.045
+            NSAttributedString(string: reference, attributes: refAttr)
+                .draw(with: CGRect(x: hPad, y: refY, width: maxW, height: size.width * 0.12),
+                      options: .usesLineFragmentOrigin, context: nil)
         }
     }
 

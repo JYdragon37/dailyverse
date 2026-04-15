@@ -35,13 +35,6 @@ struct AlarmStage1View: View {
                         .padding(.top, 60)
                 }
 
-                // ── 시간별 일기예보 카드 ──
-                if let weather = weatherForForecast {
-                    AlarmHourlyForecast(weather: weather)
-                        .padding(.horizontal, 20)
-                        .padding(.top, weatherAdvice.isEmpty ? 60 : 12)
-                }
-
                 Spacer()
 
                 // 날씨 스트립 — 말씀 바로 위에 배치
