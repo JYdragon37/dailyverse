@@ -879,7 +879,7 @@ snooze_count: Int16
 
 ---
 
-## 25. 콘텐츠 현황
+## 25. 콘텐츠 현황 (2026-04-15 기준, v9.0)
 
 ### 데이터 소스 접근 정보
 
@@ -887,41 +887,113 @@ snooze_count: Int16
 |------|------|
 | **Google Sheets** | [DailyVerse 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ 서비스 계정 직접 편집 가능 (`scripts/serviceAccountKey.json`) |
-| **Sheets → Firestore 동기화** | `node scripts/sync_sheets_to_firestore.js` |
-| **수식 필드 재적용** | `node scripts/apply_formula_fields.js` |
+| **상세 가이드** | `docs/contents-guideline.md` (v9.0 — 생성 파이프라인·Zone 컨텍스트·LLM 프롬프트 통합) |
 
 > Claude Code는 `scripts/serviceAccountKey.json`을 통해 Google Sheets API 편집 권한을 보유합니다.
-> 시트 수정이 필요한 경우 `apply_formula_fields.js` 또는 커스텀 스크립트를 직접 실행하세요.
+
+---
+
+### 주요 스크립트
+
+| 스크립트 | 용도 |
+|--------|------|
+| `sync_sheets_to_firestore.js` | Sheets → Firestore 전체 동기화 |
+| `sync_firestore_to_sheet.js` | Firestore → Sheets 역동기화 |
+| `apply_formula_fields.js` | contemplation_* 수식 필드 재적용 (4개 컬럼) |
+| `generate_question_new.js` | `question` 필드 생성 (Claude API, --dry-run/--range 지원) |
+| `update_to_korv.js` | `verse_full_ko`/`verse_short_ko` 개역한글 원문 업데이트 |
+| `check_content_quality.js` | 콘텐츠 품질 검증 (글자수·말투·원어 표기) |
+| `setup_content_guide.js` | WRITING_GUIDE + ZONE_GUIDE 탭/컬렉션 동기화 |
+
+---
+
+### Google Sheets 탭 구조
+
+| 탭 | 용도 |
+|----|------|
+| `VERSES` | 메인 말씀 (v_001~v_180) |
+| `ALARM_VERSES` | 알람 탭 전용 말씀 (av_001~av_105) |
+| `WRITING_GUIDE` | 필드별 생성 규칙 + LLM 프롬프트 (v9.0) |
+| `ZONE_GUIDE` | 8개 Zone × 유저 상황·감정·말씀 역할·application 예시 |
+| `IMAGES` | 감성 배경 이미지 메타데이터 |
 
 ---
 
 ### Firestore 컬렉션 구조
 
-| 컬렉션 | 범위 | 용도 |
-|--------|------|------|
-| `verses/` | v_001 ~ v_101 | 홈화면 + 알람 Stage 1/2 + 묵상 탭 말씀 (Daily Sync) |
-| `alarm_verses/` | av_001 ~ av_105 | 알람 탭 오늘의 말씀 카드 전용 (Random Access, `alarm_top_ko` 필드 보유) |
+| 컬렉션 | 범위/수량 | 용도 |
+|--------|---------|------|
+| `verses/` | v_001~v_180 (active **161개**, inactive 18개) | 홈화면 + 알람 + 묵상 탭 말씀 |
+| `alarm_verses/` | av_001~av_105 (105개) | 알람 탭 오늘의 말씀 카드 전용 |
+| `writing_guide/` | 7개 문서 | 필드별 생성 규칙 + LLM 프롬프트 |
+| `zone_guide/` | 8개 문서 | Zone별 유저 상황·감정·말씀 역할 |
 
-### verses/ 컬렉션 필드 현황
+---
 
-- 기본 필드(text_ko, reference, interpretation, application 등): v_001~v_101 전체 채워짐
-- `contemplation_interpretation` = `interpretation` (Google Sheets 수식 참조 — 별도 생성 불필요)
-- `contemplation_appliance` = `application` (Google Sheets 수식 참조 — 별도 생성 불필요)
-- `contemplation_ko` = `verse_full_ko` (Google Sheets 수식 참조 — 별도 생성 불필요)
-- `question`: 전체 빈값 — 묵상 탭 질문 콘텐츠 생성 필요 (구버전 필드명 `devotion_question`은 deprecated)
+### verses/ 컬렉션 필드 현황 (v9.0)
+
+| 필드 | 상태 | 비고 |
+|------|------|------|
+| `verse_full_ko` | ✅ 전체 완료 | **개역한글 원문** (1961, 퍼블릭 도메인) |
+| `verse_short_ko` | ✅ 전체 완료 | 개역한글에서 핵심 문장 추출 |
+| `interpretation` | ✅ 전체 완료 | DailyVerse 독자 작성 (친근한 현대 한국어) |
+| `application` | ✅ 전체 완료 | Zone 시간대 반영 행동 가이드 |
+| `question` | ✅ 전체 완료 | 묵상 응답 질문 180개 생성 (`generate_question_new.js`) |
+| `contemplation_*` | ✅ 수식 자동 | Sheets 수식으로 원본 컬럼 자동 참조 — 별도 작성 불필요 |
+| `alarm_top_ko` | 선택 필드 | verse_short_ko ≤ 35자이면 생략 |
+
+---
+
+### 말씀 저작권 (v9.0 변경)
+
+| 필드 | 출처 | 저작권 |
+|------|------|--------|
+| `verse_full_ko`, `verse_short_ko` | **개역한글** (대한성서공회, 1961) | 퍼블릭 도메인 (2011년 만료) — 출처 표기 필수 |
+| `interpretation`, `application`, `question` | DailyVerse 독자 작성 | DailyVerse 소유 |
+
+> ⚠️ 앱 이용약관/정보 섹션에 "성경 본문: 개역한글, 대한성서공회" 출처 표기 필요
+
+---
+
+### 콘텐츠 생성 파이프라인 (v9.0)
+
+```
+verse_full_ko (개역한글 원문, 앵커)
+    ↓
+verse_short_ko (핵심 문장 추출)
+    ↓
+interpretation + application (DailyVerse 독자 작성, Zone 반영)
+    ↓
+question (묵상 응답 질문, Claude API)
+```
+
+상세 규칙 및 LLM 프롬프트: `docs/contents-guideline.md §4~§6`
+
+---
+
+### 콘텐츠 QA 프로세스
+
+| 단계 | 에이전트/스크립트 | 주요 검증 항목 |
+|------|----------------|-------------|
+| 생성 | `content-writer`, `generate_question_new.js`, `update_to_korv.js` | 신규 콘텐츠 생성 |
+| 자동 검증 | `check_content_quality.js` | 글자수·말투·원어 표기·중복 |
+| AI 검증 | `content-checker` | Zone 맥락 정합성·interpretation 구조·번영신학 위험 표현 |
+| 수정 | `content-fixer` | Sheets + Firestore 배치 업데이트 |
+
+---
 
 ### 데이터 라이프사이클 정책
 
 | 주기 | 대상 | 방식 |
 |------|------|------|
 | 수시 | `alarm_verses/` (`alarm_top_ko` 보유 구절) | 알람 탭 카드에서 랜덤 호출 |
-| 일일 04:00 고정 | `verses/` | 5개 Sync Group(A/B/O/P/Q) 기반 배포 |
+| 일일 06:00 고정 | `verses/` | 5개 Sync Group(A/B/O/P/Q) 기반 배포 |
 
-### 기타
+### 이미지
 
-- 이미지: Genspark Pro 플랜 기반 생성 (상업적 사용 가능), 시간대별 감성 배경 다수 확보
-- Google Sheets로 관리 → Apps Script로 Firestore 자동 업로드
-- 말씀 저작권: 자체 의역 (Claude/GPT-4 초안 + 신학 자문자 검수 후 curated=TRUE)
+- Genspark Pro 플랜 기반 생성 (상업적 사용 가능)
+- Zone별 고정 배경 8개 (`background_images/`) + 감성 이미지 49개 (`images/`) active
+- 부족 Zone: peak_mode(7개↓), recharge(6개↓), second_wind(6개↓) 추가 필요
 
 ---
 

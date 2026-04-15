@@ -64,7 +64,10 @@ DailyVerse 에이전트
 │   └── Plan                  — 구현 계획 설계
 │
 └── ✍️ Category G. 콘텐츠 제작 (말씀 문구)
-    ├── verse-writer              — 해석(interpretation) + 적용(application) 초안 작성
+    ├── content-writer            — 신규 말씀 콘텐츠 생성 (Claude API 배치, VERSES/ALARM_VERSES/greeting)
+    ├── content-checker           — AI 판단 항목 점검 (Zone 맥락·interpretation 구조·번영신학)
+    ├── content-fixer             — 수정 사항 Sheets + Firestore 배치 반영
+    ├── verse-writer              — interpretation + application 초안 작성
     ├── tone-reviewer             — 말투 기준 점검 (설교체 → 친구체)
     ├── scripture-checker         — 원어 표기 제거 + 성경 배경 팩트체크
     ├── devotion-question-writer  — 묵상 응답 화면용 개인화 질문 생성
@@ -488,12 +491,81 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 ## Category G — 콘텐츠 제작 (말씀 문구)
 
 > 말씀 해석·일상 적용 문구를 작성하고 DailyVerse 톤에 맞게 다듬는 파이프라인입니다.
-> Google Sheets(원본) → Claude 작성 → 톤 검수 → Firebase 업로드 순서로 진행됩니다.
+>
+> **콘텐츠 QA 파이프라인**: 생성(content-writer) → 자동검증(check_content_quality.js) → AI검증(content-checker) → 수정(content-fixer)
 >
 > 📖 **상세 규칙·LLM 프롬프트**: [`docs/contents-guideline.md`](./contents-guideline.md) §4~§6
 > - §4: 콘텐츠 생성 파이프라인 (Zone 기준표 + 생성 흐름)
 > - §5: Verse 필드 규격 + 통합 생성 프롬프트 + 검수 체크리스트
 > - §6: Alarm Verse 필드 규격 + 알람 심리 + 생성 프롬프트
+
+---
+
+### `content-writer` (Claude Code 에이전트)
+**역할**: 신규 말씀 콘텐츠 생성 — VERSES, ALARM_VERSES, greeting 탭 지원
+**주로 사용**: 새 말씀 배치 추가, Zone별 콘텐츠 보충, question 일괄 생성
+
+> 📖 **생성 프롬프트**: `docs/contents-guideline.md` §5-4 (통합 생성 프롬프트)
+
+**핵심 규칙**:
+- `verse_full_ko`를 **먼저** 확정 → 나머지 필드 파생
+- Zone 유저 상황 반영 필수 (`ZONE_GUIDE` Firestore/Sheets 참고)
+- 개역한글 원문 사용 시: `scripts/update_to_korv.js` 활용
+
+**관련 스크립트**: `generate_question_new.js`, `update_to_korv.js`
+
+---
+
+### `content-checker` (Claude Code 에이전트)
+**역할**: AI 판단 항목 점검 — `check_content_quality.js`로 잡기 어려운 주관적 품질 검증
+**주로 사용**: 배치 생성 후 QA, 기존 콘텐츠 정기 점검
+
+**검증 항목**:
+- Zone 맥락 정합성 (application이 해당 시간대 유저 상황에 맞는지)
+- interpretation 3단계 구조 완성도 (①저자상황 → ②핵심의미 → ③오늘연결)
+- 번영신학 위험 표현 감지
+- question 신앙 점검 형태 여부
+
+**프롬프트 패턴**:
+```
+DailyVerse verses/ 컬렉션의 {필드명} 필드를 아래 v9.0 가이드라인으로 점검해줘.
+serviceAccountKey 경로: /Users/jeongyong/workspace/dailyverse/scripts/serviceAccountKey.json
+
+[검수 기준]
+(docs/contents-guideline.md §5-5 콘텐츠 검수 체크리스트 내용)
+
+출력: 수정 필요 항목만 상세히 (verse_id, 기존 텍스트, 문제, 수정안)
+코드 수정은 하지 말고 점검 + 수정안 제안만.
+```
+
+**산출물**: 수정 필요 항목 목록 → `content-fixer`에 전달
+
+---
+
+### `content-fixer` (Claude Code 에이전트)
+**역할**: `content-checker` 또는 `check_content_quality.js` 결과를 받아 실제 수정 수행
+**주로 사용**: AI 검증 완료 후 Firestore + Sheets 반영
+
+**처리 방식**:
+1. 수정 목록을 Node.js 패치 스크립트로 작성
+2. Firestore `verses/` 컬렉션 업데이트
+3. Google Sheets `VERSES` 탭 해당 컬럼 업데이트
+4. 완료 후 verse_id 목록 출력
+
+**프롬프트 패턴**:
+```
+아래 수정 목록을 Firestore verses/ + Google Sheets VERSES 탭에 반영해줘.
+
+serviceAccountKey 경로: /Users/jeongyong/workspace/dailyverse/scripts/serviceAccountKey.json
+Sheets ID: 1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig
+
+수정 목록 ({필드명}만 업데이트):
+v_xxx: "수정된 텍스트"
+v_yyy: "수정된 텍스트"
+...
+```
+
+**스크립트 경로**: `/Users/jeongyong/workspace/dailyverse/scripts/`
 
 ---
 
