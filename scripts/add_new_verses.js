@@ -99,12 +99,28 @@ const NEW_VERSES = [
   { ref: '마태복음 5:8',  mode: ['all', 'first_light'], theme: ['faith', 'stillness'], mood: ['serene'] },
 ];
 
-// ── 콘텐츠 생성 ────────────────────────────────────────────────────────────
-async function generateContent(verse) {
-  const primaryMode = verse.mode[0];
-  const zone = ZONE_CONTEXT[primaryMode] || ZONE_CONTEXT.all;
+// ── 글자수 범위 ────────────────────────────────────────────────────────────
+const CONTENT_LIMITS = {
+  verse_full_ko:  { min: 10,  max: 120 },
+  verse_short_ko: { min: 10,  max: 60  },
+  interpretation: { min: 100, max: 155 },
+  application:    { min: 45,  max: 78  },
+  question:       { min: 32,  max: 80  },
+};
 
-  const prompt = `[역할]
+function checkContentLimits(result) {
+  const fails = [];
+  for (const [field, { min, max }] of Object.entries(CONTENT_LIMITS)) {
+    const len = (result[field] || '').length;
+    if (len < min) fails.push(`${field}: ${len}자 (최소 ${min}자)`);
+    if (len > max) fails.push(`${field}: ${len}자 (최대 ${max}자)`);
+  }
+  return fails;
+}
+
+// ── 콘텐츠 생성 ────────────────────────────────────────────────────────────
+function buildVersePrompt(verse, zone, primaryMode) {
+  return `[역할]
 너는 DailyVerse 앱의 말씀 콘텐츠 작가야.
 설교자가 아닌 유저의 신앙 친구. 교회 강단 언어 아님.
 
@@ -114,37 +130,58 @@ Zone: ${primaryMode} (${zone.time})
 유저 상황: ${zone.desc}
 application 컨텍스트: ${zone.appCtx}
 
-[생성 순서]
-① verse_full_ko (10~120자) — 개역한글 원문 그대로
-② verse_short_ko (10~60자) — full에서 핵심 문장 추출 (합성 금지)
-③ interpretation (100~155자) — ①저자상황→②핵심의미→③오늘연결. 원어 표기 절대 금지. ~야/~이야 어투.
-④ application (45~78자) — Zone 시간대·유저 상황이 문장에 녹아야 함. ~봐/~기억해 어투. 강요 금지.
-⑤ question (32~80자) — verse_full_ko 맥락 연결. 닉네임 없이. 일반 어투. 신앙 행위 점검 금지.
+[생성 항목 — 글자수 엄수 필수]
 
-[중요]
-- verse_full_ko: 개역한글 원문 (~니라, ~이로다 고어체 정상)
-- interpretation: 반드시 ①저자가 처한 구체적 상황 1문장으로 시작
-- application: "${zone.appCtx}" 상황이 느껴지게
-- question: "~나요?" 아닌 "~있었어?" "~해봤어?" 일반 어투 권장
+① verse_full_ko: 10자 이상 120자 이하 (절대 초과 금지) — 개역한글 원문 그대로
+② verse_short_ko: 10자 이상 60자 이하 (절대 초과 금지) — full에서 핵심 문장 추출 (합성 금지)
+③ interpretation: 100자 이상 155자 이하 (절대 초과 금지)
+   구조: ①저자가 처한 구체적 상황 1문장 → ②핵심의미 1~2문장 → ③오늘 유저 연결 1문장
+   - 원어(히브리어·헬라어) 단어 직접 표기 절대 금지
+   - 말투: ~야, ~이야, ~거야, ~있어 / 금지: ~이다, ~합니다, 설교조
+④ application: 45자 이상 78자 이하 (절대 초과 금지)
+   - "${zone.appCtx}" 상황이 문장 배경에 느껴져야 함
+   - 말투: ~해봐, ~기억해 / 금지: 반드시, 꼭, ~해야 한다
+⑤ question: 32자 이상 80자 이하 (절대 초과 금지)
+   - verse_full_ko 맥락 연결. 닉네임 없이. 일반 어투(~있었어?, ~해봤어?). 신앙 행위 점검 금지.
+
+[자기검증 — 출력 전 반드시 확인]
+각 필드 글자수를 직접 세어봐. 범위를 벗어나면 즉시 다시 작성해.
 
 [출력: JSON만]
-{
-  "verse_full_ko": "...",
-  "verse_short_ko": "...",
-  "interpretation": "...",
-  "application": "...",
-  "question": "..."
-}`;
+{"verse_full_ko":"...","verse_short_ko":"...","interpretation":"...","application":"...","question":"..."}`;
+}
 
+async function callSonnet(prompt) {
   const msg = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 600,
+    model: 'claude-sonnet-4-6', max_tokens: 700,
     messages: [{ role: 'user', content: prompt }],
   });
-
   const raw = msg.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
   return JSON.parse(raw);
+}
+
+async function generateContent(verse) {
+  const primaryMode = verse.mode[0];
+  const zone = ZONE_CONTEXT[primaryMode] || ZONE_CONTEXT.all;
+
+  // 1차 생성
+  let result = await callSonnet(buildVersePrompt(verse, zone, primaryMode));
+  let fails  = checkContentLimits(result);
+
+  // 글자수 실패 시 1회 재생성
+  if (fails.length > 0) {
+    const retryPrompt = buildVersePrompt(verse, zone, primaryMode) +
+      `\n\n[재생성 요청] 아래 필드가 글자수 범위를 벗어났어. 해당 필드만 다시 작성해:\n` +
+      fails.map(f => `- ${f}`).join('\n');
+    const retry = await callSonnet(retryPrompt);
+    for (const [field, { min, max }] of Object.entries(CONTENT_LIMITS)) {
+      const len = (result[field] || '').length;
+      if (len < min || len > max) result[field] = retry[field];
+    }
+  }
+
+  return result;
 }
 
 // ── 다음 verse_id 결정 ────────────────────────────────────────────────────
