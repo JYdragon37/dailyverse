@@ -33,9 +33,9 @@ const anthropic = new Anthropic({ apiKey });
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
 const isAll    = args.includes('--all');
-// --deep: Sonnet으로 2차 정밀 검증 (기본: Haiku 1차)
+// --deep: 하위 호환용 플래그 (기본이 이미 Sonnet이므로 동일 동작)
 const isDeep   = args.includes('--deep');
-const MODEL    = isDeep ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
+const MODEL    = 'claude-sonnet-4-6';  // 항상 Sonnet — 비용 차이 무시 가능, 품질 우선
 
 const rangeFilter = (() => {
   const idx = args.indexOf('--range');
@@ -111,7 +111,7 @@ question: ${d.question || '(없음)'}
 }
 
 async function main() {
-  console.log(`=== qa_ai_check.js | dry-run: ${isDryRun} | model: ${MODEL} (${isDeep ? '2차 정밀' : '1차 기본'}) ===\n`);
+  console.log(`=== qa_ai_check.js | dry-run: ${isDryRun} | model: Sonnet ===\n`);
 
   // --deep: Sonnet 2차 검증 — 1차(Haiku) 통과한 ai_passed 대상
   // --all:  1차 실패한 ai_failed도 포함하여 재검증
