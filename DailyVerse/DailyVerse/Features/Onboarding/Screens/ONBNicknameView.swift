@@ -23,6 +23,7 @@ struct ONBNicknameView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            .hideKeyboardOnTap()
 
             VStack(spacing: 0) {
                 Spacer().frame(height: 80)

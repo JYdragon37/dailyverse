@@ -256,6 +256,7 @@ struct AlarmAddEditView: View {
                         .font(.dvSectionTitle)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(alarm == nil ? "새 알람" : "알람 수정")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

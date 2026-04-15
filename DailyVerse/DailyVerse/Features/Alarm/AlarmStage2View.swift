@@ -369,6 +369,7 @@ private struct WordOfDaySheet: View {
     var body: some View {
         ZStack {
             Color.dvPrimaryDeep.ignoresSafeArea()
+                .hideKeyboardOnTap()
 
             VStack(spacing: 0) {
                 // 드래그 핸들

@@ -32,6 +32,7 @@ struct NicknameSetupView: View {
         ZStack {
             Color.dvBgDeep
                 .ignoresSafeArea()
+                .hideKeyboardOnTap()
 
             VStack(spacing: 0) {
                 Spacer()
