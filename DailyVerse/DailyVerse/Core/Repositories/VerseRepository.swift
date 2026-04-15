@@ -28,46 +28,74 @@ class VerseRepository {
     }
 
     /// 현재 모드 말씀 반환 (일별 고정)
-    /// v5.1 선택 우선순위:
+    ///
+    /// 선택 우선순위:
     /// 1. daily_cards/{오늘} 큐레이션 데이터
     /// 2. DailyVerseCache (오늘 이미 결정된 말씀)
     /// 3. Cooldown 통과 알고리즘 선택
     /// 4. 번들 폴백
+    ///
+    /// ⚠️ 일관성 보장 원칙:
+    /// - 각 await 이후 반드시 캐시를 재확인 (double-check)
+    ///   → 동시에 실행 중인 다른 Task가 먼저 캐시를 설정했으면 그 값을 사용
+    ///   → 홈/묵상/알람 어느 경로로 호출해도 같은 날 같은 Zone은 같은 말씀 반환
     func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
-        // 1. daily_cards 큐레이션 우선 (Bug E 수정: 모드 파라미터 전달)
+
+        // ── 캐시 재확인 헬퍼 (double-check locking) ──────────────────────────
+        // await 이후 다른 Task가 먼저 캐시를 설정했을 수 있으므로 항상 재확인
+        func cachedVerseIfExists() -> Verse? {
+            guard let id = cacheManager.getVerseId(for: mode),
+                  let v  = cacheManager.loadCachedVerse(id: id) else { return nil }
+            return v
+        }
+
+        // 1-a. 빠른 경로: 이미 캐시에 있으면 즉시 반환
+        if let v = cachedVerseIfExists() { return v }
+
+        // 1-b. daily_cards 큐레이션 우선 (네트워크 await)
         if let card = try? await firestoreService.fetchDailyCard(for: Date(), mode: mode),
            let verseId = card.verseId {
+            // await 완료 후 재확인 — 동시 Task가 이미 캐시를 설정했을 수 있음
+            if let v = cachedVerseIfExists() { return v }
+
             if let cached = cacheManager.loadCachedVerse(id: verseId) {
                 cacheManager.setVerseId(verseId, for: mode)
                 return cached
             }
-            if let verses = try? await fetchVerses(),
-               let found = verses.first(where: { $0.id == verseId }) {
-                cacheManager.setVerseId(found.id, for: mode)
-                return found
+            if let verses = try? await fetchVerses() {
+                // await 후 재확인
+                if let v = cachedVerseIfExists() { return v }
+                if let found = verses.first(where: { $0.id == verseId }) {
+                    cacheManager.setVerseId(found.id, for: mode)
+                    return found
+                }
             }
         }
 
         // 2. 오늘의 캐시 확인 (verseId가 있으면 반드시 같은 verse 유지)
         if let cachedId = cacheManager.getVerseId(for: mode) {
-            // Core Data에서 로드 (TTL 이내)
             if let verse = cacheManager.loadCachedVerse(id: cachedId) {
                 return verse
             }
-            // Core Data TTL 만료 시 Firestore에서 동일 verseId 재로드 (verse 변경 방지)
-            if let verses = try? await fetchVerses(),
-               let found = verses.first(where: { $0.id == cachedId }) {
-                return found
+            // Core Data TTL 만료 → Firestore에서 동일 verseId 재로드
+            if let verses = try? await fetchVerses() {
+                if let v = cachedVerseIfExists() { return v }  // 재확인
+                if let found = verses.first(where: { $0.id == cachedId }) {
+                    return found
+                }
             }
         }
 
-        // 3. Cooldown 알고리즘 선택 (캐시 없을 때만 — 최초 또는 06:00 이후 갱신)
-        if let verses = try? await fetchVerses(),
-           let selected = selector.select(from: verses, mode: mode, weather: weather) {
-            cacheManager.setVerseId(selected.id, for: mode)
-            // v5.1: 노출 후 last_shown + show_count 업데이트 (비동기)
-            Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
-            return selected
+        // 3. Cooldown 알고리즘 선택 (캐시 없을 때만)
+        if let verses = try? await fetchVerses() {
+            // await 후 재확인 — 경쟁 Task가 먼저 선택했으면 그 결과 사용 (동일 말씀 보장)
+            if let v = cachedVerseIfExists() { return v }
+
+            if let selected = selector.select(from: verses, mode: mode, weather: weather) {
+                cacheManager.setVerseId(selected.id, for: mode)
+                Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
+                return selected
+            }
         }
 
         // 4. 번들 폴백

@@ -44,15 +44,16 @@ final class MeditationViewModel: ObservableObject {
 
     func loadTodayVerse() async {
         let mode = AppMode.current()
-        // 홈 탭이 이미 오늘 말씀을 결정해 캐시에 저장했으면 그대로 사용
-        // → 홈과 묵상이 항상 동일한 말씀을 표시하도록 보장
-        // 캐시 없을 때만 Repository 호출 (이때는 weather: nil이지만 cache에 저장되므로 이후엔 동일)
+        // 1. 캐시 우선 (홈 탭과 동일한 말씀 보장)
         if let cachedId = DailyCacheManager.shared.getVerseId(for: mode),
            let cached = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
             todayVerse = cached
             return
         }
-        let verse = await VerseRepository.shared.currentVerse(for: mode, weather: nil)
+        // 2. 캐시 없을 때 — 홈과 동일한 조건으로 선택해야 같은 말씀이 나옴
+        //    weather: nil 대신 WeatherCache를 전달해 홈 VerseSelector 점수와 일치시킴
+        let cachedWeather = WeatherCacheManager().load()
+        let verse = await VerseRepository.shared.currentVerse(for: mode, weather: cachedWeather)
         todayVerse = verse
     }
 

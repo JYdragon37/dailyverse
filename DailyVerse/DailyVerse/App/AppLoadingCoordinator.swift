@@ -69,12 +69,12 @@ final class AppLoadingCoordinator: ObservableObject {
         }
 
         // Stage 5: Firestore 말씀 프리로드 + 오늘 말씀 캐싱
-        // fetchVerses()로 목록 로드 후, currentVerse()로 오늘 말씀을 선택·캐싱한다.
-        // → HomeViewModel/MeditationViewModel이 동시에 로드될 때 같은 캐시를 읽어
-        //   두 화면에 항상 동일한 말씀이 표시된다. (레이스 컨디션 방지)
+        // ⚠️ 이 단계가 완료된 후 state = .ready가 되므로
+        //    홈/묵상/알람 탭이 모두 동일한 캐시를 읽어 같은 말씀을 표시한다.
         _ = try? await verseRepository.fetchVerses()
         let mode = AppMode.current()
-        _ = await verseRepository.currentVerse(for: mode, weather: nil)
+        let cachedWeather = WeatherCacheManager().load()
+        _ = await verseRepository.currentVerse(for: mode, weather: cachedWeather)
 
         state = .ready
     }
