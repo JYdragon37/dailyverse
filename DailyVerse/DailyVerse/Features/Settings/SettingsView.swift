@@ -22,6 +22,10 @@ struct SettingsView: View {
     @State private var showNicknameEdit = false
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
+    #if DEBUG
+    @State private var showOnboardingPreview = false
+    @AppStorage("onboardingV2Completed") private var onboardingCompleted = false
+    #endif
     // deleteSuccessMessage는 AuthManager.deletionCompleteMessage로 이동 (AppRootView에서 표시)
 
     private var appVersion: String {
@@ -40,6 +44,9 @@ struct SettingsView: View {
                 homeBgSection
                 appInfoSection
                 feedbackSection
+                #if DEBUG
+                debugSection
+                #endif
                 // Fix 3: 탭바 겹침 방지 — 하단 여백
                 Color.clear.listRowBackground(Color.clear).frame(height: 60)
             }
@@ -91,6 +98,11 @@ struct SettingsView: View {
         } message: {
             Text(deleteErrorMessage ?? "")
         }
+        #if DEBUG
+        .fullScreenCover(isPresented: $showOnboardingPreview) {
+            OnboardingContainerView()
+        }
+        #endif
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {
                 showLoginPrompt = false
@@ -264,6 +276,31 @@ struct SettingsView: View {
                 .foregroundColor(.primary)
         }
     }
+
+    // MARK: - Debug (DEBUG 빌드 전용)
+
+    #if DEBUG
+    private var debugSection: some View {
+        Section {
+            Button {
+                onboardingCompleted = false
+                showOnboardingPreview = true
+            } label: {
+                Label("온보딩 처음부터 보기", systemImage: "arrow.counterclockwise")
+            }
+            .foregroundColor(.orange)
+
+            Button {
+                DailyCacheManager.shared.clearCache()
+            } label: {
+                Label("말씀 캐시 초기화", systemImage: "trash")
+            }
+            .foregroundColor(.red)
+        } header: {
+            Text("🛠 개발자 옵션 (DEBUG only)")
+        }
+    }
+    #endif
 
     // MARK: - Feedback
 

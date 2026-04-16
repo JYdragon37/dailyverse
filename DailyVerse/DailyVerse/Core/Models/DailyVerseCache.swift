@@ -103,7 +103,8 @@ struct DailyVerseCache: Codable {
     }
 
     var hasAnyVerse: Bool {
-        return deepDarkVerseId != nil || firstLightVerseId != nil ||
+        return todayVerseId != nil ||
+               deepDarkVerseId != nil || firstLightVerseId != nil ||
                riseIgniteVerseId != nil || peakModeVerseId != nil ||
                rechargeVerseId != nil || secondWindVerseId != nil ||
                goldenHourVerseId != nil || windDownVerseId != nil

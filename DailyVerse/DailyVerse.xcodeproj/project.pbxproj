@@ -116,7 +116,8 @@
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
 		WA100002WA100002WA100002 /* WeatherAdviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA100001WA100001WA100001 /* WeatherAdviceService.swift */; };
-/* End PBXBuildFile section */
+		A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */; };
+		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		C14AAB0447A7C9FE1DCAC2D5 /* PBXContainerItemProxy */ = {
@@ -243,7 +244,8 @@
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
 		WA100001WA100001WA100001 /* WeatherAdviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAdviceService.swift; sourceTree = "<group>"; };
-/* End PBXFileReference section */
+		B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLimitTestView.swift; sourceTree = "<group>"; };
+		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C936AC35AE74FCE77CB701C7 /* Frameworks */ = {
@@ -462,6 +464,7 @@
 				FD5BC6EC12A37458E2C0B051 /* Common */,
 				2613FCE9FF92BCB617BD0A18 /* Core */,
 				DEEFF164B9331317976C2B9B /* Features */,
+				BD53E7188CC54A1CB404FEBD /* Dev */,
 				8A3130072F80B28E009F815D /* alarm_song.mp3 */,
 				FA001001FA001001FA001001 /* DancingScript.ttf */,
 				FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */,
@@ -584,7 +587,16 @@
 			path = Common;
 			sourceTree = "<group>";
 		};
-/* End PBXGroup section */
+
+		BD53E7188CC54A1CB404FEBD /* Dev */ = {
+			isa = PBXGroup;
+			children = (
+				B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */,
+			);
+			path = Dev;
+			sourceTree = "<group>";
+		};
+		/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		11754ABDAAEF2863BEE81B1C /* DailyVerseUITests */ = {
@@ -797,6 +809,7 @@
 				EFC125389B06A667AA67EB37 /* SplashView.swift in Sources */,
 				EAF4BE04769B199E65BAA480 /* SubscriptionManager.swift in Sources */,
 				8B4A424041EC86CA8355E89D /* ToastView.swift in Sources */,
+				A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */,
 				CF0B96F103A47333AD6CFC1A /* UpsellBottomSheet.swift in Sources */,
 				D5F33D017811A9768501255B /* UpsellManager.swift in Sources */,
 				1C7A6A263D4A72ACF334B82B /* User.swift in Sources */,

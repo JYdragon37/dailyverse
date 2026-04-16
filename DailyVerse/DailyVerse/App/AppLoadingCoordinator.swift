@@ -54,8 +54,10 @@ final class AppLoadingCoordinator: ObservableObject {
         async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
         _ = await (zoneLoad, zone4Load, goldenLoad)
 
-        // Stage 3: 유효 캐시 있으면 즉시 ready
+        // Stage 3: 유효 캐시 있으면 메모리 캐시만 복원 후 ready
+        // (앱 재시작 시 VerseRepository.cachedVerses가 비워짐 → Home/Meditation 경쟁 조건 방지)
         if hasCached {
+            _ = try? await verseRepository.fetchVerses()
             state = .ready
             return
         }

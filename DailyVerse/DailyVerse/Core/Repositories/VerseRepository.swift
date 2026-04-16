@@ -1,8 +1,8 @@
 import Foundation
 import Combine
 
-class VerseRepository {
-    /// 싱글톤 — fetchVerses() 30분 TTL 캐시를 전역 공유하여 불필요한 API 호출 방지
+actor VerseRepository {
+    /// 싱글톤 — actor 격리로 currentVerse() 동시 호출 방지 (홈/묵상 말씀 불일치 버그 수정)
     static let shared = VerseRepository()
 
     private let firestoreService = FirestoreService()

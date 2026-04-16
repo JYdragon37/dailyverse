@@ -5,8 +5,8 @@ import SwiftUI
 struct ONBIntroView: View {
     @ObservedObject var vm: OnboardingViewModel
 
-    @State private var contentOpacity: Double = 1
-    @State private var ctaOpacity: Double = 1
+    @State private var contentOpacity: Double = 0
+    @State private var ctaOpacity: Double = 0
 
     // 온보딩 전용 배경 그라데이션
     private let bgGradient = LinearGradient(

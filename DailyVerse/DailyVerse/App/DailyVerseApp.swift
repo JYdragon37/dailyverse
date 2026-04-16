@@ -55,36 +55,40 @@ struct DailyVerseApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView()
-                // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
-                .onOpenURL { url in
-                    GIDSignIn.sharedInstance.handle(url)
-                }
-                .environmentObject(authManager)
-                .environmentObject(subscriptionManager)
-                .environmentObject(permissionManager)
-                .environmentObject(upsellManager)
-                .environmentObject(alarmCoordinator)
-                .environmentObject(loadingCoordinator)
-                .environmentObject(greetingService)
-                .task {
-                    // v5.1: 단일 플랜 — 구독 상태 확인 생략
-                    // 닉네임 동기화 (로그인 유저만)
-                    if let userId = authManager.userId {
-                        await NicknameManager.shared.syncWithFirestore(userId: userId)
+            if ProcessInfo.processInfo.environment["TEXT_LIMIT_TEST"] == "1" {
+                TextLimitTestView()
+            } else {
+                AppRootView()
+                    // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
+                    .onOpenURL { url in
+                        GIDSignIn.sharedInstance.handle(url)
                     }
-                }
-                .onReceive(
-                    NotificationCenter.default.publisher(
-                        for: UIApplication.willEnterForegroundNotification
-                    )
-                ) { _ in
-                    Task {
+                    .environmentObject(authManager)
+                    .environmentObject(subscriptionManager)
+                    .environmentObject(permissionManager)
+                    .environmentObject(upsellManager)
+                    .environmentObject(alarmCoordinator)
+                    .environmentObject(loadingCoordinator)
+                    .environmentObject(greetingService)
+                    .task {
+                        // v5.1: 단일 플랜 — 구독 상태 확인 생략
+                        // 닉네임 동기화 (로그인 유저만)
                         if let userId = authManager.userId {
                             await NicknameManager.shared.syncWithFirestore(userId: userId)
                         }
                     }
-                }
+                    .onReceive(
+                        NotificationCenter.default.publisher(
+                            for: UIApplication.willEnterForegroundNotification
+                        )
+                    ) { _ in
+                        Task {
+                            if let userId = authManager.userId {
+                                await NicknameManager.shared.syncWithFirestore(userId: userId)
+                            }
+                        }
+                    }
+            }
         }
     }
 }

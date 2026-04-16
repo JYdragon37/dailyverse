@@ -116,13 +116,17 @@ struct AppRootView: View {
         }
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
-            // TEMP: 온보딩 성능 점검용 — 매 실행마다 온보딩 강제 표시 (배포 전 제거)
-            onboardingCompleted = false
             showAuthWelcome = false
+            // 비회원(미로그인) 유저는 매 세션 온보딩부터 시작
+            // start() 전에 설정해야 state=.ready 시 즉시 OnboardingContainerView가 표시됨
+            // (후에 설정하면 MainTabView가 잠깐 렌더링되어 온보딩 콘텐츠가 깨짐)
+            if !authManager.isLoggedIn {
+                onboardingCompleted = false
+            }
             await loadingCoordinator.start()
             // AuthWelcomeView 표시 여부 결정:
             // - 이미 로그인된 경우 → 스킵
-            // - 그 외 미로그인 → 매 세션 표시 (게스트 모드 선택 시 세션 내 스킵)
+            // - 그 외 미로그인 → 온보딩 완료 후 표시 (게스트 모드 선택 시 세션 내 스킵)
             if !authManager.isLoggedIn {
                 withAnimation(.easeInOut(duration: 0.4)) {
                     showAuthWelcome = true

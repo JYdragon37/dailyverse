@@ -12,6 +12,8 @@ struct ONBNicknameView: View {
     @State private var isAnimating = true
     @State private var cursorVisible = true
     @State private var isNYHighlighted = false
+    @State private var showEditHint = false
+    @State private var hintOffset: CGFloat = 8
     @State private var animationTask: Task<Void, Never>? = nil
     @State private var didStart = false  // 중복 실행 방지
 
@@ -106,6 +108,20 @@ struct ONBNicknameView: View {
                         .frame(height: 1)
                         .padding(.horizontal, 28)
                         .animation(.easeInOut(duration: 0.2), value: isFocused)
+
+                    // ── 편집 힌트 (주황 깜빡임 구간에만 노출) ──
+                    if showEditHint {
+                        HStack(spacing: 6) {
+                            Text("✏️")
+                                .font(.system(size: 13))
+                            Text("탭해서 수정할 수 있어요")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.72))
+                        }
+                        .padding(.horizontal, 28)
+                        .offset(y: hintOffset)
+                        .transition(.opacity)
+                    }
                 }
                 .opacity(inputOpacity)
 
@@ -174,41 +190,71 @@ struct ONBNicknameView: View {
         vm.nicknameInput = ""
 
         animationTask = Task { @MainActor in
-            // sleep helper: 취소 시 false 반환
             func sleep(_ ms: UInt64) async -> Bool {
                 try? await Task.sleep(nanoseconds: ms * 1_000_000)
                 return !Task.isCancelled
             }
 
+            // ── Step 1: "뭐로 입력하지..??" → 전체 삭제 ──
             guard await sleep(900) else { return }
-
-            let words = ["뭐로 입력하지..??", "내 이름은 ", "나윤", "NY"]
-            for (i, word) in words.enumerated() {
-                // 타이핑
-                for ch in word {
-                    guard !Task.isCancelled else { return }
-                    vm.nicknameInput.append(ch)
-                    guard await sleep(130) else { return }
-                }
-
-                // 마지막 단어(NY)는 지우지 않음
-                guard i < words.count - 1 else { break }
-
-                // 정지 후 백스페이스
-                guard await sleep(800) else { return }
-                while !vm.nicknameInput.isEmpty {
-                    guard !Task.isCancelled else { return }
-                    vm.nicknameInput.removeLast()
-                    guard await sleep(75) else { return }
-                }
-                guard await sleep(300) else { return }
+            for ch in "뭐로 입력하지..??" {
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.append(ch)
+                guard await sleep(120) else { return }
             }
+            guard await sleep(850) else { return }
+            while !vm.nicknameInput.isEmpty {
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.removeLast()
+                guard await sleep(72) else { return }
+            }
+            guard await sleep(320) else { return }
 
-            // NY 입력 완료 → 주황 깜빡임으로 유저에게 안내
+            // ── Step 2: "일단 나윤" → "나윤"(2자) 삭제 → "일단 " 삭제 → "" ──
+            for ch in "일단 나윤" {
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.append(ch)
+                guard await sleep(120) else { return }
+            }
+            guard await sleep(800) else { return }
+            for _ in 0..<2 {   // "나윤" 2자 삭제 → "일단 " 남김
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.removeLast()
+                guard await sleep(72) else { return }
+            }
+            guard await sleep(150) else { return }
+            for _ in 0..<3 {   // "일단 " 3자 삭제 → "" 남김
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.removeLast()
+                guard await sleep(72) else { return }
+            }
+            guard await sleep(220) else { return }
+
+            // ── Step 3: "NY이라고 적어둘게요" 타이핑 → "이라고 적어둘게요" 삭제 → "NY" 남김 ──
+            for ch in "NY이라고 적어둘게요" {
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.append(ch)
+                guard await sleep(110) else { return }
+            }
+            guard await sleep(750) else { return }
+            for _ in 0..<9 {   // "이라고 적어둘게요" 9자 삭제 → "NY" 남김
+                guard !Task.isCancelled else { return }
+                vm.nicknameInput.removeLast()
+                guard await sleep(72) else { return }
+            }
+            guard await sleep(400) else { return }
+
+            // ── Step 4: 주황 깜빡임 + 편집 힌트 ──
             isNYHighlighted = true
-            guard await sleep(1800) else { return }
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
+                showEditHint = true
+                hintOffset = 0
+            }
+            guard await sleep(2200) else { return }
 
-            // 완료 — TextField 전환
+            // ── Step 5: TextField 전환 ──
+            withAnimation(.easeOut(duration: 0.18)) { showEditHint = false }
+            guard await sleep(180) else { return }
             isNYHighlighted = false
             isAnimating = false
         }
@@ -218,6 +264,8 @@ struct ONBNicknameView: View {
         animationTask?.cancel()
         animationTask = nil
         isNYHighlighted = false
+        showEditHint = false
+        hintOffset = 8
         isAnimating = false
         if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             vm.nicknameInput = "NY"
