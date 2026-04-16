@@ -252,10 +252,8 @@ final class HomeViewModel: ObservableObject {
         let currentThemes = mode.themes
         let currentMoods = mode.moods
 
-        // 모드 필터 우선 적용
-        let modeFiltered = safe.filter {
-            $0.mode.contains(mode.rawValue) || $0.mode.contains("all")
-        }
+        // 모드 필터 우선 적용 (구 mode 값 호환 포함)
+        let modeFiltered = safe.filter { mode.matchesImageMode($0.mode) }
         let pool = modeFiltered.isEmpty ? safe : modeFiltered
 
         // 스코어 산정

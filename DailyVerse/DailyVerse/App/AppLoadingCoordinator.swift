@@ -87,7 +87,7 @@ final class AppLoadingCoordinator: ObservableObject {
     /// 1. disk cache hit → 즉시 메모리에 세팅
     /// 2. miss → 다운로드 → disk 저장 → 메모리에 세팅
     // UserDefaults 키 — Zone별 마지막 배경 URL 캐싱 (Firestore 반복 호출 제거)
-    private static let bgUrlCacheKeyPrefix = "zoneBgUrl_"
+    private static let bgUrlCacheKeyPrefix = "zoneBgUrl_v2_"
 
     private func loadZoneBackground() async {
         let mode = AppMode.current()

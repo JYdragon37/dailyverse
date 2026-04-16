@@ -193,4 +193,23 @@ enum AppMode: String, CaseIterable {
         case .deepDark, .firstLight, .windDown: return "dark"
         }
     }
+
+    // MARK: - 구 mode 값 호환 (마이그레이션 방어 레이어)
+    // Firestore images/ 컬렉션이 구 mode 값(morning/afternoon/evening/dawn)을 가질 경우를 대비
+
+    /// 이미지 mode 배열이 현재 Zone에 해당하는지 확인 (구 mode 값 포함)
+    func matchesImageMode(_ modes: [String]) -> Bool {
+        if modes.contains("all") || modes.contains(self.rawValue) { return true }
+        // 구 mode 값 → 새 Zone 호환 매핑
+        for m in modes {
+            switch m {
+            case "morning":   if self == .riseIgnite || self == .peakMode   { return true }
+            case "afternoon": if self == .recharge   || self == .secondWind { return true }
+            case "evening":   if self == .goldenHour || self == .windDown   { return true }
+            case "dawn":      if self == .firstLight || self == .deepDark   { return true }
+            default: break
+            }
+        }
+        return false
+    }
 }

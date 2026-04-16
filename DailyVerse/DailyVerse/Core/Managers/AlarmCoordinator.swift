@@ -230,9 +230,7 @@ final class AlarmCoordinator: ObservableObject {
         let season = currentSeasonTag()
         let weatherCondition = activeWeather?.condition ?? "any"
 
-        let modeFiltered = active.filter {
-            $0.mode.contains(mode.rawValue) || $0.mode.contains("all")
-        }
+        let modeFiltered = active.filter { mode.matchesImageMode($0.mode) }
         let pool = modeFiltered.isEmpty ? active : modeFiltered
 
         let scored = pool.map { image -> (VerseImage, Int) in

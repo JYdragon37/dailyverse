@@ -199,6 +199,7 @@ async function uploadOne(bucket, db, target) {
   const doc = {
     bg_id:             bgId,
     zone:              zone,
+    mode:              zone,   // BackgroundImage Swift 모델 호환 (신형: zone, 레거시: mode)
     zone_number:       zoneNumber,
     concept:           concept,
     filename:          filename,

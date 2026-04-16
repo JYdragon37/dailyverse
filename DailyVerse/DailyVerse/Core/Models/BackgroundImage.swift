@@ -20,6 +20,7 @@ struct BackgroundImage: Identifiable, Codable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id = "bg_id"
         case mode, filename, source, license, status, concept, weather
+        case zone   // Firestore 신형 필드
         case storageUrl = "storage_url"
         case needsOverlay = "needs_overlay"
         case overlayIntensity = "overlay_intensity"
@@ -47,7 +48,9 @@ struct BackgroundImage: Identifiable, Codable, Equatable {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id               = try c.decode(String.self, forKey: .id)
-        mode             = try c.decode(String.self, forKey: .mode)
+        // Firestore 신형 문서는 zone 필드를 사용, 레거시는 mode — 둘 다 허용
+        let modeValue    = try? c.decode(String.self, forKey: .mode)
+        mode             = try modeValue ?? c.decode(String.self, forKey: .zone)
         storageUrl       = try c.decode(String.self, forKey: .storageUrl)
         filename         = try c.decode(String.self, forKey: .filename)
         source           = try c.decode(String.self, forKey: .source)
@@ -58,6 +61,23 @@ struct BackgroundImage: Identifiable, Codable, Equatable {
         concept          = (try? c.decode(String.self, forKey: .concept))       ?? "unknown"
         weather          = (try? c.decode(String.self, forKey: .weather))       ?? "all"
         zoneNumber       = (try? c.decode(Int.self,    forKey: .zoneNumber))    ?? 0
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id,               forKey: .id)
+        try c.encode(mode,             forKey: .mode)
+        try c.encode(storageUrl,       forKey: .storageUrl)
+        try c.encode(filename,         forKey: .filename)
+        try c.encode(source,           forKey: .source)
+        try c.encode(license,          forKey: .license)
+        try c.encode(status,           forKey: .status)
+        try c.encode(needsOverlay,     forKey: .needsOverlay)
+        try c.encodeIfPresent(overlayIntensity, forKey: .overlayIntensity)
+        try c.encode(concept,          forKey: .concept)
+        try c.encode(weather,          forKey: .weather)
+        try c.encode(zoneNumber,       forKey: .zoneNumber)
+        // zone 필드는 디코딩 전용 — 인코딩 시 생략
     }
 
     /// 모드 한글 표시명
