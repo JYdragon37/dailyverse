@@ -43,7 +43,7 @@ struct SplashView: View {
                 Spacer().frame(height: 16)
 
                 // 슬로건 — Nanum Pen Script 손글씨체
-                Text("하루의 끝과 시작을 경건하게")
+                Text("크리스천을 위한 최고의 알람 앱")
                     .font(.custom("NanumPenScript-Regular", size: 20))
                     .foregroundColor(.white.opacity(0.82))
                     .opacity(textOpacity)

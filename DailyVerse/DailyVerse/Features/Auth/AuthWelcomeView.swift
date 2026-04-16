@@ -69,21 +69,20 @@ struct AuthWelcomeView: View {
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
 
-            VStack(spacing: 6) {
-                Text("하루의 시작과 끝을")
+            Text("크리스천을 위한 최고의 알람 앱")
+                .font(.custom("NanumPenScript-Regular", size: 20))
+                .foregroundColor(.white.opacity(0.82))
+
+            Spacer().frame(height: 12)
+            VStack(spacing: 4) {
+                Text("하나님 말씀으로")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
-                Text("경건하게")
+                Text("하루를 맞이할 준비 되셨나요?")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color(hex: "#FFD84D"))
+                    .foregroundColor(.white)
             }
-
-            Spacer().frame(height: 8)
-            Text("하나님의 말씀으로 알람을 듣고\n환상적인 배경과 함께 묵상하세요")
-                .font(.system(size: 17, weight: .regular))
-                .foregroundColor(.white.opacity(0.85))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
+            .multilineTextAlignment(.center)
         }
     }
 
@@ -101,16 +100,14 @@ struct AuthWelcomeView: View {
                     .transition(.opacity)
             }
 
-            // Google 버튼 (주요)
-            googleButton
-
-            // Apple 버튼 (보조)
+            // Apple로 시작하기 (신규→가입, 기존→로그인 자동)
             appleButton
 
-            // 로그인 없이 둘러보기
-            Button(action: {
-                onSkip()
-            }) {
+            // Google로 시작하기 (신규→가입, 기존→로그인 자동)
+            googleButton
+
+            // 로그인 없이 둘러보기 — 텍스트 링크
+            Button(action: { onSkip() }) {
                 Text("로그인 없이 둘러보기")
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.55))

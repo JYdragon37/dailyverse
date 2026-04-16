@@ -296,6 +296,13 @@ struct SettingsView: View {
                 Label("말씀 캐시 초기화", systemImage: "trash")
             }
             .foregroundColor(.red)
+
+            Button {
+                UserDefaults.standard.set(false, forKey: "featureTourV2Shown")
+            } label: {
+                Label("피처 투어 다시보기", systemImage: "sparkles")
+            }
+            .foregroundColor(.blue)
         } header: {
             Text("🛠 개발자 옵션 (DEBUG only)")
         }

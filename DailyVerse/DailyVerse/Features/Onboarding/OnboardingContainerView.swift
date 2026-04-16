@@ -18,7 +18,7 @@ struct OnboardingContainerView: View {
             )
             .ignoresSafeArea()
 
-            // Screen 0: 감성 인트로
+            // Screen 0: 공감 — Before/After 알람 애니메이션
             ONBIntroView(vm: vm)
                 .offset(x: pageOffset(for: 0))
                 .opacity(nearPage(0) ? 1 : 0)
@@ -28,20 +28,15 @@ struct OnboardingContainerView: View {
                 .offset(x: pageOffset(for: 1))
                 .opacity(nearPage(1) ? 1 : 0)
 
-            // Screen 2: Value-First 체험 2장 — 현재 페이지일 때만 활성
+            // Screen 2: Stage 1/2 시뮬레이션 — 현재 페이지일 때만 활성
             ONBExperienceView(vm: vm)
                 .offset(x: pageOffset(for: 2))
                 .opacity(vm.currentPage == 2 ? 1 : 0)
 
-            // Screen 3: 테마 선택
-            ONBPersonalizeView(vm: vm)
+            // Screen 3: 알람 설정 (클라이맥스)
+            ONBAlarmPermissionView(vm: vm)
                 .offset(x: pageOffset(for: 3))
                 .opacity(nearPage(3) ? 1 : 0)
-
-            // Screen 4: 알람 + Permission Priming
-            ONBAlarmPermissionView(vm: vm)
-                .offset(x: pageOffset(for: 4))
-                .opacity(nearPage(4) ? 1 : 0)
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentPage)
         .gesture(DragGesture())

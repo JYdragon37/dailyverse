@@ -168,7 +168,7 @@ struct HomeView: View {
     }
 
     private var greetingHeader: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 22) {
             // Good Afternoon, 친구 🌤
             HStack(spacing: 8) {
                 Image(systemName: viewModel.currentMode.greetingIcon)

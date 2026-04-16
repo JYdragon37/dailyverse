@@ -1,331 +1,475 @@
 import SwiftUI
 
-// Design Ref: §3 — 2장 Zone 체험, Zone4(peakMode) + Zone1(deepDark)
-// Plan SC: SC-03~SC-06 말씀·인사말·배너 반영
+// Screen 2 — 알람 체험 시뮬레이션
+// Stage 1 → Stage 2 (AlarmStage2 재현) → Stage 3 (해석 + 일상 적용)
+// 배경: AppLoadingCoordinator.zoneBgImage
+// 말씀: 시편 27:13-14
 
 struct ONBExperienceView: View {
     @ObservedObject var vm: OnboardingViewModel
     @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
 
-    @State private var selectedCard: Int = 0
+    @State private var simPhase: SimPhase = .stage1
+    @State private var isVisible: Bool = false
+    @State private var badgeShake: CGFloat = 0
+    @State private var stage2Visible: Bool = false
+    @State private var stage3Visible: Bool = false
+    @State private var messageVisible: Bool = false
+    @State private var ctaVisible: Bool = false
 
-    // 카드별 등장 애니메이션
-    @State private var card1Appeared = false
-    @State private var card2Appeared = false
+    enum SimPhase {
+        case stage1
+        case stage2
+        case stage3
+    }
 
-    @State private var currentTimeString: String = ""
-    @State private var currentDateString: String = ""
+    // MARK: - 시뮬레이션 콘텐츠
+
+    private let verseShort     = "내가 산 자들의 땅에서\n여호와의 선하심을 보게 될 것을 믿었도다"
+    private let verseFull      = "내가 산 자들의 땅에서 여호와의 선하심을\n보게 될 것을 믿었도다.\n너는 여호와를 바라라, 강하고 담대하라,\n여호와를 바라라."
+    private let reference      = "시편 27:13-14"
+    private let interpretation = "다윗은 극심한 위협 속에서도 하나님의 선하심을 '믿었다'고 고백합니다. 두려움이 엄습할 때도 포기하지 않고 하나님을 바라보는 것, 그것이 담대함의 시작입니다."
+    private let application    = "오늘 무겁게 느껴지는 순간이 찾아올 때, 잠시 멈추고 '여호와를 바라라'를 마음속으로 되뇌어보세요. 강함은 억지로 만드는 게 아니라 바라봄에서 자연스럽게 흘러옵니다."
+
+    // MARK: - Body
 
     var body: some View {
         ZStack {
-            TabView(selection: $selectedCard) {
-                zone4Card.tag(0)
-                zone1Card.tag(1)
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .ignoresSafeArea()
-        }
-        // ── 하단 고정: 내부 도트 + CTA ──
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 14) {
-                // 카드 도트 (• •)
-                HStack(spacing: 6) {
-                    ForEach(0..<2) { i in
-                        Capsule()
-                            .fill(selectedCard == i ? Color.white : Color.white.opacity(0.40))
-                            .frame(width: selectedCard == i ? 16 : 6, height: 4)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedCard)
-                    }
-                }
+            stage1View
+                .opacity(simPhase == .stage1 ? 1 : 0)
+                .animation(.easeInOut(duration: 0.6), value: simPhase)
 
-                // CTA (카드별 다른 텍스트)
-                Button {
-                    if selectedCard == 0 {
-                        withAnimation(.easeInOut(duration: 0.4)) { selectedCard = 1 }
-                    } else {
-                        vm.next()
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        Text(selectedCard == 0 ? "멋진 배경과 함께 말씀 선물 받기" : "꾸준한 묵상 습관 만들기")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.white)
-                        Image(systemName: selectedCard == 0 ? "gift.fill" : "figure.mind.and.body")
-                            .symbolRenderingMode(.monochrome)
-                            .font(.system(size: 15))
-                            .foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 60)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.white.opacity(0.18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                            )
-                    )
-                }
-                .padding(.horizontal, 24)
-                .accessibilityLabel(selectedCard == 0 ? "다음 카드 보기" : "다음 단계로 이동")
-            }
-            .padding(.top, 12)
-            .padding(.bottom, 20)
+            stage2View
+                .opacity(simPhase == .stage2 ? 1 : 0)
+                .animation(.easeInOut(duration: 0.6).delay(0.1), value: simPhase)
+
+            stage3View
+                .opacity(simPhase == .stage3 ? 1 : 0)
+                .animation(.easeInOut(duration: 0.5), value: simPhase)
         }
-        .onChange(of: selectedCard) { card in
-            if card == 1 && !card2Appeared {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15)) {
-                    card2Appeared = true
-                }
-            }
-        }
+        .ignoresSafeArea()
+        .safeAreaInset(edge: .bottom, spacing: 0) { bottomArea }
         .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3)) {
-                card1Appeared = true
+            withAnimation(.easeIn(duration: 0.5).delay(0.3)) { isVisible = true }
+            // 배지 진동: 0.5s 후 시작, stage1에서만 반복
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.linear(duration: 0.055).repeatForever(autoreverses: true)) {
+                    badgeShake = 4
+                }
             }
-            let f = DateFormatter()
-            f.dateFormat = "HH:mm"
-            currentTimeString = f.string(from: Date())
-            Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                currentTimeString = f.string(from: Date())
-            }
-            let df = DateFormatter()
-            df.locale = Locale(identifier: "ko_KR")
-            df.dateFormat = "M월 d일"
-            currentDateString = df.string(from: Date())
         }
     }
 
-    // MARK: - Card 1: Zone4 (peakMode) — v_086
+    // MARK: - Stage 1 (AlarmStage1View 재현)
 
-    private var zone4Card: some View {
+    private var stage1View: some View {
         ZStack {
-            // 배경: 현재 Zone 이미지 (peakMode 시간대에 프리로드된 이미지)
-            zone4Background.ignoresSafeArea()
+            backgroundLayer
+            Color.black.opacity(0.45).ignoresSafeArea()
 
+            VStack(spacing: 0) {
+                // ── 상단: 알람 UI ──
+                alarmTopBar
+                    .opacity(isVisible ? 1 : 0)
+                    .animation(.easeIn(duration: 0.5).delay(0.1), value: isVisible)
+
+                // '오늘도 힘차게 일어나요!' 박스 아래 줄바꿈 2번 간격
+                Spacer().frame(height: 44)
+
+                // ── 말씀 — 알람 UI 바로 아래 ──
+                VStack(spacing: 14) {
+                    Text(verseShort)
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(6)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 32)
+                        .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
+
+                    Text(reference)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.65))
+                }
+                .opacity(isVisible ? 1 : 0)
+                .animation(.easeIn(duration: 0.5), value: isVisible)
+
+                Spacer()
+                Spacer().frame(height: 100)
+            }
+        }
+    }
+
+    // MARK: - 상단 알람 UI
+
+    private var alarmTopBar: some View {
+        VStack(spacing: 10) {
+            // DailyVerse 앱 배지
+            HStack(spacing: 6) {
+                Image(systemName: "alarm.fill")
+                    .font(.system(size: 11))
+                Text("DailyVerse")
+                    .font(.custom("DancingScript-Regular", size: 17))
+            }
+            .foregroundColor(.white.opacity(0.80))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(Color.white.opacity(0.12))
+                    .overlay(Capsule().stroke(Color.white.opacity(0.20), lineWidth: 1))
+            )
+            // 진동 효과: 빠른 좌우 흔들림 + 미세 회전
+            .offset(x: badgeShake)
+            .rotationEffect(.degrees(Double(badgeShake) * 0.45))
+
+            // 알람 시간
+            Text("07:00")
+                .font(.system(size: 68, weight: .thin, design: .monospaced))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 2)
+
+            // 날짜
+            Text(alarmDateString)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.white.opacity(0.72))
+
+            // 기상 독려 메시지
+            HStack(spacing: 6) {
+                Text("✝")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.88))
+                Text("오늘도 힘차게 일어나요!")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.88))
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(Color.white.opacity(0.10))
+                    .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
+            )
+        }
+        .padding(.top, 100)
+    }
+
+    private var alarmDateString: String {
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "ko_KR")
+        df.dateFormat = "M월 d일 EEEE"
+        return df.string(from: Date())
+    }
+
+    // MARK: - Stage 2 (AlarmStage2View 재현 — 버튼 없이 ✕만)
+
+    private var stage2View: some View {
+        ZStack {
+            backgroundLayer
+
+            // 그라데이션 오버레이
+            VStack(spacing: 0) {
+                LinearGradient(colors: [Color.black.opacity(0.65), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 200)
+                Spacer()
+                LinearGradient(colors: [.clear, Color.black.opacity(0.70)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 300)
+            }
+            .ignoresSafeArea()
+
+            // 인사말 헤더
+            VStack {
+                greetingHeader
+                    .padding(.top, 100)
+                    .padding(.horizontal, 28)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // 말씀 카드
+            GeometryReader { geo in
+                let w = geo.size.width
+                let hPad = max(w * 0.13, 40.0)
+                verseCenter
+                    .padding(.horizontal, hPad)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.48)
+            }
+        }
+        .opacity(stage2Visible ? 1 : 0)
+    }
+
+    // MARK: - Stage 3 (해석 + 일상 적용)
+
+    private var stage3View: some View {
+        ZStack {
+            // 배경: Stage 2와 동일 (backgroundLayer + 다크 오버레이)
+            backgroundLayer
             LinearGradient(
-                colors: [Color.black.opacity(0.20), Color.black.opacity(0.55)],
-                startPoint: .top,
-                endPoint: .bottom
+                colors: [Color.black.opacity(0.55), Color.black.opacity(0.75)],
+                startPoint: .top, endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                Spacer().frame(height: 60)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer().frame(height: 175)
 
-                // 인사말 (Zone4: peakMode)
-                greetingRow(mode: .riseIgnite)
+                    // 말씀 원문 (출처 위로 배치)
+                    Text(verseFull)
+                        .font(.custom("Georgia-BoldItalic", size: 18))
+                        .foregroundColor(.white.opacity(0.92))
+                        .lineSpacing(6)
+                        .padding(.horizontal, 28)
 
-                Spacer().frame(height: 6)
+                    Spacer().frame(height: 12)
 
-                // 시간 + 장소 + 날씨
-                HStack(spacing: 4) {
-                    Color.clear.frame(width: 26, height: 1)
-                    Text("\(currentDateString)  ·  08:00  ·  Seoul  18°C")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.white.opacity(0.75))
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.75))
+                    // 출처 — 원문 바로 아래
+                    Text(reference)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.dvAccentGold)
+                        .padding(.horizontal, 28)
+
+                    Spacer().frame(height: 32)
+
+                    // 해석 섹션
+                    contentSection(icon: "💡", title: "해석", body: interpretation)
+
+                    Spacer().frame(height: 20)
+
+                    // 일상 적용 섹션 — {name}, 으로 시작
+                    contentSection(icon: "🌱", title: "일상 적용",
+                                   body: "\(vm.nicknameDisplay), " + application)
+
+                    Spacer().frame(height: 100)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 28)
-
-                Spacer().frame(height: 28)
-
-                // v_086 말씀 카드
-                verseCard(
-                    text: "내가 산 자들의 땅에서 여호와의 선하심을\n보게 될 것을 믿었도다.\n너는 여호와를 바라라, 강하고 담대하라,\n여호와를 바라라.",
-                    reference: "시편 27:13-14",
-                    appeared: card1Appeared
-                )
-
-                Spacer().frame(height: 48)
-
-                // 배너
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.90))
-                    Text("매일 아침, 하나님 말씀으로 하루를 시작하세요")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.90))
-                }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.12))
-                        .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
-                )
-                .padding(.horizontal, 20)
-
-                Spacer()
             }
         }
+        .opacity(stage3Visible ? 1 : 0)
     }
 
-    // MARK: - Card 2: Zone7 (goldenHour) — v_009
-
-    private var zone1Card: some View {
-        ZStack {
-            // 배경: windDown(Zone8) 전용 배경 이미지
-            if let bgImage = loadingCoordinator.windDownBgImage {
-                GeometryReader { geo in
-                    Image(uiImage: bgImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .clipped()
-                }
-                .ignoresSafeArea()
-            } else {
-                LinearGradient(
-                    colors: [Color(hex: "#C9622F"), Color(hex: "#7A4A8A"), Color(hex: "#2D2060")],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+    private func contentSection(icon: String, title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Text(icon)
+                    .font(.system(size: 16))
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
             }
+            .padding(.horizontal, 28)
 
-            // 오버레이
-            Color.black.opacity(0.40).ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                Spacer().frame(height: 60)
-
-                // 인사말 (Zone7: goldenHour — 닉네임 포함)
-                greetingRow(mode: .goldenHour)
-
-                Spacer().frame(height: 6)
-
-                // 시간 + 장소 + 날씨
-                HStack(spacing: 4) {
-                    Color.clear.frame(width: 26, height: 1)
-                    Text("\(currentDateString)  ·  22:00  ·  Seoul  18°C")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.white.opacity(0.75))
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.75))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 28)
-
-                Spacer().frame(height: 64)
-
-                // v_009 말씀 카드
-                verseCard(
-                    text: "내가 새벽 날개를 치며 바다 끝에 거할지라도\n거기서도 주의 손이 나를 인도하시며\n주의 오른손이 나를 붙드시리이다.",
-                    reference: "시편 139:9-10",
-                    appeared: card2Appeared
-                )
-
-                Spacer().frame(height: 64)
-
-                // 배너 (첫번째 장과 동일한 Capsule 스타일)
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.90))
-                    Text("매일 빠짐없는 묵상에 도움줄게요!")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.90))
-                }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.12))
-                        .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
-                )
-                .padding(.horizontal, 20)
-                .opacity(card2Appeared ? 1 : 0)
-
-                Spacer()
-            }
-        }
-    }
-
-    // MARK: - 공통 컴포넌트
-
-    @ViewBuilder
-    private func greetingRow(mode: AppMode) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: mode.greetingIcon)
-                .font(.system(size: 18))
-                .foregroundColor(.white)
-            Text(greetingText(for: mode))
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(.white)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 28)
-        .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 2)
-    }
-
-    @ViewBuilder
-    private func verseCard(text: String, reference: String, appeared: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(text)
-                .font(.custom("Georgia-BoldItalic", size: 20))
-                .foregroundColor(.white)
+            Text(body)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white.opacity(0.82))
                 .lineSpacing(6)
                 .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.8), radius: 6, x: 0, y: 2)
-
-            Text(reference)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.dvAccentGold)
-        }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.09))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.dvAccentGold.opacity(0.25), lineWidth: 1)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                        )
                 )
-        )
-        .padding(.horizontal, 20)
-        .scaleEffect(appeared ? 1 : 0.92)
-        .opacity(appeared ? 1 : 0)
-    }
-
-    // MARK: - 헬퍼
-
-    /// zone 인사말 + 닉네임 조합 (트레일링 구두점 처리)
-    private func greetingText(for mode: AppMode) -> String {
-        let g = mode.greeting
-        let name = vm.nicknameDisplay
-        let last = g.last
-        if last == "." || last == "!" || last == "?" || last == "," {
-            return "\(g) \(name)"
+                .padding(.horizontal, 20)
         }
-        return "\(g), \(name)"
     }
 
-    // MARK: - Zone4 배경 레이어
+    // MARK: - 인사말 헤더
+
+    private var greetingHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "sun.max.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.white)
+                    .padding(.top, 3)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("잘 잤어요?")
+                        .font(.system(size: 29, weight: .bold))
+                        .foregroundColor(.white.opacity(0.88))
+                    Text("힘차게 기지개 펴요, \(vm.nicknameDisplay)")
+                        .font(.system(size: 29, weight: .bold))
+                        .foregroundColor(.white)
+                        .minimumScaleFactor(0.75)
+                        .lineLimit(1)
+                }
+            }
+            HStack(spacing: 8) {
+                Color.clear.frame(width: 34, height: 1)
+                Text(todayString)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.85))
+                Text("·").foregroundColor(.white.opacity(0.4))
+                HStack(spacing: 5) {
+                    Image(systemName: "sun.max.fill").font(.system(size: 15))
+                    Text("서울 18°C · 맑음").font(.system(size: 16, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.95))
+            }
+        }
+        .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
+    }
+
+    // MARK: - 말씀 카드
+
+    private var verseCenter: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(verseFull)
+                .font(.custom("Georgia-BoldItalic", size: 22))
+                .foregroundColor(.white)
+                .lineSpacing(8)
+                .fixedSize(horizontal: false, vertical: true)
+                .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
+
+            HStack(spacing: 8) {
+                Text(reference)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+                Text("Hope")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.dvAccentGold)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Color.dvAccentGold.opacity(0.2))
+                    .clipShape(Capsule())
+            }
+            .padding(.top, 18)
+
+            // 말씀 깊게 보기 힌트
+            HStack(spacing: 8) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.25))
+                    .frame(height: 0.6)
+                Text("말씀 깊게 보기")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.60))
+                    .fixedSize()
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.60))
+                Rectangle()
+                    .fill(Color.white.opacity(0.25))
+                    .frame(height: 0.6)
+            }
+            .padding(.top, 14)
+        }
+        .padding(.vertical, 4)
+        .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
+    }
+
+    // MARK: - 하단 버튼
+
+    private var bottomArea: some View {
+        Group {
+            switch simPhase {
+            case .stage1:
+                VStack(spacing: 12) {
+                    Button { transitionToStage2() } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "alarm").accessibilityHidden(true)
+                            Text("스누즈").font(.system(size: 17, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity).padding(.vertical, 16)
+                        .background(Color.white.opacity(0.15))
+                        .foregroundColor(.white).cornerRadius(14)
+                    }
+                    Button { transitionToStage2() } label: {
+                        Text("종료").font(.system(size: 17, weight: .semibold))
+                            .frame(maxWidth: .infinity).padding(.vertical, 16)
+                            .background(Color.dvAccentGold)
+                            .foregroundColor(.dvPrimaryDeep).cornerRadius(14)
+                    }
+                    .accessibilityLabel("알람 종료 후 말씀 화면으로")
+                }
+                .padding(.horizontal, 24).padding(.vertical, 12).padding(.bottom, 8)
+                .opacity(isVisible ? 1 : 0)
+
+            case .stage2:
+                // 말씀 깊게 보기 → Stage 3으로
+                Button { transitionToStage3() } label: {
+                    HStack(spacing: 6) {
+                        Text("말씀 깊게 보기")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.dvPrimaryDeep)
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.dvPrimaryDeep)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Color.dvAccentGold)
+                    .cornerRadius(14)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .padding(.bottom, 8)
+                .opacity(ctaVisible ? 1 : 0)
+                .animation(.easeIn(duration: 0.4), value: ctaVisible)
+
+            case .stage3:
+                Button { vm.next() } label: {
+                    Text("다음 →")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.dvPrimaryDeep)
+                        .frame(maxWidth: .infinity).frame(height: 60)
+                        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.dvAccentGold))
+                }
+                .padding(.horizontal, 24).padding(.bottom, 20).padding(.top, 12)
+                .opacity(stage3Visible ? 1 : 0)
+                .animation(.easeIn(duration: 0.4), value: stage3Visible)
+            }
+        }
+    }
+
+    // MARK: - 배경
 
     @ViewBuilder
-    private var zone4Background: some View {
-        if let bgImage = loadingCoordinator.zone4BgImage {
+    private var backgroundLayer: some View {
+        let bgImage = loadingCoordinator.zoneBgImage ?? loadingCoordinator.zone4BgImage
+        if let img = bgImage {
             GeometryReader { geo in
-                Image(uiImage: bgImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
+                Image(uiImage: img)
+                    .resizable().scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height).clipped()
             }
+            .ignoresSafeArea()
         } else {
             LinearGradient(
                 colors: [Color(hex: "#4EC4B0"), Color(hex: "#7A9AD0"), Color(hex: "#9080CC")],
-                startPoint: .top,
-                endPoint: .bottom
+                startPoint: .top, endPoint: .bottom
             )
+            .ignoresSafeArea()
         }
+    }
+
+    // MARK: - 전환
+
+    private func transitionToStage2() {
+        // 진동 멈춤
+        withAnimation(.linear(duration: 0.1)) { badgeShake = 0 }
+        withAnimation(.easeInOut(duration: 0.6)) { simPhase = .stage2 }
+        withAnimation(.easeIn(duration: 0.5).delay(0.4)) { stage2Visible = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeIn(duration: 0.4)) { ctaVisible = true }
+        }
+    }
+
+    private func transitionToStage3() {
+        withAnimation(.easeInOut(duration: 0.5)) { simPhase = .stage3 }
+        withAnimation(.easeIn(duration: 0.4).delay(0.2)) { stage3Visible = true }
+    }
+
+    // MARK: - Helpers
+
+    private var todayString: String {
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US")
+        df.dateFormat = "MMM d, EEE"
+        return df.string(from: Date())
     }
 }
 

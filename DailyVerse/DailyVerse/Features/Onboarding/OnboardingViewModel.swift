@@ -9,7 +9,7 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - 네비게이션
     @Published var currentPage: Int = 0
-    static let totalPages = 5  // 닉네임 단독 페이지 추가 → 5
+    static let totalPages = 4  // 공감 / 닉네임 / 체험 / 알람설정
 
     // MARK: - UserDefaults 키
     // v2 신규 온보딩 키 사용 (AppRootView와 동일한 키)
@@ -30,16 +30,11 @@ final class OnboardingViewModel: ObservableObject {
         let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? "NY" : t
     }
-    @Published var selectedThemes: [String] = []   // 최대 3개
 
-    // MARK: - Screen 4: 알람
+    // MARK: - Screen 3: 알람 설정 (단일 알람 — 기본 07:00)
     @Published var morningAlarmEnabled: Bool = true
-    @Published var eveningAlarmEnabled: Bool = true
     @Published var morningAlarmTime: Date = {
-        Calendar.current.date(bySettingHour: 6, minute: 0, second: 0, of: Date()) ?? Date()
-    }()
-    @Published var eveningAlarmTime: Date = {
-        Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()
+        Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date()
     }()
 
     // MARK: - Dependencies
@@ -90,16 +85,6 @@ final class OnboardingViewModel: ObservableObject {
         next()
     }
 
-    // MARK: - 테마 토글 (최대 3개)
-
-    func toggleTheme(_ theme: String) {
-        if selectedThemes.contains(theme) {
-            selectedThemes.removeAll { $0 == theme }
-        } else if selectedThemes.count < 3 {
-            selectedThemes.append(theme)
-        }
-    }
-
     // MARK: - 알림 권한 요청
 
     func requestNotification() async {
@@ -111,7 +96,6 @@ final class OnboardingViewModel: ObservableObject {
 
     func completeOnboarding() {
         saveNickname()
-        saveSelectedThemes()
         saveFirstAlarms()
         onboardingCompleted = true
         savedPage = 0
@@ -128,69 +112,24 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    private func saveSelectedThemes() {
-        guard !selectedThemes.isEmpty else { return }
-        if let data = try? JSONEncoder().encode(selectedThemes) {
-            UserDefaults.standard.set(data, forKey: "preferredThemes")
-        }
-        // 로그인 유저면 Firestore에도 저장 (향후 구현)
-    }
-
     private func saveFirstAlarms() {
-        guard morningAlarmEnabled || eveningAlarmEnabled else { return }
+        guard morningAlarmEnabled else { return }
 
-        // 이미 알람이 존재하면 중복 생성 방지 (다계정/재테스트 시 누적 방지)
+        // 이미 알람이 존재하면 중복 생성 방지
         let existing = alarmRepository.fetchAll()
         guard existing.isEmpty else { return }
 
-        if morningAlarmEnabled {
-            let alarm = Alarm(
-                id: UUID(),
-                time: morningAlarmTime,
-                repeatDays: [0, 1, 2, 3, 4, 5, 6],
-                theme: selectedThemes.first ?? "hope",
-                isEnabled: true,
-                label: "아침의 말씀",
-                snoozeInterval: 5
-            )
-            try? alarmRepository.save(alarm)
-            notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
-        }
-
-        if eveningAlarmEnabled {
-            let alarm = Alarm(
-                id: UUID(),
-                time: eveningAlarmTime,
-                repeatDays: [0, 1, 2, 3, 4, 5, 6],
-                theme: selectedThemes.last ?? "peace",
-                isEnabled: true,
-                label: "저녁의 말씀",
-                snoozeInterval: 5
-            )
-            try? alarmRepository.save(alarm)
-            notificationManager.schedule(alarm, verse: Verse.fallbackWindDown)
-        }
+        let alarm = Alarm(
+            id: UUID(),
+            time: morningAlarmTime,
+            repeatDays: [0, 1, 2, 3, 4, 5, 6],
+            theme: "hope",
+            isEnabled: true,
+            label: "아침의 말씀",
+            snoozeInterval: 5
+        )
+        try? alarmRepository.save(alarm)
+        notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
     }
 }
 
-// MARK: - 테마 정의
-
-extension OnboardingViewModel {
-    struct Theme: Identifiable {
-        let id: String   // Verse theme key
-        let emoji: String
-        let label: String
-        let color: Color
-    }
-
-    static let themes: [Theme] = [
-        Theme(id: "courage",   emoji: "star.fill",               label: "용기",     color: Color(red: 1.00, green: 0.84, blue: 0.00)),
-        Theme(id: "peace",     emoji: "bird.fill",               label: "평안",     color: Color(red: 0.53, green: 0.81, blue: 0.98)),
-        Theme(id: "wisdom",    emoji: "lightbulb.fill",          label: "지혜",     color: Color(red: 1.00, green: 0.75, blue: 0.20)),
-        Theme(id: "gratitude", emoji: "hands.and.sparkles.fill", label: "감사",     color: Color(red: 0.87, green: 0.63, blue: 0.87)),
-        Theme(id: "strength",  emoji: "bolt.fill",               label: "힘",       color: Color(red: 1.00, green: 0.50, blue: 0.20)),
-        Theme(id: "renewal",   emoji: "sparkles",                label: "회복",     color: Color(red: 0.60, green: 0.90, blue: 0.70)),
-        Theme(id: "comfort",   emoji: "heart.fill",              label: "위로",     color: Color(red: 1.00, green: 0.55, blue: 0.70)),
-        Theme(id: "all",       emoji: "book.fill",               label: "모든 말씀", color: Color(red: 0.25, green: 0.80, blue: 0.75)),
-    ]
-}

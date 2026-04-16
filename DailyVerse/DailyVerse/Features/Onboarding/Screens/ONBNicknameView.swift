@@ -128,31 +128,28 @@ struct ONBNicknameView: View {
                 Spacer()
             }
         }
-        // ── 하단 고정 CTA ──
+        // ── 하단 고정 CTA — 항상 활성 (미입력 시 "NY" 기본값으로 진행) ──
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            let isNicknameEmpty = vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             VStack(spacing: 0) {
-                if isNicknameEmpty {
-                    Text("이름을 입력해야 계속할 수 있어요")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
-                        .padding(.bottom, 8)
-                }
                 Button {
-                    guard !isNicknameEmpty else { return }
+                    if isAnimating {
+                        // 애니메이션 중 탭 → NY로 고정
+                        cancelAnimation()
+                    } else if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        vm.nicknameInput = "NY"
+                    }
                     vm.next()
                 } label: {
                     Text("시작하기 →")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(isNicknameEmpty ? Color(hex: "#1A2340").opacity(0.4) : Color(hex: "#1A2340"))
+                        .foregroundColor(Color(hex: "#1A2340"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 60)
                         .background(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(isNicknameEmpty ? Color.white.opacity(0.4) : Color.white)
+                                .fill(Color.white)
                         )
                 }
-                .disabled(isNicknameEmpty)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
@@ -230,14 +227,14 @@ struct ONBNicknameView: View {
             }
             guard await sleep(220) else { return }
 
-            // ── Step 3: "NY이라고 적어둘게요" 타이핑 → "이라고 적어둘게요" 삭제 → "NY" 남김 ──
-            for ch in "NY이라고 적어둘게요" {
+            // ── Step 3: "NY로 적어둘게요" 타이핑 → "로 적어둘게요" 삭제 → "NY" 남김 ──
+            for ch in "NY로 적어둘게요" {
                 guard !Task.isCancelled else { return }
                 vm.nicknameInput.append(ch)
                 guard await sleep(110) else { return }
             }
             guard await sleep(750) else { return }
-            for _ in 0..<9 {   // "이라고 적어둘게요" 9자 삭제 → "NY" 남김
+            for _ in 0..<7 {   // "로 적어둘게요" 7자 삭제 → "NY" 남김
                 guard !Task.isCancelled else { return }
                 vm.nicknameInput.removeLast()
                 guard await sleep(72) else { return }
@@ -267,9 +264,8 @@ struct ONBNicknameView: View {
         showEditHint = false
         hintOffset = 8
         isAnimating = false
-        if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            vm.nicknameInput = "NY"
-        }
+        // 유저가 직접 입력하지 않은 경우 항상 "NY"로 고정
+        vm.nicknameInput = "NY"
     }
 }
 

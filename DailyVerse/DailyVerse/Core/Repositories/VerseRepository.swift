@@ -23,7 +23,9 @@ actor VerseRepository {
         let verses = try await firestoreService.fetchVerses()
         cachedVerses = verses
         lastFetched = Date()
-        verses.forEach { cacheManager.cacheVerse($0) }
+        // Core Data viewContext는 메인 스레드 전용 → MainActor에서 캐싱
+        let versesToCache = verses
+        await MainActor.run { versesToCache.forEach { cacheManager.cacheVerse($0) } }
         return verses
     }
 
