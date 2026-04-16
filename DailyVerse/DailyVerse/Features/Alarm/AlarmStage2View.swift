@@ -54,20 +54,7 @@ struct AlarmStage2View: View {
                     .padding(.top, 60)
                     .padding(.horizontal, 28)
             }
-            // 날씨 카드: 말씀 텍스트 위(화면 33% 지점)에 배치
-            .overlay {
-                if let w = coordinator.activeWeather {
-                    GeometryReader { geo in
-                        let hPad = max(geo.size.width * 0.13, 40.0)
-                        weatherCard(weather: w)
-                            .padding(.horizontal, hPad)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.33)
-                    }
-                }
-            }
-            // 말씀 카드: 날씨 카드 아래(화면 55% 지점)에 배치
+            // 말씀 카드: 화면 중앙(48% 지점)에 배치
             .overlay {
                 if let verse = todayVerse {
                     GeometryReader { geo in
@@ -77,7 +64,7 @@ struct AlarmStage2View: View {
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.55)
+                                      y: geo.size.height * 0.48)
                     }
                 }
             }
@@ -224,48 +211,6 @@ struct AlarmStage2View: View {
             }
         }
         .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
-    }
-
-    // MARK: - Weather Card (말씀 위에 표시되는 날씨 조건 카드)
-
-    private func weatherCard(weather: WeatherData) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: weatherIcon(weather.condition))
-                .font(.system(size: 18))
-                .foregroundColor(.white.opacity(0.90))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(weather.conditionKo)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white)
-                HStack(spacing: 6) {
-                    Text("\(weather.cityName)  \(weather.temperature)°C")
-                    Text("·")
-                        .foregroundColor(.white.opacity(0.4))
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 11))
-                    Text("\(weather.humidity)%")
-                    if weather.dustGrade != "알수없음" {
-                        Text("·")
-                            .foregroundColor(.white.opacity(0.4))
-                        Text(weather.dustGrade)
-                    }
-                }
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white.opacity(0.75))
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(0.10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
     }
 
     // MARK: - Verse Center (HomeView verseCenter와 동일 스타일)

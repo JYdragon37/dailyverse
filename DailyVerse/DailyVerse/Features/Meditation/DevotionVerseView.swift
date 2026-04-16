@@ -26,16 +26,17 @@ struct DevotionVerseView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     readingSection
                     dashedDivider
-                    verseSectionHeader("📖 오늘의 묵상")
-                    verseCard
-                    writingInput
-                    dashedDivider
 
                     let interp = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
                     if !interp.isEmpty {
                         verseSectionHeader("💡 해석")
                         interpretationText(interp)
+                        dashedDivider
                     }
+
+                    verseSectionHeader("📖 오늘의 묵상")
+                    verseCard
+                    writingInput
 
                     Color.clear.frame(height: 16)
                 }

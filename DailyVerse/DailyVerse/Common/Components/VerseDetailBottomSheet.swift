@@ -28,22 +28,7 @@ struct VerseDetailBottomSheet: View {
                     // 상단 여백 — 텍스트가 팝업 중앙에 자연스럽게 위치
                     Spacer(minLength: 12)
 
-                    // 1. 일상 적용 (닉네임 포함)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Label("오늘의 적용", systemImage: "sparkles")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
-
-                        Text(applicationWithNickname)
-                            .font(.system(size: 19, weight: .regular))
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(5)
-                    }
-
-                    Divider().padding(.vertical, 2)
-
-                    // 3. 해석
+                    // 1. 해석
                     VStack(alignment: .leading, spacing: 6) {
                         Label("해석", systemImage: "text.magnifyingglass")
                             .font(.system(size: 15, weight: .semibold))
@@ -54,6 +39,21 @@ struct VerseDetailBottomSheet: View {
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(4)
+                    }
+
+                    Divider().padding(.vertical, 2)
+
+                    // 2. 일상 적용 (닉네임 포함)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("오늘의 적용", systemImage: "sparkles")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.secondary)
+
+                        Text(applicationWithNickname)
+                            .font(.system(size: 19, weight: .regular))
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(5)
                     }
 
                     // 4. 광고 슬롯 (Medium Rectangle 300×250)

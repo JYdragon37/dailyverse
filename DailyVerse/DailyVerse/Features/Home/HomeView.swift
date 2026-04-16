@@ -175,10 +175,12 @@ struct HomeView: View {
                     .font(.system(size: 26))
                     .foregroundColor(.white)
                 // Plan SC: 최장 EN 31자도 레이아웃 깨짐 없음
+                // dvLargeTitle = 34pt bold, 2줄 기준 minHeight ≈ 88pt
                 Text(greetingText)
                     .font(.dvLargeTitle).foregroundColor(.white)
                     .minimumScaleFactor(0.7)
                     .lineLimit(2)
+                    .frame(minHeight: 88, alignment: .topLeading)
             }
 
             // Fix 1: 시간/날씨 — 아이콘 너비(26)+간격(8)=34pt leading으로 G,D와 수직 정렬
