@@ -1,0 +1,35 @@
+{
+  "folder": "onboarding",
+  "concept": "onboarding",
+  "inspected_at": "2026-04-16",
+  "total": 2,
+  "passed": 2,
+  "overlay_required": 1,
+  "delete_recommended": 0,
+  "images": [
+    {
+      "filename": "onb_intro_forest_clear_predawn.jpg",
+      "zone": "first_light",
+      "zone_number": 2,
+      "weather": "clear",
+      "concept": "onboarding",
+      "screen": "intro",
+      "status": "pass",
+      "needs_overlay": false,
+      "overlay_intensity": null,
+      "issues": []
+    },
+    {
+      "filename": "onb_alarm_seoul_sunrise_sunny_dawn.png",
+      "zone": "rise_ignite",
+      "zone_number": 3,
+      "weather": "sunny",
+      "concept": "onboarding",
+      "screen": "alarm",
+      "status": "pass_with_overlay",
+      "needs_overlay": true,
+      "overlay_intensity": "light",
+      "issues": ["bright_sky_top_third"]
+    }
+  ]
+}

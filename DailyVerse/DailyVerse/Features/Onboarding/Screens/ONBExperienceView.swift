@@ -478,7 +478,7 @@ struct ONBExperienceView: View {
 
     @ViewBuilder
     private var backgroundLayer: some View {
-        let bgImage = loadingCoordinator.zoneBgImage ?? loadingCoordinator.zone4BgImage
+        let bgImage = UIImage(named: "onb_alarm_bg") ?? loadingCoordinator.zoneBgImage
         if let img = bgImage {
             GeometryReader { geo in
                 Image(uiImage: img)

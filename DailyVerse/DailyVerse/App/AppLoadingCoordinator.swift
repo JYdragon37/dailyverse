@@ -23,7 +23,6 @@ final class AppLoadingCoordinator: ObservableObject {
     /// AppRootView 베이스 레이어에서 사용 → 스플래시 종료 즉시 올바른 이미지 표시
     @Published var zoneBgImage: UIImage? = nil
     @Published var zoneBgUrl: URL? = nil
-    @Published var zone4BgImage: UIImage? = nil
     @Published var windDownBgImage: UIImage? = nil
 
     // MARK: - Dependencies
@@ -50,9 +49,8 @@ final class AppLoadingCoordinator: ObservableObject {
         // + 배경 이미지 비동기 로드
         let hasCached = cacheManager.hasValidCache()
         async let zoneLoad: Void = loadZoneBackground()
-        async let zone4Load: Void = loadFixedBackground(mode: .peakMode, assign: { self.zone4BgImage = $0 })
         async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
-        _ = await (zoneLoad, zone4Load, goldenLoad)
+        _ = await (zoneLoad, goldenLoad)
 
         // Stage 3: 유효 캐시 있으면 메모리 캐시만 복원 후 ready
         // (앱 재시작 시 VerseRepository.cachedVerses가 비워짐 → Home/Meditation 경쟁 조건 방지)
