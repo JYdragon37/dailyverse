@@ -180,29 +180,20 @@ struct ONBExperienceView: View {
             // 인사말 헤더
             VStack {
                 greetingHeader
-                    .padding(.top, 80)
+                    .padding(.top, 120)
                     .padding(.horizontal, 28)
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 날씨 카드: 말씀 텍스트 위(화면 33% 지점)에 배치
-            GeometryReader { geo in
-                let hPad = max(geo.size.width * 0.13, 40.0)
-                onbWeatherCard
-                    .padding(.horizontal, hPad)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.33)
-            }
-
-            // 말씀 카드: 날씨 카드 아래(화면 56% 지점)에 배치
+            // 말씀 카드: 화면 중앙(50% 지점)에 배치
             GeometryReader { geo in
                 let w = geo.size.width
                 let hPad = max(w * 0.13, 40.0)
                 verseCenter
                     .padding(.horizontal, hPad)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.56)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.50)
             }
         }
         .opacity(stage2Visible ? 1 : 0)
@@ -322,46 +313,6 @@ struct ONBExperienceView: View {
             }
         }
         .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
-    }
-
-    // MARK: - 날씨 카드 (온보딩 시뮬레이션용 — mock 데이터)
-
-    private var onbWeatherCard: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "sun.max.fill")
-                .font(.system(size: 18))
-                .foregroundColor(.white.opacity(0.90))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("맑음")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white)
-                HStack(spacing: 6) {
-                    Text("서울  18°C")
-                    Text("·")
-                        .foregroundColor(.white.opacity(0.4))
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 11))
-                    Text("65%")
-                    Text("·")
-                        .foregroundColor(.white.opacity(0.4))
-                    Text("좋음")
-                }
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white.opacity(0.75))
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(0.10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
     }
 
     // MARK: - 말씀 카드
