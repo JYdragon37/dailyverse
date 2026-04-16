@@ -79,7 +79,40 @@ struct SavedView: View {
         } else if viewModel.savedVerses.isEmpty {
             emptyStateNoSaves
         } else {
-            savedGrid
+            VStack(spacing: 0) {
+                filterPicker
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                savedGrid
+            }
+        }
+    }
+
+    // MARK: - Filter Picker (v5.2)
+
+    private var filterPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(SavedViewModel.SavedFilter.allCases, id: \.self) { filter in
+                let isSelected = viewModel.selectedFilter == filter
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        viewModel.selectedFilter = filter
+                    }
+                } label: {
+                    Text(filter.rawValue)
+                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? .black : .white.opacity(0.6))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(isSelected ? Color.dvAccentGold : Color.white.opacity(0.10))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
         }
     }
 
@@ -87,24 +120,29 @@ struct SavedView: View {
 
     private var savedGrid: some View {
         ScrollView {
-            LazyVGrid(columns: gridColumns, spacing: 12) {
-                ForEach(viewModel.savedVerses) { savedVerse in
-                    SavedCardView(
-                        savedVerse: savedVerse,
-                        onTap: { selectedVerse = savedVerse },
-                        onDelete: {
-                            Task {
-                                if let userId = authManager.userId {
-                                    await viewModel.deleteSavedVerse(savedVerse, userId: userId)
+            if viewModel.filteredVerses.isEmpty {
+                emptyStateFilteredEmpty
+                    .padding(.top, 60)
+            } else {
+                LazyVGrid(columns: gridColumns, spacing: 12) {
+                    ForEach(viewModel.filteredVerses) { savedVerse in
+                        SavedCardView(
+                            savedVerse: savedVerse,
+                            onTap: { selectedVerse = savedVerse },
+                            onDelete: {
+                                Task {
+                                    if let userId = authManager.userId {
+                                        await viewModel.deleteSavedVerse(savedVerse, userId: userId)
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 24)
         }
     }
 
@@ -182,6 +220,27 @@ struct SavedView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // v5.2: 필터 결과가 비어있을 때
+    private var emptyStateFilteredEmpty: some View {
+        let label: String = {
+            switch viewModel.selectedFilter {
+            case .home:  return "홈에서 저장한 말씀이 없어요"
+            case .alarm: return "알람에서 저장한 말씀이 없어요"
+            case .all:   return "저장된 말씀이 없어요"
+            }
+        }()
+        return VStack(spacing: 16) {
+            Image(systemName: "tray")
+                .font(.system(size: 44))
+                .foregroundColor(.white.opacity(0.3))
+            Text(label)
+                .font(.dvBody)
+                .foregroundColor(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

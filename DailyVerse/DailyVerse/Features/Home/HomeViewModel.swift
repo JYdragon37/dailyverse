@@ -379,7 +379,8 @@ final class HomeViewModel: ObservableObject {
             weatherHumidity: weather?.humidity ?? 0,
             weatherDust: weather?.dustGrade,      // v5.1: 미세먼지 등급
             locationName: weather?.cityName ?? "",
-            verseFullKo: verse.verseFullKo
+            verseFullKo: verse.verseFullKo,
+            source: .home                          // v5.2: 홈화면에서 저장
         )
     }
 

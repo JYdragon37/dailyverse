@@ -1,5 +1,11 @@
 import Foundation
 
+// 말씀 저장 출처 구분 (v5.2)
+enum SavedSource: String, Codable {
+    case home = "home"    // 홈화면에서 저장
+    case alarm = "alarm"  // 알람 탭(Stage 2)에서 저장
+}
+
 struct SavedVerse: Identifiable, Codable, Equatable {
     let id: String
     let verseId: String
@@ -15,6 +21,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
     let locationLat: Double?
     let locationLng: Double?
     let verseFullKo: String?     // 썸네일 표시용 말씀 전체 구절
+    let source: SavedSource      // v5.2 — 저장 출처 (기존 문서 호환: 없으면 .home 기본값)
 
     enum CodingKeys: String, CodingKey {
         case id = "saved_id"
@@ -31,6 +38,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         case locationLat = "location_lat"
         case locationLng = "location_lng"
         case verseFullKo = "verse_full_ko"
+        case source
     }
 
     init(from decoder: Decoder) throws {
@@ -49,6 +57,8 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         locationLat      = try container.decodeIfPresent(Double.self, forKey: .locationLat)
         locationLng      = try container.decodeIfPresent(Double.self, forKey: .locationLng)
         verseFullKo      = try container.decodeIfPresent(String.self, forKey: .verseFullKo)
+        // 기존 Firestore 문서에 source 필드가 없으면 .home 기본값
+        source           = try container.decodeIfPresent(SavedSource.self, forKey: .source) ?? .home
     }
 
     init(
@@ -65,7 +75,8 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         locationName: String = "",
         locationLat: Double? = nil,
         locationLng: Double? = nil,
-        verseFullKo: String? = nil
+        verseFullKo: String? = nil,
+        source: SavedSource = .home
     ) {
         self.id = id
         self.verseId = verseId
@@ -81,6 +92,7 @@ struct SavedVerse: Identifiable, Codable, Equatable {
         self.locationLat = locationLat
         self.locationLng = locationLng
         self.verseFullKo = verseFullKo
+        self.source = source
     }
 
     var daysSinceSaved: Int {

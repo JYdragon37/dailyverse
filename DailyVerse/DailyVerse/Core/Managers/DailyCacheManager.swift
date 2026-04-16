@@ -46,10 +46,9 @@ class DailyCacheManager {
     // MARK: - Verse ID (Zone별 — 레거시 호환)
 
     func getVerseId(for mode: AppMode) -> String? {
-        // 하루 1개 verse 우선, 없으면 Zone별 폴백
-        if let todayId = getTodayVerseId() { return todayId }
-        guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
-        return cache.verseId(for: mode)
+        // 하루 1개 verse 전용 — todayVerseId만 사용
+        // Zone별 폴백을 제거해 아침/낮/저녁 등 Zone이 달라도 항상 같은 글귀를 반환
+        return getTodayVerseId()
     }
 
     func setVerseId(_ verseId: String, for mode: AppMode) {
@@ -109,8 +108,9 @@ class DailyCacheManager {
         guard let entity = try? context.fetch(request).first,
               let json = entity.json,
               let data = json.data(using: .utf8) else { return nil }
-        // 24시간 TTL: 만료 시 삭제 → fetchVerses()가 Firestore에서 최신 데이터 재취득
-        if let cachedAt = entity.cachedAt, Date().timeIntervalSince(cachedAt) > 86400 {
+        // TTL: DailyVerseCache.isValid()와 동일한 04:00 기준 하루
+        // 24시간 고정 TTL 대신 날짜 기준을 사용해 캐시 미스로 인한 글귀 재선택을 방지
+        if let cachedAt = entity.cachedAt, !Self.isSameDay(cachedAt, as: Date()) {
             context.delete(entity)
             PersistenceController.shared.save()
             return nil
@@ -136,6 +136,20 @@ class DailyCacheManager {
     }
 
     // MARK: - Private
+
+    /// DailyVerseCache.isValid()와 동일한 04:00 기준 "같은 날" 판단
+    /// - 새벽 00–03은 전날로 취급
+    private static func isSameDay(_ date: Date, as reference: Date) -> Bool {
+        let calendar = Calendar.current
+        func effectiveDay(_ d: Date) -> Date {
+            let hour = calendar.component(.hour, from: d)
+            if hour < 4 {
+                return calendar.date(byAdding: .day, value: -1, to: d) ?? d
+            }
+            return d
+        }
+        return calendar.isDate(effectiveDay(date), inSameDayAs: effectiveDay(reference))
+    }
 
     private func loadCache() -> DailyVerseCache? {
         guard let data = UserDefaults.standard.data(forKey: cacheKey) else { return nil }

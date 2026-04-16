@@ -412,7 +412,8 @@ struct AlarmStage2View: View {
             weatherHumidity: coordinator.activeWeather?.humidity ?? 0,
             weatherDust: coordinator.activeWeather?.dustGrade,
             locationName: coordinator.activeWeather?.cityName ?? "",
-            verseFullKo: verse.verseFullKo
+            verseFullKo: verse.verseFullKo,
+            source: .alarm                          // v5.2: 알람 탭(Stage 2)에서 저장
         )
         // 로그인 상태 → Firestore 직접 저장 (성공/실패 토스트 피드백)
         Task {

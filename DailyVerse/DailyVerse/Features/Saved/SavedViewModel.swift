@@ -7,6 +7,22 @@ final class SavedViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var toastMessage: String?
 
+    // v5.2: 출처별 필터
+    enum SavedFilter: String, CaseIterable {
+        case all   = "전체"
+        case home  = "홈"
+        case alarm = "알람"
+    }
+    @Published var selectedFilter: SavedFilter = .all
+
+    var filteredVerses: [SavedVerse] {
+        switch selectedFilter {
+        case .all:   return savedVerses
+        case .home:  return savedVerses.filter { $0.source == .home }
+        case .alarm: return savedVerses.filter { $0.source == .alarm }
+        }
+    }
+
     // v5.1: 단일 플랜 — 접근 제한 제거. 전체 무제한 열람.
     // AccessState는 UI 코드 호환을 위해 유지하되 항상 .free 반환
 

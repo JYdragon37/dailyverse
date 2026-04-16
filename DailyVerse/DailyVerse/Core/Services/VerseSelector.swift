@@ -71,8 +71,34 @@ class VerseSelector {
         }
 
         let maxScore  = scored.map { $0.1 }.max() ?? 0
+        // id 기준 정렬로 순서를 결정론적으로 고정한 뒤 날짜 시드로 선택
+        // → 동일 날짜에 캐시 미스가 발생해도 항상 같은 구절이 선택됨
         let topVerses = scored.filter { $0.1 == maxScore }.map { $0.0 }
-        return topVerses.randomElement()
+            .sorted { $0.id < $1.id }
+        guard !topVerses.isEmpty else { return nil }
+        let index = Self.dailySeedIndex(count: topVerses.count)
+        return topVerses[index]
+    }
+
+    /// 오늘 날짜(04:00 기준)를 시드로 사용한 결정론적 인덱스 반환
+    /// - 같은 날이면 count가 같을 때 항상 동일한 인덱스를 반환
+    /// - 새벽 00–03은 전날로 취급 (DailyVerseCache.isValid와 동일 기준)
+    private static func dailySeedIndex(count: Int) -> Int {
+        guard count > 1 else { return 0 }
+        let calendar = Calendar.current
+        let now = Date()
+        let hour = calendar.component(.hour, from: now)
+        let referenceDate: Date
+        if hour < 4 {
+            referenceDate = calendar.date(byAdding: .day, value: -1, to: now) ?? now
+        } else {
+            referenceDate = now
+        }
+        // "yyyyMMdd" 형식 숫자를 시드로 사용
+        let dayInt = calendar.component(.year, from: referenceDate) * 10000
+            + calendar.component(.month, from: referenceDate) * 100
+            + calendar.component(.day, from: referenceDate)
+        return dayInt % count
     }
 
     private func currentSeasonTag() -> String {
