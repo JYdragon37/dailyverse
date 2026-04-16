@@ -95,11 +95,34 @@ class FirestoreService {
 
     // MARK: - Background Images (#3 시간대별 배경)
 
+    /// Zone 및 날씨 조건에 맞는 배경 이미지 후보 목록 반환 → 호출부에서 .randomElement() 선택
+    /// 날씨 필터 규칙:
+    ///   - weather == "all" → 항상 후보
+    ///   - weather == "sunny" | "cloudy" | "misty" | "clear" → 항상 후보 (맑음 계열)
+    ///   - weather == "rainy" → weatherCondition == "rainy" 일 때만 후보
+    ///   - weather == "snowy" → weatherCondition == "snowy" 일 때만 후보
+    func fetchBackgroundImages(for mode: AppMode, weatherCondition: String = "all") async throws -> [BackgroundImage] {
+        let snapshot = try await db.collection("background_images")
+            .whereField("zone", isEqualTo: mode.rawValue)
+            .whereField("status", isEqualTo: "active")
+            .getDocuments()
+
+        let all = snapshot.documents.compactMap { try? $0.data(as: BackgroundImage.self) }
+
+        // 맑음 계열: 날씨에 무관하게 항상 후보
+        let clearVariants: Set<String> = ["all", "sunny", "cloudy", "misty", "clear"]
+
+        return all.filter { bg in
+            if clearVariants.contains(bg.weather) { return true }
+            // precipitation 계열: 실제 날씨가 일치할 때만 후보
+            return bg.weather == weatherCondition
+        }
+    }
+
+    /// 하위 호환 — 단일 문서 방식 (레거시 경로; 새 로직은 fetchBackgroundImages 사용)
     func fetchBackgroundImage(for mode: AppMode) async throws -> BackgroundImage? {
-        let bgId = "bg_\(mode.rawValue)"
-        let doc = try await db.collection("background_images").document(bgId).getDocument()
-        guard doc.exists else { return nil }
-        return try? doc.data(as: BackgroundImage.self)
+        let candidates = try await fetchBackgroundImages(for: mode, weatherCondition: "all")
+        return candidates.randomElement()
     }
 
     // MARK: - Daily Word (오늘의 한마디 Gallery 저장)

@@ -1,0 +1,18 @@
+{
+  "folder": "prague",
+  "concept": "프라하 (AI 생성)",
+  "inspected_at": "2026-04-16",
+  "total": 7,
+  "passed": 7,
+  "overlay_required": 0,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_river_all_midnight.png", "zone": 1, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_charles_all_predawn.png", "zone": 2, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_bridge_misty_dawn.png", "zone": 3, "weather": "misty", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone4_panorama_all_morning.png", "zone": 4, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone6_river_sunny_sunset.png", "zone": 6, "weather": "sunny", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone7_city_sunny_golden.png", "zone": 7, "weather": "sunny", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_moonlit_all_evening.png", "zone": 8, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

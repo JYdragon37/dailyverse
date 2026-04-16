@@ -1,0 +1,19 @@
+{
+  "folder": "seoul_rainy",
+  "concept": "서울 우천",
+  "inspected_at": "2026-04-16",
+  "total": 8,
+  "passed": 6,
+  "overlay_required": 2,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_hanriver_rainy_midnight.jpg", "zone": 1, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_rooftop_rainy_predawn.jpg", "zone": 2, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_hanriver_rainy_dawn_ov.jpg", "zone": 3, "weather": "rainy", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["bright_sky_top_third", "zone_mood_mismatch"]},
+    {"filename": "zone4_city_rainy_morning.jpg", "zone": 4, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone5_riverside_rainy_midday_ov.jpg", "zone": 5, "weather": "rainy", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["white_sky", "flat_bright_sky"]},
+    {"filename": "zone6_highway_rainy_afternoon.jpg", "zone": 6, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone7_lotte_rainy_dusk.jpg", "zone": 7, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_hanriver_rainy_night.jpg", "zone": 8, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

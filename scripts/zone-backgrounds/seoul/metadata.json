@@ -1,0 +1,19 @@
+{
+  "folder": "seoul",
+  "concept": "서울 맑음",
+  "inspected_at": "2026-04-16",
+  "total": 8,
+  "passed": 5,
+  "overlay_required": 3,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_banpo_all_night.jpg", "zone": 1, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_ttukseom_all_predawn.jpg", "zone": 2, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_yeouido_sunny_dawn_ov.jpg", "zone": 3, "weather": "sunny", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["bright_sky_top_third", "zone_mood_mismatch"]},
+    {"filename": "zone4_hanriver_sunny_morning_ov.jpg", "zone": 4, "weather": "sunny", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "heavy", "issues": ["bright_sky_overexposed"]},
+    {"filename": "zone5_jamsil_sunny_midday.jpg", "zone": 5, "weather": "sunny", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone6_gwanghwamun_sunny_afternoon_ov.jpg", "zone": 6, "weather": "sunny", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["flat_bright_sky"]},
+    {"filename": "zone7_nodeulseom_all_dusk.jpg", "zone": 7, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_bukchon_all_night.jpg", "zone": 8, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

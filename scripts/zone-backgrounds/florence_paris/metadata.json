@@ -1,0 +1,16 @@
+{
+  "folder": "florence_paris",
+  "concept": "피렌체·파리 (zone 1/2/3/8만 존재)",
+  "inspected_at": "2026-04-16",
+  "total": 5,
+  "passed": 4,
+  "overlay_required": 1,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_paris_river_rainy_midnight.jpg", "zone": 1, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_florence_rooftop_cloudy_predawn.jpg", "zone": 2, "weather": "cloudy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_a_florence_riverside_misty_dawn_ov.jpg", "zone": 3, "weather": "misty", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["bright_sky_top_third", "zone_mood_mismatch"]},
+    {"filename": "zone8_a_florence_rooftop_misty_evening.jpg", "zone": 8, "weather": "misty", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_b_florence_lane_all_evening.jpg", "zone": 8, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

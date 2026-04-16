@@ -156,10 +156,13 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Private: Data Loading
 
     /// #3 시간대별 배경 이미지 로드 (background_images 컬렉션)
+    /// 날씨 조건을 전달해 precipitation 계열(rainy/snowy) 이미지를 날씨에 맞게 필터링한 뒤 랜덤 선택
     private func loadBackground(for mode: AppMode) async {
+        // 날씨 로드 전에도 동작하도록 fallback: 날씨 없으면 "all" 사용
+        let condition = weather?.condition ?? "all"
         do {
-            let bg = try await FirestoreService().fetchBackgroundImage(for: mode)
-            currentBackground = bg
+            let candidates = try await FirestoreService().fetchBackgroundImages(for: mode, weatherCondition: condition)
+            currentBackground = candidates.randomElement()
         } catch {
             currentBackground = nil
         }

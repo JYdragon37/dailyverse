@@ -1,0 +1,18 @@
+{
+  "folder": "nature_rainy",
+  "concept": "자연 우천",
+  "inspected_at": "2026-04-16",
+  "total": 7,
+  "passed": 6,
+  "overlay_required": 1,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_reservoir_rainy_night.jpg", "zone": 1, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_east_sea_rainy_dawn.jpg", "zone": 3, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone4_pine_ridge_rainy_morning.jpg", "zone": 4, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone5_lakeside_rainy_midday_ov.jpg", "zone": 5, "weather": "rainy", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["white_sky", "flat_bright_sky"]},
+    {"filename": "zone6_jeju_trail_rainy_afternoon.jpg", "zone": 6, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone7_lake_rainy_dusk.jpg", "zone": 7, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_pine_valley_rainy_night.jpg", "zone": 8, "weather": "rainy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

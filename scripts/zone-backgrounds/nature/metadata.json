@@ -1,0 +1,25 @@
+{
+  "folder": "nature",
+  "concept": "자연 맑음",
+  "inspected_at": "2026-04-16",
+  "total": 14,
+  "passed": 12,
+  "overlay_required": 2,
+  "delete_recommended": 0,
+  "images": [
+    {"filename": "zone1_a_milkyway_clear_night.jpg", "zone": 1, "weather": "clear", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone1_b_mountain_lake_all_night.jpg", "zone": 1, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_a_forest_all_predawn.jpg", "zone": 2, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone2_b_rice_path_misty_predawn.jpg", "zone": 2, "weather": "misty", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_a_sunrise_hill_sunny_dawn.jpg", "zone": 3, "weather": "sunny", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone3_b_mountain_dawn_misty_dawn.jpg", "zone": 3, "weather": "misty", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone4_a_rocky_mountain_cloudy_morning_ov.jpg", "zone": 4, "weather": "cloudy", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["white_sky", "flat_bright_sky"]},
+    {"filename": "zone5_a_countryside_cloudy_midday_ov.jpg", "zone": 5, "weather": "cloudy", "status": "pass_with_overlay", "needs_overlay": true, "overlay_intensity": "medium", "issues": ["white_sky", "zone_mood_mismatch"]},
+    {"filename": "zone6_a_alpine_sunny_afternoon.jpg", "zone": 6, "weather": "sunny", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone6_b_jeju_coast_misty_afternoon.jpg", "zone": 6, "weather": "misty", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone7_a_golden_gate_cloudy_dusk.jpg", "zone": 7, "weather": "cloudy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone7_b_autumn_lake_all_dusk.jpg", "zone": 7, "weather": "all", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_a_campfire_clear_night.jpg", "zone": 8, "weather": "clear", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []},
+    {"filename": "zone8_b_snowy_valley_snowy_night.jpg", "zone": 8, "weather": "snowy", "status": "pass", "needs_overlay": false, "overlay_intensity": null, "issues": []}
+  ]
+}

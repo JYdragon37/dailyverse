@@ -109,8 +109,13 @@ final class AppLoadingCoordinator: ObservableObject {
             return
         }
 
-        // 3. Firestore에서 URL 가져오기
-        guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
+        // 3. Firestore에서 URL 가져오기 (날씨 캐시 참조, 없으면 "all" fallback)
+        let cachedCondition = WeatherCacheManager().load()?.condition ?? "all"
+        var bgCandidates = (try? await FirestoreService().fetchBackgroundImages(for: mode, weatherCondition: cachedCondition)) ?? []
+        if bgCandidates.isEmpty {
+            bgCandidates = (try? await FirestoreService().fetchBackgroundImages(for: mode, weatherCondition: "all")) ?? []
+        }
+        guard let bg = bgCandidates.randomElement(),
               let freshUrl = URL(string: bg.storageUrl) else { return }
 
         url = freshUrl
@@ -141,7 +146,8 @@ final class AppLoadingCoordinator: ObservableObject {
            let cached = ImageDiskCache.shared.load(for: u) {
             assign(cached); return
         }
-        guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
+        let candidates = (try? await FirestoreService().fetchBackgroundImages(for: mode, weatherCondition: "all")) ?? []
+        guard let bg = candidates.randomElement(),
               let freshUrl = URL(string: bg.storageUrl) else { return }
         UserDefaults.standard.set(freshUrl.absoluteString, forKey: cacheKey)
         if let cached = ImageDiskCache.shared.load(for: freshUrl) {
@@ -157,7 +163,9 @@ final class AppLoadingCoordinator: ObservableObject {
 
     /// 백그라운드에서 URL만 최신화 (이미지는 이미 표시 중)
     private func refreshBgUrl(for mode: AppMode, cacheKey: String) async {
-        guard let bg = try? await FirestoreService().fetchBackgroundImage(for: mode),
+        let cachedCondition = WeatherCacheManager().load()?.condition ?? "all"
+        let candidates = (try? await FirestoreService().fetchBackgroundImages(for: mode, weatherCondition: cachedCondition)) ?? []
+        guard let bg = candidates.randomElement(),
               let url = URL(string: bg.storageUrl) else { return }
         UserDefaults.standard.set(url.absoluteString, forKey: cacheKey)
     }
