@@ -32,7 +32,10 @@
 | 날씨 | WeatherKit (1차) + OpenWeatherMap (폴백) | 월 50,000콜 무료 |
 | 결제 | StoreKit 2 + RevenueCat | ₩24,500/월 |
 | 광고 | AdMob Rewarded | 저장탭 7~30일 구간 |
+| 알람 (iOS 26+) | AlarmKit + ActivityKit | 잠금화면 전체화면 + Live Activity |
+| 알람 (iOS 15-25) | UNNotification + AVAudioSession | 백그라운드 오디오 루프 |
 | 로컬 캐시 | Core Data | 오프라인 캐시 |
+| 위젯 | WidgetKit (DailyVerseWidgets) | Live Activity + 잠금화면 |
 | 개발 도구 | Claude Code + Cursor | |
 
 ### SPM 패키지
@@ -67,9 +70,10 @@ Firebase / Core Data / WeatherKit / StoreKit
 ```
 DailyVerse/
 ├── App/
-│   ├── DailyVerseApp.swift          # @main, Firebase init
-│   ├── AppRootView.swift            # 온보딩/홈 분기
-│   └── AppDelegate.swift            # UNUserNotificationCenterDelegate
+│   ├── DailyVerseApp.swift          # @main, Firebase init, scenePhase 알람 관리
+│   ├── AppRootView.swift            # 온보딩/홈 분기, Stage1/2 ZStack(zIndex 30/31)
+│   ├── AppDelegate.swift            # UNUserNotificationCenterDelegate
+│   └── NotificationDelegate.swift   # willPresent/didReceive → dvAlarmTriggered
 │
 ├── Features/
 │   ├── Onboarding/
@@ -129,7 +133,10 @@ DailyVerse/
     │   ├── AuthService.swift
     │   ├── WeatherService.swift
     │   ├── NotificationManager.swift
-    │   └── ImageService.swift
+    │   ├── ImageService.swift
+    │   ├── AlarmEngine.swift            # 듀얼 엔진 프로토콜 + Factory
+    │   ├── AlarmKitEngine.swift          # iOS 26+ AlarmKit 잠금화면 알람
+    │   └── LegacyAlarmEngine.swift       # iOS 15-25 UNNotification + 백그라운드 오디오
     ├── Managers/
     │   ├── AuthManager.swift            # @EnvironmentObject
     │   ├── SubscriptionManager.swift    # @EnvironmentObject
@@ -143,6 +150,14 @@ DailyVerse/
     └── Persistence/
         ├── PersistenceController.swift  # Core Data stack
         └── DailyVerse.xcdatamodeld
+│
+├── Shared/
+│   └── DVPostAlarmAttributes.swift  # Live Activity Attributes (앱+위젯 공유)
+│
+└── DailyVerseWidgets/               # Widget Extension
+    ├── DailyVerseWidgetsBundle.swift
+    ├── DailyVerseWidgetsLiveActivity.swift  # AlarmKit + Post-alarm Live Activity
+    └── Info.plist
 ```
 
 ---
@@ -253,71 +268,87 @@ DailyVerse
 
 ---
 
-## 7. 알람 울림 UX — 3단계
+## 7. 알람 울림 UX — 듀얼 엔진 (iOS 26 AlarmKit + Legacy)
 
-### Stage 0 — 잠금화면 알림 배너
-앱이 백그라운드/종료 상태에서 알람 발동 시, UNNotificationCenter를 통해 말씀 텍스트 포함 배너를 표시.
-유저가 앱을 열기 전에 이미 말씀을 만나는 첫 번째 접점.
-
-```swift
-let content = UNMutableNotificationContent()
-content.title = "DailyVerse 🔔"
-content.body = "\"두려워하지 말라 내가 너와 함께 함이라\"\n이사야 41:10 • Hope"
-content.sound = UNNotificationSound.default
-content.userInfo = ["verse_id": "v_001", "mode": "morning"]
+### 알람 엔진 아키텍처 (v5.1)
+```
+AlarmEngineFactory.make()
+├── iOS 26+: AlarmKitEngine     ← 시스템 레벨 잠금화면 알람
+└── iOS 15-25: LegacyAlarmEngine ← UNNotification + 백그라운드 오디오 루프
 ```
 
-### Stage 1 — 앱 진입 전체화면
-배너 탭 시 앱이 전체화면으로 전환. **TabBar·NavigationBar 완전 숨김**.
-설계 원칙: 말씀 외에 아무것도 없어야 한다.
+### AlarmKit (iOS 26+) — 잠금화면 전체화면 알람
+- `AlarmManager.shared.schedule()` → Clock 앱과 동일한 시스템 잠금화면 UI
+- 커스텀 사운드: `AlertConfiguration.AlertSound.named("alarm_song.mp3")`
+- 스누즈: `AlarmPresentation.Alert.SecondaryButtonBehavior.countdown`
+- **StopIntent**: `supportedModes: .foreground(.immediate)` → Face ID 후 앱 자동 오픈
+- **Live Activity**: 잠금화면 "말씀 보기" 버튼 (Widget Extension)
+- `NSAlarmKitUsageDescription` + `NSSupportsLiveActivities` Info.plist 필수
+- 앱 완전 종료 상태에서도 작동 (시스템이 알람 처리)
 
+### AlarmKit 잠금화면 흐름
 ```
-[다크 그라데이션 풀스크린 배경]
-│
-├── 말씀 텍스트 (대형, 중앙)
-│   "두려워하지 말라
-│    내가 너와 함께 함이라"
-│   이사야 41:10
-│
-└── 하단 버튼
-    [🔄 스누즈 5분] | [종료]
+알람 시각 → 시스템 잠금화면 표시:
+  🕐 Alarm / 07:00 / DailyVerse / [5분 스누즈] / [밀어서 중단]
+    ↓ 밀어서 중단
+  DVStopAlarmIntent 실행 (supportedModes: .foreground(.immediate))
+    ↓ Face ID 자동 인증 → 앱 포그라운드 전환
+  Stage2 즉시 표시 + 알람 사운드 이어서 재생
+    ↓ 종료 버튼
+  홈 화면 복귀
 ```
 
-- 스누즈: 최대 3회 제한. 3회 초과 시 버튼 비활성화 + "더 이상 스누즈할 수 없어요 🔒"
-- 스누즈 탭: 5분 후 알람 재스케줄링 후 백그라운드 복귀
-- 종료 탭: Stage 2로 Fade-in 0.6s 전환
-- 포그라운드 상태: willPresent 델리게이트로 배너 없이 Stage 1 오버레이 즉시 표시
+### Legacy (iOS 15-25) — 백그라운드 알람
+- `AlarmBackgroundService`: 무음 WAV 루프 → iOS가 앱을 백그라운드에서 유지
+- `Timer` 기반 알람 발동 → `LegacyAlarmEngine.startAudio()` 즉시 재생
+- `UNCalendarNotificationTrigger` + `.timeSensitive` 알림 배너 백업
+- 앱 강제 종료 시: UNNotification 배너 + `alarm_song.mp3` 재생
 
-### Stage 2 — 웰컴 스크린
-[종료] 탭 후 0.6초 Fade-in으로 전환. 말씀 + 날씨 + 저장/다음 말씀 액션이 한 화면에 담긴다.
+### Stage 1 — 앱 내 전체화면 알람 (Legacy 전용)
+TabBar·NavigationBar 완전 숨김. 말씀 + 날씨 + 스누즈/종료 버튼.
+zIndex(30)으로 SplashView(20) 위에 표시.
+
+### Stage 2 — 말씀 웰컴 스크린
+AlarmKit: StopIntent 후 직접 Stage2 진입 (Stage1 건너뜀).
+Legacy: Stage1 → "말씀 보기" → Stage2.
 
 ```
 [감성 이미지 풀스크린]
 │
-├── Good Morning ☀️
-│   2026년 3월 31일 화요일
+├── Zone 인사말 + 날짜/시간
 │
-├── 말씀 카드
-│   "두려워하지 말라 내가 너와 함께 함이라"
-│   이사야 41:10 · Hope
+├── 말씀 카드 (coordinator.activeVerse — 홈화면과 동일 verse)
 │
 ├── 날씨 위젯
-│   서울 18°C · 습도 65% · 좋음
 │
-└── [♥저장] [다음 말씀] [× 닫기]
+└── [♥저장] [말씀 더보기] [■ 종료]
 ```
 
-[× 닫기] 탭 시 홈 탭(현재 모드)으로 이동하며 TabBar 다시 노출.
+- `isVisible = true` 기본값 (백그라운드 렌더링 대응)
+- `dismissAll()` 2초 타임가드 (SwiftUI safeAreaInset 자동실행 버그 방지)
+- `coordinator.activeVerse` 사용 → 홈화면과 동일한 해석/일상적용 보장
+- "말씀 더보기" → `VerseDetailBottomSheet` (해석 + 오늘의 적용)
+
+### Widget Extension (DailyVerseWidgets)
+```
+DailyVerseWidgetsBundle
+├── DailyVerseAlarmLiveActivity   ← AlarmKit 시스템 잠금화면 렌더링
+└── DVPostAlarmLiveActivity       ← "밀어서 중단" 후 잠금화면 "말씀 보기" 버튼
+```
+- `DVPostAlarmAttributes`: `Shared/` 폴더 → 앱 + 위젯 양쪽 타겟에 포함
+- `dailyverse://alarm-stop?id=UUID` URL 스킴 → 앱 오픈 → Stage2
 
 ### 알람 울림 엣지케이스
 | 상황 | 처리 방식 |
 |------|-----------|
-| 알람 탭 없이 swipe dismiss | 말씀 경험 없이 넘어감, 다음 알람 정상 발동 |
-| 알람 발동 시 인터넷 없음 | Core Data 캐시 말씀으로 Stage 1, 2 정상 작동 |
-| 스누즈 중 앱 강제 종료 | UNNotificationRequest 재스케줄링으로 5분 후 유지 |
-| Stage 2 [다음 말씀] — Free | 업셀 바텀시트 노출 |
-| Stage 2 [♥ 저장] — 미로그인 | 로그인 유도 바텀시트 노출 |
-| 복수 알람 동시 발동 | 가장 최근 알람 1개만 Stage 1 표시 |
+| AlarmKit + Face ID 후 앱 자동 오픈 | `supportedModes: .foreground(.immediate)` |
+| 앱 강제 종료 시 알람 | AlarmKit: 시스템 처리 / Legacy: UNNotification 배너 |
+| 알람 발동 시 인터넷 없음 | Core Data 캐시 말씀으로 정상 작동 |
+| 스누즈 중 앱 강제 종료 | UNNotificationRequest 재스케줄링 유지 |
+| Stage2 자동 dismiss 방지 | 2초 타임가드 (`stageSetAt` 기반) |
+| 온보딩 전 Stage2 표시 방지 | `AppRootView.task`에서 `onboardingCompleted` 체크 후 pending 처리 |
+| 복수 알람 동시 발동 | `guard stage == .none` + `isHandling` 플래그 |
+| iOS 26 BackgroundService 중복 차단 | `rescheduleTimers()` 내 `#available(iOS 26)` 가드 |
 
 ---
 
