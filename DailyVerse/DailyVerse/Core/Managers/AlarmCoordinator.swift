@@ -1,5 +1,10 @@
 import SwiftUI
 import Combine
+import UIKit
+import OSLog
+import ActivityKit
+
+private let alarmLog = Logger(subsystem: "com.dailyverse", category: "AlarmCoordinator")
 
 @MainActor
 final class AlarmCoordinator: ObservableObject {
@@ -11,7 +16,14 @@ final class AlarmCoordinator: ObservableObject {
         case stage2
     }
 
-    @Published var stage: AlarmStage = .none
+    @Published var stage: AlarmStage = .none {
+        didSet {
+            if stage != .none { stageSetAt = Date() }
+            alarmLog.info("🔄 [Stage] \(String(describing: oldValue)) → \(String(describing: self.stage))")
+        }
+    }
+    /// SwiftUI safeAreaInset 버그 방지 — stage 세팅 직후 자동 dismiss 차단용 타임스탬프
+    private var stageSetAt: Date = .distantPast
     @Published var activeAlarmId: UUID?
     @Published var activeVerse: Verse?
     @Published var activeImage: VerseImage?
@@ -44,6 +56,23 @@ final class AlarmCoordinator: ObservableObject {
         self.notificationManager = notificationManager
         self.verseRepository = verseRepository
         self.alarmRepository = alarmRepository
+
+        // ★ 핵심 수정: AppRootView.onReceive는 SwiftUI View에 의존하여 백그라운드 미보장.
+        //   AlarmCoordinator 자체에 직접 observer 등록 → 백그라운드·포그라운드 모두 안정적 수신.
+        NotificationCenter.default.addObserver(
+            forName: .dvAlarmTriggered,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self, let userInfo = notification.userInfo else { return }
+            alarmLog.info("📥 [Coordinator] dvAlarmTriggered 수신 — alarm_id: \(userInfo["alarm_id"] as? String ?? "nil")")
+            Task { @MainActor [weak self] in
+                await self?.handleNotification(from: userInfo)
+            }
+        }
+        alarmLog.info("✅ [Coordinator] init 완료 — dvAlarmTriggered observer 등록됨")
+        // pendingAlarmKitStop 처리는 AppRootView.task에서 로딩 완료 후 실행
+        // (init 시점에는 onboardingCompleted가 확정되지 않아 타이밍 문제 발생)
     }
 
     // MARK: - Notification Handling
@@ -55,26 +84,89 @@ final class AlarmCoordinator: ObservableObject {
             let alarmId = UUID(uuidString: alarmIdString)
         else { return }
 
-        let modeString   = userInfo["mode"] as? String
-        let verseId      = userInfo["verse_id"] as? String ?? ""
-        // Bug 3 수정: alertStyle, soundId, volume을 userInfo에서 읽기
-        let alertStyle   = userInfo["alert_style"] as? String ?? "soundAndVibration"
-        let soundId      = userInfo["sound_id"] as? String ?? "piano"
-        let volume       = (userInfo["volume"] as? NSNumber)?.floatValue ?? 0.8
+        let modeString      = userInfo["mode"] as? String
+        let verseId         = userInfo["verse_id"] as? String ?? ""
+        let alertStyle      = userInfo["alert_style"] as? String ?? "soundAndVibration"
+        let soundId         = userInfo["sound_id"] as? String ?? "piano"
+        let volume          = (userInfo["volume"] as? NSNumber)?.floatValue ?? 0.8
+        // AlarmKit StopIntent에서 온 경우: 시스템 잠금화면 알람 종료 후 Stage2 직행
+        let alarmKitStop    = userInfo["alarmkit_stop"] as? Bool ?? false
 
-        await handleNotification(
-            alarmId: alarmId,
-            modeString: modeString,
-            fallbackVerseId: verseId,
-            alertStyle: alertStyle,
-            soundId: soundId,
-            volume: volume
-        )
+        if alarmKitStop {
+            alarmLog.info("📲 [Coordinator] AlarmKit StopIntent 수신 → Stage2 직행")
+            await handleAlarmKitStop(alarmId: alarmId, modeString: modeString, fallbackVerseId: verseId)
+        } else {
+            await handleNotification(
+                alarmId: alarmId,
+                modeString: modeString,
+                fallbackVerseId: verseId,
+                alertStyle: alertStyle,
+                soundId: soundId,
+                volume: volume
+            )
+        }
+    }
+
+    /// AlarmKit "밀어서 중단" 후 Stage2 직행 — Stage1(전체화면 알람) 건너뜀
+    /// 알라미의 이중 종료 UX를 제거한 DailyVerse 최적화 흐름
+    func handleAlarmKitStop(alarmId: UUID, modeString: String?, fallbackVerseId: String) async {
+        // stage2 이미 표시 중이면 무시
+        guard stage != .stage2 else { return }
+
+        // ★ BackgroundService가 먼저 .stage1을 세팅한 경우 (iOS 26 AlarmKit + LegacyEngine 동시 동작)
+        // stage1 → stage2 즉시 전환 (데이터는 이미 로드됨)
+        if stage == .stage1 {
+            stopAlarmFeedback()
+            stage = .stage2
+            alarmLog.info("✅ [Coordinator] AlarmKit stop: .stage1 → .stage2 (데이터 재사용)")
+            return
+        }
+
+        // stage == .none: 콜드런치 케이스
+        guard !isHandling else { return }
+        isHandling = true
+        defer { isHandling = false }
+
+        let mode = modeString.flatMap { AppMode(rawValue: $0) } ?? AppMode.current()
+        let activeAlarm = alarmRepository.fetchAll().first(where: { $0.id == alarmId })
+
+        // ★ Stage2를 즉시 표시 — 데이터 로드 전에 먼저 화면을 열어둠
+        // 사용자가 Face ID로 잠금 해제하는 순간 Stage2가 바로 보여야 함
+        activeAlarmId        = alarmId
+        activeMode           = mode
+        activeWeather        = activeWeather ?? WeatherCacheManager().load()
+        activeSnoozeInterval = activeAlarm?.snoozeInterval ?? 5
+        activeMission        = "none"
+        activeAlertStyle     = activeAlarm?.alertStyle ?? "soundAndVibration"
+        activeSoundId        = activeAlarm?.soundId    ?? "song"
+        activeVolume         = activeAlarm?.volume     ?? 0.8
+        snoozeCount          = 0
+        stage = .stage2   // ← 즉시 표시
+
+        // Stage2 진입 시 알람 사운드 이어서 재생 (알라미와 동일 UX)
+        // AlarmKit 잠금화면 사운드 → Stage2 앱 사운드로 연결
+        startAlarmFeedback()
+        alarmLog.info("✅ [Coordinator] AlarmKit → stage = .stage2 즉시 표시 + 사운드 재생")
+
+        // Post-alarm Live Activity 종료 (잠금화면 "말씀 보기" 버튼 제거)
+        if #available(iOS 26.0, *) {
+            endPostAlarmLiveActivities()
+        }
+
+        // 말씀/이미지는 Stage2가 열린 후 비동기로 로드 → 화면이 먼저 열리고 내용이 채워짐
+        let verse = await loadVerse(mode: mode, fallbackVerseId: fallbackVerseId)
+        let image = await loadImage(mode: mode, verse: verse)
+        activeVerse = verse
+        activeImage = image
+        alarmLog.info("✅ [Coordinator] 말씀/이미지 로드 완료 — \(verse.reference)")
     }
 
     /// alarmId + mode로 Stage 1을 표시합니다.
     /// 오늘의 캐시된 말씀 우선, 없으면 verseId → 번들 폴백 순으로 로드.
     /// Edge Case 6: 복수 알람 동시 발동 — stage != .none 이면 가장 최근 것만 유지
+    // isHandling: async handleNotification의 race condition 방지 (await 중 두 번째 호출 차단)
+    private var isHandling = false
+
     func handleNotification(
         alarmId: UUID,
         modeString: String?,
@@ -83,7 +175,14 @@ final class AlarmCoordinator: ObservableObject {
         soundId: String = "piano",
         volume: Float = 0.8
     ) async {
-        guard stage == .none else { return }
+        alarmLog.info("📲 [Coordinator] handleNotification 진입 — alarmId: \(alarmId), stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
+        // stage 체크 + isHandling 플래그로 async 중 race condition 방지
+        guard stage == .none, !isHandling else {
+            alarmLog.warning("⚠️ [Coordinator] 중복 호출 무시 — stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
+            return
+        }
+        isHandling = true
+        defer { isHandling = false }
 
         let mode = modeString.flatMap { AppMode(rawValue: $0) } ?? AppMode.current()
         let verse = await loadVerse(mode: mode, fallbackVerseId: fallbackVerseId)
@@ -92,25 +191,26 @@ final class AlarmCoordinator: ObservableObject {
         activeImage = image
         activeAlarmId = alarmId
         activeMode = mode
-        // 캐시된 날씨 로드 (Stage 2 날씨 위젯용)
         if activeWeather == nil {
             activeWeather = WeatherCacheManager().load()
         }
         let activeAlarm = alarmRepository.fetchAll().first(where: { $0.id == alarmId })
         activeSnoozeInterval = activeAlarm?.snoozeInterval ?? 5
         activeMission        = activeAlarm?.wakeMission    ?? "none"
-        // Bug 3 수정: 실제 알람 설정값 우선, 없으면 userInfo 값 사용
         activeAlertStyle     = activeAlarm?.alertStyle     ?? alertStyle
         activeSoundId        = activeAlarm?.soundId        ?? soundId
         activeVolume         = activeAlarm?.volume         ?? volume
         snoozeCount = 0
         stage = .stage1
+        alarmLog.info("✅ [Coordinator] stage = .stage1 완료 — appState: \(UIApplication.shared.applicationState.rawValue)")
 
-        // Bug 1 수정: Stage 1 진입 시 소리/진동 시작
         startAlarmFeedback()
-
-        // 연속 알람 백업 취소 — Stage 1이 표시되면 더 이상 배너 반복 불필요
         cancelBackupNotifications(for: alarmId)
+
+        // iPhone은 requestSceneSessionActivation 미지원 (iPad 전용 멀티윈도우 API)
+        // iOS 26 AlarmKit 이전까지: 백그라운드 오디오 소리 + 알림 배너가 최선
+        // 사용자가 배너 탭 or FaceID+Raise to Wake 잠금해제 → 포그라운드 → stage1 렌더링됨
+        alarmLog.info("ℹ️ [Coordinator] iPhone 백그라운드 알람 완료 — 소리 재생 중, 배너 탭 시 Stage1 표시")
     }
 
     /// 연속 알람 백업 알림 전체 취소
@@ -141,7 +241,26 @@ final class AlarmCoordinator: ObservableObject {
         stage = .stage2
     }
 
+    /// Post-alarm Live Activity 종료
+    @available(iOS 26.0, *)
+    private func endPostAlarmLiveActivities() {
+        Task {
+            for activity in Activity<DVPostAlarmAttributes>.activities {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
+
     func dismissAll() {
+        // SwiftUI safeAreaInset 버그 방지:
+        // 뷰 전환 애니메이션 중 버튼 액션이 자동 실행되는 현상 차단
+        // stage 세팅 후 최소 2초 경과해야 dismiss 허용
+        let elapsed = Date().timeIntervalSince(stageSetAt)
+        guard elapsed > 2.0 else {
+            alarmLog.warning("⚠️ [Coordinator] dismissAll 차단 — stage 세팅 후 \(String(format: "%.1f", elapsed))초 (최소 2초 필요)")
+            return
+        }
+        alarmLog.info("🛑 [Coordinator] dismissAll() 실행")
         stopAlarmFeedback()
         stage = .none
         activeVerse = nil

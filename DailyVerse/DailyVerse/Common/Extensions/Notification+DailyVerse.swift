@@ -12,4 +12,6 @@ extension Notification.Name {
     static let dvSwitchToMeditationTab = Notification.Name("dvSwitchToMeditationTab")
     /// 묵상 탭 NavigationStack 루트로 리셋 (묵상 완료 후 홈으로 돌아갈 때)
     static let dvResetMeditationNav = Notification.Name("dvResetMeditationNav")
+    /// AlarmKit(iOS 26+) 종료 버튼 탭 — StopAlarmIntent에서 발송
+    static let dvAlarmKitStopped = Notification.Name("dvAlarmKitStopped")
 }

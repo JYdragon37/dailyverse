@@ -10,8 +10,8 @@ struct AlarmStage2View: View {
     @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
     @State private var showLoginPrompt: Bool = false
     @State private var heartScale: CGFloat = 1.0
-    @State private var isVisible: Bool = false
-    @State private var showWordSheet: Bool = false
+    @State private var isVisible: Bool = true   // AlarmKit 콜드런치 대응: 처음부터 visible
+    @State private var showVerseDetail: Bool = false
     @State private var todayVerse: Verse? = nil
     @State private var toastMessage: String? = nil
 
@@ -28,7 +28,11 @@ struct AlarmStage2View: View {
             df.locale = Locale(identifier: "en_US")
             df.dateFormat = "MMM d, EEE"
         }
-        return df.string(from: Date())
+        let dateStr = df.string(from: Date())
+        let tf = DateFormatter()
+        tf.locale = Locale(identifier: "en_US_POSIX")
+        tf.dateFormat = "h:mm a"
+        return "\(dateStr)  \(tf.string(from: Date()))"
     }
 
     /// greeting + 닉네임 조합 — greeting이 구두점으로 끝나면 쉼표 없이 공백만 추가
@@ -64,7 +68,7 @@ struct AlarmStage2View: View {
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.48)
+                                      y: geo.size.height * 0.53)
                     }
                 }
             }
@@ -73,22 +77,30 @@ struct AlarmStage2View: View {
                 actionBar
             }
             .opacity(isVisible ? 1 : 0)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                // 백그라운드에서 세팅된 경우: 포그라운드 복귀 시 즉시 표시 (애니메이션 없이)
+                if !isVisible { isVisible = true }
+            }
             .task {
                 // Design Ref: §7-2 — Zone 진입 시 greeting 로드
                 let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
                 await greetingService.load(for: alarmMode, language: lang)
             }
             .onAppear {
-                withAnimation(.easeInOut(duration: 0.6)) { isVisible = true }
-                // 알람 발동 시점의 Zone 기준으로 말씀 로드 (coordinator.activeMode 우선)
-                // AppMode.current()를 사용하면 앱 진입 시점이 다를 경우 Zone이 달라질 수 있음
-                let mode = coordinator.activeMode
-                if let id = DailyCacheManager.shared.getVerseId(for: mode),
-                   let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                // coordinator.activeVerse 우선 사용 — 홈화면과 동일 verse 보장
+                // (handleAlarmKitStop → loadVerse로 로드된 것, 홈화면과 같은 DailyCacheManager 경로)
+                if let verse = coordinator.activeVerse {
                     todayVerse = verse
                 } else {
-                    todayVerse = Verse.fallbackVerses.first { $0.mode.contains(mode.rawValue) }
-                                 ?? Verse.fallbackRiseIgnite
+                    // 폴백: DailyCacheManager에서 직접 로드
+                    let mode = coordinator.activeMode
+                    if let id = DailyCacheManager.shared.getVerseId(for: mode),
+                       let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                        todayVerse = verse
+                    } else {
+                        todayVerse = Verse.fallbackVerses.first { $0.mode.contains(mode.rawValue) }
+                                     ?? Verse.fallbackRiseIgnite
+                    }
                 }
             }
             // 로그인 유도 시트
@@ -100,12 +112,15 @@ struct AlarmStage2View: View {
                     showLoginPrompt = false
                 }
             }
-            // 오늘의 한마디 시트
-            .sheet(isPresented: $showWordSheet) {
+            // 말씀 더보기 시트 (해석 + 일상 적용)
+            .sheet(isPresented: $showVerseDetail) {
                 if let verse = todayVerse {
-                    WordOfDaySheet(verse: verse, mode: alarmMode, userId: authManager.userId ?? "local") {
-                        showWordSheet = false
-                    }
+                    VerseDetailBottomSheet(
+                        verse: verse,
+                        onSave: { handleSave() },
+                        onMeditation: { showVerseDetail = false },
+                        onClose: { showVerseDetail = false }
+                    )
                 }
             }
             .toolbar(.hidden, for: .tabBar)
@@ -273,13 +288,13 @@ struct AlarmStage2View: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
-            // 오늘의 한마디 버튼 (반투명)
-            Button { showWordSheet = true } label: {
+            // 말씀 더보기 버튼 — 해석 + 일상 적용 바텀시트
+            Button { showVerseDetail = true } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "quote.bubble.fill")
+                    Image(systemName: "book.pages")
                         .font(.system(size: 14))
                         .accessibilityHidden(true)
-                    Text("오늘의 한마디")
+                    Text("말씀 더보기")
                         .font(.system(size: 15, weight: .medium))
                 }
                 .frame(maxWidth: .infinity)
@@ -294,11 +309,11 @@ struct AlarmStage2View: View {
                 )
                 .foregroundColor(.white)
             }
-            .accessibilityLabel("오늘의 한마디 보기")
+            .accessibilityLabel("말씀 해석과 일상 적용 보기")
 
-            // 닫기 (x)
+            // 알람 종료 — 사운드 중지 + Stage2 닫기
             Button { coordinator.dismissAll() } label: {
-                Image(systemName: "xmark")
+                Image(systemName: "stop.fill")
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 44, height: 44)
                     .background(
@@ -380,109 +395,6 @@ struct AlarmStage2View: View {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             toastMessage = nil
         }
-    }
-}
-
-// MARK: - 오늘의 한마디 시트 (text_ko 표시)
-
-private struct WordOfDaySheet: View {
-    let verse: Verse
-    let mode: AppMode
-    let userId: String
-    let onDismiss: () -> Void
-
-    @State private var inputText: String = ""
-
-    var body: some View {
-        ZStack {
-            Color.dvPrimaryDeep.ignoresSafeArea()
-                .hideKeyboardOnTap()
-
-            VStack(spacing: 0) {
-                // 드래그 핸들
-                Capsule()
-                    .fill(Color.white.opacity(0.25))
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 14)
-                    .padding(.bottom, 28)
-
-                // 타이틀
-                HStack(spacing: 8) {
-                    Image(systemName: mode.greetingIcon)
-                        .foregroundColor(mode.accentColor)
-                    Text("오늘의 한마디")
-                        .font(.dvUITitle)
-                        .foregroundColor(mode.accentColor)
-                }
-                .padding(.bottom, 28)
-
-                // 말씀 카드 (verse_short_ko)
-                VStack(alignment: .center, spacing: 16) {
-                    Text(verse.verseShortKo)
-                        .font(.custom("Georgia-BoldItalic", size: 22))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(6)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 8)
-
-                    Text(verse.reference)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.60))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
-                .padding(.horizontal, 24)
-                .background(Color.white.opacity(0.07))
-                .cornerRadius(18)
-                .padding(.horizontal, 28)
-
-                // 입력 필드
-                TextField("오늘 한 마디를 남겨보세요...", text: $inputText, axis: .vertical)
-                    .font(.dvBody)
-                    .foregroundColor(.white)
-                    .lineLimit(1...3)
-                    .padding(12)
-                    .background(Color.white.opacity(0.08))
-                    .cornerRadius(10)
-                    .tint(.dvAccentGold)
-                    .padding(.horizontal, 28)
-                    .padding(.top, 20)
-
-                Spacer()
-
-                Button(action: handleDismiss) {
-                    Text("닫기")
-                        .font(.dvBody)
-                        .foregroundColor(.white.opacity(0.55))
-                        .padding(.bottom, 40)
-                }
-            }
-        }
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.hidden)
-    }
-
-    private func handleDismiss() {
-        let trimmed = inputText.trimmingCharacters(in: .whitespaces)
-        if !trimmed.isEmpty {
-            Task {
-                let repo = MeditationRepository()
-                let item = PrayerItem.make(text: trimmed)
-                let entry = MeditationEntry.make(
-                    userId: userId,
-                    verseId: verse.id,
-                    verseReference: verse.reference,
-                    mode: mode.rawValue,
-                    prayerItems: [item],
-                    gratitudeNote: nil,
-                    source: "stage2"
-                )
-                try? await repo.save(entry)
-                await MainActor.run { StreakManager.shared.recordMeditation() }
-            }
-        }
-        onDismiss()
     }
 }
 

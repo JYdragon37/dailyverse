@@ -19,8 +19,9 @@ final class NotificationManager: NSObject {
 
     func requestPermission() async -> Bool {
         do {
+            // .timeSensitive: Focus 모드(수면 집중 등) 관통에 필수 — entitlement 단독으로는 부족
             let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .badge, .sound]) // timeSensitive는 entitlement로 처리
+                .requestAuthorization(options: [.alert, .badge, .sound, .timeSensitive])
             return granted
         } catch {
             return false
@@ -74,7 +75,11 @@ final class NotificationManager: NSObject {
         let content = UNMutableNotificationContent()
         content.title = "DailyVerse 🔔"
         content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference)"
-        content.sound = .default
+        if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
+            content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
+        } else {
+            content.sound = .default
+        }
         content.interruptionLevel = .timeSensitive
         content.userInfo = [
             "alarm_id": alarmId.uuidString,

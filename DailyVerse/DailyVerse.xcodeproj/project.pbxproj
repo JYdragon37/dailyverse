@@ -27,6 +27,7 @@
 		3473ED13E82E2A5C0FD505C5 /* AlarmStage1View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */; };
 		35CD0FAA61EDC10C9F772EA7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B251C69BC68A186219A6DF48 /* FirebaseAuth */; };
 		388BFF8E3DEEEAB13A02C53C /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7B6DBF39995973040553CB8D /* FirebaseFirestore */; };
+		3B844FA39D97A30117EA3914 /* DVPostAlarmAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F264955BC54625E7CABE9A9 /* DVPostAlarmAttributes.swift */; };
 		446F5FB870F94520B3E3D15D /* Notification+DailyVerse.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA6FFDF33136CAD4A06979B /* Notification+DailyVerse.swift */; };
 		48645BF5EF72264F954D3E2B /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 9E8BDCAC9E2AE9E47FBF0366 /* RevenueCat */; };
 		48E8FA2BA20DF1455FD6A4F7 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A8A5D9C6053C671E3CC6F9 /* AuthService.swift */; };
@@ -53,6 +54,11 @@
 		83BCDFD72B9827340708D0E0 /* AlarmAddEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */; };
 		84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01850BB01382CF53BBB11601 /* VerseSelector.swift */; };
 		8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8A3130072F80B28E009F815D /* alarm_song.mp3 */; };
+		8AF1034D2F9252340096BBCB /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C3D4E5F6A1B2C3D4E5F6A1B2 /* GoogleSignIn */; };
+		8AF103552F926FB90096BBCB /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF103542F926FB90096BBCB /* WidgetKit.framework */; };
+		8AF103572F926FB90096BBCB /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF103562F926FB90096BBCB /* SwiftUI.framework */; };
+		8AF103682F926FBB0096BBCB /* DailyVerseWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8AF103522F926FB90096BBCB /* DailyVerseWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8AF1036F2F92712F0096BBCB /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF1036E2F92712F0096BBCB /* AlarmKit.framework */; };
 		8B4A424041EC86CA8355E89D /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73D43781D887A90FC6FD043 /* ToastView.swift */; };
 		8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91818E82ADB8A50609DDA1E9 /* WeatherData.swift */; };
 		942E5AC1E467F26AC93014B7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293F17253F05FCB2A946935F /* AuthManager.swift */; };
@@ -75,6 +81,7 @@
 		A3451B2853226F022339DAA6 /* SavedVerseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97449D55F8DB9F917F590C3 /* SavedVerseRepository.swift */; };
 		A3FB01130A10D30E85787624 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBEC0AAE65799B77F5146D29 /* OnboardingContainerView.swift */; };
 		A6000001A6000001A6000001 /* AuthWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000001A5000001A5000001 /* AuthWelcomeView.swift */; };
+		A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */; };
 		A9000001A9000001A9000001 /* NicknameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8000001A8000001A8000001 /* NicknameSetupView.swift */; };
 		A9A608883D740B33114493C9 /* Greeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B4522FFF85B512B904360E /* Greeting.swift */; };
 		AA11BB22CC33DD44EE55FF67 /* AlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */; };
@@ -87,6 +94,7 @@
 		BA7472EBF63048E7B88A7B811BB96468 /* RemoteImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A536BBCDA94E4E3888BCCB7EAC388DEB /* RemoteImageView.swift */; };
 		BB22CC33DD44EE55FF6677AB /* LegacyAlarmEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */; };
 		BEAA3F18140EA87C7D2F8C82 /* Font+DailyVerse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B786208128A26CC650303F3 /* Font+DailyVerse.swift */; };
+		C0AA4809B7D436124F9E94C1 /* DVPostAlarmAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAF485C88B08168EF51578D /* DVPostAlarmAttributes.swift */; };
 		C0D6D65B97AB39E715DF88D4 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E61A63D33E6A03DA92C092E /* SavedView.swift */; };
 		C99C06C3E5F62EF77B9AFB67 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = E07C73CCB40DF1509A6470A0 /* FirebaseStorage */; };
 		CA4D31D463254471B4A8EED1 /* Verse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38468676E9D9FE8698E07ADA /* Verse.swift */; };
@@ -115,11 +123,17 @@
 		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
-		WA100002WA100002WA100002 /* WeatherAdviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA100001WA100001WA100001 /* WeatherAdviceService.swift */; };
-		A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */; };
-		/* End PBXBuildFile section */
+		'WA100002WA100002WA100002' = {isa = PBXBuildFile; fileRef = WA100001WA100001WA100001; };
+/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		8AF103662F926FBB0096BBCB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8BFF16091EE19079D887EC92 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8AF103512F926FB90096BBCB;
+			remoteInfo = DailyVerseWidgetsExtension;
+		};
 		C14AAB0447A7C9FE1DCAC2D5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8BFF16091EE19079D887EC92 /* Project object */;
@@ -136,11 +150,26 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		8AF103692F926FBB0096BBCB /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8AF103682F926FBB0096BBCB /* DailyVerseWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		01850BB01382CF53BBB11601 /* VerseSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseSelector.swift; sourceTree = "<group>"; };
 		08AE01E46992F03B9036C5D7 /* VerseCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseCardView.swift; sourceTree = "<group>"; };
 		08FC86AE7A2393C7D93F45FD /* OfflineFallbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineFallbackManager.swift; sourceTree = "<group>"; };
 		0D19195F4D72F84907257DAB /* VerseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseRepository.swift; sourceTree = "<group>"; };
+		0F264955BC54625E7CABE9A9 /* DVPostAlarmAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DVPostAlarmAttributes.swift; path = Shared/DVPostAlarmAttributes.swift; sourceTree = SOURCE_ROOT; };
 		1088954EE2EEAAFEBD2A13A7 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		2371090B1783F0C645407C54 /* DailyCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCacheManager.swift; sourceTree = "<group>"; };
 		243625CDCB337E4190D69BD9 /* AlarmCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCoordinator.swift; sourceTree = "<group>"; };
@@ -149,7 +178,7 @@
 		2659FAD0ADD7587D8907D396 /* DailyVerseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseTests.swift; sourceTree = "<group>"; };
 		267C4F08D42D76E708D0EE80 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionManager.swift; sourceTree = "<group>"; };
 		2887A4186DE41DB9975868C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		28A58F7583B183DE6CD8BF92 /* GreetingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GreetingService.swift; path = GreetingService.swift; sourceTree = "<group>"; };
+		28A58F7583B183DE6CD8BF92 /* GreetingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GreetingService.swift; sourceTree = "<group>"; };
 		293F17253F05FCB2A946935F /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		298B3F2765BA447E48C02C44 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStage1View.swift; sourceTree = "<group>"; };
@@ -157,7 +186,7 @@
 		3768AF7CD2264CE1AC00D875 /* BackgroundImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundImage.swift; sourceTree = "<group>"; };
 		38468676E9D9FE8698E07ADA /* Verse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verse.swift; sourceTree = "<group>"; };
 		3AD35CB40B40FD013019F7C3 /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
-		48B4522FFF85B512B904360E /* Greeting.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Greeting.swift; path = Greeting.swift; sourceTree = "<group>"; };
+		48B4522FFF85B512B904360E /* Greeting.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Greeting.swift; sourceTree = "<group>"; };
 		4B5578E4E0DA59AB3E8705A6 /* AppMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMode.swift; sourceTree = "<group>"; };
 		4F8CCF866709463789F4DC37 /* WakeMissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeMissionView.swift; sourceTree = "<group>"; };
 		5B786208128A26CC650303F3 /* Font+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+DailyVerse.swift"; sourceTree = "<group>"; };
@@ -166,7 +195,7 @@
 		603F5A66AF244485140B6999 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		6B924F0588DBB8BA9303DF22 /* LoginPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPromptSheet.swift; sourceTree = "<group>"; };
 		6CCAE0832E8DD982979CF5FA /* DailyVerseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseCache.swift; sourceTree = "<group>"; };
-		6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseDetailBottomSheet.swift; sourceTree = "<group>"; };
 		7F004FBA3779E9B8B11DF240 /* SavedVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVerse.swift; sourceTree = "<group>"; };
 		7FB57E993FB06DBAF7CFF87F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -176,6 +205,10 @@
 		883AE40A2F80AF5436D647BF /* AlarmRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRepository.swift; sourceTree = "<group>"; };
 		895D5E70C69EA9646472CD1B /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		8A3130072F80B28E009F815D /* alarm_song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm_song.mp3; sourceTree = "<group>"; };
+		8AF103522F926FB90096BBCB /* DailyVerseWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DailyVerseWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8AF103542F926FB90096BBCB /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		8AF103562F926FB90096BBCB /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		8AF1036E2F92712F0096BBCB /* AlarmKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AlarmKit.framework; path = System/Library/Frameworks/AlarmKit.framework; sourceTree = SDKROOT; };
 		8E18DAC4793BDF05B1A63355 /* DailyVerseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseUITests.swift; sourceTree = "<group>"; };
 		8FF6B9D4FD3198F96F2C9EAC /* UpsellBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsellBottomSheet.swift; sourceTree = "<group>"; };
 		904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAddEditView.swift; sourceTree = "<group>"; };
@@ -209,6 +242,7 @@
 		B22E457DD726C00F9AD8F0A1 /* AlarmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmViewModel.swift; sourceTree = "<group>"; };
 		B24AF2F893CA3C34B471EA3B /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		B5814C3268942E53E0423363 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLimitTestView.swift; sourceTree = "<group>"; };
 		B666F0B835ED47E6FFAAF64B /* AlarmListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmListView.swift; sourceTree = "<group>"; };
 		B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BA4556EFE58C2885CCFA3408 /* SavedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedViewModel.swift; sourceTree = "<group>"; };
@@ -231,6 +265,7 @@
 		D20000D9D20000D9D20000D9 /* ONBNicknameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONBNicknameView.swift; sourceTree = "<group>"; };
 		D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DC574AED1BAE4561C1662061 /* UpsellManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsellManager.swift; sourceTree = "<group>"; };
+		DFAF485C88B08168EF51578D /* DVPostAlarmAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DVPostAlarmAttributes.swift; path = Shared/DVPostAlarmAttributes.swift; sourceTree = SOURCE_ROOT; };
 		E4CC3F6C326857899C31C04B /* DailyVerse.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DailyVerse.xcdatamodel; sourceTree = "<group>"; };
 		E870C917F0630E3D848D0AC6 /* CoachMarkOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkOverlay.swift; sourceTree = "<group>"; };
 		EEC5DCA569D0C1CE12E3C454 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
@@ -240,19 +275,43 @@
 		FA001001FA001001FA001001 /* DancingScript.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DancingScript.ttf; sourceTree = "<group>"; };
 		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
 		FB100001FB100001FB100001 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
-		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
-		WA100001WA100001WA100001 /* WeatherAdviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAdviceService.swift; sourceTree = "<group>"; };
-		B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLimitTestView.swift; sourceTree = "<group>"; };
-		/* End PBXFileReference section */
+		'WA100001WA100001WA100001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAdviceService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8AF1036C2F926FBB0096BBCB = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8AF103512F926FB90096BBCB /* DailyVerseWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		8AF103582F926FB90096BBCB /* DailyVerseWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8AF1036C2F926FBB0096BBCB, ); path = DailyVerseWidgets; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		8AF1034F2F926FB90096BBCB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8AF103572F926FB90096BBCB /* SwiftUI.framework in Frameworks */,
+				8AF103552F926FB90096BBCB /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C936AC35AE74FCE77CB701C7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AF1034D2F9252340096BBCB /* GoogleSignIn in Frameworks */,
 				7482202A63D5253F02E5086F /* FirebaseAnalytics in Frameworks */,
+				8AF1036F2F92712F0096BBCB /* AlarmKit.framework in Frameworks */,
 				35CD0FAA61EDC10C9F772EA7 /* FirebaseAuth in Frameworks */,
 				388BFF8E3DEEEAB13A02C53C /* FirebaseFirestore in Frameworks */,
 				C99C06C3E5F62EF77B9AFB67 /* FirebaseStorage in Frameworks */,
@@ -357,7 +416,11 @@
 				C56E23526CE4999B428869EB /* DailyVerse */,
 				7C2C94D825C10CA163F3406B /* DailyVerseTests */,
 				4AD1E163B1FB0D39F3AEE80F /* DailyVerseUITests */,
+				8AF103582F926FB90096BBCB /* DailyVerseWidgets */,
+				8AF103532F926FB90096BBCB /* Frameworks */,
 				BC443F1456E717A0068753FA /* Products */,
+				0F264955BC54625E7CABE9A9 /* DVPostAlarmAttributes.swift */,
+				DFAF485C88B08168EF51578D /* DVPostAlarmAttributes.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -367,6 +430,16 @@
 				2659FAD0ADD7587D8907D396 /* DailyVerseTests.swift */,
 			);
 			path = DailyVerseTests;
+			sourceTree = "<group>";
+		};
+		8AF103532F926FB90096BBCB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8AF1036E2F92712F0096BBCB /* AlarmKit.framework */,
+				8AF103542F926FB90096BBCB /* WidgetKit.framework */,
+				8AF103562F926FB90096BBCB /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		8C5C67BBE6E6582A36DCEFB6 /* Saved */ = {
@@ -449,8 +522,17 @@
 				FC1D3512D353F774664EA614 /* DailyVerse.app */,
 				FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */,
 				6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */,
+				8AF103522F926FB90096BBCB /* DailyVerseWidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BD53E7188CC54A1CB404FEBD /* Dev */ = {
+			isa = PBXGroup;
+			children = (
+				B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */,
+			);
+			path = Dev;
 			sourceTree = "<group>";
 		};
 		C56E23526CE4999B428869EB /* DailyVerse */ = {
@@ -569,7 +651,7 @@
 				B5814C3268942E53E0423363 /* NotificationManager.swift */,
 				01850BB01382CF53BBB11601 /* VerseSelector.swift */,
 				C1BB2A3C4EB162E8A4F48B7C /* WeatherService.swift */,
-				WA100001WA100001WA100001 /* WeatherAdviceService.swift */,
+				WA100001WA100001WA100001,
 				AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */,
 				BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */,
 				CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */,
@@ -587,16 +669,7 @@
 			path = Common;
 			sourceTree = "<group>";
 		};
-
-		BD53E7188CC54A1CB404FEBD /* Dev */ = {
-			isa = PBXGroup;
-			children = (
-				B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */,
-			);
-			path = Dev;
-			sourceTree = "<group>";
-		};
-		/* End PBXGroup section */
+/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		11754ABDAAEF2863BEE81B1C /* DailyVerseUITests */ = {
@@ -638,10 +711,12 @@
 				6C017987EDD8ACE4E94B4F1A /* Sources */,
 				860006A642AE51094154592B /* Resources */,
 				C936AC35AE74FCE77CB701C7 /* Frameworks */,
+				8AF103692F926FBB0096BBCB /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8AF103672F926FBB0096BBCB /* PBXTargetDependency */,
 			);
 			name = DailyVerse;
 			packageProductDependencies = (
@@ -658,6 +733,28 @@
 			productReference = FC1D3512D353F774664EA614 /* DailyVerse.app */;
 			productType = "com.apple.product-type.application";
 		};
+		8AF103512F926FB90096BBCB /* DailyVerseWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8AF1036D2F926FBB0096BBCB /* Build configuration list for PBXNativeTarget "DailyVerseWidgetsExtension" */;
+			buildPhases = (
+				8AF1034E2F926FB90096BBCB /* Sources */,
+				8AF1034F2F926FB90096BBCB /* Frameworks */,
+				8AF103502F926FB90096BBCB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8AF103582F926FB90096BBCB /* DailyVerseWidgets */,
+			);
+			name = DailyVerseWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = DailyVerseWidgetsExtension;
+			productReference = 8AF103522F926FB90096BBCB /* DailyVerseWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -665,7 +762,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastSwiftUpdateCheck = 2630;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					11754ABDAAEF2863BEE81B1C = {
 						DevelopmentTeam = TJPBBG9WRN;
@@ -676,6 +774,9 @@
 					};
 					8219CADF963698489E299DDD = {
 						DevelopmentTeam = TJPBBG9WRN;
+					};
+					8AF103512F926FB90096BBCB = {
+						CreatedOnToolsVersion = 26.3;
 					};
 				};
 			};
@@ -702,6 +803,7 @@
 				8219CADF963698489E299DDD /* DailyVerse */,
 				61018DD81874FAED6AF9B4DF /* DailyVerseTests */,
 				11754ABDAAEF2863BEE81B1C /* DailyVerseUITests */,
+				8AF103512F926FB90096BBCB /* DailyVerseWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -716,6 +818,13 @@
 				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
 				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
 				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8AF103502F926FB90096BBCB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -826,10 +935,19 @@
 				6D36DEAEEDB746B2BE54B40D /* BackgroundImage.swift in Sources */,
 				8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */,
 				1FF7C326A5C192FB8BE58500 /* WeatherService.swift in Sources */,
-				WA100002WA100002WA100002 /* WeatherAdviceService.swift in Sources */,
+				WA100002WA100002WA100002,
 				B951AE80C46633E6FA2D3313 /* WeatherWidgetView.swift in Sources */,
 				A9A608883D740B33114493C9 /* Greeting.swift in Sources */,
 				95BC22AAAF42CEDCEA978FE3 /* GreetingService.swift in Sources */,
+				3B844FA39D97A30117EA3914 /* DVPostAlarmAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8AF1034E2F926FB90096BBCB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0AA4809B7D436124F9E94C1 /* DVPostAlarmAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -853,6 +971,11 @@
 			isa = PBXTargetDependency;
 			target = 8219CADF963698489E299DDD /* DailyVerse */;
 			targetProxy = C14AAB0447A7C9FE1DCAC2D5 /* PBXContainerItemProxy */;
+		};
+		8AF103672F926FBB0096BBCB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8AF103512F926FB90096BBCB /* DailyVerseWidgetsExtension */;
+			targetProxy = 8AF103662F926FBB0096BBCB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -965,6 +1088,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dragonbear.DailyVerse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -1042,9 +1166,89 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dragonbear.DailyVerse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		8AF1036A2F926FBB0096BBCB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyVerseWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DailyVerseWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dragonbear.DailyVerse.DailyVerseWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8AF1036B2F926FBB0096BBCB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyVerseWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DailyVerseWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dragonbear.DailyVerse.DailyVerseWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -1104,6 +1308,15 @@
 			buildConfigurations = (
 				5BD10702EB2C9CB91EC634D5 /* Debug */,
 				5DD32AD8A1D8620F4817FD87 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8AF1036D2F926FBB0096BBCB /* Build configuration list for PBXNativeTarget "DailyVerseWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8AF1036A2F926FBB0096BBCB /* Debug */,
+				8AF1036B2F926FBB0096BBCB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

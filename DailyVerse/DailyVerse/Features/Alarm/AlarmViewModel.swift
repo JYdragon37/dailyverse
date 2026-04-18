@@ -43,6 +43,7 @@ final class AlarmViewModel: ObservableObject {
             if alarm.isEnabled {
                 notificationManager.schedule(alarm, verse: verse)
             }
+            AlarmBackgroundService.shared.rescheduleTimers()
             loadAlarms()
             showSavedToast(for: alarm)
         } catch {
@@ -59,6 +60,7 @@ final class AlarmViewModel: ObservableObject {
         alarms.removeAll { $0.id == id }
         // Core Data 즉시 삭제 — onAppear 재로드 시 복구 방지
         try? alarmRepository.delete(id: id)
+        AlarmBackgroundService.shared.rescheduleTimers()
         pendingDeleteAlarm = alarm
         toastMessage = "알람이 삭제되었습니다."
 
@@ -109,6 +111,7 @@ final class AlarmViewModel: ObservableObject {
             let verse = notificationVerse(for: alarm)
             notificationManager.schedule(alarm, verse: verse)
         }
+        AlarmBackgroundService.shared.rescheduleTimers()
     }
 
     // MARK: - Free 테마 자동 배분 (CLAUDE.md 섹션 6)

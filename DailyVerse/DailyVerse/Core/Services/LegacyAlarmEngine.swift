@@ -2,6 +2,10 @@ import Foundation
 import AVFoundation
 import AudioToolbox
 import UserNotifications
+import UIKit
+import OSLog
+
+private let bgLog = Logger(subsystem: "com.dailyverse", category: "AlarmBackground")
 
 // MARK: - LegacyAlarmEngine (iOS 15–25)
 
@@ -233,7 +237,12 @@ final class LegacyAlarmEngine: AlarmEngine {
         content.subtitle = verse.verseShortKo          // 말씀 텍스트 (잠금화면 배너 2행)
         content.body     = verse.reference             // 성경 참조 (잠금화면 배너 3행)
         content.interruptionLevel = .timeSensitive
-        content.sound = .default
+        // 앱 종료 상태에서 알람 소리 재생: 번들 mp3 우선, 없으면 시스템 기본음
+        if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
+            content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
+        } else {
+            content.sound = .default
+        }
 
         content.userInfo = [
             "alarm_id":       alarm.id.uuidString,
@@ -338,5 +347,213 @@ final class LegacyAlarmEngine: AlarmEngine {
         dc.minute = components.minute
         dc.second = 0
         return Calendar.current.nextDate(after: Date(), matching: dc, matchingPolicy: .nextTime)
+    }
+}
+
+// MARK: - AlarmBackgroundService
+// 알라미와 동일한 "백그라운드 무음 루프" 방식 구현
+// AVAudioSession.playback + 무음 WAV 루프 → iOS가 앱을 백그라운드에서 종료하지 않음
+// 알람 시각에 Timer 발동 → 즉시 알람 사운드 + dvAlarmTriggered 포스팅 → Stage 1 전환
+
+final class AlarmBackgroundService {
+    static let shared = AlarmBackgroundService()
+
+    private var silentPlayer: AVAudioPlayer?
+    private var alarmTimers: [UUID: [Timer]] = [:]
+    private var isRunning = false
+
+    private init() {}
+
+    // MARK: - Public
+
+    /// 앱이 백그라운드 진입 시 호출
+    func start() {
+        guard !isRunning else { return }
+        isRunning = true
+        bgLog.info("🚀 [BgService] start() 호출 — 무음루프 + 타이머 시작")
+        startSilentLoop()
+        rescheduleTimers()
+    }
+
+    /// 앱이 포그라운드 복귀 시 호출 (무음 루프만 중지, 타이머는 유지)
+    func stop() {
+        isRunning = false
+        silentPlayer?.stop()
+        silentPlayer = nil
+        // 알람이 울리는 중이면 AudioSession 유지 — setActive(false) 하면 알람 사운드까지 중단됨
+        let alarmPlaying = LegacyAlarmEngine.audioPlayer?.isPlaying ?? false
+        if !alarmPlaying {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
+        #if DEBUG
+        print("🔇 [BgService] 포그라운드 복귀 — silentPlayer 중지, alarmPlaying=\(alarmPlaying)")
+        #endif
+    }
+
+    /// 알람 추가·수정·삭제 후 타이머 재갱신
+    /// iOS 26+: AlarmKit이 모든 알람 처리 → 타이머 불필요 (완전 차단)
+    func rescheduleTimers() {
+        if #available(iOS 26.0, *) { return }
+        cancelAllTimers()
+        let alarms = AlarmRepository().fetchAll().filter { $0.isEnabled }
+        for alarm in alarms {
+            scheduleTimers(for: alarm)
+        }
+    }
+
+    // MARK: - Silent Audio Loop
+
+    private func startSilentLoop() {
+        do {
+            // .mixWithOthers: 음악 등 다른 앱 오디오를 방해하지 않으면서 백그라운드 유지
+            try AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            #if DEBUG
+            print("⚠️ [BgService] AVAudioSession 설정 실패: \(error)")
+            #endif
+        }
+
+        guard let data = makeSilentWav(),
+              let url = writeTempFile(data: data, name: "dv_silent.wav") else { return }
+
+        silentPlayer = try? AVAudioPlayer(contentsOf: url)
+        silentPlayer?.numberOfLoops = -1
+        silentPlayer?.volume = 0.0   // 완전 무음
+        silentPlayer?.play()
+        #if DEBUG
+        print("🔇 [BgService] 무음 루프 시작")
+        #endif
+    }
+
+    // stopSilentLoop() 제거됨 — stop()이 직접 처리 (알람 재생 여부 체크 포함)
+
+    // MARK: - Timer Scheduling
+
+    private func scheduleTimers(for alarm: Alarm) {
+        let now = Date()
+        let dates = nextFireDates(alarm: alarm, from: now)
+        if dates.isEmpty {
+            bgLog.warning("⚠️ [BgService] 타이머 날짜 없음 — alarmId: \(alarm.id)")
+        }
+        for date in dates {
+            let interval = date.timeIntervalSince(now)
+            guard interval > 1 else { continue }
+            let t = Timer(timeInterval: interval, repeats: false) { [weak self] _ in
+                self?.fireAlarm(alarm)
+            }
+            RunLoop.main.add(t, forMode: .common)
+            alarmTimers[alarm.id, default: []].append(t)
+            bgLog.info("⏰ [BgService] 타이머 등록 — alarmId: \(alarm.id), 발동까지: \(Int(interval))초 (\(date))")
+        }
+    }
+
+    private func cancelAllTimers() {
+        alarmTimers.values.flatMap { $0 }.forEach { $0.invalidate() }
+        alarmTimers.removeAll()
+    }
+
+    // MARK: - Alarm Fire (백그라운드에서 알람 발동)
+
+    private func fireAlarm(_ alarm: Alarm) {
+        bgLog.info("🔔 [BgService] fireAlarm() 호출 — alarmId: \(alarm.id), appState: \(UIApplication.shared.applicationState.rawValue)")
+
+        // 1. 알람 사운드 즉시 재생
+        LegacyAlarmEngine.startAudio(soundId: alarm.soundId, volume: alarm.volume)
+        if alarm.alertStyle == "soundAndVibration" || alarm.alertStyle == "vibration" {
+            LegacyAlarmEngine.addVibrationLoop()
+        }
+        bgLog.info("🔊 [BgService] startAudio 완료 — soundId: \(alarm.soundId)")
+
+        // 2. dvAlarmTriggered 포스팅 → AlarmCoordinator.init() observer가 수신 (백그라운드 안정)
+        let verse = resolveVerse(for: alarm)
+        bgLog.info("📤 [BgService] dvAlarmTriggered 포스팅 예정 — verseId: \(verse.id)")
+        NotificationCenter.default.post(
+            name: .dvAlarmTriggered,
+            object: nil,
+            userInfo: [
+                "alarm_id":    alarm.id.uuidString,
+                "verse_id":    verse.id,
+                "mode":        AppMode.fromTime(alarm.time).rawValue,
+                "alert_style": alarm.alertStyle,
+                "sound_id":    alarm.soundId,
+                "volume":      alarm.volume as NSNumber
+            ]
+        )
+        bgLog.info("📤 [BgService] dvAlarmTriggered 포스팅 완료")
+        // scene activation은 AlarmCoordinator.handleNotification() 내 requestForegroundActivation()에서 처리
+
+        // 4. 반복 알람 재스케줄
+        alarmTimers[alarm.id]?.forEach { $0.invalidate() }
+        alarmTimers[alarm.id] = nil
+        if !alarm.repeatDays.isEmpty {
+            scheduleTimers(for: alarm)
+        }
+    }
+
+    // MARK: - Verse Resolution
+
+    private func resolveVerse(for alarm: Alarm) -> Verse {
+        let mode = AppMode.fromTime(alarm.time)
+        if let id = DailyCacheManager.shared.getVerseId(for: mode),
+           let v  = DailyCacheManager.shared.loadCachedVerse(id: id) { return v }
+        switch mode {
+        case .deepDark:   return Verse.fallbackDeepDark
+        case .firstLight: return Verse.fallbackFirstLight
+        case .riseIgnite: return Verse.fallbackRiseIgnite
+        case .peakMode:   return Verse.fallbackPeakMode
+        case .recharge:   return Verse.fallbackRecharge
+        case .secondWind: return Verse.fallbackSecondWind
+        case .goldenHour: return Verse.fallbackGoldenHour
+        case .windDown:   return Verse.fallbackWindDown
+        }
+    }
+
+    // MARK: - Next Fire Dates
+
+    private func nextFireDates(alarm: Alarm, from now: Date) -> [Date] {
+        let cal = Calendar.current
+        let hm  = cal.dateComponents([.hour, .minute], from: alarm.time)
+        guard let h = hm.hour, let m = hm.minute else { return [] }
+
+        if alarm.repeatDays.isEmpty {
+            // 일회성: 오늘 해당 시각 (이미 지났으면 내일)
+            var dc = DateComponents(); dc.hour = h; dc.minute = m; dc.second = 0
+            if let d = cal.nextDate(after: now - 60, matching: dc, matchingPolicy: .nextTime) {
+                return [d]
+            }
+            return []
+        } else {
+            // 요일 반복: 각 요일의 다음 발동 시각
+            return alarm.repeatDays.compactMap { day in
+                var dc = DateComponents()
+                dc.weekday = day + 1   // Alarm.repeatDays: 0=일 → Calendar.weekday 1
+                dc.hour = h; dc.minute = m; dc.second = 0
+                return cal.nextDate(after: now - 60, matching: dc, matchingPolicy: .nextTime)
+            }
+        }
+    }
+
+    // MARK: - Silent WAV (1초, 무음)
+
+    private func makeSilentWav() -> Data? {
+        let sr: Int32 = 8000; let ch: Int16 = 1; let bps: Int16 = 16
+        let samples = Int(sr)   // 1초
+        var wav = Data()
+        func i32(_ v: Int32) { withUnsafeBytes(of: v.littleEndian) { wav.append(contentsOf: $0) } }
+        func i16(_ v: Int16) { withUnsafeBytes(of: v.littleEndian) { wav.append(contentsOf: $0) } }
+        let dataBytes = Int32(samples * 2)
+        wav.append(contentsOf: "RIFF".utf8); i32(dataBytes + 36)
+        wav.append(contentsOf: "WAVE".utf8); wav.append(contentsOf: "fmt ".utf8)
+        i32(16); i16(1); i16(ch); i32(sr)
+        i32(sr * Int32(ch * bps / 8)); i16(ch * bps / 8); i16(bps)
+        wav.append(contentsOf: "data".utf8); i32(dataBytes)
+        wav.append(Data(repeating: 0, count: samples * 2))
+        return wav
+    }
+
+    private func writeTempFile(data: Data, name: String) -> URL? {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        return (try? data.write(to: url, options: .atomic)) != nil ? url : nil
     }
 }

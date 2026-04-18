@@ -17,32 +17,32 @@ struct AlarmStage1View: View {
             // ── 콘텐츠: 날씨 조언 + 시간별 예보(상단) → 날씨 스트립 → 말씀 → 버튼 ──
             VStack(spacing: 0) {
 
-                // ── 상단: 날씨 GPT 조언 pill ──
-                if !weatherAdvice.isEmpty {
-                    Text(weatherAdvice)
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.90))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color.white.opacity(0.12))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.20), lineWidth: 1))
-                        )
-                        .padding(.horizontal, 20)
-                        .padding(.top, 60)
+                // ── 상단: 날씨 GPT 조언 pill + 날씨 스트립 ──
+                VStack(spacing: 12) {
+                    if !weatherAdvice.isEmpty {
+                        Text(weatherAdvice)
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.90))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.12))
+                                    .overlay(Capsule().stroke(Color.white.opacity(0.20), lineWidth: 1))
+                            )
+                    }
+
+                    // 날씨 스트립 — pill 바로 아래 배치
+                    if let weather = weatherForForecast {
+                        Stage1WeatherStrip(weather: weather)
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 60)
 
                 Spacer()
-
-                // 날씨 스트립 — 말씀 바로 위에 배치
-                if let weather = weatherForForecast {
-                    Stage1WeatherStrip(weather: weather)
-                        .padding(.bottom, 16)
-                        .padding(.horizontal, 20)
-                }
 
                 if let verse = todayVerse {
                     VStack(spacing: 14) {
@@ -235,11 +235,16 @@ private struct Stage1WeatherStrip: View {
                 .foregroundColor(.white.opacity(0.55))
             }
 
-            // 줄 2: 시간별 예보 — 5개, ScrollView 없이 HStack으로 균등 배분
+            // 줄 2: 시간별 예보 — 5개, 현재 시각 기준 가장 가까운 예보를 "지금"으로 표시
             if !weather.hourlyForecast.isEmpty {
+                let forecasts = Array(weather.hourlyForecast.prefix(5))
+                let now = Date()
+                let nowIdx = forecasts.enumerated().min(by: {
+                    abs($0.element.time.timeIntervalSince(now)) < abs($1.element.time.timeIntervalSince(now))
+                })?.offset ?? 0
                 HStack(spacing: 0) {
-                    ForEach(Array(weather.hourlyForecast.prefix(5).enumerated()), id: \.offset) { idx, item in
-                        CompactHourlyItem(item: item, isNow: idx == 0)
+                    ForEach(Array(forecasts.enumerated()), id: \.offset) { idx, item in
+                        CompactHourlyItem(item: item, isNow: idx == nowIdx)
                             .frame(maxWidth: .infinity)
                     }
                 }

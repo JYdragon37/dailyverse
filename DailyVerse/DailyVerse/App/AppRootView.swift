@@ -77,10 +77,12 @@ struct AppRootView: View {
             }
 
             // MARK: - Stage 1 — 전체화면 알람 (TabBar 없음)
+            // zIndex(30): SplashView(20)보다 높아야 알람 탭 → 앱 실행 시 Splash에 안 가려짐
+            // 온보딩 전 표시 방지는 AlarmCoordinator.init()의 onboardingV2Completed 체크로 처리
             if alarmCoordinator.stage == .stage1 {
                 AlarmStage1View()
                     .transition(.opacity)
-                    .zIndex(10)
+                    .zIndex(30)
             }
 
             // MARK: - Stage 1.5 — 웨이크업 미션 (v5.1)
@@ -93,14 +95,14 @@ struct AppRootView: View {
                     onSkip: { alarmCoordinator.completeMission() }
                 )
                 .transition(.dvFade)
-                .zIndex(10)
+                .zIndex(30)
             }
 
             // MARK: - Stage 2 — 웰컴 스크린 (0.6s Fade-in)
             if alarmCoordinator.stage == .stage2 {
                 AlarmStage2View()
                     .transition(.dvFade)
-                    .zIndex(11)
+                    .zIndex(31)
             }
         }
         .animation(.dvStageTransition, value: alarmCoordinator.stage)
@@ -142,6 +144,24 @@ struct AppRootView: View {
                 if settings.authorizationStatus == .notDetermined {
                     _ = await NotificationManager.shared.requestPermission()
                 }
+            }
+
+            // AlarmKit 콜드런치 대응 — 로딩 완료 + onboardingCompleted 확정 후 처리
+            // (init에서 하면 onboarding 여부가 미확정 상태라 온보딩 위에 Stage2가 덮이는 버그)
+            if onboardingCompleted,
+               let pendingId = UserDefaults.standard.string(forKey: "pendingAlarmKitStop") {
+                let modeStr = UserDefaults.standard.string(forKey: "pendingAlarmKitStopMode")
+                UserDefaults.standard.removeObject(forKey: "pendingAlarmKitStop")
+                UserDefaults.standard.removeObject(forKey: "pendingAlarmKitStopMode")
+                await alarmCoordinator.handleAlarmKitStop(
+                    alarmId: UUID(uuidString: pendingId) ?? UUID(),
+                    modeString: modeStr,
+                    fallbackVerseId: ""
+                )
+            } else {
+                // 온보딩 미완료면 pending 클리어만
+                UserDefaults.standard.removeObject(forKey: "pendingAlarmKitStop")
+                UserDefaults.standard.removeObject(forKey: "pendingAlarmKitStopMode")
             }
         }
         // MARK: - 오프라인 토스트 (3초 후 자동 해제)

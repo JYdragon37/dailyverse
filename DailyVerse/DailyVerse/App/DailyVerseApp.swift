@@ -7,6 +7,7 @@ import GoogleSignIn
 @main
 struct DailyVerseApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var authManager = AuthManager()
     @StateObject private var subscriptionManager = SubscriptionManager()
@@ -61,7 +62,20 @@ struct DailyVerseApp: App {
                 AppRootView()
                     // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
                     .onOpenURL { url in
-                        GIDSignIn.sharedInstance.handle(url)
+                        // dailyverse://alarm-stop?id=UUID — Live Activity 버튼 탭
+                        if url.scheme == "dailyverse", url.host == "alarm-stop" {
+                            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                            let idStr = components?.queryItems?.first(where: { $0.name == "id" })?.value ?? ""
+                            Task { @MainActor in
+                                await alarmCoordinator.handleAlarmKitStop(
+                                    alarmId: UUID(uuidString: idStr) ?? UUID(),
+                                    modeString: AppMode.current().rawValue,
+                                    fallbackVerseId: ""
+                                )
+                            }
+                        } else {
+                            GIDSignIn.sharedInstance.handle(url)
+                        }
                     }
                     .environmentObject(authManager)
                     .environmentObject(subscriptionManager)
@@ -86,6 +100,19 @@ struct DailyVerseApp: App {
                             if let userId = authManager.userId {
                                 await NicknameManager.shared.syncWithFirestore(userId: userId)
                             }
+                        }
+                    }
+                    // 백그라운드 알람 서비스 — iOS 26 AlarmKit 미지원 기기만 활성화
+                    // iOS 26+: AlarmKit이 시스템 레벨에서 알람 처리 → BackgroundService 불필요
+                    .onChange(of: scenePhase) { phase in
+                        if #available(iOS 26.0, *) { return }  // AlarmKit 사용 기기는 스킵
+                        switch phase {
+                        case .background:
+                            AlarmBackgroundService.shared.start()
+                        case .active:
+                            AlarmBackgroundService.shared.stop()
+                        default:
+                            break
                         }
                     }
             }

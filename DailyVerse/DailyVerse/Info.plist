@@ -57,19 +57,30 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<!-- Live Activity 지원 (AlarmKit 잠금화면 + Post-alarm "말씀 보기" 버튼) -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<!-- 백그라운드 모드 (audio: AVAudioSession 알람 루프) -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 		<string>audio</string>
 	</array>
-	<!-- Google Sign-In URL Scheme -->
+	<!-- Google Sign-In URL Scheme + DailyVerse Deep Link -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.602534055449-fdur94q3qg0v489fl7s3p0rq1qtopd6p</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.dailyverse.alarm</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dailyverse</string>
 			</array>
 		</dict>
 	</array>
