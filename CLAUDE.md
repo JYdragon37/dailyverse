@@ -24,9 +24,10 @@
 
 | 영역 | 기술 | 비고 |
 |------|------|------|
-| UI | SwiftUI | iOS 16+, Swift 5.9 |
+| UI | SwiftUI | iOS 16+, Swift 5.9, Xcode 26.3 |
 | 백엔드 | Firebase Firestore | 말씀/이미지/유저 데이터 |
-| 인증 | Firebase Auth | Apple Sign-In 전용 |
+| 인증 | Firebase Auth | Apple Sign-In + Google Sign-In |
+| 소셜 로그인 | GoogleSignIn SDK | GIDSignIn, URL scheme 처리 |
 | 스토리지 | Firebase Storage | 감성 이미지 CDN |
 | 분석 | Firebase Analytics + Crashlytics | |
 | 날씨 | WeatherKit (1차) + OpenWeatherMap (폴백) | 월 50,000콜 무료 |
@@ -36,14 +37,20 @@
 | 알람 (iOS 15-25) | UNNotification + AVAudioSession | 백그라운드 오디오 루프 |
 | 로컬 캐시 | Core Data | 오프라인 캐시 |
 | 위젯 | WidgetKit (DailyVerseWidgets) | Live Activity + 잠금화면 |
-| 개발 도구 | Claude Code + Cursor | |
+| 개발 도구 | Claude Code + Xcode 26.3 | iOS 26.2 SDK |
 
 ### SPM 패키지
 ```
 - firebase-ios-sdk (11.x) — Firebase/Auth, Firebase/Firestore, Firebase/Storage, Firebase/Analytics, Firebase/Crashlytics
 - google-mobile-ads-swift (11.x) — AdMob
 - purchases-ios (5.x) — RevenueCat
+- GoogleSignIn (최신) — 소셜 로그인
 ```
+
+### 타겟 배포 환경
+- 메인 앱: iOS 16.0+
+- Widget Extension: iOS 17.0+
+- AlarmKit 기능: iOS 26.0+ (하위 버전 자동 폴백)
 
 ---
 
