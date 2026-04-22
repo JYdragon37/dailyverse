@@ -119,6 +119,8 @@
 		F8EC3DE5C8741A605224254E /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD35CB40B40FD013019F7C3 /* NotificationDelegate.swift */; };
 		FA001002FA001002FA001002 /* DancingScript.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001001FA001001FA001001 /* DancingScript.ttf */; };
 		FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */; };
+		FA001016FA001016FA001016 /* SplashBackground.imageset in Resources */ = {isa = PBXBuildFile; fileRef = FA001015FA001015FA001015 /* SplashBackground.imageset */; };
+		FA001015FA001015FA001015 /* SplashBackground.imageset */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "SplashBackground.imageset"; sourceTree = "<group>"; };
 		FA001006FA001006FA001006 /* PretendardVariable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001005FA001005FA001005 /* PretendardVariable.ttf */; };
 		FA001005FA001005FA001005 /* PretendardVariable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PretendardVariable.ttf"; sourceTree = "<group>"; };
 		FA5699AAD11898B968DE8EA3 /* OnboardingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54874B10A9BD5824B945E62 /* OnboardingKey.swift */; };
@@ -552,6 +554,7 @@
 				8A3130072F80B28E009F815D /* alarm_song.mp3 */,
 				FA001001FA001001FA001001 /* DancingScript.ttf */,
 				FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */,
+				FA001015FA001015FA001015 /* SplashBackground.imageset */,
 				FA001005FA001005FA001005 /* PretendardVariable.ttf */,
 			);
 			path = DailyVerse;
@@ -821,6 +824,7 @@
 				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
 				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
 				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
+				FA001016FA001016FA001016 /* SplashBackground.imageset in Resources */,
 				FA001006FA001006FA001006 /* PretendardVariable.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

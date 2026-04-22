@@ -7,17 +7,11 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            // 배경: Morning Manna — 스카이 블루 → 라벤더 → 블러시 핑크
-            LinearGradient(
-                colors: [
-                    Color(hex: "#87C5E2"),  // 스카이 블루
-                    Color(hex: "#C0BDDF"),  // 소프트 라벤더
-                    Color(hex: "#E8B5C2"),  // 블러시 핑크
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // 배경: splash1.jpeg 원본 이미지 직접 사용 (그라데이션 근사치 대신)
+            Image("SplashBackground")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
