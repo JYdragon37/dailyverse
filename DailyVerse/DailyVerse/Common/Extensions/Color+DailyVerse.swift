@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 // Morning Manna Design System — v1.0
 // 리브랜딩: DailyVerse 골드 시스템 → Morning Manna 새벽 파스텔 시스템
@@ -70,7 +69,7 @@ extension Color {
     static let dvPrimaryDeep  = Color(hex: "#15171C")
     static let dvPrimaryMid   = Color(hex: "#1C1F26")
     static let dvPrimary      = Color.primary
-    static let dvBackground   = Color(UIColor.systemBackground)
+    static let dvBackground   = Color(.systemBackground)
     static let dvSurface      = dvSurfaceGlass
     static let dvCardFill     = dvSurfaceGlass
     static let dvCardBorder   = dvSurfaceBorder
