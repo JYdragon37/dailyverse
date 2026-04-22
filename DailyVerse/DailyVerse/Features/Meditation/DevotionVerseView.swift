@@ -27,7 +27,7 @@ struct DevotionVerseView: View {
                     readingSection
                     dashedDivider
 
-                    let interp = verse?.interpretation ?? ""  // v9.0 신버전 통일 (contemplationInterpretation 제거)
+                    let interp = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
                     if !interp.isEmpty {
                         verseSectionHeader("💡 해석")
                         interpretationText(interp)

@@ -238,7 +238,7 @@ struct MeditationEntryDetailView: View {
 
     @ViewBuilder
     private var applicationSection: some View {
-        let text = verse?.application ?? ""
+        let text = verse?.contemplationAppliance ?? verse?.application ?? ""
         if !text.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 Label("일상 적용", systemImage: "heart.text.square")

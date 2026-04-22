@@ -31,15 +31,17 @@ struct SavedDetailView: View {
     }
 
     private var verseInterpretation: String? {
-        loadedVerse?.interpretation
-            ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)?.interpretation
-            ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })?.interpretation
+        let v = loadedVerse
+            ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
+            ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
+        return v?.contemplationInterpretation ?? v?.interpretation
     }
 
     private var verseApplication: String? {
-        loadedVerse?.application
-            ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)?.application
-            ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })?.application
+        let v = loadedVerse
+            ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
+            ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
+        return v?.contemplationAppliance ?? v?.application
     }
 
     private var backgroundGradient: LinearGradient {
