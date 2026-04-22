@@ -183,7 +183,7 @@ struct HomeView: View {
             }
 
             // 시간/날씨 — 날씨가 길면 날짜/시간 2줄 허용 (반응형)
-            HStack(alignment: .bottom, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
                 Color.clear.frame(width: 34, height: 1)  // 아이콘+spacing 만큼 들여쓰기
 
                 Text(currentTimeString)
