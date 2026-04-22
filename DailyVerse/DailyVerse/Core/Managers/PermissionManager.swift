@@ -2,12 +2,15 @@ import SwiftUI
 import Combine
 import UserNotifications
 import CoreLocation
+import AlarmKit
 
 @MainActor
 class PermissionManager: NSObject, ObservableObject {
     @Published var notificationStatus: UNAuthorizationStatus = .notDetermined
     @Published var locationStatus: CLAuthorizationStatus = .notDetermined
     @Published var currentLocation: CLLocation?
+    // AlarmKit 권한 상태 (iOS 26+)
+    @Published var alarmKitStatus: String = "미설정"   // "허용됨" | "거부됨" | "미설정"
 
     let locationManager = CLLocationManager()
 
@@ -25,7 +28,32 @@ class PermissionManager: NSObject, ObservableObject {
     func checkAll() async {
         await checkNotification()
         checkLocation()
+        await checkAlarmKit()
     }
+
+    // MARK: - AlarmKit 권한 (iOS 26+)
+
+    @available(iOS 26.0, *)
+    func requestAlarmKitPermission() async {
+        let granted = await AlarmKitEngine().requestAuthorization()
+        alarmKitStatus = granted ? "허용됨" : "거부됨"
+    }
+
+    func checkAlarmKit() async {
+        if #available(iOS 26.0, *) {
+            let state = AlarmManager.shared.authorizationState
+            switch state {
+            case .authorized:   alarmKitStatus = "허용됨"
+            case .denied:       alarmKitStatus = "거부됨"
+            case .notDetermined: alarmKitStatus = "미설정"
+            @unknown default:   alarmKitStatus = "미설정"
+            }
+        } else {
+            alarmKitStatus = "미지원"  // iOS 15-25
+        }
+    }
+
+    var alarmKitAuthorized: Bool { alarmKitStatus == "허용됨" }
 
     func checkNotification() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()

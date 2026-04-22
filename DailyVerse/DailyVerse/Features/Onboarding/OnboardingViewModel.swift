@@ -89,7 +89,12 @@ final class OnboardingViewModel: ObservableObject {
 
     func requestNotification() async {
         notificationPermissionRequested = true
+        // 1. 알림 권한 (.alert .badge .sound .timeSensitive)
         _ = await NotificationManager.shared.requestPermission()
+        // 2. AlarmKit 권한 (iOS 26+) — 잠금화면 알람 + Live Activity
+        if #available(iOS 26.0, *) {
+            _ = await AlarmKitEngine().requestAuthorization()
+        }
     }
 
     // MARK: - 온보딩 완료

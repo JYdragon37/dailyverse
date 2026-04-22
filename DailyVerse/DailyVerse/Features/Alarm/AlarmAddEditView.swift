@@ -1,35 +1,26 @@
 import SwiftUI
 import Combine
+import AVFoundation
 
 // MARK: - AlarmAddEditView
 
 struct AlarmAddEditView: View {
-    // MARK: Init
-
     let alarm: Alarm?
     let onSave: (Alarm) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
     // MARK: State
-
     @State private var selectedTime: Date
     @State private var selectedDays: Set<Int>
     @State private var selectedTheme: String
     @State private var labelText: String
-    @State private var snoozeInterval: Int
-    @State private var maxSnoozeCount: Int
+    @State private var snoozeEnabled: Bool   // [항목 7] "다시 울림" 토글
     @State private var wakeMission: String
     @State private var soundId: String
     @State private var volume: Float
-    @State private var alertStyle: String   // "sound" | "vibration" | "soundAndVibration"
+    @State private var alertStyle: String
     @State private var isLabelAutoSet: Bool
-
-    private let allThemes = [
-        "hope", "courage", "strength", "renewal",
-        "wisdom", "focus", "patience", "gratitude",
-        "peace", "comfort", "reflection", "rest"
-    ]
 
     private let dayLabels = ["일", "월", "화", "수", "목", "금", "토"]
 
@@ -38,35 +29,30 @@ struct AlarmAddEditView: View {
     init(alarm: Alarm?, onSave: @escaping (Alarm) -> Void) {
         self.alarm = alarm
         self.onSave = onSave
-
         if let alarm {
-            _selectedTime      = State(initialValue: alarm.time)
-            _selectedDays      = State(initialValue: Set(alarm.repeatDays))
-            _selectedTheme     = State(initialValue: alarm.theme)
-            _labelText         = State(initialValue: alarm.label)
-            _snoozeInterval    = State(initialValue: alarm.snoozeInterval)
-            _maxSnoozeCount    = State(initialValue: alarm.maxSnoozeCount)
-            _wakeMission       = State(initialValue: alarm.wakeMission)
-            _soundId           = State(initialValue: alarm.soundId)
-            _volume            = State(initialValue: alarm.volume)
-            _alertStyle        = State(initialValue: alarm.alertStyle)
-            _isLabelAutoSet    = State(initialValue: false)
+            _selectedTime   = State(initialValue: alarm.time)
+            _selectedDays   = State(initialValue: Set(alarm.repeatDays))
+            _selectedTheme  = State(initialValue: alarm.theme)
+            _labelText      = State(initialValue: alarm.label)
+            _snoozeEnabled  = State(initialValue: alarm.maxSnoozeCount > 0)
+            _wakeMission    = State(initialValue: alarm.wakeMission)
+            _soundId        = State(initialValue: alarm.soundId)
+            _volume         = State(initialValue: alarm.volume)
+            _alertStyle     = State(initialValue: alarm.alertStyle)
+            _isLabelAutoSet = State(initialValue: false)
         } else {
-            let nextHour = Calendar.current.date(
-                bySetting: .minute, value: 0,
-                of: Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
-            ) ?? Date()
-            _selectedTime      = State(initialValue: nextHour)
-            _selectedDays      = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
-            _selectedTheme     = State(initialValue: "hope")
-            _labelText         = State(initialValue: Alarm.defaultLabel(for: nextHour))
-            _snoozeInterval    = State(initialValue: 5)
-            _maxSnoozeCount    = State(initialValue: 3)
-            _wakeMission       = State(initialValue: "none")
-            _soundId           = State(initialValue: "song")
-            _volume            = State(initialValue: 0.8)
-            _alertStyle        = State(initialValue: "soundAndVibration")
-            _isLabelAutoSet    = State(initialValue: true)
+            let nextHour = Calendar.current.date(bySetting: .minute, value: 0,
+                of: Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()) ?? Date()
+            _selectedTime   = State(initialValue: nextHour)
+            _selectedDays   = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
+            _selectedTheme  = State(initialValue: "hope")
+            _labelText      = State(initialValue: Alarm.defaultLabel(for: nextHour))
+            _snoozeEnabled  = State(initialValue: true)
+            _wakeMission    = State(initialValue: "none")
+            _soundId        = State(initialValue: "song")
+            _volume         = State(initialValue: 0.8)
+            _alertStyle     = State(initialValue: "soundAndVibration")
+            _isLabelAutoSet = State(initialValue: true)
         }
     }
 
@@ -75,84 +61,50 @@ struct AlarmAddEditView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // 시간 선택
+                // ── 시간 선택 ──
                 Section {
-                    DatePicker(
-                        "",
-                        selection: $selectedTime,
-                        displayedComponents: .hourAndMinute
-                    )
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .onChange(of: selectedTime) { newTime in
-                        // 라벨이 자동 설정 상태일 때만 시간 변경에 따라 갱신
-                        if isLabelAutoSet {
-                            labelText = Alarm.defaultLabel(for: newTime)
+                    // 시간 피커 — 높이를 기본의 80% 수준으로 제한
+                    DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .frame(maxWidth: .infinity, maxHeight: 160, alignment: .center)
+                        .clipped()
+                        .onChange(of: selectedTime) { newTime in
+                            if isLabelAutoSet { labelText = Alarm.defaultLabel(for: newTime) }
                         }
-                    }
+
+                    // 오늘의 말씀 — 골드, 볼드, 16pt, 따옴표 포함
+                    Text("\u{201C}\(previewVerse.verseShortKo)\u{201D}")
+                        .font(.custom("Georgia-BoldItalic", size: 16))
+                        .foregroundColor(.dvAccentGold)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .listRowSeparator(.hidden)
                 } header: {
-                    Text("시간")
-                        .font(.dvSectionTitle)
+                    Text("시간").font(.dvSectionTitle)
                 }
 
-                // 알람 이름
-                Section {
-                    HStack {
-                        Image(systemName: "tag.fill")
-                            .foregroundColor(.dvAccent)
-                            .frame(width: 20)
-                            .accessibilityHidden(true)
-                        TextField("알람 이름 (선택사항)", text: $labelText)
-                            .font(.dvBody)
-                            .onChange(of: labelText) { _ in
-                                // 유저가 직접 입력하면 자동 설정 모드 해제
-                                isLabelAutoSet = false
-                            }
-                    }
-                } header: {
-                    Text("알람 이름")
-                        .font(.dvSectionTitle)
-                }
+                // [항목 4] 알람 이름 Section 삭제됨
 
-                // 반복 요일
+                // ── 반복 요일 ──
                 Section {
-                    // 빠른 선택 Chip
                     HStack(spacing: 8) {
                         QuickDayChip(label: "매일", isSelected: isAllDays) { selectAllDays() }
                         QuickDayChip(label: "주중", isSelected: isWeekdays) { selectWeekdays() }
                         QuickDayChip(label: "주말", isSelected: isWeekends) { selectWeekends() }
                         Spacer()
                     }
-                    .padding(.vertical, 4)
-                    .listRowSeparator(.hidden)
-
+                    .padding(.vertical, 4).listRowSeparator(.hidden)
                     WeekdaySelector(selectedDays: $selectedDays)
-
                     Text(repeatSummaryText)
-                        .font(.dvCaption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .listRowSeparator(.hidden)
+                        .font(.dvCaption).foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center).listRowSeparator(.hidden)
                 } header: {
-                    Text("반복")
-                        .font(.dvSectionTitle)
+                    Text("반복").font(.dvSectionTitle)
                 }
 
-                // 주제 (테마) — v5.1: 단일 플랜, 모든 유저 자유 선택
-                Section {
-                    Picker("테마", selection: $selectedTheme) {
-                        ForEach(allThemes, id: \.self) { theme in
-                            Text(themeDisplayName(theme)).tag(theme)
-                        }
-                    }
-                    .pickerStyle(.navigationLink)
-                } header: {
-                    Text("주제")
-                        .font(.dvSectionTitle)
-                }
-
-                // 웨이크업 미션 (v5.1 신규)
+                // ── 웨이크업 미션 ──
                 Section {
                     Picker("미션", selection: $wakeMission) {
                         Text("없음").tag("none")
@@ -164,96 +116,106 @@ struct AlarmAddEditView: View {
                     }
                     .pickerStyle(.navigationLink)
                 } header: {
-                    Text("웨이크업 미션")
-                        .font(.dvSectionTitle)
+                    Text("웨이크업 미션").font(.dvSectionTitle)
                 } footer: {
-                    Text("미션을 완료해야 말씀 화면으로 이동합니다")
-                        .font(.dvCaption)
-                        .foregroundColor(.secondary)
+                    Text("미션을 완료해야 말씀 화면으로 이동합니다").font(.dvCaption).foregroundColor(.secondary)
                 }
 
-                // 알람 소리 & 진동 선택 (v5.1)
+                // ── 알림 방식 ──
                 Section {
-                    // 알림 방식 선택
                     Picker("알림 방식", selection: $alertStyle) {
                         Label("소리 + 진동", systemImage: "bell.and.waveform.fill").tag("soundAndVibration")
                         Label("소리만", systemImage: "bell.fill").tag("sound")
                         Label("진동만", systemImage: "iphone.radiowaves.left.and.right").tag("vibration")
                     }
                     .pickerStyle(.navigationLink)
+                } header: {
+                    Text("알림 방식").font(.dvSectionTitle)
+                }
 
-                    // 소리가 포함된 경우만 소리 종류 + 볼륨 표시
-                    if alertStyle != "vibration" {
-                        Picker("소리 종류", selection: $soundId) {
-                            Text("🎵 알람송").tag("song")
-                            Text("자연 소리").tag("nature")
-                            Text("찬양 멜로디").tag("hymn")
+                // ── [항목 6] 알람음 인라인 목록 ──
+                if alertStyle != "vibration" {
+                    Section {
+                        ForEach(soundOptions, id: \.id) { option in
+                            SoundOptionRow(
+                                icon: option.icon,
+                                name: option.name,
+                                soundId: option.id,
+                                isSelected: soundId == option.id
+                            ) {
+                                soundId = option.id
+                            }
                         }
-                        .pickerStyle(.navigationLink)
 
+                        // 볼륨 슬라이더
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text("볼륨").font(.dvBody)
                                 Spacer()
                                 Text("\(Int(volume * 100))%").font(.dvCaption).foregroundColor(.secondary)
                             }
-                            Slider(value: $volume, in: 0.1...1.0, step: 0.1)
-                                .accentColor(.dvAccentGold)
+                            Slider(value: $volume, in: 0.1...1.0, step: 0.1).accentColor(.dvAccentGold)
                         }
+                        .padding(.top, 4)
+                    } header: {
+                        Text("알람음").font(.dvSectionTitle)
                     }
-                } header: {
-                    Text("알람 소리 / 진동").font(.dvSectionTitle)
                 }
 
-                // 스누즈 설정 (v5.1: 1/3/5/10분, 0~10회)
+                // ── [항목 7] 다시 울림 (스누즈 간소화) ──
                 Section {
-                    Picker("스누즈 간격", selection: $snoozeInterval) {
-                        Text("1분").tag(1)
-                        Text("3분").tag(3)
-                        Text("5분").tag(5)
-                        Text("10분").tag(10)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("다시 울림")
+                                .font(.dvBody)
+                            Text("부드러운 5분 간격")
+                                .font(.dvCaption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: $snoozeEnabled)
+                            .labelsHidden()
+                            .tint(.dvAccentGold)
                     }
-                    .pickerStyle(.segmented)
-
-                    Stepper("최대 \(maxSnoozeCount)회", value: $maxSnoozeCount, in: 0...10)
-                        .font(.dvBody)
-                } header: {
-                    Text("스누즈 설정")
-                        .font(.dvSectionTitle)
-                } footer: {
-                    Text("최대 횟수만큼 스누즈 후 알람이 해제됩니다")
-                        .font(.dvCaption)
-                        .foregroundColor(.secondary)
                 }
 
-                // 광고 영역
+                // ── 광고 영역 ──
                 Section {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.secondary.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                            )
-
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
                         VStack(spacing: 6) {
-                            Image(systemName: "rectangle.fill.on.rectangle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(.secondary.opacity(0.5))
-                            Text("광고 영역")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.secondary)
-                            Text("300 × 250")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary.opacity(0.6))
+                            Image(systemName: "rectangle.fill.on.rectangle.fill").font(.system(size: 22)).foregroundColor(.secondary.opacity(0.5))
+                            Text("광고 영역").font(.system(size: 13, weight: .medium)).foregroundColor(.secondary)
+                            Text("300 × 250").font(.system(size: 11)).foregroundColor(.secondary.opacity(0.6))
                         }
                         .padding(.vertical, 24)
                     }
                     .frame(maxWidth: .infinity)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                } header: { Text("광고").font(.dvSectionTitle) }
+
+                // ── 주제 (4개 고정, 광고 아래) ──
+                Section {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+                        spacing: 12
+                    ) {
+                        ForEach(Array(themeDataList.prefix(4)), id: \.id) { info in
+                            ThemeThumbnailCell(
+                                info: info,
+                                isSelected: selectedTheme == info.id
+                            ) {
+                                selectedTheme = info.id
+                            }
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 } header: {
-                    Text("광고")
-                        .font(.dvSectionTitle)
+                    Text("주제").font(.dvSectionTitle)
                 }
             }
             .scrollDismissesKeyboard(.interactively)
@@ -261,29 +223,20 @@ struct AlarmAddEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") {
-                        dismiss()
-                    }
-                    .accessibilityLabel("취소")
+                    Button("취소") { dismiss() }.accessibilityLabel("취소")
                 }
-
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("저장하기") {
-                        handleSave()
-                    }
-                    .font(.dvBody.weight(.semibold))
-                    .disabled(selectedDays.isEmpty)
-                    .accessibilityLabel(selectedDays.isEmpty ? "요일을 선택해야 저장할 수 있습니다" : "알람 저장하기")
+                    Button("저장하기") { handleSave() }
+                        .font(.dvBody.weight(.semibold))
+                        .disabled(selectedDays.isEmpty)
                 }
             }
         }
-        // v5.1: 단일 플랜 — UpsellBottomSheet 제거
     }
 
-    // MARK: - 저장 처리
+    // MARK: - 저장
 
     private func handleSave() {
-        // v5.1: 단일 플랜 — 모든 유저 선택 테마 사용
         let newAlarm = Alarm(
             id: alarm?.id ?? UUID(),
             time: selectedTime,
@@ -292,50 +245,43 @@ struct AlarmAddEditView: View {
             isEnabled: alarm?.isEnabled ?? true,
             snoozeCount: 0,
             label: labelText,
-            snoozeInterval: snoozeInterval,
-            maxSnoozeCount: maxSnoozeCount,
+            snoozeInterval: 5,                         // [항목 7] 항상 5분 고정
+            maxSnoozeCount: snoozeEnabled ? 3 : 0,     // [항목 7] 토글에 따라
             wakeMission: wakeMission,
             soundId: soundId,
             volume: volume,
             alertStyle: alertStyle
         )
-
         onSave(newAlarm)
-        // 토스트는 AlarmViewModel.showSavedToast(for:)에서 처리
         dismiss()
     }
 
-    // MARK: - 빠른 요일 선택 헬퍼
+    // MARK: - 요일 헬퍼
 
     private var isAllDays: Bool { selectedDays == Set(0...6) }
     private var isWeekdays: Bool { selectedDays == Set(1...5) }
     private var isWeekends: Bool { selectedDays == Set([0, 6]) }
-
     private func selectAllDays()  { selectedDays = Set(0...6) }
     private func selectWeekdays() { selectedDays = Set(1...5) }
     private func selectWeekends() { selectedDays = Set([0, 6]) }
 
-    // MARK: - 요일 요약
-
     private var repeatSummaryText: String {
         let days = Array(selectedDays).sorted()
         if days.count == 7 { return "매일" }
-        if Set(days) == Set([1, 2, 3, 4, 5]) { return "주중" }
-        if Set(days) == Set([0, 6]) { return "주말" }
+        if Set(days) == Set([1,2,3,4,5]) { return "주중" }
+        if Set(days) == Set([0,6]) { return "주말" }
         if days.isEmpty { return "반복 없음" }
         return days.map { dayLabels[$0] }.joined(separator: ", ")
     }
 
-    // MARK: - 말씀 미리보기 선택
+    // MARK: - 말씀 미리보기
 
     private var previewVerse: Verse {
-        // v5.1: 단일 플랜 — 선택 테마에 맞는 구절 우선
-        let timeMode = AppMode.fromTime(selectedTime)
-        let candidates = Verse.fallbackVerses
-        if let matched = candidates.first(where: { $0.theme.contains(selectedTheme) }) {
-            return matched
-        }
-        switch timeMode {
+        let mode = AppMode.fromTime(selectedTime)
+        if let id = DailyCacheManager.shared.getTodayVerseId(),
+           let cached = DailyCacheManager.shared.loadCachedVerse(id: id) { return cached }
+        if let matched = Verse.fallbackVerses.first(where: { $0.theme.contains(selectedTheme) }) { return matched }
+        switch mode {
         case .deepDark:   return .fallbackDeepDark
         case .firstLight: return .fallbackFirstLight
         case .riseIgnite: return .fallbackRiseIgnite
@@ -347,48 +293,207 @@ struct AlarmAddEditView: View {
         }
     }
 
-    // MARK: - Free 자동 테마 배분 (AlarmViewModel.autoAssignTheme과 동일한 로직)
+    // MARK: - [항목 6] 알람음 옵션 3개
 
-    private var autoTheme: String {
-        let mode = AppMode.fromTime(selectedTime)
-        let themePool = mode.themes
-        // 저장 시점의 임시 알람 ID로 히스토리 조회 (편집 모드에서는 기존 alarm.id 사용)
-        let alarmId = alarm?.id ?? UUID()
-        let historyKey = "themeHistory_\(alarmId.uuidString)"
+    private struct SoundOption { let id: String; let name: String; let icon: String }
+    private let soundOptions: [SoundOption] = [
+        .init(id: "song",   name: "새벽 안개",    icon: "cloud.fill"),
+        .init(id: "nature", name: "조용한 시냇가", icon: "water.waves"),
+        .init(id: "hymn",   name: "저녁 종소리",  icon: "bell.and.waveform.fill"),
+    ]
 
-        let storedHistory = UserDefaults.standard.stringArray(forKey: historyKey) ?? []
-        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        let isoFormatter = ISO8601DateFormatter()
+    // MARK: - [항목 5] 테마 데이터
 
-        let recentThemes: [String] = storedHistory.compactMap { entry in
-            let parts = entry.split(separator: ":", maxSplits: 1).map(String.init)
-            guard parts.count == 2,
-                  let date = isoFormatter.date(from: parts[1]) else { return nil }
-            return date > cutoff ? parts[0] : nil
-        }
-
-        let available = themePool.filter { !recentThemes.contains($0) }
-        return available.randomElement() ?? themePool.randomElement() ?? "hope"
+    struct ThemeInfo: Identifiable {
+        let id: String
+        let name: String
+        let subtitle: String
+        let icon: String
+        let topColor: Color
+        let bottomColor: Color
     }
 
-    // MARK: - 테마 한글 표시명
+    private let themeDataList: [ThemeInfo] = [
+        .init(id: "peace",       name: "평안",   subtitle: "소음 속에서 평온 찾기",   icon: "leaf.fill",                  topColor: Color(hex: "#2A6A4A"), bottomColor: Color(hex: "#1A3A28")),
+        .init(id: "courage",     name: "새 힘",  subtitle: "독수리처럼 비상하는 힘",  icon: "bolt.fill",                  topColor: Color(hex: "#8A4A2A"), bottomColor: Color(hex: "#4A2010")),
+        .init(id: "gratitude",   name: "감사",   subtitle: "모든 것을 세어보기",      icon: "heart.fill",                  topColor: Color(hex: "#8A6A2A"), bottomColor: Color(hex: "#4A3810")),
+        .init(id: "wisdom",      name: "지혜",   subtitle: "빛 가운데 걷기",          icon: "book.fill",                  topColor: Color(hex: "#3A3A7A"), bottomColor: Color(hex: "#1A1A4A")),
+        .init(id: "hope",        name: "소망",   subtitle: "내일을 향한 기대",        icon: "sparkles",                   topColor: Color(hex: "#2A5C8A"), bottomColor: Color(hex: "#1A3058")),
+        .init(id: "strength",    name: "힘",     subtitle: "새 힘을 얻으리니",        icon: "figure.strengthtraining.traditional", topColor: Color(hex: "#7A3A6A"), bottomColor: Color(hex: "#401A38")),
+        .init(id: "renewal",     name: "새로움", subtitle: "새 피조물로 거듭나기",    icon: "arrow.triangle.2.circlepath",topColor: Color(hex: "#2A7A5A"), bottomColor: Color(hex: "#1A4030")),
+        .init(id: "focus",       name: "집중",   subtitle: "한 가지에 집중하기",      icon: "target",                     topColor: Color(hex: "#5A3A8A"), bottomColor: Color(hex: "#301A50")),
+        .init(id: "patience",    name: "인내",   subtitle: "끝까지 견디는 믿음",      icon: "hourglass",                  topColor: Color(hex: "#5A7A3A"), bottomColor: Color(hex: "#303A18")),
+        .init(id: "comfort",     name: "위로",   subtitle: "상한 마음을 품으시는 분", icon: "hand.heart.fill",             topColor: Color(hex: "#8A4A6A"), bottomColor: Color(hex: "#4A2038")),
+        .init(id: "reflection",  name: "묵상",   subtitle: "말씀을 깊이 새기기",      icon: "moon.stars.fill",             topColor: Color(hex: "#2A2A6A"), bottomColor: Color(hex: "#0A0A38")),
+        .init(id: "rest",        name: "안식",   subtitle: "영혼의 쉼을 찾아서",      icon: "moon.zzz.fill",               topColor: Color(hex: "#1A2A5A"), bottomColor: Color(hex: "#0A1230")),
+    ]
+}
 
-    private func themeDisplayName(_ theme: String) -> String {
-        let map: [String: String] = [
-            "hope": "소망",
-            "courage": "용기",
-            "strength": "힘",
-            "renewal": "새로움",
-            "wisdom": "지혜",
-            "focus": "집중",
-            "patience": "인내",
-            "gratitude": "감사",
-            "peace": "평안",
-            "comfort": "위로",
-            "reflection": "묵상",
-            "rest": "안식"
-        ]
-        return map[theme] ?? theme.capitalized
+// MARK: - 테마 썸네일 셀 ([항목 5])
+
+private struct ThemeThumbnailCell: View {
+    let info: AlarmAddEditView.ThemeInfo
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack(alignment: .bottomLeading) {
+                // 그라데이션 배경
+                LinearGradient(
+                    colors: [info.topColor, info.bottomColor],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+
+                // 하단 어두운 오버레이 (텍스트 가독성)
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.55)],
+                    startPoint: .center, endPoint: .bottom
+                )
+
+                // 콘텐츠
+                VStack(alignment: .leading, spacing: 4) {
+                    Image(systemName: info.icon)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                    Spacer()
+                    Text(info.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Text(info.subtitle)
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.75))
+                        .lineLimit(1)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+
+                // 선택 체크마크
+                if isSelected {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(.white)
+                                .shadow(radius: 2)
+                                .padding(8)
+                        }
+                        Spacer()
+                    }
+                }
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isSelected ? Color.dvAccentGold : Color.clear, lineWidth: 2.5)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(info.name) 테마 \(isSelected ? "선택됨" : "")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+// MARK: - 알람음 행 (소리 미리 듣기 포함)
+
+private struct SoundOptionRow: View {
+    let icon: String
+    let name: String
+    let soundId: String
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    @State private var isPlaying = false
+
+    var body: some View {
+        Button(action: {
+            onTap()
+            previewSound()
+        }) {
+            HStack(spacing: 14) {
+                // 재생 중이면 스피커 애니메이션 아이콘, 아니면 기본 아이콘
+                Image(systemName: isPlaying ? "speaker.wave.2.fill" : icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(isPlaying ? .dvAccentGold : .secondary)
+                    .frame(width: 24)
+                Text(name)
+                    .font(.dvBody)
+                    .foregroundColor(.primary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.dvAccentGold)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(name) \(isSelected ? "선택됨" : "") 탭하면 미리 듣기")
+    }
+
+    private func previewSound() {
+        // 이미 재생 중이면 중단 후 재시작
+        SoundPreviewPlayer.shared.stop()
+        guard !isPlaying else {
+            isPlaying = false
+            return
+        }
+
+        isPlaying = true
+        SoundPreviewPlayer.shared.play(soundId: soundId) {
+            DispatchQueue.main.async { isPlaying = false }
+        }
+        // 2.5초 후 자동 중단
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            SoundPreviewPlayer.shared.stop()
+            isPlaying = false
+        }
+    }
+}
+
+
+// MARK: - 소리 미리 듣기 플레이어
+
+/// 알람음 탭 시 2.5초 짧게 재생하는 싱글턴
+final class SoundPreviewPlayer: NSObject {
+    static let shared = SoundPreviewPlayer()
+    private var player: AVAudioPlayer?
+    private override init() {}
+
+    func play(soundId: String, completion: @escaping () -> Void) {
+        let filename: String
+        switch soundId {
+        case "nature": filename = "alarm_nature"
+        case "hymn":   filename = "alarm_hymn"
+        default:       filename = "alarm_song"
+        }
+
+        guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3")
+                     ?? Bundle.main.url(forResource: filename, withExtension: "caf")
+                     ?? Bundle.main.url(forResource: filename, withExtension: "wav")
+        else {
+            completion()
+            return
+        }
+
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
+            player = try AVAudioPlayer(contentsOf: url)
+            player?.volume = 0.6
+            player?.play()
+        } catch {
+            completion()
+        }
+    }
+
+    func stop() {
+        player?.stop()
+        player = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }
 
@@ -396,108 +501,54 @@ struct AlarmAddEditView: View {
 
 private struct WeekdaySelector: View {
     @Binding var selectedDays: Set<Int>
-
     private let dayLabels = ["일", "월", "화", "수", "목", "금", "토"]
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<7, id: \.self) { index in
-                DayToggleButton(
-                    label: dayLabels[index],
-                    isSelected: selectedDays.contains(index)
-                ) {
+            ForEach(0..<7, id: \.self) { i in
+                DayToggleButton(label: dayLabels[i], isSelected: selectedDays.contains(i)) {
                     var days = selectedDays
-                    if days.contains(index) {
-                        days.remove(index)
-                    } else {
-                        days.insert(index)
-                    }
+                    if days.contains(i) { days.remove(i) } else { days.insert(i) }
                     selectedDays = days
                 }
             }
         }
         .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("반복 요일 선택")
     }
 }
 
-// MARK: - DayToggleButton
-
 private struct DayToggleButton: View {
-    let label: String
-    let isSelected: Bool
-    let onToggle: () -> Void
-
+    let label: String; let isSelected: Bool; let onToggle: () -> Void
     var body: some View {
         Button(action: onToggle) {
             Text(label)
                 .font(.dvCaption.weight(isSelected ? .semibold : .regular))
                 .frame(width: 36, height: 36)
-                .background(
-                    Circle()
-                        .fill(isSelected ? Color.dvAccent : Color.secondary.opacity(0.12))
-                )
+                .background(Circle().fill(isSelected ? Color.dvAccent : Color.secondary.opacity(0.12)))
                 .foregroundColor(isSelected ? .white : .secondary)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(label)요일 \(isSelected ? "선택됨" : "선택 안됨")")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
-// MARK: - QuickDayChip
-
 private struct QuickDayChip: View {
-    let label: String
-    let isSelected: Bool
-    let onTap: () -> Void
-
+    let label: String; let isSelected: Bool; let onTap: () -> Void
     var body: some View {
         Button(action: onTap) {
             Text(label)
                 .font(.dvCaption.weight(isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? .white : .secondary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.dvAccent : Color.secondary.opacity(0.10))
-                )
+                .padding(.horizontal, 14).padding(.vertical, 7)
+                .background(Capsule().fill(isSelected ? Color.dvAccent : Color.secondary.opacity(0.10)))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(label) 선택 \(isSelected ? "됨" : "안됨")")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
 // MARK: - Preview
 
-#Preview("추가 모드 — Free") {
+#Preview("추가 모드") {
     AlarmAddEditView(alarm: nil) { _ in }
         .environmentObject(SubscriptionManager())
-        .environmentObject(UpsellManager())
-}
-
-#Preview("수정 모드 — Premium") {
-    let pm = SubscriptionManager()
-    pm.isPremium = true
-
-    let calendar = Calendar.current
-    var comps = calendar.dateComponents([.year, .month, .day], from: Date())
-    comps.hour = 6; comps.minute = 30
-    let alarmTime = calendar.date(from: comps) ?? Date()
-
-    let alarm = Alarm(
-        time: alarmTime,
-        repeatDays: [1, 2, 3, 4, 5],
-        theme: "courage",
-        isEnabled: true,
-        label: "아침의 말씀",
-        snoozeInterval: 10
-    )
-
-    return AlarmAddEditView(alarm: alarm) { _ in }
-        .environmentObject(pm)
         .environmentObject(UpsellManager())
 }

@@ -211,7 +211,29 @@ struct SettingsView: View {
                 isGranted: permissionManager.notificationAuthorized,
                 onOpenSettings: { permissionManager.openAppSettings() }
             )
+            // AlarmKit 권한 (iOS 26+) — 잠금화면 전체화면 알람
+            if #available(iOS 26.0, *) {
+                PermissionRow(
+                    title: "알람",
+                    icon: "alarm.fill",
+                    statusText: permissionManager.alarmKitStatus,
+                    isGranted: permissionManager.alarmKitAuthorized,
+                    onOpenSettings: { permissionManager.openAppSettings() }
+                )
+            }
+            // 실시간 활동 (Live Activity) — iOS 설정에서만 관리 가능
+            HStack {
+                Label("실시간 활동", systemImage: "waveform")
+                    .foregroundColor(.primary)
+                Spacer()
+                Button("설정 열기") {
+                    permissionManager.openAppSettings()
+                }
+                .font(.system(size: 14))
+                .foregroundColor(.dvAccentGold)
+            }
         }
+        .task { await permissionManager.checkAlarmKit() }
     }
 
     // MARK: - Appearance (v5.1 신규)

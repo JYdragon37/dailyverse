@@ -111,19 +111,18 @@ final class HomeViewModel: ObservableObject {
     }
 
     /// 말씀 저장
-    func saveVerse() {
+    /// displayedImageUrl: HomeView에서 실제 표시 중인 이미지 URL (loadingCoordinator.zoneBgUrl 우선)
+    func saveVerse(displayedImageUrl: String? = nil) {
         guard let verse = currentVerse else { return }
 
         // 비로그인 상태: pendingSave 설정 후 로그인 유도는 View 레이어에서 처리
         guard authManager.isLoggedIn, let userId = authManager.userId else {
-            // pendingSave를 AuthManager에 예약
-            let pending = makeSavedVerse(from: verse)
+            let pending = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
             authManager.setPendingSave(pending)
-            // 로그인 시트 표시는 View에서 authManager.isLoggedIn 관찰로 처리
             return
         }
 
-        let savedVerse = makeSavedVerse(from: verse)
+        let savedVerse = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
         Task {
             do {
                 let repo = SavedVerseRepository()
@@ -363,9 +362,10 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - Private: SavedVerse Factory
 
-    private func makeSavedVerse(from verse: Verse) -> SavedVerse {
-        // 유저가 실제로 본 배경: currentBackground (background_images) 우선, 없으면 currentImage
-        let displayImageUrl = currentBackground?.storageUrl ?? currentImage?.storageUrl
+    private func makeSavedVerse(from verse: Verse, displayedImageUrl: String? = nil) -> SavedVerse {
+        // displayedImageUrl: View에서 실제 표시된 URL (loadingCoordinator.zoneBgUrl) 우선
+        // fallback: currentBackground → currentImage 순
+        let displayImageUrl = displayedImageUrl ?? currentBackground?.storageUrl ?? currentImage?.storageUrl
         let displayImageId  = currentBackground?.id ?? currentImage?.id
         return SavedVerse(
             id: UUID().uuidString,

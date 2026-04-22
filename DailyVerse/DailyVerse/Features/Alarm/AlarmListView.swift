@@ -13,8 +13,7 @@ struct AlarmListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dvBgDeep
-                    .ignoresSafeArea()
+                Color.dvBgDeep.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     if permissionManager.notificationStatus == .denied {
@@ -23,13 +22,9 @@ struct AlarmListView: View {
 
                     if viewModel.alarms.isEmpty {
                         VStack(spacing: 0) {
-                            alarmTopSection
-                            AlarmEmptyStateView {
-                                viewModel.showAddEdit = true
-                            }
+                            AlarmEmptyStateView { viewModel.showAddEdit = true }
                         }
                     } else {
-                        // 오늘의 말씀 + 알람 리스트를 하나의 List로 → 함께 스크롤
                         alarmListWithHeader
                     }
                 }
@@ -41,9 +36,7 @@ struct AlarmListView: View {
             .toolbar {
                 if viewModel.alarms.count < 3 {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            viewModel.showAddEdit = true
-                        } label: {
+                        Button { viewModel.showAddEdit = true } label: {
                             Image(systemName: "plus")
                                 .font(.system(size: 17, weight: .semibold))
                         }
@@ -51,191 +44,178 @@ struct AlarmListView: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .bottom) {
-                addAlarmButton
-            }
-            .overlay(alignment: .bottom) {
-                toastOverlay
-            }
+            .safeAreaInset(edge: .bottom) { addAlarmButton }
+            .overlay(alignment: .bottom) { toastOverlay }
         }
         .sheet(isPresented: $viewModel.showAddEdit) {
-            AlarmAddEditView(alarm: nil) { newAlarm in
-                viewModel.saveAlarm(newAlarm)
-            }
+            AlarmAddEditView(alarm: nil) { newAlarm in viewModel.saveAlarm(newAlarm) }
         }
         .sheet(item: $viewModel.editingAlarm) { alarm in
-            AlarmAddEditView(alarm: alarm) { updated in
-                viewModel.saveAlarm(updated)
-            }
+            AlarmAddEditView(alarm: alarm) { updated in viewModel.saveAlarm(updated) }
         }
         .onAppear {
             viewModel.loadAlarms()
             Task { await permissionManager.checkNotification() }
-            refreshTodayVerse()  // 탭 진입마다 새 말씀
+            refreshTodayVerse()
         }
     }
 
-    // MARK: - 탭마다 말씀 변경
+    // MARK: - 말씀 로드
 
     private func refreshTodayVerse() {
         let mode = AppMode.current()
         let currentId = todayVerse?.id
-
-        // 1. Core Data 캐시에서 alarm_top_ko 있는 구절 전체 로드 (현재 말씀 제외)
         let pool = DailyCacheManager.shared.loadAlarmTopKoPool(excluding: currentId)
-        if let verse = pool.randomElement() {
-            todayVerse = verse
-            return
-        }
-
-        // 2. alarm_top_ko 풀이 비어있으면 → DailyCacheManager 현재 모드 말씀으로 폴백
+        if let verse = pool.randomElement() { todayVerse = verse; return }
         if let id = DailyCacheManager.shared.getVerseId(for: mode),
            let verse = DailyCacheManager.shared.loadCachedVerse(id: id),
-           verse.id != currentId {
-            todayVerse = verse
-            return
-        }
-
-        // 3. 최종 폴백: fallbackVerses 랜덤
+           verse.id != currentId { todayVerse = verse; return }
         let fallbacks = Verse.fallbackVerses.filter { $0.id != currentId }
         todayVerse = fallbacks.randomElement() ?? OfflineFallbackManager.shared.fallbackVerse(for: mode)
     }
 
-    // MARK: - 오늘의 말씀 + 알람 리스트 통합 (함께 스크롤)
+    // MARK: - 다음 활성 알람
+
+    private var nextEnabledAlarm: Alarm? {
+        sortedAlarms.first(where: { $0.isEnabled })
+    }
+
+    // MARK: - 통합 리스트 (헤더 + 알람)
 
     private var alarmListWithHeader: some View {
         List {
-            // 오늘의 말씀 — verse 있을 때만 Section 표시 (nil 시 빈 섹션 방지)
-            if todayVerse != nil {
-                Section {
-                    alarmTopSection
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                }
+            // [항목 1] 다가오는 알람 박스
+            Section {
+                upcomingAlarmSection
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 8, trailing: 20))
             }
 
-            // 알람 카드들
+            // [항목 2] 알람 카드 3개 유지
             ForEach(sortedAlarms) { alarm in
-                AlarmCardRow(
-                    alarm: alarm,
-                    onToggle: { viewModel.toggleAlarm(id: alarm.id) }
-                )
-                .contentShape(Rectangle())
-                .onTapGesture { viewModel.editingAlarm = alarm }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        viewModel.deleteAlarm(id: alarm.id)
-                        viewModel.toastMessage = "알람이 삭제되었습니다"
-                    } label: { Label("삭제", systemImage: "trash") }
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                AlarmCardRow(alarm: alarm, onToggle: { viewModel.toggleAlarm(id: alarm.id) })
+                    .contentShape(Rectangle())
+                    .onTapGesture { viewModel.editingAlarm = alarm }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            viewModel.deleteAlarm(id: alarm.id)
+                            viewModel.toastMessage = "알람이 삭제되었습니다"
+                        } label: { Label("삭제", systemImage: "trash") }
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
     }
 
-    // MARK: - Alarm List (빈 상태용, 기존 유지)
+    // MARK: - 다가오는 알람 섹션
+
+    @ViewBuilder
+    private var upcomingAlarmSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("다가오는 알람")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.secondary)
+
+            if let alarm = nextEnabledAlarm {
+                VStack(alignment: .leading, spacing: 14) {
+                    // 시간 표시
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(alarmHourMinute(alarm.time))
+                            .font(.system(size: 44, weight: .bold, design: .default))
+                            .foregroundColor(.white)
+                        Text(alarmAmPm(alarm.time))
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+
+                    // 카운트다운
+                    Text(countdownText(for: alarm))
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.55))
+
+                    // 구분선
+                    Divider()
+                        .background(Color.white.opacity(0.12))
+
+                    // 오늘의 말씀
+                    if let verse = todayVerse {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("\u{201C}\(verse.alarmTopKo ?? verse.verseShortKo)\u{201D}")
+                                .font(.custom("Georgia-Italic", size: 15))
+                                .foregroundColor(.white.opacity(0.88))
+                                .lineSpacing(4)
+
+                            Text(verse.reference)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.dvGold.opacity(0.75))
+                        }
+                    }
+                }
+                .padding(18)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                        )
+                )
+            } else {
+                // 활성 알람 없을 때
+                Text("활성화된 알람이 없어요")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 12)
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+
+    // MARK: - 시간 포맷 헬퍼
+
+    private func alarmHourMinute(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "hh:mm"
+        return f.string(from: date)
+    }
+
+    private func alarmAmPm(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "a"
+        return f.string(from: date)
+    }
+
+    private func countdownText(for alarm: Alarm) -> String {
+        let cal = Calendar.current
+        var comp = cal.dateComponents([.hour, .minute], from: alarm.time)
+        comp.second = 0
+        guard let fire = cal.nextDate(after: Date(), matching: comp, matchingPolicy: .nextTime) else { return "" }
+        let interval = fire.timeIntervalSinceNow
+        let hours = Int(interval / 3600)
+        let mins = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
+        if hours > 0 { return "\(hours)시간 \(mins)분 후 알람이 울립니다" }
+        return "\(mins)분 후 알람이 울립니다"
+    }
+
+    // MARK: - 정렬
 
     private var sortedAlarms: [Alarm] {
-        viewModel.alarms.sorted { a, b in
+        viewModel.alarms.sorted {
             let cal = Calendar.current
-            let aH = cal.component(.hour, from: a.time)
-            let aM = cal.component(.minute, from: a.time)
-            let bH = cal.component(.hour, from: b.time)
-            let bM = cal.component(.minute, from: b.time)
+            let aH = cal.component(.hour, from: $0.time)
+            let aM = cal.component(.minute, from: $0.time)
+            let bH = cal.component(.hour, from: $1.time)
+            let bM = cal.component(.minute, from: $1.time)
             return aH * 60 + aM < bH * 60 + bM
         }
-    }
-
-    // MARK: - 말씀 상단 섹션
-    @ViewBuilder
-    private var alarmTopSection: some View {
-        if let verse = todayVerse {
-            VStack(alignment: .center, spacing: 8) {
-
-                // 섹션 레이블 — 가운데 정렬
-                HStack(spacing: 5) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.dvGold)
-                    Text("오늘의 말씀")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.dvGold)
-                }
-
-                // 말씀 카드 — 가운데 정렬 고정 높이
-                VStack(alignment: .center, spacing: 8) {
-                    Text(verse.alarmTopKo ?? verse.verseShortKo)
-                        .font(.custom("Georgia-BoldItalic", size: 16))
-                        .foregroundColor(.white.opacity(0.92))
-                        .lineSpacing(4)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.center)
-
-                    Text(verse.reference)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.dvGold.opacity(0.85))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-                // 고정 높이: alarmTopKo 최대 50자 기준
-                .frame(height: 110)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.dvGold.opacity(0.11),
-                                    Color.dvGold.opacity(0.05)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.dvGold.opacity(0.22), lineWidth: 1)
-                        )
-                )
-            }
-            .padding(.top, 10)
-            .padding(.bottom, 8)
-        }
-    }
-
-    private var alarmList: some View {
-        List {
-            // 알람 카드들만
-            ForEach(sortedAlarms) { alarm in
-                AlarmCardRow(
-                    alarm: alarm,
-                    onToggle: { viewModel.toggleAlarm(id: alarm.id) }
-                )
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    viewModel.editingAlarm = alarm
-                }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        viewModel.deleteAlarm(id: alarm.id)
-                        viewModel.toastMessage = "알람이 삭제되었습니다"
-                    } label: {
-                        Label("삭제", systemImage: "trash")
-                    }
-                    .accessibilityLabel("알람 삭제")
-                }
-                .listRowBackground(Color.clear)  // 카드 자체 배경 사용
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
     }
 
     // MARK: - 하단 추가 버튼
@@ -244,31 +224,18 @@ struct AlarmListView: View {
         Group {
             if !viewModel.alarms.isEmpty {
                 Button {
-                    if viewModel.alarms.count >= 3 {
-                        showMaxAlarmsAlert = true
-                    } else {
-                        viewModel.showAddEdit = true
-                    }
+                    if viewModel.alarms.count >= 3 { showMaxAlarmsAlert = true }
+                    else { viewModel.showAddEdit = true }
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("새 알람 추가")
-                            .font(.dvBody)
-                        // (최대 3개) 텍스트 제거
+                        Image(systemName: "plus.circle.fill").font(.system(size: 16, weight: .semibold))
+                        Text("새 알람 추가").font(.dvBody)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    // #3 dvGold 그라데이션 버튼
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.dvGold, Color.dvGold.opacity(0.75)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(LinearGradient(colors: [Color.dvGold, Color.dvGold.opacity(0.75)], startPoint: .topLeading, endPoint: .bottomTrailing))
                     )
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
@@ -277,14 +244,12 @@ struct AlarmListView: View {
                 .accessibilityLabel(viewModel.alarms.count >= 3 ? "알람 최대 3개 도달" : "새 알람 추가")
                 .alert("알람은 최대 3개까지\n설정할 수 있어요", isPresented: $showMaxAlarmsAlert) {
                     Button("확인", role: .cancel) {}
-                } message: {
-                    Text("기존 알람을 삭제한 뒤 새 알람을 추가해주세요.")
-                }
+                } message: { Text("기존 알람을 삭제한 뒤 새 알람을 추가해주세요.") }
             }
         }
     }
 
-    // MARK: - 토스트 오버레이
+    // MARK: - 토스트
 
     @ViewBuilder
     private var toastOverlay: some View {
@@ -292,24 +257,16 @@ struct AlarmListView: View {
             VStack {
                 Spacer()
                 HStack(spacing: 12) {
-                    Text(message)
-                        .font(.dvBody)
-                        .foregroundColor(.white)
-
+                    Text(message).font(.dvBody).foregroundColor(.white)
                     Button("되돌리기") {
-                        withAnimation(.dvSheetAppear) {
-                            viewModel.undoDelete()
-                        }
+                        withAnimation(.dvSheetAppear) { viewModel.undoDelete() }
                     }
                     .font(.dvBody.weight(.semibold))
                     .foregroundColor(.dvAccent)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(
-                    Capsule()
-                        .fill(Color.black.opacity(0.78))
-                )
+                .background(Capsule().fill(Color.black.opacity(0.78)))
                 .padding(.bottom, 100)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -327,36 +284,21 @@ private struct AlarmCardRow: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                // #3 시간: 흰색 (활성) / 힌트 (비활성)
                 Text(formattedTime)
-                    .font(.system(size: 36, weight: .thin, design: .default))
+                    .font(.system(size: 36, weight: .thin))
                     .foregroundColor(alarm.isEnabled ? .white : Color.dvTextHint)
 
                 if !alarm.label.isEmpty {
-                    Text(alarm.label)
-                        .font(.dvCaption)
-                        .foregroundColor(Color.dvTextSecondary)
+                    Text(alarm.label).font(.dvCaption).foregroundColor(Color.dvTextSecondary)
                 }
 
                 HStack(spacing: 6) {
-                    Text(alarm.repeatSummary)
-                        .font(.dvCaption)
-                        .foregroundColor(Color.dvTextSecondary)
-
-                    Text("·")
-                        .font(.dvCaption)
-                        .foregroundColor(Color.dvTextSecondary)
-
-                    // #3 테마 칩: dvGold
+                    Text(alarm.repeatSummary).font(.dvCaption).foregroundColor(Color.dvTextSecondary)
+                    Text("·").font(.dvCaption).foregroundColor(Color.dvTextSecondary)
                     Text(alarm.theme.capitalized)
-                        .font(.dvCaption)
-                        .foregroundColor(.dvGold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(
-                            Capsule()
-                                .fill(Color.dvGold.opacity(0.15))
-                        )
+                        .font(.dvCaption).foregroundColor(.dvGold)
+                        .padding(.horizontal, 8).padding(.vertical, 2)
+                        .background(Capsule().fill(Color.dvGold.opacity(0.15)))
                 }
 
                 Text(nextFireText(for: alarm))
@@ -366,52 +308,35 @@ private struct AlarmCardRow: View {
 
             Spacer()
 
-            Toggle("", isOn: Binding(
-                get: { alarm.isEnabled },
-                set: { _ in onToggle() }
-            ))
-            .labelsHidden()
-            .tint(Color.dvGold)   // #3 골드 토글
-            .accessibilityLabel("\(formattedTime) 알람 \(alarm.isEnabled ? "켜짐" : "꺼짐")")
+            Toggle("", isOn: Binding(get: { alarm.isEnabled }, set: { _ in onToggle() }))
+                .labelsHidden()
+                .tint(Color.dvGold)
+                .accessibilityLabel("\(formattedTime) 알람 \(alarm.isEnabled ? "켜짐" : "꺼짐")")
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        // #3 Glassmorphism 카드 (그림자 제거)
+        .padding(.vertical, 12).padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.dvBorderMid, lineWidth: 1)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.dvBorderMid, lineWidth: 1))
         )
         .opacity(alarm.isEnabled ? 1.0 : 0.55)
     }
 
     private var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "hh:mm a"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: alarm.time)
+        let f = DateFormatter(); f.dateFormat = "hh:mm a"; f.locale = Locale(identifier: "en_US_POSIX")
+        return f.string(from: alarm.time)
     }
 
     private func nextFireText(for alarm: Alarm) -> String {
         guard alarm.isEnabled else { return "꺼져 있음" }
         let cal = Calendar.current
-        var comp = cal.dateComponents([.hour, .minute], from: alarm.time)
-        comp.second = 0
-        guard let fire = cal.nextDate(
-            after: Date(),
-            matching: comp,
-            matchingPolicy: .nextTime
-        ) else { return "" }
-
+        var comp = cal.dateComponents([.hour, .minute], from: alarm.time); comp.second = 0
+        guard let fire = cal.nextDate(after: Date(), matching: comp, matchingPolicy: .nextTime) else { return "" }
         let interval = fire.timeIntervalSinceNow
         if cal.isDateInToday(fire) {
-            let hours = Int(interval / 3600)
-            let mins = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
-            if hours > 0 { return "오늘 \(hours)시간 \(mins)분 뒤" }
-            return "오늘 \(mins)분 뒤"
+            let h = Int(interval / 3600); let m = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
+            if h > 0 { return "오늘 \(h)시간 \(m)분 뒤" }
+            return "오늘 \(m)분 뒤"
         }
         return "내일"
     }
@@ -419,146 +344,62 @@ private struct AlarmCardRow: View {
     private func nextFireColor(for alarm: Alarm) -> Color {
         guard alarm.isEnabled else { return .secondary }
         let cal = Calendar.current
-        var comp = cal.dateComponents([.hour, .minute], from: alarm.time)
-        comp.second = 0
-        guard let fire = cal.nextDate(
-            after: Date(),
-            matching: comp,
-            matchingPolicy: .nextTime
-        ) else { return .secondary }
+        var comp = cal.dateComponents([.hour, .minute], from: alarm.time); comp.second = 0
+        guard let fire = cal.nextDate(after: Date(), matching: comp, matchingPolicy: .nextTime) else { return .secondary }
         return cal.isDateInToday(fire) ? .dvAccent : .secondary
     }
 }
 
-// MARK: - 알림 권한 경고 배너
+// MARK: - 알림 권한 배너
 
 private struct NotificationPermissionBanner: View {
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "bell.slash.fill")
-                .foregroundColor(.orange)
-                .accessibilityHidden(true)
-
-            Text("알림 권한이 없어요. 설정에서 허용해주세요")
-                .font(.dvCaption)
-                .foregroundColor(.primary)
-
+            Image(systemName: "bell.slash.fill").foregroundColor(.orange).accessibilityHidden(true)
+            Text("알림 권한이 없어요. 설정에서 허용해주세요").font(.dvCaption).foregroundColor(.primary)
             Spacer()
-
             Button("설정") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
             }
-            .font(.dvCaption.weight(.semibold))
-            .foregroundColor(.orange)
-            .accessibilityLabel("알림 권한 설정 열기")
+            .font(.dvCaption.weight(.semibold)).foregroundColor(.orange)
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.orange.opacity(0.12))
-        )
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.12)))
+        .padding(.horizontal, 16).padding(.top, 8)
     }
 }
 
-// MARK: - 빈 상태 뷰
+// MARK: - 빈 상태
 
 private struct AlarmEmptyStateView: View {
     let onAdd: () -> Void
-
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
-
-            // #3 다크 테마 Empty State
-            Image(systemName: "alarm")
-                .font(.system(size: 64, weight: .thin))
-                .foregroundColor(Color.dvTextHint)
-                .accessibilityHidden(true)
-
+            Image(systemName: "alarm").font(.system(size: 64, weight: .thin)).foregroundColor(Color.dvTextHint).accessibilityHidden(true)
             VStack(spacing: 8) {
-                Text("아직 알람이 없어요")
-                    .font(.dvTitle)
-                    .foregroundColor(.white)
-
+                Text("아직 알람이 없어요").font(.dvTitle).foregroundColor(.white)
                 Text("알람을 설정하면 매일 말씀과 함께\n하루를 시작할 수 있어요")
-                    .font(.dvBody)
-                    .foregroundColor(Color.dvTextSecondary)
-                    .multilineTextAlignment(.center)
+                    .font(.dvBody).foregroundColor(Color.dvTextSecondary).multilineTextAlignment(.center)
             }
-
-            Button {
-                onAdd()
-            } label: {
+            Button { onAdd() } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus.circle.fill")
-                    Text("첫 알람 추가하기")
-                        .font(.dvBody.weight(.semibold))
+                    Text("첫 알람 추가하기").font(.dvBody.weight(.semibold))
                 }
-                .frame(maxWidth: 240)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.dvGold, Color.dvGold.opacity(0.75)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                        )
-                )
+                .frame(maxWidth: 240).padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 14).fill(LinearGradient(colors: [Color.dvGold, Color.dvGold.opacity(0.75)], startPoint: .topLeading, endPoint: .bottomTrailing)))
                 .foregroundColor(.white)
             }
-            .accessibilityLabel("첫 알람 추가하기")
-
-            Spacer()
-            Spacer()
+            Spacer(); Spacer()
         }
         .padding(.horizontal, 32)
     }
 }
 
-// MARK: - Preview
-
 #Preview("알람 있음") {
-    let vm = AlarmViewModel()
-    let now = Date()
-    let calendar = Calendar.current
-    var comps6 = calendar.dateComponents([.year, .month, .day], from: now)
-    comps6.hour = 6; comps6.minute = 0
-    var comps22 = calendar.dateComponents([.year, .month, .day], from: now)
-    comps22.hour = 22; comps22.minute = 0
-
-    vm.alarms = [
-        Alarm(time: calendar.date(from: comps6) ?? now,
-              repeatDays: [1, 2, 3, 4, 5],
-              theme: "hope",
-              isEnabled: true,
-              label: "아침의 말씀",
-              snoozeInterval: 5),
-        Alarm(time: calendar.date(from: comps22) ?? now,
-              repeatDays: [0, 6],
-              theme: "peace",
-              isEnabled: false,
-              label: "저녁 묵상",
-              snoozeInterval: 10)
-    ]
-
-    return AlarmListView()
-        .environmentObject(PermissionManager())
+    AlarmListView().environmentObject(PermissionManager())
 }
-
-
 #Preview("알람 없음") {
-    AlarmListView()
-        .environmentObject(PermissionManager())
-}
-
-#Preview("알림 권한 거부") {
-    let pm = PermissionManager()
-    // Preview에서 denied 상태 시뮬레이션은 실제 권한 API 우회 불가 — 런타임 확인
-    return AlarmListView()
-        .environmentObject(pm)
+    AlarmListView().environmentObject(PermissionManager())
 }

@@ -207,19 +207,15 @@ struct AlarmStage2View: View {
                 Text(todayString)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.white.opacity(0.85))
+                    .lineLimit(1)
 
                 if let w = coordinator.activeWeather {
                     Text("·").foregroundColor(.white.opacity(0.4))
                     HStack(spacing: 5) {
                         Image(systemName: weatherIcon(w.condition))
                             .font(.system(size: 15))
-                        HStack(spacing: 3) {
-                            Text("\(w.cityName) \(w.temperature)°C ·")
-                            Image(systemName: "drop.fill")
-                                .font(.system(size: 12))
-                            Text("\(w.humidity)%")
-                        }
-                        .font(.system(size: 16, weight: .medium))
+                        Text("\(w.cityName) \(w.temperature)°C")
+                            .font(.system(size: 16, weight: .medium))
                     }
                     .foregroundColor(.white.opacity(0.95))
                 }
@@ -265,29 +261,6 @@ struct AlarmStage2View: View {
 
     private var actionBar: some View {
         HStack(spacing: 12) {
-            // 저장 버튼 (꽉 채움, dvGold 배경)
-            Button { handleSave() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "heart.fill")
-                        .scaleEffect(heartScale)
-                        .accessibilityHidden(true)
-                    Text("저장")
-                        .font(.system(size: 15, weight: .semibold))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(
-                    LinearGradient(
-                        colors: [Color.dvGold, Color.dvGold.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .foregroundColor(.white)
-                .cornerRadius(14)
-            }
-            .accessibilityLabel("말씀 저장하기")
-
             // 말씀 더보기 버튼 — 해석 + 일상 적용 바텀시트
             Button { showVerseDetail = true } label: {
                 HStack(spacing: 6) {

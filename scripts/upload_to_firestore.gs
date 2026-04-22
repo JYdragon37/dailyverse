@@ -7,7 +7,7 @@
  *   3. FIREBASE_PROJECT_ID 상수를 실제 프로젝트 ID로 교체
  *   4. 실행 전 Firestore 보안 규칙을 임시로 allow write: if true; 로 변경
  *   5. uploadVersesToFirestore() 함수 선택 후 실행
- */
+ *
 
 // ─── 설정 ─────────────────────────────────────────────────────────────────────
 var FIREBASE_PROJECT_ID = "dailyverse-9260d";

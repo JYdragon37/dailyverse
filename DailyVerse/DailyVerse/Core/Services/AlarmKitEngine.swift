@@ -104,9 +104,9 @@ final class AlarmKitEngine: AlarmEngine {
         // 기존 취소
         try await cancel(alarmId: a.id)
 
-        // 스누즈 버튼
+        // 스누즈 버튼 (텍스트는 "스누즈" — 시간은 countdownDuration.postAlert로 지정)
         let snoozeButton = AlarmButton(
-            text: "\(a.snoozeInterval)분 스누즈",
+            text: "스누즈",
             textColor: .white,
             systemImageName: "repeat.circle.fill"
         )
@@ -155,12 +155,20 @@ final class AlarmKitEngine: AlarmEngine {
             return
         }
 
-        let config = AlarmManager.AlarmConfiguration.alarm(
+        // countdownDuration.postAlert: 스누즈 후 재알람까지 대기 시간 (초)
+        // AlarmKit .countdown 버튼이 실제로 작동하려면 반드시 지정 필요
+        let snoozeDuration = AlarmKit.Alarm.CountdownDuration(
+            preAlert: nil,
+            postAlert: TimeInterval(a.snoozeInterval * 60)   // 예: 5분 → 300초
+        )
+
+        let config = AlarmManager.AlarmConfiguration(
+            countdownDuration: snoozeDuration,
             schedule: schedule,
             attributes: attributes,
             stopIntent: DVStopAlarmIntent(alarmIdString: a.id.uuidString),
             secondaryIntent: nil,
-            sound: .named("alarm_song.mp3")   // 커스텀 알람 사운드 (번들 파일명 그대로)
+            sound: .named("alarm_song.mp3")
         )
 
         // Alarm.ID = Foundation.UUID → a.id 직접 사용

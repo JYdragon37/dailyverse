@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var showVerseDetail = false
     @State private var showLoginPrompt = false
     @State private var showWeatherDetail = false   // #4 날씨 상세
+    @State private var heartPulse = false
 
     init(viewModel: HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -190,24 +191,18 @@ struct HomeView: View {
                 Text(currentTimeString)
                     .font(.system(size: 17, weight: .semibold))  // 크기 업
                     .foregroundColor(.white.opacity(0.95))
+                    .lineLimit(1)
 
                 if let weather = viewModel.weather {
                     Text("·").foregroundColor(.white.opacity(0.4))
                     Button {
                         showWeatherDetail = true
                     } label: {
-                        // 날씨 아이콘 제거 (Zone 인사말 아이콘과 중복)
-                        // lineLimit(1) + minimumScaleFactor로 한 줄 유지
-                        HStack(spacing: 3) {
-                            Text("\(weather.cityName) \(weather.temperature)°C ·")
-                            Image(systemName: "drop.fill")
-                                .font(.system(size: 11))
-                            Text("\(weather.humidity)%")
-                        }
-                        .font(.system(size: 15, weight: .medium))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                        .foregroundColor(.white.opacity(0.95))
+                        Text("\(weather.cityName) \(weather.temperature)°C")
+                            .font(.system(size: 15, weight: .medium))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .foregroundColor(.white.opacity(0.95))
                     }
                 } else {
                     Text("·").foregroundColor(.white.opacity(0.4))
@@ -249,6 +244,28 @@ struct HomeView: View {
                 }
 
                 Spacer()
+
+                // 하트 저장 버튼
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                        heartPulse = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        heartPulse = false
+                    }
+                    handleSave()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.18))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.white)
+                            .scaleEffect(heartPulse ? 1.4 : 1.0)
+                    }
+                }
+                .buttonStyle(.plain)
 
                 // DB 글귀 번호 표시 (폴백이면 표시 안 함)
                 if !verse.id.hasPrefix("fallback_") {
@@ -342,12 +359,16 @@ struct HomeView: View {
 
     private func handleSave() {
         guard let verse = viewModel.currentVerse else { return }
+        // 실제 표시 중인 배경 URL: loadingCoordinator.zoneBgUrl(preloaded) 우선
+        let displayedUrl = loadingCoordinator.zoneBgUrl?.absoluteString
         if authManager.isLoggedIn {
-            viewModel.saveVerse()
-            showVerseDetail = false   // 저장 후 팝업 닫기
+            viewModel.saveVerse(displayedImageUrl: displayedUrl)
+            showVerseDetail = false
         } else {
             let pending = SavedVerse(
-                id: UUID().uuidString, verseId: verse.id, savedAt: Date(),
+                id: UUID().uuidString, verseId: verse.id,
+                imageUrl: displayedUrl,
+                savedAt: Date(),
                 mode: viewModel.currentMode.rawValue,
                 weatherTemp: viewModel.weather?.temperature ?? 0,
                 weatherCondition: viewModel.weather?.condition ?? "any",
