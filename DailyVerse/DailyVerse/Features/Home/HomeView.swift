@@ -175,13 +175,11 @@ struct HomeView: View {
                 Image(systemName: viewModel.currentMode.greetingIcon)
                     .font(.system(size: 26))
                     .foregroundColor(.white)
-                // Plan SC: 최장 EN 31자도 레이아웃 깨짐 없음
-                // dvLargeTitle = 34pt bold, 2줄 기준 minHeight ≈ 88pt
                 Text(greetingText)
                     .font(.dvLargeTitle).foregroundColor(.white)
                     .minimumScaleFactor(0.7)
                     .lineLimit(2)
-                    .frame(minHeight: 88, alignment: .topLeading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             // 시간/날씨 — 날씨가 길면 날짜/시간 2줄 허용 (반응형)
@@ -199,7 +197,7 @@ struct HomeView: View {
                     Button {
                         showWeatherDetail = true
                     } label: {
-                        Text("\(weather.cityName) \(weather.temperature)°C")
+                        Text("\(weather.cityName) \(weather.temperature)°C \(weather.conditionKo)")
                             .font(.system(size: 15, weight: .medium))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)

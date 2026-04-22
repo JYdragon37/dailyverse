@@ -385,7 +385,7 @@ class WeatherService: WeatherServiceProtocol {
             conditionKo: mapOWMIdKo(weatherId),
             humidity: response.main.humidity,
             dustGrade: aqiDesc2 ?? "보통",
-            cityName: response.name,
+            cityName: (await reverseGeocode(location)) ?? response.name,
             cachedAt: Date(),
             highTemp: highTemp,
             lowTemp: lowTemp,
@@ -442,7 +442,9 @@ class WeatherService: WeatherServiceProtocol {
 
     private func reverseGeocode(_ location: CLLocation) async -> String? {
         return await withCheckedContinuation { continuation in
-            CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
+            // ko_KR locale → 한국어 도시명 반환 (서울, 강남구 등)
+            CLGeocoder().reverseGeocodeLocation(location,
+                                                preferredLocale: Locale(identifier: "ko_KR")) { placemarks, _ in
                 let name = placemarks?.first.flatMap {
                     [$0.locality, $0.subLocality].compactMap { $0 }.joined(separator: " ")
                 }
