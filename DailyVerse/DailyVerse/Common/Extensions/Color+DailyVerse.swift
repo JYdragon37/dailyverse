@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Morning Manna Design System — v1.0
 // 리브랜딩: DailyVerse 골드 시스템 → Morning Manna 새벽 파스텔 시스템
