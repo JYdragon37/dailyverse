@@ -74,9 +74,7 @@ struct DevotionResponseView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 let appliance = verse.flatMap { v in
-                    v.contemplationAppliance?.isEmpty == false ? v.contemplationAppliance : nil
-                } ?? verse.flatMap { v in
-                    v.application.isEmpty ? nil : v.application
+                    v.application.isEmpty ? nil : v.application  // v9.0 신버전 통일
                 } ?? "오늘 이 말씀을 삶 속 어느 순간에 떠올릴 수 있을까요?"
 
                 // #11: 닉네임 prefix
