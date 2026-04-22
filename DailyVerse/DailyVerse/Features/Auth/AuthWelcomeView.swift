@@ -64,13 +64,13 @@ struct AuthWelcomeView: View {
                 .frame(width: 140, height: 140)
                 .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 8)
 
-            Text("DailyVerse")
-                .font(.custom("DancingScript-Regular", size: 64))
+            Text("Morning Manna")
+                .font(.dvLargeTitle)
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
 
             Text("크리스천을 위한 최고의 알람 앱")
-                .font(.custom("NanumPenScript-Regular", size: 20))
+                .font(.dvSubtitle)
                 .foregroundColor(.white.opacity(0.82))
 
             Spacer().frame(height: 12)

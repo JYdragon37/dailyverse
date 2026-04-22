@@ -73,7 +73,7 @@ final class NotificationManager: NSObject {
     /// 스누즈: UNTimeIntervalNotificationTrigger로 재스케줄 (앱 강제 종료 후에도 유지)
     func rescheduleSnooze(alarmId: UUID, verse: Verse, minutes: Int = 5) {
         let content = UNMutableNotificationContent()
-        content.title = "DailyVerse 🔔"
+        content.title = "Morning Manna 🔔"
         content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference)"
         if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
             content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
@@ -128,7 +128,7 @@ final class NotificationManager: NSObject {
         let center = UNUserNotificationCenter.current()
 
         let content = UNMutableNotificationContent()
-        content.title = "DailyVerse"
+        content.title = "Morning Manna"
         content.body = "📿 오늘 묵상을 아직 기록하지 않으셨어요"
         content.sound = .default
 

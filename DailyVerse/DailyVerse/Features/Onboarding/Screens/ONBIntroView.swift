@@ -209,8 +209,8 @@ struct ONBIntroView: View {
                     .multilineTextAlignment(.center)
 
                 // 앱 지정 필기체 폰트
-                Text("DailyVerse")
-                    .font(.custom("DancingScript-Regular", size: 26))
+                Text("Morning Manna")
+                    .font(.dvTitle)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
             }

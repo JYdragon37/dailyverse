@@ -108,8 +108,8 @@ struct ONBExperienceView: View {
             HStack(spacing: 6) {
                 Image(systemName: "alarm.fill")
                     .font(.system(size: 11))
-                Text("DailyVerse")
-                    .font(.custom("DancingScript-Regular", size: 17))
+                Text("Morning Manna")
+                    .font(.dvCaption)
             }
             .foregroundColor(.white.opacity(0.80))
             .padding(.horizontal, 16)

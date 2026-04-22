@@ -98,7 +98,7 @@ struct DevotionShareCardRenderer {
                 .foregroundColor: UIColor.white.withAlphaComponent(0.40),
                 .paragraphStyle: wmPara
             ]
-            "DailyVerse".draw(in: CGRect(x: 0, y: size.height - 110, width: size.width, height: 50), withAttributes: wmAttrs)
+            "Morning Manna".draw(in: CGRect(x: 0, y: size.height - 110, width: size.width, height: 50), withAttributes: wmAttrs)
         }
     }
 

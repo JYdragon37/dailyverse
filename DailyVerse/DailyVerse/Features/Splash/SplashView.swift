@@ -34,17 +34,17 @@ struct SplashView: View {
                 Spacer().frame(height: 36)
 
                 // 앱 이름 — Dancing Script 커시브체
-                Text("DailyVerse")
-                    .font(.custom("DancingScript-Regular", size: 56))
+                Text("Morning Manna")
+                    .font(.dvLargeTitle)
                     .foregroundColor(.white)
                     .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
                     .opacity(textOpacity)
 
                 Spacer().frame(height: 16)
 
-                // 슬로건 — Nanum Pen Script 손글씨체
+                // 슬로건
                 Text("크리스천을 위한 최고의 알람 앱")
-                    .font(.custom("NanumPenScript-Regular", size: 20))
+                    .font(.dvSubtitle)
                     .foregroundColor(.white.opacity(0.82))
                     .opacity(textOpacity)
 

@@ -88,7 +88,7 @@ struct SavedDetailView: View {
             parts.append(verseReference)
         }
         parts.append("")
-        parts.append("DailyVerse")
+        parts.append("Morning Manna")
         return parts.joined(separator: "\n")
     }
 

@@ -25,7 +25,7 @@ struct DailyVerseAlarmLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.center) {
-                    Text("DailyVerse 알람")
+                    Text("Morning Manna 알람")
                         .font(.system(size: 14, weight: .semibold))
                 }
             } compactLeading: {
@@ -57,7 +57,7 @@ struct DVPostAlarmLiveActivity: Widget {
                 }
                 DynamicIslandExpandedRegion(.center) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("DailyVerse")
+                        Text("Morning Manna")
                             .font(.system(size: 14, weight: .semibold))
                         Text(context.attributes.verseShortKo)
                             .font(.system(size: 11))
@@ -101,7 +101,7 @@ struct DVPostAlarmLiveActivity: Widget {
                 .foregroundColor(Color(red: 0.87, green: 0.67, blue: 0.20))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("DailyVerse")
+                Text("Morning Manna")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
                 Text(context.attributes.verseShortKo)
@@ -140,7 +140,7 @@ private func lockScreenView(alarmId: String, verse: String) -> some View {
             .foregroundColor(Color(red: 0.87, green: 0.67, blue: 0.20))
 
         VStack(alignment: .leading, spacing: 2) {
-            Text("DailyVerse 알람")
+            Text("Morning Manna 알람")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.white)
             if !verse.isEmpty {
