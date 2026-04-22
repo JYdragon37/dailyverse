@@ -69,7 +69,7 @@ extension Color {
     static let dvPrimaryDeep  = Color(hex: "#15171C")
     static let dvPrimaryMid   = Color(hex: "#1C1F26")
     static let dvPrimary      = Color.primary
-    static let dvBackground   = Color(uiColor: .systemBackground)
+    static let dvBackground   = dvBgDeep  // 레거시 alias (UIColor 의존성 제거)
     static let dvSurface      = dvSurfaceGlass
     static let dvCardFill     = dvSurfaceGlass
     static let dvCardBorder   = dvSurfaceBorder
