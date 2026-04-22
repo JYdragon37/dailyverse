@@ -106,7 +106,7 @@ struct DevotionHomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let verse = viewModel.todayVerse {
                 Text(verse.verseShortKo)
-                    .font(.custom("NotoSerifCJKkr-Regular", size: 17))
+                    .font(.custom("PretendardVariable", size: 17))
                     .foregroundColor(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(6)

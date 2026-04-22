@@ -222,7 +222,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 — 21pt regular (verseFullKo: 긴 텍스트라 lineSpacing 중요)
             Text(verse.verseFullKo)
-                .font(.custom("NotoSerifCJKkr-SemiBold", size: 22))
+                .font(.custom("PretendardVariable", size: 22).weight(.semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)

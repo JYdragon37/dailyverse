@@ -120,7 +120,7 @@ struct DevotionCompleteView: View {
         VStack(alignment: .trailing, spacing: 10) {
             if let verse = verse {
                 Text(verse.verseShortKo)
-                    .font(.custom("NotoSerifCJKkr-Regular", size: 16))
+                    .font(.custom("PretendardVariable", size: 16))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)

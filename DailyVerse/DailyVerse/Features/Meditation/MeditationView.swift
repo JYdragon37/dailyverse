@@ -40,7 +40,7 @@ private struct TodayVerseCard: View {
 
             if let verse = verse {
                 Text(verse.verseShortKo)
-                    .font(.custom("NotoSerifCJKkr-Regular", size: 17))
+                    .font(.custom("PretendardVariable", size: 17))
                     .foregroundColor(.white.opacity(0.9))
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)

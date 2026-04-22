@@ -217,7 +217,7 @@ struct ONBExperienceView: View {
 
                     // 말씀 원문 (출처 위로 배치)
                     Text(verseFull)
-                        .font(.custom("NotoSerifCJKkr-SemiBold", size: 18))
+                        .font(.custom("PretendardVariable", size: 18).weight(.semibold))
                         .foregroundColor(.white.opacity(0.92))
                         .lineSpacing(6)
                         .padding(.horizontal, 28)
@@ -320,7 +320,7 @@ struct ONBExperienceView: View {
     private var verseCenter: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verseFull)
-                .font(.custom("NotoSerifCJKkr-SemiBold", size: 22))
+                .font(.custom("PretendardVariable", size: 22).weight(.semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)

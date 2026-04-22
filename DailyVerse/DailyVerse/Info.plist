@@ -7,8 +7,6 @@
 		<string>DancingScript.ttf</string>
 		<string>NanumPenScript-Regular.ttf</string>
 		<string>PretendardVariable.ttf</string>
-		<string>NotoSerifKR-Regular.otf</string>
-		<string>NotoSerifKR-SemiBold.otf</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>

@@ -52,7 +52,7 @@ struct SavedDetailView: View {
     private var verseBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verseText)
-                .font(.custom("NotoSerifCJKkr-SemiBold", size: 21))
+                .font(.custom("PretendardVariable", size: 21).weight(.semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
@@ -336,7 +336,7 @@ struct SavedDetailView: View {
             }
 
             // 3. 말씀 텍스트 (Georgia-BoldItalic)
-            let verseFont = UIFont(name: "NotoSerifCJKkr-SemiBold", size: size.width * 0.057)
+            let verseFont = UIFont(name: "PretendardVariable", size: size.width * 0.057)
                          ?? UIFont.boldSystemFont(ofSize: size.width * 0.057)
             let paraStyle = NSMutableParagraphStyle()
             paraStyle.lineSpacing = size.width * 0.018

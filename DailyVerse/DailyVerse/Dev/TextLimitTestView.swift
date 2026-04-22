@@ -98,7 +98,7 @@ struct Stage1SingleTest: View {
                 // ── 말씀 텍스트 (실제 AlarmStage1과 동일) ──
                 VStack(spacing: 14) {
                     Text(sample(count))
-                        .font(.custom("NotoSerifCJKkr-Regular", size: 28))
+                        .font(.custom("PretendardVariable", size: 28))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineSpacing(6)
@@ -198,7 +198,7 @@ struct HomeSingleTest: View {
                 // ── 말씀 텍스트 (실제 HomeView verseCenter와 동일) ──
                 VStack(alignment: .leading, spacing: 0) {
                     Text(sample(count))
-                        .font(.custom("NotoSerifCJKkr-SemiBold", size: 22))
+                        .font(.custom("PretendardVariable", size: 22).weight(.semibold))
                         .foregroundColor(.white)
                         .lineSpacing(8)
                         .fixedSize(horizontal: false, vertical: true)

@@ -85,7 +85,7 @@ struct DevotionShareCardRenderer {
                 prayerPara.alignment = .center
                 prayerPara.lineSpacing = 10
 
-                let prayerFont = UIFont(name: "NotoSerifCJKkr-Regular", size: 38) ?? UIFont.italicSystemFont(ofSize: 38)
+                let prayerFont = UIFont(name: "PretendardVariable", size: 38) ?? UIFont.systemFont(ofSize: 38)
                 let gold = UIColor(red: 0.784, green: 0.592, blue: 0.333, alpha: 1)
                 let prayerAttrs: [NSAttributedString.Key: Any] = [.font: prayerFont, .foregroundColor: gold, .paragraphStyle: prayerPara]
                 trimmed.draw(in: CGRect(x: 120, y: prayerY, width: size.width - 240, height: 160), withAttributes: prayerAttrs)
