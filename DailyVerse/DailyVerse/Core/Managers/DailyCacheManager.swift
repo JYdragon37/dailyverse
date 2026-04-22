@@ -8,7 +8,7 @@ class DailyCacheManager {
 
     /// Core Data verse JSON 캐시 스키마 버전
     /// 버전이 다르면 CachedVerse 전체 삭제 → Firestore에서 최신 데이터 재취득
-    private static let verseSchemVersion = "verse_cache_v3"  // v3: Firestore 콘텐츠 업데이트 반영 (interpretation/application)
+    private static let verseSchemVersion = "verse_cache_v4"  // v4: contemplation_ko = verse_full_ko 통일
     private static let verseSchemaKey    = "cachedVerseSchemaVersion"
 
     init() {
