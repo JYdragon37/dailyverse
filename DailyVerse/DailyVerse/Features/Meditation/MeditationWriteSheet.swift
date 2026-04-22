@@ -93,7 +93,7 @@ struct MeditationWriteSheet: View {
                 .foregroundColor(.white.opacity(0.4))
 
             Text(verseText)
-                .font(.custom("Georgia-Italic", size: 16))
+                .font(.custom("NotoSerifCJKkr-Regular", size: 16))
                 .foregroundColor(.white.opacity(0.85))
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)

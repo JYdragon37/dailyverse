@@ -146,7 +146,7 @@ struct AlarmListView: View {
                     if let verse = todayVerse {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("\u{201C}\(verse.alarmTopKo ?? verse.verseShortKo)\u{201D}")
-                                .font(.custom("Georgia-Italic", size: 15))
+                                .font(.custom("NotoSerifCJKkr-Regular", size: 15))
                                 .foregroundColor(.white.opacity(0.88))
                                 .lineSpacing(4)
 

@@ -75,7 +75,7 @@ struct AlarmAddEditView: View {
 
                     // 오늘의 말씀 — 골드, 볼드, 16pt, 따옴표 포함
                     Text("\u{201C}\(previewVerse.verseShortKo)\u{201D}")
-                        .font(.custom("Georgia-BoldItalic", size: 16))
+                        .font(.custom("NotoSerifCJKkr-SemiBold", size: 16))
                         .foregroundColor(.dvAccentGold)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)

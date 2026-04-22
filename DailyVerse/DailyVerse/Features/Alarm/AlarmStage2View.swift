@@ -230,7 +230,7 @@ struct AlarmStage2View: View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 (verseFullKo)
             Text(verse.verseFullKo)
-                .font(.custom("Georgia-BoldItalic", size: 22))
+                .font(.custom("NotoSerifCJKkr-SemiBold", size: 22))
                 .foregroundColor(.white)
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
