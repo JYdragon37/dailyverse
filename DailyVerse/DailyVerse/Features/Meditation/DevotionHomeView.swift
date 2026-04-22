@@ -84,11 +84,20 @@ struct DevotionHomeView: View {
 
     // MARK: - 1. Greeting Block
 
+    private var greetingIconColor: Color {
+        switch greeting.icon {
+        case "sun.max.fill", "cloud.sun.fill", "moon.fill", "moon.stars.fill":
+            return Color(red: 0.98, green: 0.82, blue: 0.28) // 웜 옐로우
+        default:
+            return .dvAccentSky
+        }
+    }
+
     private var greetingBlock: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: greeting.icon)
                 .font(.system(size: 24))
-                .foregroundColor(.dvAccentGold)
+                .foregroundColor(greetingIconColor)
 
             Text(greeting.text)
                 .font(.dvBody)
