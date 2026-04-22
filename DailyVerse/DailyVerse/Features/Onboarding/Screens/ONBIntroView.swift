@@ -180,7 +180,7 @@ struct ONBIntroView: View {
                                 .offset(y: -6)
                         }
                     Text("크리스천을 위한 최고의 알람 앱")
-                        .font(.custom("Georgia", size: 12))
+                        .font(.dvCaption)
                         .foregroundColor(.white.opacity(0.75))
                         .kerning(0.5)
                 }
@@ -203,7 +203,7 @@ struct ONBIntroView: View {
 
             VStack(spacing: 5) {
                 Text("크리스천을 위한 최고의 알람 앱")
-                    .font(.custom("Georgia", size: 12))
+                    .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.70))
                     .kerning(1.2)
                     .multilineTextAlignment(.center)

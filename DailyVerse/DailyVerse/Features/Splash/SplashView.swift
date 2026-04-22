@@ -7,12 +7,12 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            // 배경: 청록(상단) → 파란보라(중간) → 보라(하단)
+            // 배경: Morning Manna — 새벽 여명 그라데이션
             LinearGradient(
                 colors: [
-                    Color(red: 0.40, green: 0.82, blue: 0.86),  // 청록
-                    Color(red: 0.45, green: 0.62, blue: 0.88),  // 파란보라
-                    Color(red: 0.62, green: 0.45, blue: 0.85),  // 보라
+                    Color(hex: "#2E3656"),  // 새벽 딥 네이비
+                    Color(hex: "#8DB8DA"),  // 여명 스카이 블루
+                    Color(hex: "#E8C8D2"),  // 블러시 핑크
                 ],
                 startPoint: .top,
                 endPoint: .bottom
