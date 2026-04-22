@@ -186,11 +186,15 @@ struct HomeView: View {
             HStack(alignment: .center, spacing: 8) {
                 Color.clear.frame(width: 34, height: 1)  // 아이콘+spacing 만큼 들여쓰기
 
-                Text(currentTimeString)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.95))
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                // 날짜 / 시간 — VStack으로 분리해 줄간격 직접 제어
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(currentDateString)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.95))
+                    Text(currentTimeOnlyString)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.95))
+                }
 
                 if let weather = viewModel.weather {
                     Text("·").foregroundColor(.white.opacity(0.4))
@@ -338,6 +342,23 @@ struct HomeView: View {
         tf.locale = Locale(identifier: "en_US_POSIX")
         tf.dateFormat = "h:mm a"
         return "\(dateStr)  \(tf.string(from: Date()))"
+    }
+
+    /// 날짜만 (M월 d일 EEE)
+    private var currentDateString: String {
+        let isKorean = greetingLanguagePref == "ko"
+        let df = DateFormatter()
+        df.locale = Locale(identifier: isKorean ? "ko_KR" : "en_US")
+        df.dateFormat = isKorean ? "M월 d일 EEE" : "MMM d, EEE"
+        return df.string(from: Date())
+    }
+
+    /// 시간만 (h:mm a)
+    private var currentTimeOnlyString: String {
+        let tf = DateFormatter()
+        tf.locale = Locale(identifier: "en_US_POSIX")
+        tf.dateFormat = "h:mm a"
+        return tf.string(from: Date())
     }
 
     // MARK: - Verse Detail Sheet
