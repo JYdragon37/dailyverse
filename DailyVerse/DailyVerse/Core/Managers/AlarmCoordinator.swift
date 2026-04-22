@@ -3,6 +3,7 @@ import Combine
 import UIKit
 import OSLog
 import ActivityKit
+import AlarmKit
 
 private let alarmLog = Logger(subsystem: "com.dailyverse", category: "AlarmCoordinator")
 
@@ -307,6 +308,10 @@ final class AlarmCoordinator: ObservableObject {
 
     private func stopAlarmFeedback() {
         notificationManager.stopAlarmAudio()
+        // iOS 26: AlarmKit 시스템 알람도 중지 (포그라운드 타이머 트리거 후 배너 제거)
+        if #available(iOS 26.0, *), let alarmId = activeAlarmId {
+            try? AlarmManager.shared.cancel(id: alarmId)
+        }
     }
 
     // MARK: - Private Helpers
