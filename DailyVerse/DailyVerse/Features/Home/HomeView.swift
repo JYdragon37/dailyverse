@@ -187,7 +187,7 @@ struct HomeView: View {
                 Color.clear.frame(width: 34, height: 1)  // 아이콘+spacing 만큼 들여쓰기
 
                 // 날짜 / 시간 — VStack으로 분리해 줄간격 직접 제어
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(currentDateString)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.white.opacity(0.95))
