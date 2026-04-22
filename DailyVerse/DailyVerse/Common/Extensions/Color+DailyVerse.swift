@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Morning Manna Design System — v1.0
-// 리브랜딩: DailyVerse 골드 시스템 → Morning Manna 새벽 파스텔 시스템
+// Morning Manna Design System — v1.1
+// 배경/Zone: Morning Manna 새벽 파스텔 / 액센트: 앰버 골드 유지
 
 extension Color {
 
@@ -30,14 +30,14 @@ extension Color {
     /// CTA 그라데이션 종료 #E8C3D3
     static let dvCtaEnd   = Color(hex: "#E8C3D3")
 
-    // MARK: - 레거시 토큰명 유지 (값만 교체 — 기존 코드 무수정)
+    // MARK: - 골드 액센트 (CTA, 아이콘, 태그 — 원복)
 
-    /// 기존 dvAccentGold → Sky Blue로 교체
-    static let dvAccentGold  = dvAccentSky
-    static let dvGold        = dvAccentSky
-    static let dvAccentSoft  = dvAccentIvory
-    static let dvAccent      = dvAccentSky
-    static let dvVerseGold   = dvAccentSky
+    /// 앰버 골드 #C8972A — CTA 버튼, 성경 참조, 테마 태그, 아이콘 하이라이트
+    static let dvAccentGold  = Color(hex: "#C8972A")
+    static let dvGold        = Color(hex: "#C8972A")
+    static let dvAccentSoft  = Color(hex: "#F5EDD8")
+    static let dvAccent      = Color(hex: "#C8972A")
+    static let dvVerseGold   = Color(hex: "#C8972A")
 
     // MARK: - 텍스트
 
