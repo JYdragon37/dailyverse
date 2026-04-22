@@ -184,14 +184,15 @@ struct HomeView: View {
                     .frame(minHeight: 88, alignment: .topLeading)
             }
 
-            // Fix 1: 시간/날씨 — 아이콘 너비(26)+간격(8)=34pt leading으로 G,D와 수직 정렬
-            HStack(spacing: 8) {
+            // 시간/날씨 — 날씨가 길면 날짜/시간 2줄 허용 (반응형)
+            HStack(alignment: .top, spacing: 8) {
                 Color.clear.frame(width: 34, height: 1)  // 아이콘+spacing 만큼 들여쓰기
 
                 Text(currentTimeString)
-                    .font(.system(size: 17, weight: .semibold))  // 크기 업
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.white.opacity(0.95))
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let weather = viewModel.weather {
                     Text("·").foregroundColor(.white.opacity(0.4))
@@ -201,7 +202,7 @@ struct HomeView: View {
                         Text("\(weather.cityName) \(weather.temperature)°C")
                             .font(.system(size: 15, weight: .medium))
                             .lineLimit(1)
-                            .minimumScaleFactor(0.75)
+                            .fixedSize(horizontal: true, vertical: false)
                             .foregroundColor(.white.opacity(0.95))
                     }
                 } else {
