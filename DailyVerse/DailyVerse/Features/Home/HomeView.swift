@@ -197,7 +197,9 @@ struct HomeView: View {
                     Button {
                         showWeatherDetail = true
                     } label: {
-                        Text("\(weather.cityName) \(weather.temperature)°C \(weather.conditionKo)")
+                        // 홈화면: 상위 지역만 (서울특별시) — 탭하면 상세시트에서 전체(수색동) 표시
+                        let shortCity = weather.cityName.components(separatedBy: " ").first ?? weather.cityName
+                        Text("\(shortCity) \(weather.temperature)°C \(weather.conditionKo)")
                             .font(.system(size: 15, weight: .medium))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)

@@ -13,21 +13,11 @@ struct SplashView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
+            // 앱 이름 + 슬로건 — splash1.jpeg에 로고 이미 포함되어 있어 AppLogo 중복 제거
             VStack(spacing: 0) {
                 Spacer()
+                Spacer()
 
-                // 앱 로고 — 아치형 네온 크로스 (투명 배경 PNG)
-                Image("AppLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .shadow(color: Color(hex: "#B7E3F6").opacity(0.6), radius: 32, x: 0, y: 0)
-                    .opacity(logoOpacity)
-                    .scaleEffect(logoScale)
-
-                Spacer().frame(height: 40)
-
-                // 앱 이름
                 Text("Morning Manna")
                     .font(.dvLargeTitle)
                     .foregroundColor(Color(hex: "#2E3656"))
@@ -35,22 +25,16 @@ struct SplashView: View {
 
                 Spacer().frame(height: 14)
 
-                // 슬로건
                 Text("크리스천을 위한 최고의 알람 앱")
                     .font(.dvSubtitle)
                     .foregroundColor(Color(hex: "#2E3656").opacity(0.65))
                     .opacity(textOpacity)
 
                 Spacer()
-                Spacer()
             }
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.45)) {
-                logoOpacity = 1.0
-                logoScale   = 1.0
-            }
-            withAnimation(.easeOut(duration: 0.45).delay(0.25)) {
+            withAnimation(.easeOut(duration: 0.5).delay(0.1)) {
                 textOpacity = 1.0
             }
         }

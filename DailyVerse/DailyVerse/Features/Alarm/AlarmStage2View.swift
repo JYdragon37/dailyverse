@@ -214,7 +214,7 @@ struct AlarmStage2View: View {
                     HStack(spacing: 5) {
                         Image(systemName: weatherIcon(w.condition))
                             .font(.system(size: 15))
-                        Text("\(w.cityName) \(w.temperature)°C")
+                        Text("\((w.cityName.components(separatedBy: " ").first ?? w.cityName)) \(w.temperature)°C")
                             .font(.system(size: 16, weight: .medium))
                     }
                     .foregroundColor(.white.opacity(0.95))
