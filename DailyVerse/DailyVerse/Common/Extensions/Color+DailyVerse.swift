@@ -1,136 +1,116 @@
 import SwiftUI
 
-// v5.1 — Calm 벤치마크 컬러 시스템
-// 레퍼런스: PRD v5.1 섹션 18 디자인 원칙
+// Morning Manna Design System — v1.0
+// 리브랜딩: DailyVerse 골드 시스템 → Morning Manna 새벽 파스텔 시스템
 
 extension Color {
 
-    // MARK: - Primary (딥 다크 배경)
+    // MARK: - 배경 계층 (Dark Charcoal)
 
-    /// 딥 네이비 #1A2340 — 카드 배경, 바텀시트
-    static let dvPrimaryDeep = Color(hex: "#1A2340")
-    /// 미드나이트 블루 #2C3E6B — 탭바, 네비게이션
-    static let dvPrimaryMid  = Color(hex: "#2C3E6B")
+    /// 앱 기본 배경 #15171C
+    static let dvBgDeep     = Color(hex: "#15171C")
+    /// 카드 서피스 #1C1F26
+    static let dvBgSurface  = Color(hex: "#1C1F26")
+    /// Elevated 서피스 (모달, 바텀시트) #252932
+    static let dvBgElevated = Color(hex: "#252932")
 
-    // MARK: - Accent
+    // MARK: - 액센트 (Dawn Pastel)
 
-    /// 앰버 골드 #C8972A — CTA 버튼, 성경 참조, 하이라이트
-    static let dvAccentGold  = Color(hex: "#C8972A")
-    /// 소프트 크림 #F5EDD8 — 보조 텍스트, 테마 칩 테두리
-    static let dvAccentSoft  = Color(hex: "#F5EDD8")
+    /// Sky Blue #B7E3F6 — 주요 하이라이트, 칩 선택 상태
+    static let dvAccentSky   = Color(hex: "#B7E3F6")
+    /// Blush Pink #F4C7D4 — 따뜻한 포인트
+    static let dvAccentBlush = Color(hex: "#F4C7D4")
+    /// Ivory Glow #F6F1E8 — 교차 중심 부드러운 빛
+    static let dvAccentIvory = Color(hex: "#F6F1E8")
+    /// Lilac Mist #CFC6F3 — 보조 미스트
+    static let dvAccentLilac = Color(hex: "#CFC6F3")
 
-    // MARK: - Text
+    /// CTA 그라데이션 시작 #9FDDF3
+    static let dvCtaStart = Color(hex: "#9FDDF3")
+    /// CTA 그라데이션 종료 #E8C3D3
+    static let dvCtaEnd   = Color(hex: "#E8C3D3")
 
-    /// 퓨어 화이트 — 말씀, 주요 텍스트
-    static let dvTextPrimary   = Color.white
-    /// 화이트 55% — 날짜, 보조 정보
-    static let dvTextSecondary = Color.white.opacity(0.55)
-    /// 화이트 35% — muted 텍스트
-    static let dvTextMuted     = Color.white.opacity(0.35)
+    // MARK: - 레거시 토큰명 유지 (값만 교체 — 기존 코드 무수정)
 
-    // MARK: - Surface (글래스모피즘)
+    /// 기존 dvAccentGold → Sky Blue로 교체
+    static let dvAccentGold  = dvAccentSky
+    static let dvGold        = dvAccentSky
+    static let dvAccentSoft  = dvAccentIvory
+    static let dvAccent      = dvAccentSky
+    static let dvVerseGold   = dvAccentSky
 
-    /// 카드/날씨 위젯 배경 — White 15% + blur
-    static let dvSurfaceGlass  = Color.white.opacity(0.15)
-    static let dvSurfaceBorder = Color.white.opacity(0.20)
+    // MARK: - 텍스트
 
-    // MARK: - Semantic
+    /// 본문 주요 텍스트 #F7F3EE
+    static let dvTextPrimary   = Color(hex: "#F7F3EE")
+    /// 보조 텍스트 #D8D1C8
+    static let dvTextSecondary = Color(hex: "#D8D1C8")
+    /// 비활성 / 캡션 #AAA39A
+    static let dvTextMuted     = Color(hex: "#AAA39A")
+    /// 힌트 텍스트
+    static let dvTextHint      = Color(hex: "#AAA39A")
 
-    static let dvSaved   = Color(hex: "#E86B7A")   // 저장 하트
-    static let dvOverlay = Color.black.opacity(0.40)
+    // MARK: - 저장 / 하트
 
-    // MARK: - 모드별 액센트 (아침)
+    /// 저장 하트 #E48A9A
+    static let dvSaved = Color(hex: "#E48A9A")
 
-    static let dvMorningGold  = Color(red: 0.961, green: 0.784, blue: 0.259)  // 황금빛 sunrise
-    static let dvMorningAmber = Color(red: 0.910, green: 0.576, blue: 0.290)
+    // MARK: - 서피스 / 보더
 
-    // MARK: - 모드별 액센트 (낮)
+    /// 구분선 / stroke — white 12%
+    static let dvBorderMid     = Color.white.opacity(0.12)
+    static let dvSurfaceGlass  = Color.white.opacity(0.10)
+    static let dvSurfaceBorder = Color.white.opacity(0.14)
+    static let dvOverlay       = Color.black.opacity(0.40)
+    static let dvLine          = Color(hex: "#FFFFFF").opacity(0.12)
 
-    static let dvNoonSky  = Color(red: 0.290, green: 0.565, blue: 0.851)      // 맑고 푸른 하늘
-    static let dvNoonTeal = Color(red: 0.231, green: 0.722, blue: 0.627)
+    // MARK: - 레거시 호환
 
-    // MARK: - 모드별 액센트 (저녁)
+    static let dvPrimaryDeep  = Color(hex: "#15171C")
+    static let dvPrimaryMid   = Color(hex: "#1C1F26")
+    static let dvPrimary      = Color.primary
+    static let dvBackground   = Color(UIColor.systemBackground)
+    static let dvSurface      = dvSurfaceGlass
+    static let dvCardFill     = dvSurfaceGlass
+    static let dvCardBorder   = dvSurfaceBorder
+    static let dvNight        = dvPrimaryDeep
+    static let dvDeepNavy     = dvPrimaryMid
+    static let dvDarkSlate    = Color(hex: "#252932")
+    static let dvTemperature  = dvAccentSky
+    static let dvSage         = Color(hex: "#7A9E87")
 
-    static let dvEveningPurple = Color(red: 0.482, green: 0.408, blue: 0.784) // 붉은 노을·보랏빛 황혼
-    static let dvEveningIndigo = Color(red: 0.290, green: 0.271, blue: 0.502)
+    // MARK: - Zone 액센트
 
-    // MARK: - 모드별 액센트 (새벽) v5.1 신규
+    static let dvDeepDarkAccent   = Color(hex: "#1A1F31")
+    static let dvFirstLightAccent = Color(hex: "#365B8A")
+    static let dvRechargeAccent   = Color(hex: "#56727D")
+    static let dvRechargeSoft     = Color(hex: "#274040")
+    static let dvSecondWindAccent = Color(hex: "#7A7F9A")
+    static let dvSecondWindSoft   = Color(hex: "#3A4251")
+    static let dvGoldenHourAccent = Color(hex: "#A9828F")
 
-    static let dvDawnIndigo = Color(red: 0.153, green: 0.165, blue: 0.380)    // 깊은 남색·별빛
-    static let dvDawnNavy   = Color(red: 0.102, green: 0.122, blue: 0.250)
+    // MARK: - Morning / Afternoon / Evening (레거시 호환)
 
-    // MARK: - 8 Zone 액센트 색상 (v6.0)
+    static let dvMorningGold        = dvAccentIvory
+    static let dvMorningAmber       = dvAccentBlush
+    static let dvNoonSky            = dvAccentSky
+    static let dvNoonTeal           = Color(hex: "#56727D")
+    static let dvEveningPurple      = dvAccentLilac
+    static let dvEveningIndigo      = Color(hex: "#2A3150")
+    static let dvDawnIndigo         = Color(hex: "#1A1F31")
+    static let dvDawnNavy           = Color(hex: "#171E33")
 
-    // Zone 1 — Deep Dark (00–03) 극야 보라
-    static let dvDeepDarkAccent  = Color(hex: "#3D2B6B")  // 딥 퍼플
+    // MARK: - 그라데이션 토큰 (레거시 호환)
 
-    // Zone 2 — First Light (03–06) 새벽 블루
-    static let dvFirstLightAccent = Color(hex: "#2A4A8A")  // 스틸 블루
-
-    // Zone 5 — Recharge (12–15) 민트 그린
-    static let dvRechargeAccent  = Color(hex: "#2A8A7A")  // 틸 그린
-    static let dvRechargeSoft    = Color(hex: "#1A5A50")  // 다크 틸
-
-    // Zone 6 — Second Wind (15–18) 황금빛 황혼 전
-    static let dvSecondWindAccent = Color(hex: "#8A7A2A")  // 다크 골드
-    static let dvSecondWindSoft   = Color(hex: "#5A4A10")  // 어두운 황금
-
-    // Zone 7 — Golden Hour (18–21) 앰버 골드
-    static let dvGoldenHourAccent = Color(hex: "#C87020")  // 버닝 오렌지
-
-    // MARK: - Design System v3.0 (경건하고 신비로운 분위기)
-
-    /// 딥 다크 배경 #090D18
-    static let dvBgDeep     = Color(hex: "#090D18")
-    /// 카드 서피스 #0F1420
-    static let dvBgSurface  = Color(hex: "#0F1420")
-    /// Elevated 서피스 #1C2333
-    static let dvBgElevated = Color(hex: "#1C2333")
-    /// dvAccentGold와 통일
-    static let dvGold       = dvAccentGold
-    /// 세이지 그린 #7A9E87
-    static let dvSage       = Color(hex: "#7A9E87")
-    /// 힌트 텍스트 — white 30%
-    static let dvTextHint   = Color.white.opacity(0.30)
-    /// 미드 보더 — white 14%
-    static let dvBorderMid  = Color.white.opacity(0.14)
-
-    // MARK: - 시간대 그라데이션 색상 (v3.0)
-
-    /// 아침 그라데이션 시작 — 딥 퍼플
-    static let dvMorningGradStart = Color(hex: "#1A0E2E")
-    /// 아침 그라데이션 중간 — 퍼플
-    static let dvMorningGradMid   = Color(hex: "#3D1F5A")
-    /// 아침 그라데이션 끝 — 코랄
-    static let dvMorningGradEnd   = Color(hex: "#C9704A")
-
-    /// 오후 그라데이션 시작 — 딥 네이비
-    static let dvAfternoonGradStart = Color(hex: "#0D1B2A")
-    /// 오후 그라데이션 중간 — 네이비 블루
-    static let dvAfternoonGradMid   = Color(hex: "#1B3A5C")
-    /// 오후 그라데이션 끝 — 스틸 블루
-    static let dvAfternoonGradEnd   = Color(hex: "#2E7DAA")
-
-    /// 저녁 그라데이션 시작 — 거의 검정
-    static let dvEveningGradStart = Color(hex: "#06080F")
-    /// 저녁 그라데이션 중간 — 딥 인디고
-    static let dvEveningGradMid   = Color(hex: "#0D1533")
-    /// 저녁 그라데이션 끝 — 인디고 블루
-    static let dvEveningGradEnd   = Color(hex: "#1A2460")
-
-    // MARK: - 기존 레거시 호환 (참조 코드가 있을 경우 오류 방지)
-
-    static let dvPrimary    = Color.primary
-    static let dvAccent     = dvAccentGold
-    static let dvBackground = Color(UIColor.systemBackground)
-    static let dvSurface    = dvSurfaceGlass
-    static let dvTemperature = dvNoonSky
-    static let dvVerseGold  = dvAccentGold
-    static let dvCardFill   = dvSurfaceGlass
-    static let dvCardBorder = dvSurfaceBorder
-    static let dvNight      = dvPrimaryDeep
-    static let dvDeepNavy   = dvPrimaryMid
-    static let dvDarkSlate  = Color(red: 0.145, green: 0.169, blue: 0.251)
+    static let dvMorningGradStart   = Color(hex: "#2E3656")
+    static let dvMorningGradMid     = Color(hex: "#8DB8DA")
+    static let dvMorningGradEnd     = Color(hex: "#E8C8D2")
+    static let dvAfternoonGradStart = Color(hex: "#243246")
+    static let dvAfternoonGradMid   = Color(hex: "#4D6A8F")
+    static let dvAfternoonGradEnd   = Color(hex: "#4D6A8F")
+    static let dvEveningGradStart   = Color(hex: "#161923")
+    static let dvEveningGradMid     = Color(hex: "#2A3150")
+    static let dvEveningGradEnd     = Color(hex: "#2A3150")
 }
 
 // MARK: - Hex 초기화 헬퍼
