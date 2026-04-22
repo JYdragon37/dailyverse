@@ -160,21 +160,21 @@ enum AppMode: String, CaseIterable {
     var gradientColors: [Color] {
         switch self {
         case .deepDark:
-            return [Color(hex: "#030308"), Color(hex: "#0A0820")]
+            return [Color(hex: "#11131A"), Color(hex: "#1A1F31")]
         case .firstLight:
-            return [Color(hex: "#0A1025"), Color(hex: "#1E3A6E")]
+            return [Color(hex: "#171E33"), Color(hex: "#365B8A")]
         case .riseIgnite:
-            return [Color.dvMorningGradStart, Color.dvMorningGradMid]
+            return [Color(hex: "#2E3656"), Color(hex: "#8DB8DA"), Color(hex: "#E8C8D2")]
         case .peakMode:
-            return [Color.dvAfternoonGradStart, Color.dvAfternoonGradMid]
+            return [Color(hex: "#243246"), Color(hex: "#4D6A8F")]
         case .recharge:
-            return [Color(hex: "#0D2020"), Color(hex: "#1A4A40")]
+            return [Color(hex: "#274040"), Color(hex: "#56727D")]
         case .secondWind:
-            return [Color(hex: "#1A1508"), Color(hex: "#3A3010")]
+            return [Color(hex: "#3A4251"), Color(hex: "#7A7F9A")]
         case .goldenHour:
-            return [Color(hex: "#1A0A02"), Color(hex: "#3A1808")]
+            return [Color(hex: "#47364B"), Color(hex: "#A9828F")]
         case .windDown:
-            return [Color.dvEveningGradStart, Color.dvEveningGradMid]
+            return [Color(hex: "#161923"), Color(hex: "#2A3150")]
         }
     }
 
