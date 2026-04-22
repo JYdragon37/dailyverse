@@ -391,9 +391,9 @@ final class AlarmBackgroundService {
     }
 
     /// 알람 추가·수정·삭제 후 타이머 재갱신
-    /// iOS 26+: AlarmKit이 모든 알람 처리 → 타이머 불필요 (완전 차단)
+    /// iOS 26+: 포그라운드 Stage2 트리거용 타이머 유지 (음향은 AlarmKit 담당)
+    /// iOS 15-25: 음향 + UI 모두 타이머로 처리
     func rescheduleTimers() {
-        if #available(iOS 26.0, *) { return }
         cancelAllTimers()
         let alarms = AlarmRepository().fetchAll().filter { $0.isEnabled }
         for alarm in alarms {
@@ -453,11 +453,34 @@ final class AlarmBackgroundService {
         alarmTimers.removeAll()
     }
 
-    // MARK: - Alarm Fire (백그라운드에서 알람 발동)
+    // MARK: - Alarm Fire
 
     private func fireAlarm(_ alarm: Alarm) {
         bgLog.info("🔔 [BgService] fireAlarm() 호출 — alarmId: \(alarm.id), appState: \(UIApplication.shared.applicationState.rawValue)")
 
+        if #available(iOS 26.0, *) {
+            // iOS 26+: AlarmKit이 음향 담당 → 앱은 포그라운드 UI(Stage2)만 트리거
+            // 타이머는 RunLoop.main에서 동작 → 앱이 포그라운드일 때만 발동 (백그라운드 시 AlarmKit 처리)
+            let verse = resolveVerse(for: alarm)
+            bgLog.info("📤 [BgService] iOS26 포그라운드 Stage2 트리거 — verseId: \(verse.id)")
+            NotificationCenter.default.post(
+                name: .dvAlarmTriggered,
+                object: nil,
+                userInfo: [
+                    "alarm_id":       alarm.id.uuidString,
+                    "verse_id":       verse.id,
+                    "mode":           AppMode.fromTime(alarm.time).rawValue,
+                    "alarmkit_stop":  true   // Stage2 직행, 앱 음향 없음
+                ]
+            )
+            // 반복 알람 재스케줄
+            alarmTimers[alarm.id]?.forEach { $0.invalidate() }
+            alarmTimers[alarm.id] = nil
+            if !alarm.repeatDays.isEmpty { scheduleTimers(for: alarm) }
+            return
+        }
+
+        // iOS 15-25: 음향 + UI 모두 앱이 처리
         // 1. 알람 사운드 즉시 재생
         LegacyAlarmEngine.startAudio(soundId: alarm.soundId, volume: alarm.volume)
         if alarm.alertStyle == "soundAndVibration" || alarm.alertStyle == "vibration" {
@@ -481,7 +504,6 @@ final class AlarmBackgroundService {
             ]
         )
         bgLog.info("📤 [BgService] dvAlarmTriggered 포스팅 완료")
-        // scene activation은 AlarmCoordinator.handleNotification() 내 requestForegroundActivation()에서 처리
 
         // 4. 반복 알람 재스케줄
         alarmTimers[alarm.id]?.forEach { $0.invalidate() }

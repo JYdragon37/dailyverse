@@ -102,10 +102,17 @@ struct DailyVerseApp: App {
                             }
                         }
                     }
-                    // 백그라운드 알람 서비스 — iOS 26 AlarmKit 미지원 기기만 활성화
-                    // iOS 26+: AlarmKit이 시스템 레벨에서 알람 처리 → BackgroundService 불필요
+                    // 알람 서비스 scenePhase 관리
+                    // iOS 26+: 음향/잠금화면은 AlarmKit 담당, 타이머는 포그라운드 Stage2 트리거용 유지
+                    // iOS 15-25: BackgroundService 전체 동작 (무음루프 + 타이머)
                     .onChange(of: scenePhase) { phase in
-                        if #available(iOS 26.0, *) { return }  // AlarmKit 사용 기기는 스킵
+                        if #available(iOS 26.0, *) {
+                            // iOS 26: 앱 활성화 시 타이머만 재갱신 (무음루프 없음)
+                            if phase == .active {
+                                AlarmBackgroundService.shared.rescheduleTimers()
+                            }
+                            return
+                        }
                         switch phase {
                         case .background:
                             AlarmBackgroundService.shared.start()
