@@ -111,7 +111,7 @@ struct DevotionVerseView: View {
         VStack(alignment: .leading, spacing: 10) {
             verseSectionHeader("✏️ 말씀 읽기")
 
-            let readingTarget = verse?.contemplationKo ?? verse?.verseShortKo ?? ""
+            let readingTarget = verse?.verseFullKo ?? verse?.verseShortKo ?? ""  // 개역한글 원문 통일
             if !readingTarget.isEmpty {
                 VStack(alignment: .trailing, spacing: 12) {
                     Text(readingTarget)
