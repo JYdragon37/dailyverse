@@ -35,6 +35,55 @@ final class NotificationManager: NSObject {
         let av = DailyVerseAlarm(alarm: alarm, verse: verse)
         Task {
             try? await engine.schedule(alarm: av)
+            // iOS 26+: AlarmKit은 잠금화면만 담당 → 포그라운드 감지용 UNCalendarNotificationTrigger 병행 등록
+            // willPresent가 포그라운드에서 dvAlarmTriggered를 포스팅해 Stage2를 즉시 표시
+            if #available(iOS 26.0, *) {
+                scheduleForegroundTrigger(alarm, verse: verse)
+            }
+        }
+    }
+
+    /// iOS 26 포그라운드 전용 UNCalendarNotificationTrigger
+    /// - 소리 없음 (AlarmKit이 담당)
+    /// - willPresent 호출 → dvAlarmTriggered(alarmkit_stop: true) → Stage2
+    @available(iOS 26.0, *)
+    private func scheduleForegroundTrigger(_ alarm: Alarm, verse: Verse) {
+        let content = UNMutableNotificationContent()
+        content.title = "Morning Manna"
+        content.interruptionLevel = .timeSensitive
+        content.sound = nil  // AlarmKit이 음향 담당, 배너 없이 willPresent만 트리거
+        content.userInfo = [
+            "alarm_id":      alarm.id.uuidString,
+            "verse_id":      verse.id,
+            "mode":          AppMode.fromTime(alarm.time).rawValue,
+            "alarmkit_stop": true   // handleAlarmKitStop → Stage2 직행
+        ]
+
+        let cal = Calendar.current
+        let hm  = cal.dateComponents([.hour, .minute], from: alarm.time)
+        let center = UNUserNotificationCenter.current()
+
+        if alarm.repeatDays.isEmpty {
+            // 일회성
+            var dc = hm
+            dc.second = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
+            let req = UNNotificationRequest(
+                identifier: "\(alarm.id.uuidString)_fg",
+                content: content, trigger: trigger)
+            center.add(req)
+        } else {
+            // 요일 반복
+            for day in alarm.repeatDays {
+                var dc = hm
+                dc.second = 0
+                dc.weekday = day + 1  // 0=일 → weekday 1
+                let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
+                let req = UNNotificationRequest(
+                    identifier: "\(alarm.id.uuidString)_fg_\(day)",
+                    content: content, trigger: trigger)
+                center.add(req)
+            }
         }
     }
 
