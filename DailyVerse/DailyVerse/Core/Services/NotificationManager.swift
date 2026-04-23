@@ -52,11 +52,15 @@ final class NotificationManager: NSObject {
         content.title = "Morning Manna"
         content.interruptionLevel = .timeSensitive
         content.sound = nil  // AlarmKit이 음향 담당, 배너 없이 willPresent만 트리거
+        // alarmkit_stop 없음 → handleNotification → Stage1(전체화면 알람)
+        // alert_style: silent → LegacyEngine 음향 없음 (AlarmKit이 담당)
         content.userInfo = [
             "alarm_id":      alarm.id.uuidString,
             "verse_id":      verse.id,
             "mode":          AppMode.fromTime(alarm.time).rawValue,
-            "alarmkit_stop": true   // handleAlarmKitStop → Stage2 직행
+            "alert_style":   "silent",
+            "sound_id":      alarm.soundId,
+            "volume":        alarm.volume as NSNumber
         ]
 
         let cal = Calendar.current

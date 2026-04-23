@@ -293,6 +293,9 @@ final class AlarmCoordinator: ObservableObject {
 
     /// Stage 1 진입 시 alertStyle에 따라 소리/진동 시작
     private func startAlarmFeedback() {
+        // iOS 26+: AlarmKit이 시스템 레벨 음향 담당 → 앱 음향 중복 시작 안 함
+        if #available(iOS 26.0, *) { return }
+
         switch activeAlertStyle {
         case "vibration":
             notificationManager.startAlarmAudio(soundId: "vibration", volume: 0)
