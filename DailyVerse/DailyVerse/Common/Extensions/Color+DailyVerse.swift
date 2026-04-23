@@ -5,6 +5,16 @@ import SwiftUI
 
 extension Color {
 
+    // MARK: - 스플래시 그라데이션 토큰 (재사용 가능)
+    // 파스텔 블루 → 라벤더 → 소프트 핑크/피치
+
+    /// 스플래시 최상단 — 차가운 스카이 블루
+    static let mmSplashTop    = Color(hex: "#8FC7ED")
+    /// 스플래시 중간 — 소프트 라벤더 (블루→핑크 전환점)
+    static let mmSplashMid    = Color(hex: "#CBBEDD")
+    /// 스플래시 하단 — 따뜻한 피치/핑크
+    static let mmSplashBottom = Color(hex: "#FADAD7")
+
     // MARK: - 배경 계층 (Dark Charcoal)
 
     /// 앱 기본 배경 #15171C
