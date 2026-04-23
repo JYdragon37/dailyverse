@@ -67,6 +67,36 @@ enum AppMode: String, CaseIterable {
         }
     }
 
+    // MARK: - 알람 전용 인사말 (일어날 시간 뉘앙스)
+
+    /// 알람 화면 전용 한국어 인사말 — Firestore alarm_greetings 폴백
+    var alarmGreetingKr: String {
+        switch self {
+        case .deepDark:   return "이 시간에 일어나셨군요."
+        case .firstLight: return "일어날 시간이에요."
+        case .riseIgnite: return "좋은 아침이에요, 일어날 시간이에요!"
+        case .peakMode:   return "오전 알람이에요, 일어나세요!"
+        case .recharge:   return "점심 알람이에요."
+        case .secondWind: return "오후 알람이에요."
+        case .goldenHour: return "저녁 알람이에요."
+        case .windDown:   return "밤 알람이에요."
+        }
+    }
+
+    /// 알람 화면 전용 영어 인사말
+    var alarmGreetingEn: String {
+        switch self {
+        case .deepDark:   return "Time to wake up."
+        case .firstLight: return "Rise and shine!"
+        case .riseIgnite: return "Good morning! Time to rise!"
+        case .peakMode:   return "Wake up, it's morning!"
+        case .recharge:   return "Midday alarm!"
+        case .secondWind: return "Afternoon alarm!"
+        case .goldenHour: return "Evening alarm!"
+        case .windDown:   return "Night alarm!"
+        }
+    }
+
     // MARK: - 아이콘
 
     var greetingIcon: String {

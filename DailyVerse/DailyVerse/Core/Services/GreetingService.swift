@@ -33,11 +33,13 @@ class GreetingService: ObservableObject {
     // MARK: - Published
 
     @Published var currentGreeting: String = ""
+    @Published var currentAlarmGreeting: String = ""
 
     // MARK: - Private
 
     /// 캐시 key: "{zone_id}_{resolved_lang}" 예: "deep_dark_ko"
     private var cache: [String: String] = [:]
+    private var alarmCache: [String: String] = [:]
     private let db = Firestore.firestore()
 
     // MARK: - Public
@@ -84,6 +86,46 @@ class GreetingService: ObservableObject {
         }
     }
 
+    /// 알람 화면 전용 인사말 로드 — alarm_greetings 컬렉션 (폴백: AppMode.alarmGreetingKr/En)
+    func loadAlarmGreeting(for mode: AppMode, language: GreetingLanguage) async {
+        let resolvedLang = language.resolved()
+        let cacheKey = "alarm_\(mode.rawValue)_\(resolvedLang)"
+
+        if let cached = alarmCache[cacheKey] {
+            currentAlarmGreeting = cached
+            return
+        }
+
+        do {
+            let snapshot = try await db.collection("alarm_greetings")
+                .whereField("zone_id", isEqualTo: mode.rawValue)
+                .whereField("language", isEqualTo: resolvedLang)
+                .getDocuments()
+
+            let greetings = snapshot.documents.compactMap { doc -> Greeting? in
+                let data = doc.data()
+                guard
+                    let id        = data["gr_id"]      as? String,
+                    let zoneId    = data["zone_id"]    as? String,
+                    let lang      = data["language"]   as? String,
+                    let text      = data["text"]       as? String,
+                    let charCount = data["char_count"] as? Int
+                else { return nil }
+                return Greeting(id: id, zoneId: zoneId, language: lang,
+                                text: text, charCount: charCount)
+            }
+
+            if let picked = greetings.randomElement() {
+                alarmCache[cacheKey] = picked.text
+                currentAlarmGreeting = picked.text
+            } else {
+                useAlarmFallback(mode: mode, lang: resolvedLang)
+            }
+        } catch {
+            useAlarmFallback(mode: mode, lang: resolvedLang)
+        }
+    }
+
     /// Zone 전환 시 해당 Zone 캐시 무효화 (다음 진입 시 새 greeting 선택)
     func invalidate(for mode: AppMode) {
         cache.removeValue(forKey: "\(mode.rawValue)_ko")
@@ -101,5 +143,9 @@ class GreetingService: ObservableObject {
     private func useFallback(mode: AppMode, lang: String) {
         // Plan SC: Firestore 실패 시 하드코딩 폴백으로 정상 표시
         currentGreeting = lang == "ko" ? mode.greetingKr : mode.greeting
+    }
+
+    private func useAlarmFallback(mode: AppMode, lang: String) {
+        currentAlarmGreeting = lang == "ko" ? mode.alarmGreetingKr : mode.alarmGreetingEn
     }
 }

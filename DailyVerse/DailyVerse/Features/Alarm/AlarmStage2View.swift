@@ -18,29 +18,28 @@ struct AlarmStage2View: View {
     // 알람 발동 시간 기준 zone (현재 시간 아님)
     private var alarmMode: AppMode { coordinator.activeMode }
 
-    private var todayString: String {
+    /// 날짜만 (M월 d일 EEE) — HomeView와 동일 분리 구조
+    private var alarmDateString: String {
         let isKorean = greetingLanguagePref == "ko"
         let df = DateFormatter()
-        if isKorean {
-            df.locale = Locale(identifier: "ko_KR")
-            df.dateFormat = "M월 d일 EEE"
-        } else {
-            df.locale = Locale(identifier: "en_US")
-            df.dateFormat = "MMM d, EEE"
-        }
-        let dateStr = df.string(from: Date())
+        df.locale = Locale(identifier: isKorean ? "ko_KR" : "en_US")
+        df.dateFormat = isKorean ? "M월 d일 EEE" : "MMM d, EEE"
+        return df.string(from: Date())
+    }
+
+    /// 시간만 (h:mm a)
+    private var alarmTimeString: String {
         let tf = DateFormatter()
         tf.locale = Locale(identifier: "en_US_POSIX")
         tf.dateFormat = "h:mm a"
-        return "\(dateStr)  \(tf.string(from: Date()))"
+        return tf.string(from: Date())
     }
 
-    /// greeting + 닉네임 조합 — greeting이 구두점으로 끝나면 쉼표 없이 공백만 추가
-    /// Design Ref: §7-2 — greetingService 우선, 비어있으면 AppMode 폴백
+    /// 알람 전용 인사말 + 닉네임 — alarm_greetings 컬렉션 우선, 없으면 AppMode.alarmGreeting 폴백
     private var greetingText: String {
-        let g = greetingService.currentGreeting.isEmpty
-            ? alarmMode.greeting
-            : greetingService.currentGreeting
+        let g = greetingService.currentAlarmGreeting.isEmpty
+            ? (greetingLanguagePref == "ko" ? alarmMode.alarmGreetingKr : alarmMode.alarmGreetingEn)
+            : greetingService.currentAlarmGreeting
         let name = nicknameManager.nickname
         let lastChar = g.last
         if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
@@ -82,9 +81,9 @@ struct AlarmStage2View: View {
                 if !isVisible { isVisible = true }
             }
             .task {
-                // Design Ref: §7-2 — Zone 진입 시 greeting 로드
                 let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
-                await greetingService.load(for: alarmMode, language: lang)
+                // 알람 전용 인사말 로드 (alarm_greetings 컬렉션)
+                await greetingService.loadAlarmGreeting(for: alarmMode, language: lang)
             }
             .onAppear {
                 // coordinator.activeVerse 우선 사용 — 홈화면과 동일 verse 보장
@@ -200,14 +199,18 @@ struct AlarmStage2View: View {
                     .lineLimit(2)
             }
 
-            // 2행: 날짜 · 날씨 인라인 (아이콘 너비 들여쓰기 맞춤)
-            HStack(spacing: 8) {
+            // 2행: 날짜/시간 VStack + 날씨 — HomeView와 동일 구조
+            HStack(alignment: .center, spacing: 8) {
                 Color.clear.frame(width: 34, height: 1) // 아이콘+spacing 들여쓰기
 
-                Text(todayString)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.85))
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(alarmDateString)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                    Text(alarmTimeString)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                }
 
                 if let w = coordinator.activeWeather {
                     Text("·").foregroundColor(.white.opacity(0.4))
@@ -261,7 +264,7 @@ struct AlarmStage2View: View {
 
     private var actionBar: some View {
         HStack(spacing: 12) {
-            // 말씀 더보기 버튼 — 해석 + 일상 적용 바텀시트
+            // 말씀 더보기 버튼 (유연 너비, 우선순위 낮음)
             Button { showVerseDetail = true } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "book.pages")
@@ -283,23 +286,31 @@ struct AlarmStage2View: View {
                 .foregroundColor(.white)
             }
             .accessibilityLabel("말씀 해석과 일상 적용 보기")
+            .layoutPriority(0)
 
-            // 알람 종료 — 사운드 중지 + Stage2 닫기
+            // 정지 버튼 — 말씀더보기와 동일한 높이, 더 넓은 너비
             Button { coordinator.dismissAll() } label: {
-                Image(systemName: "stop.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(Color.white.opacity(0.10))
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                            )
-                    )
-                    .foregroundColor(.white.opacity(0.7))
+                HStack(spacing: 6) {
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                    Text("정지")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .frame(minWidth: 100)
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                        )
+                )
+                .foregroundColor(.white.opacity(0.9))
             }
-            .accessibilityLabel("닫기")
+            .accessibilityLabel("알람 정지")
+            .layoutPriority(1)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
