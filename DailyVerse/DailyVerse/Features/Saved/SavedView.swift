@@ -163,10 +163,16 @@ struct SavedView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "heart.text.square.fill")
-                .font(.system(size: 52))
-                .foregroundColor(.dvAccentGold.opacity(0.85))
-                .padding(.bottom, 20)
+            // mm 브랜드 로고
+            Text("mm")
+                .font(.custom("DancingScript-Regular", size: 72).weight(.bold))
+                .foregroundColor(.dvAccentGold.opacity(0.75))
+                .padding(.bottom, 4)
+
+            Text("morning manna")
+                .font(.custom("DancingScript-Regular", size: 16))
+                .foregroundColor(.white.opacity(0.35))
+                .padding(.bottom, 28)
 
             Text("저장한 말씀이 여기에 모여요")
                 .font(.dvTitle)
@@ -202,21 +208,36 @@ struct SavedView: View {
     }
 
     private var emptyStateNoSaves: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
-            Image(systemName: "heart.fill")
-                .font(.system(size: 56))
-                .foregroundColor(.dvAccentGold)
+
+            // mm 브랜드 로고
+            Text("mm")
+                .font(.custom("DancingScript-Regular", size: 72).weight(.bold))
+                .foregroundColor(.dvAccentGold.opacity(0.75))
+                .padding(.bottom, 4)
+
+            Text("morning manna")
+                .font(.custom("DancingScript-Regular", size: 16))
+                .foregroundColor(.white.opacity(0.35))
+                .padding(.bottom, 28)
+
             Text("아직 저장된 말씀이 없어요")
-                .font(.dvTitle).multilineTextAlignment(.center)
+                .font(.dvTitle)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            Text("말씀 카드의 하트를 눌러 저장해보세요")
+                .padding(.bottom, 8)
+
+            Text("말씀 카드의 ♥ 를 눌러 저장해보세요")
                 .font(.dvBody).foregroundColor(.secondary)
                 .multilineTextAlignment(.center).padding(.horizontal, 32)
+                .padding(.bottom, 32)
+
             Button("홈으로 가기") {
                 NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
             }
             .buttonStyle(.bordered)
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
