@@ -405,6 +405,10 @@ private struct DiarySnapshotView: View {
 
     private let pageWidth: CGFloat = 390
 
+    private func diaryFont(size: CGFloat) -> Font {
+        Font.custom("NanumPenScript-Regular", size: size)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
