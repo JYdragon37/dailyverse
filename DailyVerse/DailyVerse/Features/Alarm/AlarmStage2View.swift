@@ -187,7 +187,7 @@ struct AlarmStage2View: View {
     private var greetingHeader: some View {
         HStack(alignment: .top, spacing: 14) {
             // 좌측: mm 브랜드 로고 이미지
-            Image("LogoMMWhite")
+            Image("LogoMMColor")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 48)

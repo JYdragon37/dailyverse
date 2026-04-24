@@ -145,7 +145,7 @@ struct SavedView: View {
                 .padding(.top, 8)
 
                 // 브랜드 footer — 데이터 있을 때도 항상 표시
-                Image("LogoMMWhite")
+                Image("LogoMMColor")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 72)
@@ -339,7 +339,7 @@ private struct SavedCardView: View {
                         Spacer()
                         HStack {
                             Spacer()
-                            Image("LogoMMWhite")
+                            Image("LogoMMColor")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 28)

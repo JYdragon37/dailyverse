@@ -71,7 +71,7 @@ struct HomeView: View {
             }
             // 브랜드 워터마크 — 배경 하단 중앙
             .overlay(alignment: .bottom) {
-                Image("LogoMMWhite")
+                Image("LogoMMColor")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 80)

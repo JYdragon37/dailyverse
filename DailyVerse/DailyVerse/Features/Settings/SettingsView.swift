@@ -74,7 +74,7 @@ struct SettingsView: View {
                     #endif
 
                     // 브랜드 footer (설정 탭 최하단)
-                    Image("LogoMMWhite")
+                    Image("LogoMMColor")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 64)
