@@ -492,18 +492,18 @@ private struct DiarySnapshotView: View {
     }
 
     private func snapSection(icon: String, label: String, body: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Text(icon).font(.system(size: 13))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Text(icon).font(.system(size: 18))
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(goldColor)
                     .tracking(0.8)
             }
             Text(body)
-                .font(diaryFont(size: 20))
+                .font(diaryFont(size: 24))
                 .foregroundColor(inkColor)
-                .lineSpacing(9)
+                .lineSpacing(10)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -512,23 +512,23 @@ private struct DiarySnapshotView: View {
     }
 
     private var snapGratitude: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Text("🌿").font(.system(size: 13))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Text("🌿").font(.system(size: 18))
                 Text("감사한 것")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(goldColor)
                     .tracking(0.8)
             }
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 ForEach(Array(entry.prayerItems.enumerated()), id: \.1.id) { idx, item in
                     HStack(alignment: .top, spacing: 10) {
                         Text("\(idx + 1).")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(goldColor)
-                            .frame(width: 18)
+                            .frame(width: 22)
                         Text(item.text)
-                            .font(diaryFont(size: 20))
+                            .font(diaryFont(size: 24))
                             .foregroundColor(inkColor)
                             .fixedSize(horizontal: false, vertical: true)
                     }

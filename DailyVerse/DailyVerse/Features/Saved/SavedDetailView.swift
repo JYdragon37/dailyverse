@@ -449,6 +449,15 @@ struct SavedDetailView: View {
             NSAttributedString(string: reference, attributes: refAttr)
                 .draw(with: CGRect(x: hPad, y: refY, width: maxW, height: size.width * 0.12),
                       options: .usesLineFragmentOrigin, context: nil)
+
+            // 5. mm 브랜드 로고 (좌하단)
+            if let logo = UIImage(named: "LogoMMColor") {
+                let logoSize = size.width * 0.12
+                let logoX = hPad
+                let logoY = size.height - logoSize - size.width * 0.08
+                logo.draw(in: CGRect(x: logoX, y: logoY, width: logoSize, height: logoSize),
+                          blendMode: .normal, alpha: 0.75)
+            }
         }
     }
 
