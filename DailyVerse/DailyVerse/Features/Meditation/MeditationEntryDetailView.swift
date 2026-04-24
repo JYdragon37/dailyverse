@@ -226,7 +226,7 @@ struct MeditationEntryDetailView: View {
     private var verseSection: some View {
         VStack(spacing: 14) {
             Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "말씀을 불러오는 중이에요")
-                .font(diaryFont(size: 20))
+                .font(.system(size: 18, weight: .regular, design: .serif))
                 .italic()
                 .foregroundColor(inkColor.opacity(0.85))
                 .multilineTextAlignment(.center)
@@ -434,7 +434,7 @@ private struct DiarySnapshotView: View {
             // 말씀
             VStack(spacing: 14) {
                 Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "")
-                    .font(diaryFont(size: 20))
+                    .font(.system(size: 18, weight: .regular, design: .serif))
                     .italic()
                     .foregroundColor(inkColor.opacity(0.85))
                     .multilineTextAlignment(.center)
