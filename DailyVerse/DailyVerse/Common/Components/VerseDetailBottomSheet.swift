@@ -29,29 +29,29 @@ struct VerseDetailBottomSheet: View {
                     Spacer(minLength: 12)
 
                     // 1. 해석
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Label("해석", systemImage: "text.magnifyingglass")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.dvAccentGold)
 
                         Text(verse.contemplationInterpretation ?? verse.interpretation)
                             .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(4)
+                            .lineSpacing(5)
                     }
 
-                    Divider().padding(.vertical, 2)
+                    Divider().padding(.vertical, 4)
 
                     // 2. 일상 적용 (닉네임 포함)
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Label("오늘의 적용", systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.dvAccentGold)
 
                         Text(applicationWithNickname)
-                            .font(.system(size: 19, weight: .regular))
-                            .foregroundColor(.primary)
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(5)
                     }

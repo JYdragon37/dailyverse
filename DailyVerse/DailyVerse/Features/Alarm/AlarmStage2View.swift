@@ -190,7 +190,7 @@ struct AlarmStage2View: View {
             Image("LogoMMColor")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 48)
+                .frame(width: 64)
                 .opacity(0.90)
                 .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
                 .padding(.leading, 4)

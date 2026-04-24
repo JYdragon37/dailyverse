@@ -13,6 +13,7 @@ struct SavedDetailView: View {
     @State private var loadedVerse: Verse? = nil
     @State private var isSavingImage = false
     @State private var imageSaveMessage: String? = nil
+    @State private var isGeneratingShare = false
 
     // MARK: - Computed Properties
 
@@ -86,12 +87,70 @@ struct SavedDetailView: View {
     private var shareText: String {
         var parts = [String]()
         parts.append("\"\(verseText)\"")
-        if !verseReference.isEmpty {
-            parts.append(verseReference)
-        }
-        parts.append("")
-        parts.append("morning manna")
+        if !verseReference.isEmpty { parts.append(verseReference) }
+        parts.append(""); parts.append("morning manna")
         return parts.joined(separator: "\n")
+    }
+
+    private func handleShare() {
+        isGeneratingShare = true
+        let text = verseText
+        let ref  = verseReference
+        Task {
+            var shareImage: UIImage?
+
+            // 배경 이미지가 있으면 합성, 없으면 그라데이션 카드
+            if let urlStr = savedVerse.imageUrl, let url = URL(string: urlStr),
+               let (data, _) = try? await URLSession.shared.data(from: url),
+               let bgImage = UIImage(data: data) {
+                shareImage = compositeVerseImage(background: bgImage, verseText: text, reference: ref)
+            } else {
+                // 그라데이션 폴백 카드
+                let size = CGSize(width: 1170, height: 2080)
+                let format = UIGraphicsImageRendererFormat(); format.scale = 1
+                shareImage = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+                    // 배경 그라데이션
+                    let colors = [UIColor(red: 0.05, green: 0.07, blue: 0.13, alpha: 1),
+                                  UIColor(red: 0.10, green: 0.14, blue: 0.24, alpha: 1)]
+                    let gradient = CGGradient(
+                        colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                        colors: colors.map(\.cgColor) as CFArray,
+                        locations: [0, 1])!
+                    ctx.cgContext.drawLinearGradient(gradient,
+                        start: .zero, end: CGPoint(x: 0, y: size.height), options: [])
+                    // 텍스트
+                    let para = NSMutableParagraphStyle(); para.alignment = .left; para.lineSpacing = 12
+                    let attrs: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 52, weight: .semibold),
+                        .foregroundColor: UIColor.white,
+                        .paragraphStyle: para
+                    ]
+                    let hPad: CGFloat = 80
+                    NSAttributedString(string: text, attributes: attrs)
+                        .draw(in: CGRect(x: hPad, y: size.height * 0.38, width: size.width - hPad*2, height: size.height * 0.4))
+                    let refAttrs: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 36, weight: .medium),
+                        .foregroundColor: UIColor.white.withAlphaComponent(0.75)
+                    ]
+                    NSAttributedString(string: ref, attributes: refAttrs)
+                        .draw(at: CGPoint(x: hPad, y: size.height * 0.72))
+                }
+            }
+
+            await MainActor.run {
+                if let image = shareImage {
+                    let av = UIActivityViewController(
+                        activityItems: [image],
+                        applicationActivities: nil
+                    )
+                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let root = scene.windows.first?.rootViewController {
+                        root.present(av, animated: true)
+                    }
+                }
+                isGeneratingShare = false
+            }
+        }
     }
 
     // MARK: - Verse Detail Sheet
@@ -106,10 +165,10 @@ struct SavedDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("오늘의 적용", systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.dvAccentGold)
                         Text(application)
-                            .font(.system(size: 19, weight: .regular))
-                            .foregroundColor(.primary)
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(5)
                     }
@@ -124,10 +183,10 @@ struct SavedDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("해석", systemImage: "text.magnifyingglass")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.dvAccentGold)
                         Text(interpretation)
                             .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(4)
                     }
@@ -188,6 +247,17 @@ struct SavedDetailView: View {
             .padding(.top, 56)
             .padding(.trailing, 20)
         }
+        // 브랜딩 로고 (좌하단)
+        .overlay(alignment: .bottomLeading) {
+            Image("LogoMMColor")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 44)
+                .opacity(0.70)
+                .padding(.leading, 20)
+                .padding(.bottom, 108)
+                .allowsHitTesting(false)
+        }
         // 하단 버튼 영역
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
@@ -203,16 +273,27 @@ struct SavedDetailView: View {
                     .foregroundColor(.white)
                     .accessibilityLabel("이 말씀 저장 해제")
 
-                    ShareLink(item: shareText) {
-                        Label("공유", systemImage: "square.and.arrow.up")
-                            .font(.system(size: 15, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(14)
+                    Button {
+                        handleShare()
+                    } label: {
+                        if isGeneratingShare {
+                            ProgressView().tint(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.white.opacity(0.15))
+                                .cornerRadius(14)
+                        } else {
+                            Label("공유", systemImage: "square.and.arrow.up")
+                                .font(.system(size: 15, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.white.opacity(0.15))
+                                .cornerRadius(14)
+                        }
                     }
                     .foregroundColor(.white)
-                    .accessibilityLabel("이 말씀 공유하기")
+                    .disabled(isGeneratingShare)
+                    .accessibilityLabel("이 말씀 이미지로 공유하기")
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)

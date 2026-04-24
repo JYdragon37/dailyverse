@@ -69,16 +69,6 @@ struct HomeView: View {
                     }
                 }
             }
-            // 브랜드 워터마크 — 배경 하단 중앙
-            .overlay(alignment: .bottom) {
-                Image("LogoMMColor")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 80)
-                    .opacity(0.35)
-                    .padding(.bottom, 108)
-                    .allowsHitTesting(false)
-            }
             .overlay { toastLayer }
             .overlay { CoachMarkOverlay() }
             .sheet(isPresented: $showVerseDetail) { verseDetailSheet }
