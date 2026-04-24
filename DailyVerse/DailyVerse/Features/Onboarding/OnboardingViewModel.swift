@@ -25,10 +25,10 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 닉네임
     @Published var nicknameInput: String = ""
 
-    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "Stranger" 표시
+    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "stranger" 표시
     var nicknameDisplay: String {
         let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? "Stranger" : t
+        return t.isEmpty ? "stranger" : t
     }
 
     // MARK: - Screen 3: 알람 설정 (단일 알람 — 기본 07:00)
@@ -54,9 +54,8 @@ final class OnboardingViewModel: ObservableObject {
         if !onboardingCompleted {
             currentPage = savedPage
         }
-        // 기존 닉네임 복원
-        let existing = NicknameManager.shared.nickname
-        nicknameInput = existing == "stranger" ? "" : existing
+        // 온보딩에서는 항상 빈 입력으로 시작 — stranger가 placeholder로 표시됨
+        nicknameInput = ""
     }
 
     // MARK: - 네비게이션

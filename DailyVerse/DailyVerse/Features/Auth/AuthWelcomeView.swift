@@ -72,7 +72,7 @@ struct AuthWelcomeView: View {
             // LogoMM 이미지는 1024×1024이지만 실제 콘텐츠는 중앙 16% → 음수 패딩으로 여백 제거
             VStack(spacing: 6) {
                 Text("mm")
-                    .font(.custom("DancingScript", size: 88).weight(.bold))
+                    .font(.custom("DancingScript-Regular", size: 88).weight(.bold))
                     .foregroundColor(.white)
                     .shadow(color: .black.opacity(0.45), radius: 24, x: 0, y: 10)
 

@@ -11,6 +11,12 @@ struct DevotionVerseView: View {
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
 
+    // 수정 모드 pre-fill (기본값: 빈 문자열 = 신규 작성)
+    var prefillReadingText: String = ""
+    var editMode: Bool = false
+    var prefillPrayer: String = ""
+    var prefillGratitude: [String] = []
+
     @State private var readingText: String = ""
     @FocusState private var isReadingFocused: Bool
 
@@ -23,6 +29,7 @@ struct DevotionVerseView: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
+                // 신규 작성이 아닐 때(수정 모드) onAppear에서 pre-fill
                 VStack(alignment: .leading, spacing: 24) {
                     readingSection
                     dashedDivider
@@ -178,7 +185,9 @@ struct DevotionVerseView: View {
                 destination: DevotionResponseView(
                     verse: verse,
                     readingText: readingText,
-                    viewModel: viewModel
+                    viewModel: viewModel,
+                    prefillPrayer: prefillPrayer,
+                    prefillGratitude: prefillGratitude
                 )
             ) {
                 Text("✨ 묵상 응답 쓰기")
@@ -200,6 +209,11 @@ struct DevotionVerseView: View {
             .padding(.bottom, 76)  // DVTabBar 위 여백 유지
         }
         .background(Color.dvBgDeep)
+        .onAppear {
+            if readingText.isEmpty && !prefillReadingText.isEmpty {
+                readingText = prefillReadingText
+            }
+        }
     }
 
     // MARK: - Helpers

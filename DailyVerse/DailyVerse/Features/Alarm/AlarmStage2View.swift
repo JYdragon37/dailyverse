@@ -189,7 +189,7 @@ struct AlarmStage2View: View {
             // 좌측: mm 브랜드 텍스트 (DancingScript 커시브)
             // — 이미지 대신 폰트 텍스트로 → 배경 없이 어떤 배경에서도 깔끔하게 표시
             Text("mm")
-                .font(.custom("DancingScript", size: 36).weight(.bold))
+                .font(.custom("DancingScript-Regular", size: 36).weight(.bold))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                 .padding(.leading, 4)

@@ -79,13 +79,7 @@ struct SavedView: View {
         } else if viewModel.savedVerses.isEmpty {
             emptyStateNoSaves
         } else {
-            VStack(spacing: 0) {
-                filterPicker
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
-                savedGrid
-            }
+            savedGrid
         }
     }
 
@@ -120,6 +114,12 @@ struct SavedView: View {
 
     private var savedGrid: some View {
         ScrollView {
+            // 필터 탭 — 콘텐츠와 함께 스크롤
+            filterPicker
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
             if viewModel.filteredVerses.isEmpty {
                 emptyStateFilteredEmpty
                     .padding(.top, 60)

@@ -38,7 +38,7 @@ struct MeditationEntryDetailView: View {
 
     // MARK: - 손글씨 폰트
     private func diaryFont(size: CGFloat) -> Font {
-        Font.custom("NanumPenScript-Regular", size: size)
+        Font.custom("NanumPen-Regular", size: size)
     }
 
     // MARK: - Body
@@ -51,7 +51,7 @@ struct MeditationEntryDetailView: View {
                 VStack(alignment: .leading, spacing: 0) {
 
                     headerSection
-                        .padding(.top, 60)
+                        .padding(.top, 16)
                         .padding(.horizontal, 28)
 
                     rule.padding(.horizontal, 28).padding(.top, 16)
@@ -93,7 +93,25 @@ struct MeditationEntryDetailView: View {
                 }
             }
 
-            // ── 상단 버튼 영역 (수정하기 + 저장 + 닫기) ───
+            // ── 저장 완료 토스트 ──────────────────────────
+            if showSavedToast {
+                VStack {
+                    Spacer()
+                    Text("📷 갤러리에 저장됐어요")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(inkColor.opacity(0.85)))
+                    Spacer().frame(height: 80)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showSavedToast)
+        // ── 상단 버튼 영역 — safeAreaInset: 스크롤 콘텐츠가 버튼 뒤로 올라가지 않음
+        // (Day One, Apple Notes 등 주요 다이어리 앱 표준 패턴)
+        .safeAreaInset(edge: .top, spacing: 0) {
             HStack(spacing: 10) {
                 // 수정하기
                 Button { showEditFlow = true } label: {
@@ -156,30 +174,17 @@ struct MeditationEntryDetailView: View {
                 .accessibilityLabel("닫기")
             }
             .padding(.horizontal, 24)
-            .padding(.top, 16)
-
-            // ── 저장 완료 토스트 ──────────────────────────
-            if showSavedToast {
-                VStack {
-                    Spacer()
-                    Text("📷 갤러리에 저장됐어요")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(inkColor.opacity(0.85)))
-                    Spacer().frame(height: 80)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            .padding(.vertical, 12)
+            .background(bgColor)
         }
-        .animation(.easeInOut(duration: 0.3), value: showSavedToast)
         .fullScreenCover(isPresented: $showEditFlow) {
             NavigationStack {
-                DevotionResponseView(
+                // 해석 + 묵상소감 페이지(DevotionVerseView) 먼저, 그 다음 응답 페이지
+                DevotionVerseView(
                     verse: verse,
-                    readingText: entry.readingText ?? "",
                     viewModel: viewModel,
+                    prefillReadingText: entry.readingText ?? "",
+                    editMode: true,
                     prefillPrayer: entry.prayer ?? "",
                     prefillGratitude: entry.prayerItems.map { $0.text }
                 )
@@ -406,7 +411,7 @@ private struct DiarySnapshotView: View {
     private let pageWidth: CGFloat = 390
 
     private func diaryFont(size: CGFloat) -> Font {
-        Font.custom("NanumPenScript-Regular", size: size)
+        Font.custom("NanumPen-Regular", size: size)
     }
 
     var body: some View {
