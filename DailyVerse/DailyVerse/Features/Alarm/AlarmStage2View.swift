@@ -185,44 +185,48 @@ struct AlarmStage2View: View {
     // MARK: - Greeting Header (HomeView greetingHeader와 동일 스타일)
 
     private var greetingHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // 1행: mm 로고 + Zone 인사말
-            HStack(spacing: 8) {
-                // mm 브랜드 로고 — 콘텐츠 16% 비율 보정, 사이즈 축소
-                Image("LogoMM")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 72, height: 72)
-                    .padding(-28)
+        HStack(alignment: .top, spacing: 14) {
+            // 좌측: mm 로고 — 화면 왼쪽에서 약간 떨어짐
+            Image("LogoMM")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 72, height: 72)
+                .padding(-28)
+                .padding(.leading, 8)
+                .padding(.top, 4)
+
+            // 우측: 인사말 / 날짜+날씨 / 시간 — 모두 같은 수직선
+            VStack(alignment: .leading, spacing: 6) {
+                // 1행: 인사말
                 Text(greetingText)
                     .font(.dvLargeTitle)
                     .foregroundColor(.white)
                     .minimumScaleFactor(0.7)
                     .lineLimit(2)
-            }
 
-            // 2행: 시간 — 크고 굵게 (인사말↔말씀 사이 메인 타임피스)
-            Text(alarmTimeString)
-                .font(.system(size: 52, weight: .bold, design: .default))
-                .foregroundColor(.white)
-                .padding(.top, 2)
+                // 2행: 날짜·요일 + 위치·온도
+                HStack(spacing: 8) {
+                    Text(alarmDateString)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.75))
 
-            // 3행: 날짜·요일 + 위치·온도 한 줄
-            HStack(spacing: 8) {
-                Text(alarmDateString)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.white.opacity(0.75))
-
-                if let w = coordinator.activeWeather {
-                    Text("·").foregroundColor(.white.opacity(0.35))
-                    HStack(spacing: 4) {
-                        Image(systemName: weatherIcon(w.condition))
-                            .font(.system(size: 13))
-                        Text("\((w.cityName.components(separatedBy: " ").first ?? w.cityName)) \(w.temperature)°C")
-                            .font(.system(size: 15, weight: .medium))
+                    if let w = coordinator.activeWeather {
+                        Text("·").foregroundColor(.white.opacity(0.35))
+                        HStack(spacing: 4) {
+                            Image(systemName: weatherIcon(w.condition))
+                                .font(.system(size: 13))
+                            Text("\((w.cityName.components(separatedBy: " ").first ?? w.cityName)) \(w.temperature)°C")
+                                .font(.system(size: 15, weight: .medium))
+                        }
+                        .foregroundColor(.white.opacity(0.75))
                     }
-                    .foregroundColor(.white.opacity(0.75))
                 }
+
+                // 3행: 시간 — 크고 굵게
+                Text(alarmTimeString)
+                    .font(.system(size: 52, weight: .bold, design: .default))
+                    .foregroundColor(.white)
+                    .padding(.top, 2)
             }
         }
         .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)

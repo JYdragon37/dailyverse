@@ -11,28 +11,35 @@ struct MeditationEntryDetailView: View {
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
 
     @State private var verse: Verse? = nil
     @State private var isSaving = false
     @State private var showSavedToast = false
     @State private var showEditFlow = false
 
-    // MARK: - 색상 팔레트 (다크모드 대응)
+    // MARK: - 다이어리 테마 (시스템 무관 독립 설정)
+    @AppStorage("diaryPrefersDark") private var diaryPrefersDark: Bool = true
+
+    // MARK: - 색상 팔레트 (diaryPrefersDark 기준)
 
     private var bgColor: Color {
-        colorScheme == .dark
+        diaryPrefersDark
             ? Color(red: 0.10, green: 0.08, blue: 0.06)   // 다크: 딥 브라운
             : Color(red: 0.97, green: 0.93, blue: 0.87)   // 라이트: 크림
     }
     private var inkColor: Color {
-        colorScheme == .dark
+        diaryPrefersDark
             ? Color(red: 0.90, green: 0.84, blue: 0.76)   // 다크: 크림색 텍스트
             : Color(red: 0.24, green: 0.16, blue: 0.10)   // 라이트: 진한 브라운
     }
     private var inkFaint: Color { inkColor.opacity(0.45) }
     private var ruleColor: Color { inkColor.opacity(0.18) }
     private let goldColor = Color(red: 0.72, green: 0.52, blue: 0.18)
+
+    // MARK: - 손글씨 폰트
+    private func diaryFont(size: CGFloat) -> Font {
+        Font.custom("NanumPenScript-Regular", size: size)
+    }
 
     // MARK: - Body
 
@@ -100,6 +107,19 @@ struct MeditationEntryDetailView: View {
                 }
 
                 Spacer()
+
+                // 테마 토글 (다크↔라이트)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) { diaryPrefersDark.toggle() }
+                } label: {
+                    Image(systemName: diaryPrefersDark ? "sun.max" : "moon")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(inkColor.opacity(0.55))
+                        .padding(9)
+                        .background(inkColor.opacity(0.08))
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel(diaryPrefersDark ? "라이트 모드로 전환" : "다크 모드로 전환")
 
                 // 갤러리 저장
                 Button {
@@ -201,7 +221,7 @@ struct MeditationEntryDetailView: View {
     private var verseSection: some View {
         VStack(spacing: 14) {
             Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "말씀을 불러오는 중이에요")
-                .font(.system(size: 17, weight: .regular, design: .serif))
+                .font(diaryFont(size: 20))
                 .italic()
                 .foregroundColor(inkColor.opacity(0.85))
                 .multilineTextAlignment(.center)
@@ -229,7 +249,7 @@ struct MeditationEntryDetailView: View {
                     .tracking(0.8)
             }
             Text(body)
-                .font(.system(size: 17, weight: .regular, design: .serif))
+                .font(diaryFont(size: 20))
                 .foregroundColor(inkColor)
                 .lineSpacing(9)
                 .fixedSize(horizontal: false, vertical: true)
@@ -258,7 +278,7 @@ struct MeditationEntryDetailView: View {
                             .foregroundColor(goldColor)
                             .frame(width: 18)
                         Text(item.text)
-                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .font(diaryFont(size: 20))
                             .foregroundColor(inkColor)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -405,7 +425,7 @@ private struct DiarySnapshotView: View {
             // 말씀
             VStack(spacing: 14) {
                 Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "")
-                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .font(diaryFont(size: 20))
                     .italic()
                     .foregroundColor(inkColor.opacity(0.85))
                     .multilineTextAlignment(.center)
@@ -472,7 +492,7 @@ private struct DiarySnapshotView: View {
                     .tracking(0.8)
             }
             Text(body)
-                .font(.system(size: 17, weight: .regular, design: .serif))
+                .font(diaryFont(size: 20))
                 .foregroundColor(inkColor)
                 .lineSpacing(9)
                 .fixedSize(horizontal: false, vertical: true)
@@ -499,7 +519,7 @@ private struct DiarySnapshotView: View {
                             .foregroundColor(goldColor)
                             .frame(width: 18)
                         Text(item.text)
-                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .font(diaryFont(size: 20))
                             .foregroundColor(inkColor)
                             .fixedSize(horizontal: false, vertical: true)
                     }

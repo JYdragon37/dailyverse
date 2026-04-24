@@ -212,6 +212,14 @@ final class AlarmViewModel: ObservableObject {
         } else {
             toastMessage = "내일 \(timeStr)\n\(contextMsg)"
         }
+
+        // 3초 후 자동 dismiss (되돌리기 없는 알람 ON 토스트)
+        undoTask?.cancel()
+        undoTask = Task { @MainActor [weak self] in
+            do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            guard let self else { return }
+            self.toastMessage = nil
+        }
     }
 
     /// 다음 알람 발동 시각 계산 — Calendar.nextDate 기반
