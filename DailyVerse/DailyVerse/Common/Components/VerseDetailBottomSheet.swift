@@ -116,7 +116,7 @@ struct VerseDetailBottomSheet: View {
             // 묵상 버튼
             Button(action: onMeditation) {
                 HStack(spacing: 6) {
-                    Image(systemName: "leaf.fill")
+                    Image(systemName: "pencil.and.scribble")
                         .font(.system(size: 14))
                     Text("묵상")
                         .font(.system(size: 15, weight: .semibold))
