@@ -336,22 +336,21 @@ private struct SavedCardView: View {
                             .allowsHitTesting(false)
                     }
 
-                    // 브랜드 워터마크 — Free 유저만 표시
-                    if !isPremium {
-                        VStack {
+                    // 브랜드 워터마크 — 현재 모든 계정에 표시
+                    // TODO: 구독 도입 시 `if !isPremium` 조건 복원
+                    VStack {
+                        Spacer()
+                        HStack {
                             Spacer()
-                            HStack {
-                                Spacer()
-                                Text("mm")
-                                    .font(.custom("DancingScript-Regular", size: 15).weight(.bold))
-                                    .foregroundColor(.white.opacity(0.50))
-                                    .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
-                                    .padding(.trailing, 8)
-                                    .padding(.bottom, 8)
-                            }
+                            Text("mm")
+                                .font(.custom("DancingScript-Regular", size: 15).weight(.bold))
+                                .foregroundColor(.white.opacity(0.50))
+                                .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                                .padding(.trailing, 8)
+                                .padding(.bottom, 8)
                         }
-                        .allowsHitTesting(false)
                     }
+                    .allowsHitTesting(false)
                 }
                 .frame(width: geo.size.width, height: geo.size.width * 4 / 3)
             }
