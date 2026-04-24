@@ -57,8 +57,34 @@ struct VerseDetailBottomSheet: View {
                     }
 
                     // 4. 광고 슬롯 (Medium Rectangle 300×250)
-                    VerseBannerAdView()
-                        .padding(.top, 8)
+                    ZStack {
+                        // 광고 플레이스홀더 박스 — 광고 로드 전 / 미게재 시 표시
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.04))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(
+                                        Color.white.opacity(0.10),
+                                        style: StrokeStyle(lineWidth: 1, dash: [4, 4])
+                                    )
+                            )
+                            .frame(width: 300, height: 250)
+                            .overlay(
+                                VStack(spacing: 6) {
+                                    Image(systemName: "rectangle.and.pencil.and.ellipsis")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(.white.opacity(0.20))
+                                    Text("AD")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .tracking(2)
+                                        .foregroundColor(.white.opacity(0.15))
+                                }
+                            )
+
+                        VerseBannerAdView()
+                    }
+                    .frame(width: 300, height: 250)
+                    .padding(.top, 8)
 
                     Spacer(minLength: 100)
                 }

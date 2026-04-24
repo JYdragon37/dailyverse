@@ -525,18 +525,17 @@ struct SettingsView: View {
 
     // MARK: - 이모지 피커 시트
 
+    // 남성 — 다양한 헤어·나이·직업 스타일
     private let emojiMale: [String] = [
-        "👨", "👦", "🧑", "👴", "🧔", "👱",
-        "🙋‍♂️", "🙏", "✝️", "📖", "⭐", "🌅",
+        "👦", "👨", "👴", "🧔‍♂️", "👱‍♂️", "👨‍🦱",
+        "👨‍🦰", "👨‍🦳", "👨‍🦲", "👨‍💼", "👨‍🎓", "👨‍⚕️",
+        "👨‍🍳", "👨‍🎤", "👨‍💻", "👨‍🏫", "👨‍🌾", "🕵️‍♂️",
     ]
+    // 여성 — 다양한 헤어·나이·직업·스타일
     private let emojiFemale: [String] = [
-        "👩", "👧", "🧒", "👵", "👸", "🧕",
-        "🙋‍♀️", "🤱", "🌸", "🌺", "🌻", "🦋",
-    ]
-    private let emojiNeutral: [String] = [
-        "🕊️", "🌿", "☀️", "🌙", "💫", "🌊",
-        "❤️", "💛", "🌈", "🍃", "✨", "🔥",
-        "🫶", "🌾", "🏔️", "🌍",
+        "👧", "👩", "👵", "👱‍♀️", "🧕", "👩‍🦱",
+        "👩‍🦰", "👩‍🦳", "👩‍🦲", "👩‍💼", "👩‍🎓", "👩‍⚕️",
+        "👩‍🍳", "👩‍🎤", "👩‍💻", "👩‍🏫", "💃", "🤱",
     ]
 
     private var emojiPickerSheet: some View {
@@ -579,7 +578,6 @@ struct SettingsView: View {
 
                 emojiSection(title: "남성", emojis: emojiMale)
                 emojiSection(title: "여성", emojis: emojiFemale)
-                emojiSection(title: "자연 · 기호", emojis: emojiNeutral)
 
                 Spacer(minLength: 24)
             }
