@@ -90,7 +90,7 @@ struct ONBIntroView: View {
 
             Spacer()
 
-            // Daily Verse 배지 — CTA 바로 위
+            // mm 배지 — CTA 바로 위
             nytBadge
                 .padding(.horizontal, 36)
                 .offset(y: badgeOffset)
