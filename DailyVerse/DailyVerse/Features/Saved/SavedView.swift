@@ -145,16 +145,13 @@ struct SavedView: View {
                 .padding(.top, 8)
 
                 // 브랜드 footer — 데이터 있을 때도 항상 표시
-                VStack(spacing: 2) {
-                    Text("mm")
-                        .font(.custom("DancingScript-Regular", size: 36).weight(.bold))
-                        .foregroundColor(.white.opacity(0.40))
-                    Text("morning manna")
-                        .font(.custom("DancingScript-Regular", size: 14))
-                        .foregroundColor(.white.opacity(0.30))
-                }
-                .padding(.top, 8)
-                .padding(.bottom, 100)
+                Image("LogoMMWhite")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 72)
+                    .opacity(0.30)
+                    .padding(.top, 16)
+                    .padding(.bottom, 100)
             }
         }
     }
@@ -342,10 +339,12 @@ private struct SavedCardView: View {
                         Spacer()
                         HStack {
                             Spacer()
-                            Text("mm")
-                                .font(.custom("DancingScript-Regular", size: 15).weight(.bold))
-                                .foregroundColor(.white.opacity(0.50))
-                                .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                            Image("LogoMMWhite")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28)
+                                .opacity(0.55)
+                                .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
                                 .padding(.trailing, 8)
                                 .padding(.bottom, 8)
                         }

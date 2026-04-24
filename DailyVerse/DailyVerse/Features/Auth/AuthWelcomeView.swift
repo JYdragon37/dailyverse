@@ -71,9 +71,11 @@ struct AuthWelcomeView: View {
             // 로고 + "Wake with the Word" 타이트하게 묶음
             // LogoMM 이미지는 1024×1024이지만 실제 콘텐츠는 중앙 16% → 음수 패딩으로 여백 제거
             VStack(spacing: 6) {
-                Text("mm")
-                    .font(.custom("DancingScript-Regular", size: 88).weight(.bold))
-                    .foregroundColor(.white)
+                Image("LogoMMWhite")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160)
+                    .opacity(0.92)
                     .shadow(color: .black.opacity(0.45), radius: 24, x: 0, y: 10)
 
                 Text("Wake with the Word")

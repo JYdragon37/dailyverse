@@ -69,12 +69,14 @@ struct HomeView: View {
                     }
                 }
             }
-            // 브랜드 워터마크 — 배경 하단 중앙, 아주 은은하게
+            // 브랜드 워터마크 — 배경 하단 중앙
             .overlay(alignment: .bottom) {
-                Text("morning manna")
-                    .font(.custom("DancingScript-Regular", size: 17))
-                    .foregroundColor(.white.opacity(0.45))
-                    .padding(.bottom, 104)  // DVTabBar 위 여백
+                Image("LogoMMWhite")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80)
+                    .opacity(0.35)
+                    .padding(.bottom, 108)
                     .allowsHitTesting(false)
             }
             .overlay { toastLayer }

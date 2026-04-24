@@ -74,17 +74,14 @@ struct SettingsView: View {
                     #endif
 
                     // 브랜드 footer (설정 탭 최하단)
-                    VStack(spacing: 4) {
-                        Text("mm")
-                            .font(.custom("DancingScript-Regular", size: 32).weight(.bold))
-                            .foregroundColor(.white.opacity(0.20))
-                        Text("morning manna")
-                            .font(.custom("DancingScript-Regular", size: 13))
-                            .foregroundColor(.white.opacity(0.15))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 16)
-                    .padding(.bottom, 100)
+                    Image("LogoMMWhite")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 64)
+                        .opacity(0.20)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 16)
+                        .padding(.bottom, 100)
                 }
             }
             .background(Color.dvBgDeep.ignoresSafeArea())
