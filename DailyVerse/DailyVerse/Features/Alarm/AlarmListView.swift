@@ -269,12 +269,16 @@ struct AlarmListView: View {
                         Text("새 알람 추가").font(.dvBody)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .frame(height: 50)
+                    .foregroundColor(.dvAccentGold)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(LinearGradient(colors: [Color.dvGold, Color.dvGold.opacity(0.75)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(Color.dvAccentGold.opacity(0.10))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.dvAccentGold.opacity(0.35), lineWidth: 1)
+                            )
                     )
-                    .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 72)
                 }

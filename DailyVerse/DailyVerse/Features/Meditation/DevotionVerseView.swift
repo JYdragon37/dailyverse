@@ -87,11 +87,11 @@ struct DevotionVerseView: View {
     // MARK: - 2. 텍스트 입력
 
     private var writingInput: some View {
-        TextField("이 말씀이 오늘 내게... (선택)", text: $readingText, axis: .vertical)
+        TextField("이 말씀이 오늘 나에게 어떻게 다가왔나요?", text: $readingText, axis: .vertical)
             .font(contentFont)
             .foregroundColor(.white)
             .tint(.dvAccentGold)
-            .lineLimit(1...5)
+            .lineLimit(2...6)
             .focused($isReadingFocused)
             .padding(12)
             .background(
@@ -181,17 +181,17 @@ struct DevotionVerseView: View {
                     viewModel: viewModel
                 )
             ) {
-                Text("다음 →")
+                Text("✨ 묵상 응답 쓰기")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.07))
+                            .fill(Color.dvAccentGold.opacity(0.10))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                    .stroke(Color.dvAccentGold.opacity(0.35), lineWidth: 1)
                             )
                     )
             }

@@ -147,7 +147,7 @@ struct DevotionResponseView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader("🙏 한 줄 기도")
 
-            Text("오늘 묵상하며 떠오른 기도를 적어보세요. (선택, 최소 5자)")
+            Text("오늘 묵상하며 떠오른 기도를 적어보세요.")
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.55))
 
@@ -190,14 +190,14 @@ struct DevotionResponseView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader("🌿 감사한 것")
 
-            Text("오늘 감사한 것 3가지를 적어보세요. (선택)")
+            Text("오늘 감사한 것 3가지를 적어보세요.")
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.55))
 
             VStack(spacing: 8) {
-                gratitudeField(index: 1, text: $gratitude1, focus: .g1)
-                gratitudeField(index: 2, text: $gratitude2, focus: .g2)
-                gratitudeField(index: 3, text: $gratitude3, focus: .g3)
+                gratitudeField(index: 1, text: $gratitude1, focus: .g1, placeholder: "오늘 마신 따뜻한 커피 한 잔")
+                gratitudeField(index: 2, text: $gratitude2, focus: .g2, placeholder: "나를 걱정해준 누군가의 말 한마디")
+                gratitudeField(index: 3, text: $gratitude3, focus: .g3, placeholder: "별 탈 없이 무사히 지낸 하루")
             }
             .padding(12)
             .background(
@@ -207,13 +207,13 @@ struct DevotionResponseView: View {
         }
     }
 
-    private func gratitudeField(index: Int, text: Binding<String>, focus: Field) -> some View {
+    private func gratitudeField(index: Int, text: Binding<String>, focus: Field, placeholder: String = "") -> some View {
         HStack(spacing: 10) {
             Text("\(index).")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.dvAccentGold)
                 .frame(width: 18)
-            TextField("감사한 것을 적어요", text: text)
+            TextField(placeholder, text: text)
                 .font(.dvBody)
                 .foregroundColor(.white)
                 .tint(.dvAccentGold)
