@@ -25,10 +25,10 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 닉네임
     @Published var nicknameInput: String = ""
 
-    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "stranger" 표시
+    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "beloved" 표시
     var nicknameDisplay: String {
         let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? "stranger" : t
+        return t.isEmpty ? "beloved" : t
     }
 
     // MARK: - Screen 3: 알람 설정 (단일 알람 — 기본 07:00)
