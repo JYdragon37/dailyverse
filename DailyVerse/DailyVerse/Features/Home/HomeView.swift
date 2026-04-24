@@ -73,7 +73,7 @@ struct HomeView: View {
             .overlay(alignment: .bottom) {
                 Text("morning manna")
                     .font(.custom("DancingScript-Regular", size: 13))
-                    .foregroundColor(.white.opacity(0.18))
+                    .foregroundColor(.white.opacity(0.30))
                     .padding(.bottom, 104)  // DVTabBar 위 여백
                     .allowsHitTesting(false)
             }

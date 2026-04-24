@@ -141,7 +141,18 @@ struct SavedView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .padding(.bottom, 24)
+
+                // 브랜드 footer — 데이터 있을 때도 항상 표시
+                VStack(spacing: 2) {
+                    Text("mm")
+                        .font(.custom("DancingScript-Regular", size: 28).weight(.bold))
+                        .foregroundColor(.white.opacity(0.20))
+                    Text("morning manna")
+                        .font(.custom("DancingScript-Regular", size: 11))
+                        .foregroundColor(.white.opacity(0.12))
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 100)
             }
         }
     }
