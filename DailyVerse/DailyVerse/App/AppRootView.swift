@@ -14,8 +14,7 @@ struct AppRootView: View {
     /// 세션 내에서만 유지되는 게스트 모드 플래그
     /// - 앱 재실행 시 초기화됨 (영구 저장 안 함)
     @State private var guestModeActive: Bool = false
-    /// 닉네임 미설정 유저에게 닉네임 입력 화면 표시
-    @State private var showNicknameSetup: Bool = false
+    // NOTE: showNicknameSetup 제거 — 닉네임 입력은 온보딩(ONBNicknameView)에서 처리
 
     var body: some View {
         ZStack {
@@ -133,9 +132,6 @@ struct AppRootView: View {
                 withAnimation(.easeInOut(duration: 0.4)) {
                     showAuthWelcome = true
                 }
-            } else if !NicknameManager.shared.isSet {
-                // 이미 로그인 상태인데 닉네임 미설정 → 입력 화면 표시
-                showNicknameSetup = true
             }
             // 알림 권한: 온보딩 완료 유저만 여기서 확인
             // (미완료 유저는 온보딩 Screen 4에서 처리)
@@ -201,14 +197,10 @@ struct AppRootView: View {
                     if let userId = authManager.userId {
                         await NicknameManager.shared.syncWithFirestore(userId: userId)
                     }
-                    if !NicknameManager.shared.isSet {
-                        showNicknameSetup = true
-                    }
                 }
             } else {
                 // 로그아웃 or 탈퇴
                 guestModeActive = false
-                showNicknameSetup = false
                 if !authManager.isDeletingAccount {
                     // 로그아웃: 온보딩은 최초 1회만 — 로그인 화면으로 바로 이동
                     // (탈퇴는 deleteAccount()에서 UserDefaults 전체 초기화 → onboardingCompleted=false 자동)
@@ -216,12 +208,6 @@ struct AppRootView: View {
                         showAuthWelcome = true
                     }
                 }
-            }
-        }
-        // MARK: - 닉네임 입력 화면
-        .fullScreenCover(isPresented: $showNicknameSetup) {
-            NicknameSetupView {
-                showNicknameSetup = false
             }
         }
         // MARK: - dvAlarmTriggered 수신 → AlarmCoordinator 호출
