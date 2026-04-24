@@ -16,6 +16,7 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var showAlarmCTA: Bool = false
     @Published var toastMessage: String?
+    @Published var isSavedCurrentVerse: Bool = false
 
     // MARK: - Private State
 
@@ -110,23 +111,71 @@ final class HomeViewModel: ObservableObject {
         await loadWeatherIfPermitted()
     }
 
-    /// 말씀 저장
-    /// displayedImageUrl: HomeView에서 실제 표시 중인 이미지 URL (loadingCoordinator.zoneBgUrl 우선)
-    func saveVerse(displayedImageUrl: String? = nil) {
+    /// 말씀 저장 여부 확인 (말씀 변경 시 호출)
+    func checkIfSaved() {
+        guard authManager.isLoggedIn, let userId = authManager.userId,
+              let verseId = currentVerse?.id else {
+            isSavedCurrentVerse = false
+            return
+        }
+        Task {
+            let repo = SavedVerseRepository()
+            let all = (try? await repo.fetchAll(userId: userId)) ?? []
+            isSavedCurrentVerse = all.contains { $0.verseId == verseId }
+        }
+    }
+
+    /// 말씀 저장 토글 — 이미 저장됐으면 삭제, 아니면 저장
+    func toggleSave(displayedImageUrl: String? = nil) {
         guard let verse = currentVerse else { return }
 
-        // 비로그인 상태: pendingSave 설정 후 로그인 유도는 View 레이어에서 처리
         guard authManager.isLoggedIn, let userId = authManager.userId else {
             let pending = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
             authManager.setPendingSave(pending)
             return
         }
 
+        if isSavedCurrentVerse {
+            // 삭제
+            Task {
+                let repo = SavedVerseRepository()
+                let all = (try? await repo.fetchAll(userId: userId)) ?? []
+                if let target = all.first(where: { $0.verseId == verse.id }) {
+                    try? await repo.delete(id: target.id, userId: userId)
+                }
+                isSavedCurrentVerse = false
+                showToast("저장이 취소되었습니다")
+            }
+        } else {
+            // 저장
+            let savedVerse = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
+            Task {
+                do {
+                    let repo = SavedVerseRepository()
+                    try await repo.save(savedVerse, userId: userId)
+                    isSavedCurrentVerse = true
+                    showToast("저장되었습니다")
+                } catch {
+                    showToast("저장에 실패했습니다. 다시 시도해주세요")
+                }
+            }
+        }
+    }
+
+    /// 말씀 저장 (레거시 — pendingSave 로그인 후 자동 저장에서만 사용)
+    func saveVerse(displayedImageUrl: String? = nil) {
+        guard let verse = currentVerse else { return }
+        guard authManager.isLoggedIn, let userId = authManager.userId else {
+            let pending = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
+            authManager.setPendingSave(pending)
+            return
+        }
         let savedVerse = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
         Task {
             do {
                 let repo = SavedVerseRepository()
                 try await repo.save(savedVerse, userId: userId)
+                isSavedCurrentVerse = true
                 showToast("저장되었습니다")
             } catch {
                 showToast("저장에 실패했습니다. 다시 시도해주세요")

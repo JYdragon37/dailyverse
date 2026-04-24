@@ -517,45 +517,80 @@ struct SettingsView: View {
 
     // MARK: - 이모지 피커 시트
 
-    private let emojiOptions: [String] = [
-        "🙏", "✝️", "🕊️", "📖", "⭐", "🌅",
-        "🌿", "☀️", "🌙", "💫", "🌸", "🌊",
-        "🦋", "🌻", "❤️", "💛", "🌈", "🍃",
-        "✨", "🔥", "🫶", "🌺", "🌾", "🏔️",
+    private let emojiMale: [String] = [
+        "👨", "👦", "🧑", "👴", "🧔", "👱",
+        "🙋‍♂️", "🙏", "✝️", "📖", "⭐", "🌅",
+    ]
+    private let emojiFemale: [String] = [
+        "👩", "👧", "🧒", "👵", "👸", "🧕",
+        "🙋‍♀️", "🤱", "🌸", "🌺", "🌻", "🦋",
+    ]
+    private let emojiNeutral: [String] = [
+        "🕊️", "🌿", "☀️", "🌙", "💫", "🌊",
+        "❤️", "💛", "🌈", "🍃", "✨", "🔥",
+        "🫶", "🌾", "🏔️", "🌍",
     ]
 
     private var emojiPickerSheet: some View {
-        VStack(spacing: 0) {
-            // 핸들
-            Capsule()
-                .fill(Color.white.opacity(0.3))
-                .frame(width: 36, height: 4)
-                .padding(.top, 12)
-                .padding(.bottom, 20)
+        ScrollView {
+            VStack(spacing: 0) {
+                // 핸들
+                Capsule()
+                    .fill(Color.white.opacity(0.3))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
 
-            Text("이모지 선택")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.white)
-                .padding(.bottom, 20)
+                Text("이모지 선택")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.bottom, 20)
 
-            // 이모지 그리드
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 16) {
-                // 초기화 (이니셜로 돌아가기)
+                // 초기화
                 Button {
                     profileEmoji = ""
                     showEmojiPicker = false
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(profileEmoji.isEmpty ? 0.25 : 0.08))
-                            .frame(width: 48, height: 48)
-                        Text(String(nicknameManager.nickname.prefix(1)))
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(profileEmoji.isEmpty ? 0.25 : 0.08))
+                                .frame(width: 44, height: 44)
+                            Text(String(nicknameManager.nickname.prefix(1)))
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        Text("이니셜로 돌아가기")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.7))
+                        Spacer()
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
                 }
 
-                ForEach(emojiOptions, id: \.self) { emoji in
+                emojiSection(title: "남성", emojis: emojiMale)
+                emojiSection(title: "여성", emojis: emojiFemale)
+                emojiSection(title: "자연 · 기호", emojis: emojiNeutral)
+
+                Spacer(minLength: 24)
+            }
+        }
+        .background(Color.dvBgDeep.ignoresSafeArea())
+        .presentationDetents([.large])
+        .presentationDragIndicator(.hidden)
+    }
+
+    private func emojiSection(title: String, emojis: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.4))
+                .tracking(0.8)
+                .padding(.horizontal, 24)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 12) {
+                ForEach(emojis, id: \.self) { emoji in
                     Button {
                         profileEmoji = emoji
                         showEmojiPicker = false
@@ -578,12 +613,8 @@ struct SettingsView: View {
                 }
             }
             .padding(.horizontal, 24)
-
-            Spacer()
         }
-        .background(Color.dvBgDeep.ignoresSafeArea())
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.hidden)
+        .padding(.bottom, 20)
     }
 }
 

@@ -56,7 +56,7 @@ final class OnboardingViewModel: ObservableObject {
         }
         // 기존 닉네임 복원
         let existing = NicknameManager.shared.nickname
-        nicknameInput = existing == "친구" ? "" : existing
+        nicknameInput = existing == "stranger" ? "" : existing
     }
 
     // MARK: - 네비게이션

@@ -126,48 +126,81 @@ struct AlarmListView: View {
                 .foregroundColor(.secondary)
 
             if let alarm = nextEnabledAlarm {
-                VStack(alignment: .leading, spacing: 14) {
-                    // 시간 표시
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(alarmHourMinute(alarm.time))
-                            .font(.system(size: 44, weight: .bold, design: .default))
-                            .foregroundColor(.white)
-                        Text(alarmAmPm(alarm.time))
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
+                HStack(spacing: 0) {
+                    // 좌측 골드 인덱스 바
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.dvAccentGold, Color.dvAccentGold.opacity(0.4)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 3)
+                        .padding(.vertical, 4)
+                        .padding(.leading, 18)
 
-                    // 카운트다운
-                    Text(countdownText(for: alarm))
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.55))
+                    VStack(alignment: .leading, spacing: 14) {
+                        // 시간 표시
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(alarmHourMinute(alarm.time))
+                                .font(.system(size: 44, weight: .bold, design: .default))
+                                .foregroundColor(.white)
+                            Text(alarmAmPm(alarm.time))
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(.white.opacity(0.6))
+                        }
 
-                    // 구분선
-                    Divider()
-                        .background(Color.white.opacity(0.12))
+                        // 카운트다운
+                        Text(countdownText(for: alarm))
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.55))
 
-                    // 오늘의 말씀
-                    if let verse = todayVerse {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("\u{201C}\(verse.alarmTopKo ?? verse.verseShortKo)\u{201D}")
-                                .font(.custom("PretendardVariable", size: 15))
-                                .foregroundColor(.white.opacity(0.88))
-                                .lineSpacing(4)
+                        // 구분선
+                        Divider()
+                            .background(Color.white.opacity(0.12))
 
-                            Text(verse.reference)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.dvGold.opacity(0.75))
+                        // 오늘의 말씀
+                        if let verse = todayVerse {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Today's verse")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.dvAccentGold.opacity(0.80))
+                                    .tracking(0.8)
+
+                                Text("\u{201C}\(verse.alarmTopKo ?? verse.verseShortKo)\u{201D}")
+                                    .font(.custom("PretendardVariable", size: 15))
+                                    .foregroundColor(.white.opacity(0.88))
+                                    .lineSpacing(4)
+
+                                Text(verse.reference)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.dvGold.opacity(0.75))
+                            }
                         }
                     }
+                    .padding(.vertical, 18)
+                    .padding(.horizontal, 16)
+
+                    Spacer()
                 }
-                .padding(18)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(Color.dvBgSurface)
+                        // 좌측 골드 글로우 그라데이션
+                        LinearGradient(
+                            colors: [Color.dvAccentGold.opacity(0.08), Color.clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                    }
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.dvAccentGold.opacity(0.12), lineWidth: 1)
                 )
             } else {
                 // 활성 알람 없을 때

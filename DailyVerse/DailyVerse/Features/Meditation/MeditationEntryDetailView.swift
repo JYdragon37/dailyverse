@@ -2,7 +2,7 @@ import SwiftUI
 import Photos
 
 // MARK: - MeditationEntryDetailView v3
-// 묵상 다이어리 템플릿 — 크림 배경, 단일 스크롤
+// 묵상 다이어리 템플릿 — 라이트(크림)/다크(딥브라운) 모드 대응
 // verseFullKo / readingText·prayer·prayerItems 자동 연계
 // 갤러리 저장 기능 + mm 로고 콜로폰
 
@@ -11,18 +11,27 @@ struct MeditationEntryDetailView: View {
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var verse: Verse? = nil
     @State private var isSaving = false
     @State private var showSavedToast = false
     @State private var showEditFlow = false
 
-    // MARK: - 색상 팔레트
+    // MARK: - 색상 팔레트 (다크모드 대응)
 
-    private let bgColor   = Color(red: 0.97, green: 0.93, blue: 0.87)
-    private let inkColor  = Color(red: 0.24, green: 0.16, blue: 0.10)
-    private let inkFaint  = Color(red: 0.24, green: 0.16, blue: 0.10).opacity(0.45)
-    private let ruleColor = Color(red: 0.24, green: 0.16, blue: 0.10).opacity(0.18)
+    private var bgColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.10, green: 0.08, blue: 0.06)   // 다크: 딥 브라운
+            : Color(red: 0.97, green: 0.93, blue: 0.87)   // 라이트: 크림
+    }
+    private var inkColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.90, green: 0.84, blue: 0.76)   // 다크: 크림색 텍스트
+            : Color(red: 0.24, green: 0.16, blue: 0.10)   // 라이트: 진한 브라운
+    }
+    private var inkFaint: Color { inkColor.opacity(0.45) }
+    private var ruleColor: Color { inkColor.opacity(0.18) }
     private let goldColor = Color(red: 0.72, green: 0.52, blue: 0.18)
 
     // MARK: - Body

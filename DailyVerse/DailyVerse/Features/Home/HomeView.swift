@@ -84,6 +84,7 @@ struct HomeView: View {
                 WeatherDetailSheet(viewModel: viewModel)
             }
             .task { await viewModel.loadData() }
+            .task { viewModel.checkIfSaved() }
             .task {
                 // Design Ref: §7-1 — Zone 진입 시 greeting 로드
                 let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
@@ -245,11 +246,10 @@ struct HomeView: View {
 
                 Spacer(minLength: 6)
 
-                // 하트 저장 버튼 (저장 전: 흰색 / 저장 후: 톤다운 흰색)
+                // 하트 저장 버튼 — 토글 (저장/취소)
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                         heartPulse = true
-                        isSaved = true
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                         heartPulse = false
@@ -258,11 +258,11 @@ struct HomeView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(isSaved ? 0.12 : 0.18))
+                            .fill(Color.white.opacity(viewModel.isSavedCurrentVerse ? 0.12 : 0.18))
                             .frame(width: 36, height: 36)
-                        Image(systemName: isSaved ? "heart.fill" : "heart.fill")
+                        Image(systemName: viewModel.isSavedCurrentVerse ? "heart.fill" : "heart")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(isSaved ? .white.opacity(0.45) : .white)
+                            .foregroundColor(viewModel.isSavedCurrentVerse ? .dvSaved : .white)
                             .scaleEffect(heartPulse ? 1.4 : 1.0)
                     }
                 }
@@ -302,7 +302,7 @@ struct HomeView: View {
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
-        .onChange(of: viewModel.currentVerse?.id) { _ in isSaved = false }
+        .onChange(of: viewModel.currentVerse?.id) { _ in viewModel.checkIfSaved() }
     }
 
     /// "v_007" → "#7" 형태로 변환
@@ -377,13 +377,11 @@ struct HomeView: View {
     }
 
     private func handleSave() {
-        guard let verse = viewModel.currentVerse else { return }
-        // 실제 표시 중인 배경 URL: loadingCoordinator.zoneBgUrl(preloaded) 우선
         let displayedUrl = loadingCoordinator.zoneBgUrl?.absoluteString
         if authManager.isLoggedIn {
-            viewModel.saveVerse(displayedImageUrl: displayedUrl)
-            showVerseDetail = false
+            viewModel.toggleSave(displayedImageUrl: displayedUrl)
         } else {
+            guard let verse = viewModel.currentVerse else { return }
             let pending = SavedVerse(
                 id: UUID().uuidString, verseId: verse.id,
                 imageUrl: displayedUrl,
