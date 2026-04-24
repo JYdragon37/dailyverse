@@ -87,7 +87,7 @@ struct DevotionVerseView: View {
     // MARK: - 2. 텍스트 입력
 
     private var writingInput: some View {
-        TextField("말씀을 따라 적어보세요 (선택)", text: $readingText, axis: .vertical)
+        TextField("이 말씀이 오늘 내게... (선택)", text: $readingText, axis: .vertical)
             .font(contentFont)
             .foregroundColor(.white)
             .tint(.dvAccentGold)

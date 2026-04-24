@@ -66,7 +66,7 @@ struct DevotionHomeView: View {
         }
         .background(Color.dvBgDeep.ignoresSafeArea())
         .fullScreenCover(item: $selectedMeditationEntry) { entry in
-            MeditationEntryDetailView(entry: entry)
+            MeditationEntryDetailView(entry: entry, viewModel: viewModel)
         }
         .task {
             let userId = authManager.userId ?? "local"

@@ -107,6 +107,14 @@ final class OnboardingViewModel: ObservableObject {
         firstAlarmPromptShown = true
     }
 
+    /// 알람 설정 없이 온보딩 완료 (나중에 하기)
+    func completeOnboardingSkipAlarm() {
+        saveNickname()
+        onboardingCompleted = true
+        savedPage = 0
+        firstAlarmPromptShown = true
+    }
+
     // MARK: - Private 저장 헬퍼
 
     private func saveNickname() {

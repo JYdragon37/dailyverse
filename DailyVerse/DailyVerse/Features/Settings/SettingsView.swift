@@ -17,12 +17,14 @@ struct SettingsView: View {
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
     @AppStorage("greetingLanguage") private var greetingLanguage: String = "random"
+    @AppStorage("profileEmoji") private var profileEmoji: String = ""
 
     @State private var showRetentionAlert = false
     @State private var showDeleteAccountAlert = false
     @State private var showSignOutAlert = false
     @State private var showLoginPrompt = false
     @State private var showNicknameEdit = false
+    @State private var showEmojiPicker = false
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
 
@@ -147,12 +149,9 @@ struct SettingsView: View {
     // MARK: - 프로필 카드
 
     private var profileCard: some View {
-        Button {
-            editingNickname = nicknameManager.nickname
-            showNicknameEdit = true
-        } label: {
-            HStack(spacing: 14) {
-                // 이니셜 아바타
+        HStack(spacing: 14) {
+            // ── 이모지 아바타 (탭 → 이모지 선택) ──────
+            Button { showEmojiPicker = true } label: {
                 ZStack {
                     Circle()
                         .fill(
@@ -162,19 +161,34 @@ struct SettingsView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                    Text(String(nicknameManager.nickname.prefix(1)))
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
+                    if profileEmoji.isEmpty {
+                        Text(String(nicknameManager.nickname.prefix(1)))
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    } else {
+                        Text(profileEmoji)
+                            .font(.system(size: 26))
+                    }
                 }
                 .frame(width: 52, height: 52)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.20), lineWidth: 1.5)
+                )
+            }
+            .buttonStyle(.plain)
 
+            // ── 닉네임 + 이메일 (탭 → 닉네임 수정) ──
+            Button {
+                editingNickname = nicknameManager.nickname
+                showNicknameEdit = true
+            } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 5) {
                         Text("안녕하세요, \(nicknameManager.nickname)")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
-                        Text("👋")
-                            .font(.system(size: 15))
+                        Text("👋").font(.system(size: 15))
                     }
                     if authManager.isLoggedIn {
                         Text(authManager.user?.email ?? "Apple 계정")
@@ -186,20 +200,23 @@ struct SettingsView: View {
                             .foregroundColor(.white.opacity(0.50))
                     }
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.30))
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.dvBgSurface)
-            )
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Image(systemName: "pencil")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.30))
         }
-        .buttonStyle(.plain)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.dvBgSurface)
+        )
+        .sheet(isPresented: $showEmojiPicker) {
+            emojiPickerSheet
+        }
         // 비로그인 시 로그인 버튼 추가
         .overlay(alignment: .bottomTrailing) {
             if !authManager.isLoggedIn {
@@ -496,6 +513,77 @@ struct SettingsView: View {
             .fill(Color.white.opacity(0.07))
             .frame(height: 0.5)
             .padding(.leading, 60)
+    }
+
+    // MARK: - 이모지 피커 시트
+
+    private let emojiOptions: [String] = [
+        "🙏", "✝️", "🕊️", "📖", "⭐", "🌅",
+        "🌿", "☀️", "🌙", "💫", "🌸", "🌊",
+        "🦋", "🌻", "❤️", "💛", "🌈", "🍃",
+        "✨", "🔥", "🫶", "🌺", "🌾", "🏔️",
+    ]
+
+    private var emojiPickerSheet: some View {
+        VStack(spacing: 0) {
+            // 핸들
+            Capsule()
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+
+            Text("이모지 선택")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.bottom, 20)
+
+            // 이모지 그리드
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 16) {
+                // 초기화 (이니셜로 돌아가기)
+                Button {
+                    profileEmoji = ""
+                    showEmojiPicker = false
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(profileEmoji.isEmpty ? 0.25 : 0.08))
+                            .frame(width: 48, height: 48)
+                        Text(String(nicknameManager.nickname.prefix(1)))
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+
+                ForEach(emojiOptions, id: \.self) { emoji in
+                    Button {
+                        profileEmoji = emoji
+                        showEmojiPicker = false
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(profileEmoji == emoji
+                                      ? Color.dvAccentGold.opacity(0.25)
+                                      : Color.white.opacity(0.08))
+                                .frame(width: 48, height: 48)
+                                .overlay(
+                                    Circle().stroke(
+                                        profileEmoji == emoji ? Color.dvAccentGold.opacity(0.6) : Color.clear,
+                                        lineWidth: 1.5
+                                    )
+                                )
+                            Text(emoji).font(.system(size: 26))
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+        .background(Color.dvBgDeep.ignoresSafeArea())
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.hidden)
     }
 }
 

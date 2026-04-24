@@ -1,387 +1,514 @@
 import SwiftUI
+import Photos
 
-// MARK: - MeditationEntryDetailView
-// 묵상 달력 날짜 탭 시 표시되는 풀스크린 상세 뷰
+// MARK: - MeditationEntryDetailView v3
+// 묵상 다이어리 템플릿 — 크림 배경, 단일 스크롤
+// verseFullKo / readingText·prayer·prayerItems 자동 연계
+// 갤러리 저장 기능 + mm 로고 콜로폰
 
 struct MeditationEntryDetailView: View {
     let entry: MeditationEntry
+    @ObservedObject var viewModel: MeditationViewModel
+    @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var verse: Verse? = nil
-    @State private var showDetailSheet = false
+    @State private var isSaving = false
+    @State private var showSavedToast = false
+    @State private var showEditFlow = false
 
-    // MARK: - Background
+    // MARK: - 색상 팔레트
 
-    private var backgroundGradient: LinearGradient {
-        let mode = AppMode(rawValue: entry.mode) ?? AppMode.current()
-        return LinearGradient(colors: mode.gradientColors, startPoint: .top, endPoint: .bottom)
-    }
-
-    // MARK: - 4-Stop 감성 오버레이
-    // 상단(날짜) · 중앙(배경 노출) · 말씀 블록 · 하단(버튼) 구간별 독립 처리
-
-    private var overlayGradient: some View {
-        LinearGradient(
-            stops: [
-                .init(color: .black.opacity(0.70), location: 0.00),
-                .init(color: .black.opacity(0.15), location: 0.28),
-                .init(color: .black.opacity(0.35), location: 0.55),
-                .init(color: .black.opacity(0.78), location: 1.00),
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
-    }
-
-    // MARK: - 날짜 블록
-    // 연도(작게·흐리게) / 구분선 / 월·일(크게·선명하게) / 요일(보통·중간)
-    // 설계 의도: 이 날의 묵상이 인생의 고정된 한 순간임을 시각적 계층으로 표현
-
-    private var dateBlock: some View {
-        VStack(alignment: .leading, spacing: 0) {
-
-            // 연도 — 맥락 레이어
-            Text(entryYear)
-                .font(.system(size: 14, weight: .medium))
-                .tracking(3)
-                .foregroundColor(.white.opacity(0.50))
-
-            // 시각적 구분선
-            Rectangle()
-                .fill(Color.white.opacity(0.35))
-                .frame(width: 20, height: 1)
-                .padding(.vertical, 6)
-
-            // 월·일 — 핵심 정보, 가장 크고 선명하게
-            Text(entryMonthDay)
-                .font(.system(size: 32, weight: .bold))
-                .foregroundColor(.white)
-
-            // 요일 — 보조 정보
-            Text(entryWeekday)
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white.opacity(0.70))
-                .padding(.top, 2)
-
-            // 도시명 — 위치 컨텍스트, 없으면 숨김
-            if let city = entry.locationName, !city.isEmpty {
-                HStack(spacing: 4) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 11))
-                    Text(city)
-                        .font(.system(size: 14, weight: .regular))
-                }
-                .foregroundColor(.white.opacity(0.55))
-                .padding(.top, 6)
-            }
-        }
-        .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
-    }
-
-    // MARK: - 말씀 블록
-    // 26pt semibold, 행간 1.6, 강한 그림자로 배경 위 선명도 확보
-
-    private var verseBlock: some View {
-        VStack(alignment: .leading, spacing: 0) {
-
-            // 말씀 본문 — 화면의 주인공 (verse 로드 전에는 숨김)
-            if let verseText = verse?.verseFullKo, !verseText.isEmpty {
-                Text(verseText)
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineSpacing(11)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 4)
-            }
-
-            // 참조 — em dash로 시작, 중간 크기·중간 투명도
-            Text("— \(entry.verseReference)")
-                .font(.system(size: 14, weight: .medium))
-                .tracking(0.5)
-                .foregroundColor(.white.opacity(0.75))
-                .shadow(color: .black.opacity(0.7), radius: 6, x: 0, y: 2)
-                .padding(.top, 20)
-
-            // 묵상 기록 보기 힌트 — 선(rule) + 텍스트 + 아이콘 순서
-            // 시선이 왼쪽에서 오른쪽으로 흐르며 위로 올리는 동작을 자연스럽게 유도
-            HStack(spacing: 8) {
-                Rectangle()
-                    .fill(Color.white.opacity(0.35))
-                    .frame(width: 20, height: 1)
-                Text("묵상 기록 보기")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.white.opacity(0.5))
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(.white.opacity(0.5))
-            }
-            .padding(.top, 28)
-        }
-        .onTapGesture {
-            showDetailSheet = true
-        }
-        .accessibilityLabel("묵상 기록 보기")
-        .accessibilityHint("탭하면 묵상 내용을 확인할 수 있어요")
-    }
-
-    // MARK: - Detail Sheet
-
-    private var meditationDetailSheet: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Spacer(minLength: 8)
-
-                // 날짜
-                Text(formattedEntryDate)
-                    .font(.dvCaption)
-                    .foregroundColor(.secondary)
-
-                // 해석 + 적용
-                interpretationSection
-                applicationSection
-
-                // 질문
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("묵상 질문", systemImage: "bubble.left")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.secondary)
-                    Text(questionText)
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .lineSpacing(5)
-                }
-
-                // 읽기 텍스트 (있을 때만)
-                if let reading = entry.readingText, !reading.isEmpty {
-                    Divider().padding(.vertical, 4)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("말씀 필사", systemImage: "pencil")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
-                        Text(reading)
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(5)
-                    }
-                }
-
-                // 한 줄 기도 (있을 때만)
-                if let prayer = entry.prayer, !prayer.isEmpty {
-                    Divider().padding(.vertical, 4)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("한 줄 기도", systemImage: "hands.sparkles")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
-                        Text(prayer)
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(5)
-                    }
-                }
-
-                // 기도 제목들 (있을 때만)
-                if !entry.prayerItems.isEmpty {
-                    Divider().padding(.vertical, 4)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("기도 제목", systemImage: "heart")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.secondary)
-                        ForEach(entry.prayerItems) { item in
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: item.isAnswered ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(item.isAnswered ? .dvAccentGold : .secondary)
-                                    .accessibilityLabel(item.isAnswered ? "응답됨" : "기도 중")
-                                Text(item.text)
-                                    .font(.system(size: 17, weight: .regular))
-                                    .foregroundColor(item.isAnswered ? .secondary : .primary)
-                                    .strikethrough(item.isAnswered, color: .secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                }
-
-                Spacer(minLength: 40)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-    }
-
-    // MARK: - 해석 섹션
-
-    @ViewBuilder
-    private var interpretationSection: some View {
-        let text = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
-        if !text.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("해석", systemImage: "lightbulb")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.secondary)
-                Text(text)
-                    .font(.system(size: 17, weight: .regular))
-                    .foregroundColor(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(5)
-            }
-            Divider().padding(.vertical, 4)
-        }
-    }
-
-    // MARK: - 일상 적용 섹션
-
-    @ViewBuilder
-    private var applicationSection: some View {
-        let text = verse?.contemplationAppliance ?? verse?.application ?? ""
-        if !text.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("일상 적용", systemImage: "heart.text.square")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.secondary)
-                Text(text)
-                    .font(.system(size: 17, weight: .regular))
-                    .foregroundColor(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(5)
-            }
-            Divider().padding(.vertical, 4)
-        }
-    }
-
-    // MARK: - Helpers
-
-    private var questionText: String {
-        verse?.question
-            ?? "이 말씀이 오늘 나의 삶에 어떻게 다가왔나요?"
-    }
-
-    private var parsedEntryDate: Date? {
-        let parser = DateFormatter()
-        parser.dateFormat = "yyyy-MM-dd"
-        return parser.date(from: entry.dateKey)
-    }
-
-    /// "2026" 연도만 추출 — 날짜 블록 최상단 맥락 레이어
-    private var entryYear: String {
-        guard let date = parsedEntryDate else { return "" }
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ko_KR")
-        fmt.dateFormat = "yyyy"
-        return fmt.string(from: date)
-    }
-
-    /// "4월 12일" 형식
-    private var entryMonthDay: String {
-        guard let date = parsedEntryDate else { return entry.dateKey }
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ko_KR")
-        fmt.dateFormat = "M월 d일"
-        return fmt.string(from: date)
-    }
-
-    /// "토요일" 형식
-    private var entryWeekday: String {
-        guard let date = parsedEntryDate else { return "" }
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ko_KR")
-        fmt.dateFormat = "EEEE"
-        return fmt.string(from: date)
-    }
-
-    /// 바텀시트 날짜 전체 표시용
-    private var formattedEntryDate: String {
-        guard let date = parsedEntryDate else { return entry.dateKey }
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ko_KR")
-        fmt.dateFormat = "yyyy년 M월 d일 EEEE"
-        return fmt.string(from: date)
-    }
+    private let bgColor   = Color(red: 0.97, green: 0.93, blue: 0.87)
+    private let inkColor  = Color(red: 0.24, green: 0.16, blue: 0.10)
+    private let inkFaint  = Color(red: 0.24, green: 0.16, blue: 0.10).opacity(0.45)
+    private let ruleColor = Color(red: 0.24, green: 0.16, blue: 0.10).opacity(0.18)
+    private let goldColor = Color(red: 0.72, green: 0.52, blue: 0.18)
 
     // MARK: - Body
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
+            bgColor.ignoresSafeArea()
 
-            // 레이어 1: 배경 이미지 또는 모드 그라데이션
-            if let urlString = entry.imageUrl, let url = URL(string: urlString) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    default:
-                        backgroundGradient
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+
+                    headerSection
+                        .padding(.top, 60)
+                        .padding(.horizontal, 28)
+
+                    rule.padding(.horizontal, 28).padding(.top, 16)
+
+                    verseSection
+                        .padding(.horizontal, 28)
+                        .padding(.top, 20)
+
+                    rule.padding(.horizontal, 28).padding(.top, 20)
+
+                    if let reading = entry.readingText, !reading.isEmpty {
+                        diarySection(icon: "✍️", label: "묵상 소감", body: reading)
+                        rule.padding(.horizontal, 28)
                     }
+
+                    if let prayer = entry.prayer, !prayer.isEmpty {
+                        diarySection(icon: "🙏", label: "기도", body: prayer)
+                        rule.padding(.horizontal, 28)
+                    }
+
+                    if !entry.prayerItems.isEmpty {
+                        gratitudeSection
+                        rule.padding(.horizontal, 28)
+                    }
+
+                    if entry.readingText?.isEmpty != false
+                        && entry.prayer?.isEmpty != false
+                        && entry.prayerItems.isEmpty {
+                        emptyState
+                            .padding(.horizontal, 28)
+                            .padding(.top, 32)
+                    }
+
+                    // ── 하단 콜로폰 (브랜드 마크) ──────────
+                    colophon
+                        .padding(.top, 36)
+                        .padding(.bottom, 48)
+
                 }
-                .ignoresSafeArea()
-                .clipped()
-            } else {
-                backgroundGradient.ignoresSafeArea()
             }
 
-            // 레이어 2: 4-stop 감성 오버레이
-            overlayGradient
-
-            // 레이어 3: 말씀 블록 — GeometryReader로 y 50% 위치 고정
-            GeometryReader { geo in
-                let w = geo.size.width
-                let hPad: CGFloat = max(w * 0.10, 24.0)
-
-                verseBlock
-                    .padding(.horizontal, hPad)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .position(x: w / 2, y: geo.size.height * 0.50)
-            }
-        }
-        // 레이어 4: 상단 오버레이 — 날짜(좌) + 닫기(우)
-        .overlay(alignment: .top) {
-            HStack(alignment: .top, spacing: 0) {
-
-                // 날짜 블록: 연도 / 구분선 / 월·일 / 요일 3단 수직
-                dateBlock
+            // ── 상단 버튼 영역 (수정하기 + 저장 + 닫기) ───
+            HStack(spacing: 10) {
+                // 수정하기
+                Button { showEditFlow = true } label: {
+                    Text("수정하기")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(inkColor.opacity(0.60))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(inkColor.opacity(0.08))
+                        .clipShape(Capsule())
+                }
 
                 Spacer()
 
-                // 닫기 버튼 — 배경 최소화, 아이콘 차분하게
+                // 갤러리 저장
+                Button {
+                    Task { await saveToGallery() }
+                } label: {
+                    if isSaving {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: inkColor.opacity(0.55)))
+                            .frame(width: 16, height: 16)
+                            .padding(9)
+                            .background(inkColor.opacity(0.08))
+                            .clipShape(Circle())
+                    } else {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(inkColor.opacity(0.55))
+                            .padding(9)
+                            .background(inkColor.opacity(0.08))
+                            .clipShape(Circle())
+                    }
+                }
+                .accessibilityLabel("이미지로 저장")
+                .disabled(isSaving)
+
+                // 닫기
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white.opacity(0.55))
-                        .padding(10)
-                        .background(Color.white.opacity(0.10))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(inkColor.opacity(0.55))
+                        .padding(9)
+                        .background(inkColor.opacity(0.08))
                         .clipShape(Circle())
                 }
                 .accessibilityLabel("닫기")
             }
             .padding(.horizontal, 24)
-            .padding(.top, 60)
+            .padding(.top, 16)
+
+            // ── 저장 완료 토스트 ──────────────────────────
+            if showSavedToast {
+                VStack {
+                    Spacer()
+                    Text("📷 갤러리에 저장됐어요")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(inkColor.opacity(0.85)))
+                    Spacer().frame(height: 80)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
-        .sheet(isPresented: $showDetailSheet) {
-            meditationDetailSheet
+        .animation(.easeInOut(duration: 0.3), value: showSavedToast)
+        .fullScreenCover(isPresented: $showEditFlow) {
+            NavigationStack {
+                DevotionResponseView(
+                    verse: verse,
+                    readingText: entry.readingText ?? "",
+                    viewModel: viewModel,
+                    prefillPrayer: entry.prayer ?? "",
+                    prefillGratitude: entry.prayerItems.map { $0.text }
+                )
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("닫기") { showEditFlow = false }
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+            }
         }
         .task {
             let id = entry.verseId
             guard !id.isEmpty else { return }
-
-            // 1. Core Data 캐시 (가장 빠름)
-            if let v = DailyCacheManager.shared.loadCachedVerse(id: id) {
-                verse = v; return
-            }
-            // 2. 번들 폴백 (오프라인 안전망)
-            if let v = Verse.fallbackVerses.first(where: { $0.id == id }) {
-                verse = v; return
-            }
-            // 3. VerseRepository — 메모리 캐시 우선, 없으면 Firestore 호출
-            //    (fetchVerses는 30분 내 재호출 시 in-memory 반환 → 네트워크 불필요)
+            if let v = DailyCacheManager.shared.loadCachedVerse(id: id) { verse = v; return }
+            if let v = Verse.fallbackVerses.first(where: { $0.id == id }) { verse = v; return }
             if let verses = try? await VerseRepository.shared.fetchVerses() {
                 verse = verses.first { $0.id == id }
             }
         }
+    }
+
+    // MARK: - 헤더 (연도 포함)
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("묵상")
+                .font(.system(size: 34, weight: .bold, design: .serif))
+                .foregroundColor(inkColor)
+
+            Text(formattedDateWithYear)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(inkFaint)
+        }
+    }
+
+    // MARK: - 말씀 (verseFullKo, 이탤릭 중앙)
+
+    private var verseSection: some View {
+        VStack(spacing: 14) {
+            Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "말씀을 불러오는 중이에요")
+                .font(.system(size: 17, weight: .regular, design: .serif))
+                .italic()
+                .foregroundColor(inkColor.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .lineSpacing(8)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+
+            Text("— \(entry.verseReference)")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(goldColor)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - 다이어리 섹션
+
+    private func diarySection(icon: String, label: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Text(icon).font(.system(size: 13))
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(goldColor)
+                    .tracking(0.8)
+            }
+            Text(body)
+                .font(.system(size: 17, weight: .regular, design: .serif))
+                .foregroundColor(inkColor)
+                .lineSpacing(9)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+    }
+
+    // MARK: - 감사한 것
+
+    private var gratitudeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Text("🌿").font(.system(size: 13))
+                Text("감사한 것")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(goldColor)
+                    .tracking(0.8)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(entry.prayerItems.enumerated()), id: \.1.id) { idx, item in
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("\(idx + 1).")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(goldColor)
+                            .frame(width: 18)
+                        Text(item.text)
+                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .foregroundColor(inkColor)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+    }
+
+    // MARK: - 하단 콜로폰 (로고)
+
+    private var colophon: some View {
+        VStack(spacing: 6) {
+            Rectangle()
+                .fill(ruleColor)
+                .frame(width: 32, height: 0.7)
+
+            Image("LogoMM")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 48, height: 48)
+                .padding(.vertical, -18)
+                .colorMultiply(inkColor)   // 잉크 갈색으로 렌더링
+                .opacity(0.35)
+
+            Text("morning manna")
+                .font(.system(size: 10, weight: .regular, design: .serif))
+                .italic()
+                .foregroundColor(inkColor.opacity(0.30))
+                .tracking(1.2)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - 빈 상태
+
+    private var emptyState: some View {
+        Text("아직 묵상 기록이 없어요")
+            .font(.system(size: 15, weight: .regular, design: .serif))
+            .italic()
+            .foregroundColor(inkFaint)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+    }
+
+    // MARK: - 구분선
+
+    private var rule: some View {
+        Rectangle()
+            .fill(ruleColor)
+            .frame(height: 0.7)
+    }
+
+    // MARK: - 갤러리 저장
+
+    @MainActor
+    private func saveToGallery() async {
+        isSaving = true
+
+        // 렌더링할 스냅샷 뷰 생성
+        let snapshot = DiarySnapshotView(
+            entry: entry,
+            verse: verse,
+            bgColor: bgColor,
+            inkColor: inkColor,
+            inkFaint: inkFaint,
+            ruleColor: ruleColor,
+            goldColor: goldColor
+        )
+
+        let renderer = ImageRenderer(content: snapshot)
+        renderer.scale = 3.0   // @3x 고해상도
+
+        guard let uiImage = renderer.uiImage else {
+            isSaving = false
+            return
+        }
+
+        // 권한 요청 + 저장
+        let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        guard status == .authorized || status == .limited else {
+            isSaving = false
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: uiImage)
+            }
+            isSaving = false
+            showSavedToast = true
+            // 2초 후 토스트 숨김
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            showSavedToast = false
+        } catch {
+            isSaving = false
+        }
+    }
+
+    // MARK: - 날짜 포매터 (연도 포함)
+
+    private var formattedDateWithYear: String {
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd"
+        guard let date = parser.date(from: entry.dateKey) else { return entry.dateKey }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "yyyy년 M월 d일 EEEE"
+        return fmt.string(from: date)
+    }
+}
+
+// MARK: - DiarySnapshotView (ImageRenderer 렌더링 전용)
+
+private struct DiarySnapshotView: View {
+    let entry: MeditationEntry
+    let verse: Verse?
+    let bgColor: Color
+    let inkColor: Color
+    let inkFaint: Color
+    let ruleColor: Color
+    let goldColor: Color
+
+    private let pageWidth: CGFloat = 390
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // 헤더
+            VStack(alignment: .leading, spacing: 5) {
+                Text("묵상")
+                    .font(.system(size: 34, weight: .bold, design: .serif))
+                    .foregroundColor(inkColor)
+                Text(formattedDate)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(inkFaint)
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 40)
+
+            snapRule.padding(.horizontal, 28).padding(.top, 16)
+
+            // 말씀
+            VStack(spacing: 14) {
+                Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "")
+                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .italic()
+                    .foregroundColor(inkColor.opacity(0.85))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(8)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
+                Text("— \(entry.verseReference)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(goldColor)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .padding(.horizontal, 28)
+            .padding(.vertical, 20)
+
+            snapRule.padding(.horizontal, 28)
+
+            if let reading = entry.readingText, !reading.isEmpty {
+                snapSection(icon: "✍️", label: "묵상 소감", body: reading)
+                snapRule.padding(.horizontal, 28)
+            }
+            if let prayer = entry.prayer, !prayer.isEmpty {
+                snapSection(icon: "🙏", label: "기도", body: prayer)
+                snapRule.padding(.horizontal, 28)
+            }
+            if !entry.prayerItems.isEmpty {
+                snapGratitude
+                snapRule.padding(.horizontal, 28)
+            }
+
+            // 콜로폰
+            VStack(spacing: 6) {
+                Rectangle().fill(ruleColor).frame(width: 32, height: 0.7)
+                Image("LogoMM")
+                    .resizable().scaledToFit()
+                    .frame(width: 48, height: 48)
+                    .padding(.vertical, -18)
+                    .colorMultiply(inkColor)
+                    .opacity(0.35)
+                Text("morning manna")
+                    .font(.system(size: 10, weight: .regular, design: .serif))
+                    .italic()
+                    .foregroundColor(inkColor.opacity(0.30))
+                    .tracking(1.2)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 36)
+            .padding(.bottom, 48)
+        }
+        .frame(width: pageWidth)
+        .background(bgColor)
+    }
+
+    private var snapRule: some View {
+        Rectangle().fill(ruleColor).frame(height: 0.7)
+    }
+
+    private func snapSection(icon: String, label: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Text(icon).font(.system(size: 13))
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(goldColor)
+                    .tracking(0.8)
+            }
+            Text(body)
+                .font(.system(size: 17, weight: .regular, design: .serif))
+                .foregroundColor(inkColor)
+                .lineSpacing(9)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+    }
+
+    private var snapGratitude: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Text("🌿").font(.system(size: 13))
+                Text("감사한 것")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(goldColor)
+                    .tracking(0.8)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(entry.prayerItems.enumerated()), id: \.1.id) { idx, item in
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("\(idx + 1).")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(goldColor)
+                            .frame(width: 18)
+                        Text(item.text)
+                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .foregroundColor(inkColor)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+    }
+
+    private var formattedDate: String {
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd"
+        guard let date = parser.date(from: entry.dateKey) else { return entry.dateKey }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ko_KR")
+        fmt.dateFormat = "yyyy년 M월 d일 EEEE"
+        return fmt.string(from: date)
     }
 }
 
@@ -391,21 +518,23 @@ struct MeditationEntryDetailView: View {
     let sampleEntry = MeditationEntry(
         id: "preview-001",
         userId: "local",
-        dateKey: "2026-04-10",
-        verseId: "fallback_rise_ignite",
-        verseReference: "이사야 41:10",
+        dateKey: "2026-04-24",
+        verseId: "v_200",
+        verseReference: "시편 143:8",
         mode: "rise_ignite",
         prayerItems: [
-            PrayerItem(text: "가족의 건강", isAnswered: false),
-            PrayerItem(text: "오늘 회의 잘 마무리되게", isAnswered: true)
+            PrayerItem(text: "오늘 하루 감사한 말씀을 만났어요"),
+            PrayerItem(text: "가족이 건강해서 감사해요"),
+            PrayerItem(text: "평안한 아침 시간")
         ],
         gratitudeNote: nil,
         createdAt: Date(),
         updatedAt: Date(),
         source: "guided",
-        prayer: "주님, 오늘 하루도 함께해 주세요.",
-        readingText: "두려워하지 말라 내가 너와 함께 함이라",
+        prayer: "주님, 오늘도 말씀으로 하루를 시작하게 해주셔서 감사합니다.",
+        readingText: "오늘 아침 이 말씀을 읽으며 하나님이 나의 하루를 인도하신다는 믿음이 생겼습니다.",
         imageUrl: nil
     )
-    MeditationEntryDetailView(entry: sampleEntry)
+    MeditationEntryDetailView(entry: sampleEntry, viewModel: MeditationViewModel())
+        .environmentObject(AuthManager())
 }

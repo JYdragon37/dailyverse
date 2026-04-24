@@ -98,6 +98,16 @@ struct ONBAlarmPermissionView: View {
             }
             .accessibilityLabel("알림 허용 후 온보딩 완료")
 
+            // 나중에 하기
+            Button {
+                vm.completeOnboardingSkipAlarm()
+            } label: {
+                Text("나중에 하기")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.55))
+                    .padding(.vertical, 8)
+            }
+
             // 수정 가능 안내
             Text("언제든 알람 탭에서 수정할 수 있어요")
                 .font(.system(size: 13))

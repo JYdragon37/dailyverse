@@ -6,18 +6,25 @@ import SwiftUI
 struct DevotionResponseView: View {
 
     let verse: Verse?
-    let readingText: String          // Screen 2에서 전달받은 읽기 텍스트
+    let readingText: String
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
 
+    // 수정 모드 pre-fill 값 (기본값: 빈 문자열)
+    var prefillPrayer: String = ""
+    var prefillGratitude: [String] = []
+
     // MARK: - Focus
 
-    private enum Field: Hashable { case prayer }
+    private enum Field: Hashable { case prayer, g1, g2, g3 }
     @FocusState private var focusedField: Field?
 
     // MARK: - Input State
 
     @State private var prayer: String = ""
+    @State private var gratitude1: String = ""
+    @State private var gratitude2: String = ""
+    @State private var gratitude3: String = ""
     @State private var showComplete: Bool = false
 
     // MARK: - Body
@@ -31,6 +38,8 @@ struct DevotionResponseView: View {
                     questionSection.padding(.bottom, 20)
                     dashedDivider.padding(.bottom, 20)
                     prayerSection.padding(.bottom, 20)
+                    dashedDivider.padding(.bottom, 20)
+                    gratitudeSection.padding(.bottom, 20)
                     Spacer(minLength: 16)
                 }
                 .padding(.horizontal, 20)
@@ -45,6 +54,12 @@ struct DevotionResponseView: View {
         .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear {
+            if prayer.isEmpty { prayer = prefillPrayer }
+            if gratitude1.isEmpty, prefillGratitude.count > 0 { gratitude1 = prefillGratitude[0] }
+            if gratitude2.isEmpty, prefillGratitude.count > 1 { gratitude2 = prefillGratitude[1] }
+            if gratitude3.isEmpty, prefillGratitude.count > 2 { gratitude3 = prefillGratitude[2] }
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
@@ -130,18 +145,19 @@ struct DevotionResponseView: View {
 
     private var prayerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("✍️ 한 줄 기도")
+            sectionHeader("🙏 한 줄 기도")
 
-            Text("오늘 묵상하며 떠오른 기도를 한 줄로 적어보세요. (선택)")
+            Text("오늘 묵상하며 떠오른 기도를 적어보세요. (선택, 최소 5자)")
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.55))
 
             VStack(alignment: .trailing, spacing: 6) {
-                TextField("주님, ...", text: $prayer)
+                TextField("주님, ...", text: $prayer, axis: .vertical)
                     .font(.dvBody)
                     .foregroundColor(.white)
                     .tint(.dvAccentGold)
                     .focused($focusedField, equals: .prayer)
+                    .lineLimit(1...4)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(
@@ -149,14 +165,16 @@ struct DevotionResponseView: View {
                             .fill(Color.white.opacity(0.06))
                     )
                     .onChange(of: prayer) { newValue in
-                        if newValue.count > 50 {
-                            prayer = String(newValue.prefix(50))
+                        if newValue.count > 150 {
+                            prayer = String(newValue.prefix(150))
                         }
                     }
 
-                Text("\(prayer.count) / 50자")
+                Text("\(prayer.count) / 150자")
                     .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.45))
+                    .foregroundColor(prayer.count > 0 && prayer.count < 5
+                                     ? Color.orange.opacity(0.8)
+                                     : .white.opacity(0.45))
             }
             .padding(12)
             .background(
@@ -166,14 +184,73 @@ struct DevotionResponseView: View {
         }
     }
 
+    // MARK: - 섹션 4: 감사한 것
+
+    private var gratitudeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("🌿 감사한 것")
+
+            Text("오늘 감사한 것 3가지를 적어보세요. (선택)")
+                .font(.dvCaption)
+                .foregroundColor(.white.opacity(0.55))
+
+            VStack(spacing: 8) {
+                gratitudeField(index: 1, text: $gratitude1, focus: .g1)
+                gratitudeField(index: 2, text: $gratitude2, focus: .g2)
+                gratitudeField(index: 3, text: $gratitude3, focus: .g3)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.dvBgSurface)
+            )
+        }
+    }
+
+    private func gratitudeField(index: Int, text: Binding<String>, focus: Field) -> some View {
+        HStack(spacing: 10) {
+            Text("\(index).")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.dvAccentGold)
+                .frame(width: 18)
+            TextField("감사한 것을 적어요", text: text)
+                .font(.dvBody)
+                .foregroundColor(.white)
+                .tint(.dvAccentGold)
+                .focused($focusedField, equals: focus)
+                .onChange(of: text.wrappedValue) { newValue in
+                    if newValue.count > 50 {
+                        text.wrappedValue = String(newValue.prefix(50))
+                    }
+                }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.06))
+        )
+    }
+
     // MARK: - Complete Handler
 
     private func handleComplete() {
+        // 기도 최소 5자 미만이면 빈값으로 처리
+        let trimmedPrayer = prayer.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalPrayer = trimmedPrayer.count >= 5 ? trimmedPrayer : ""
+
+        // 감사 항목 — 비어있지 않은 것만 PrayerItem으로 변환
+        let gratitudeTexts = [gratitude1, gratitude2, gratitude3]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let prayerItems = gratitudeTexts.map { PrayerItem.make(text: $0) }
+
         Task {
             await viewModel.saveGuided(
                 userId: authManager.userId ?? "local",
-                prayer: prayer.trimmingCharacters(in: .whitespacesAndNewlines),
-                readingText: readingText
+                prayer: finalPrayer,
+                readingText: readingText,
+                prayerItems: prayerItems
             )
             showComplete = true
         }

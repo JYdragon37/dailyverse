@@ -242,17 +242,21 @@ final class MeditationViewModel: ObservableObject {
 
     // MARK: - Guided Save (4화면 플로우 완료)
 
-    func saveGuided(userId: String, prayer: String, readingText: String) async {
+    func saveGuided(
+        userId: String,
+        prayer: String,
+        readingText: String,
+        prayerItems: [PrayerItem] = []
+    ) async {
         let uid = userId.isEmpty ? "local" : userId
         let mode = AppMode.current()
-        // todayVerse?.id 우선 — 실제 화면에 표시된 말씀 ID를 직접 사용
-        // DailyCacheManager 타이밍 이슈로 빈 문자열이 저장되는 버그 방지
         let verseId = todayVerse?.id ?? DailyCacheManager.shared.getVerseId(for: mode) ?? ""
         let verseRef = todayVerse?.reference ?? ""
 
         if var existing = todayEntry {
             existing.prayer = prayer.isEmpty ? nil : prayer
             existing.readingText = readingText.isEmpty ? nil : readingText
+            if !prayerItems.isEmpty { existing.prayerItems = prayerItems }
             existing.updatedAt = Date()
             do {
                 try await repository.save(existing)
@@ -269,7 +273,7 @@ final class MeditationViewModel: ObservableObject {
                 verseId: verseId,
                 verseReference: verseRef,
                 mode: mode.rawValue,
-                prayerItems: [],
+                prayerItems: prayerItems,
                 gratitudeNote: nil,
                 prayer: prayer,
                 readingText: readingText,

@@ -186,11 +186,15 @@ struct AlarmStage2View: View {
 
     private var greetingHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // 1행: 아이콘 + Zone 인사말
-            HStack(spacing: 8) {
-                Image(systemName: alarmMode.greetingIcon)
-                    .font(.system(size: 26))
-                    .foregroundColor(.white)
+            // 1행: mm 로고 + Zone 인사말
+            HStack(spacing: 10) {
+                // mm 브랜드 로고 (Zone 아이콘 대체)
+                // 이미지 내 콘텐츠가 전체의 16% → 프레임 키우고 음수 패딩으로 여백 제거
+                Image("LogoMM")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 140, height: 140)
+                    .padding(-55)
                 // Design Ref: §7-2 — greetingText: greetingService 우선 + 닉네임 조합
                 Text(greetingText)
                     .font(.dvLargeTitle)
