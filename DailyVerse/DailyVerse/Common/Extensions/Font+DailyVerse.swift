@@ -21,7 +21,7 @@ extension Font {
 
     // MARK: - 인사말 / UI (Pretendard Variable)
 
-    /// 인사말 "Good Morning, NY" (Bold 32pt)
+    /// 인사말 "Good Morning, stranger" (Bold 32pt)
     static let dvLargeTitle = Font.custom("PretendardVariable", size: 32).weight(.bold)
     /// 시간 / 날씨 보조 (Medium 17pt)
     static let dvSubtitle   = Font.custom("PretendardVariable", size: 17).weight(.medium)

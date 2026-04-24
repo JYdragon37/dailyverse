@@ -16,7 +16,6 @@ struct HomeView: View {
     @State private var showLoginPrompt = false
     @State private var showWeatherDetail = false   // #4 날씨 상세
     @State private var heartPulse = false
-    @State private var isSaved = false
 
     init(viewModel: HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -84,7 +83,7 @@ struct HomeView: View {
                 WeatherDetailSheet(viewModel: viewModel)
             }
             .task { await viewModel.loadData() }
-            .task { viewModel.checkIfSaved() }
+            .task { await viewModel.checkIfSaved() }
             .task {
                 // Design Ref: §7-1 — Zone 진입 시 greeting 로드
                 let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
@@ -302,7 +301,7 @@ struct HomeView: View {
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
-        .onChange(of: viewModel.currentVerse?.id) { _ in viewModel.checkIfSaved() }
+        .onChange(of: viewModel.currentVerse?.id) { _ in Task { await viewModel.checkIfSaved() } }
     }
 
     /// "v_007" → "#7" 형태로 변환

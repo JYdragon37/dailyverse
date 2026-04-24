@@ -128,7 +128,7 @@ struct DevotionVerseView: View {
                                 .font(.dvReference)
                                 .foregroundColor(.dvAccentGold)
                         }
-                        Text("개역개정")
+                        Text("개역한글")
                             .font(.dvCaption)
                             .foregroundColor(.white.opacity(0.45))
                     }

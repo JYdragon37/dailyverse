@@ -45,7 +45,7 @@ struct ONBNicknameView: View {
 
                 // ── 입력 영역 ──
                 VStack(alignment: .leading, spacing: 12) {
-                    TextField("Stranger", text: $vm.nicknameInput)
+                    TextField("stranger", text: $vm.nicknameInput)
                         .font(.system(size: 38, weight: .bold))
                         .foregroundColor(.white)
                         .tint(.dvAccentGold)
@@ -88,7 +88,7 @@ struct ONBNicknameView: View {
             VStack(spacing: 0) {
                 Button {
                     if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        vm.nicknameInput = "Stranger"
+                        vm.nicknameInput = "stranger"
                     }
                     vm.next()
                 } label: {
@@ -112,7 +112,7 @@ struct ONBNicknameView: View {
             withAnimation(.easeIn(duration: 0.5)) { contentOpacity = 1 }
             // 기본값 설정
             if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                vm.nicknameInput = "Stranger"
+                vm.nicknameInput = "stranger"
             }
         }
         .onTapGesture { isFocused = false }

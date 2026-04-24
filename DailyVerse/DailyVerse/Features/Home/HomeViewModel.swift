@@ -20,6 +20,8 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - Private State
 
+    private var isTogglingSave = false
+
     private var modeCheckTimer: AnyCancellable?
     private var locationCancellables: Set<AnyCancellable> = []
     private var toastDismissTask: Task<Void, Never>?
@@ -112,17 +114,15 @@ final class HomeViewModel: ObservableObject {
     }
 
     /// 말씀 저장 여부 확인 (말씀 변경 시 호출)
-    func checkIfSaved() {
+    func checkIfSaved() async {
         guard authManager.isLoggedIn, let userId = authManager.userId,
               let verseId = currentVerse?.id else {
             isSavedCurrentVerse = false
             return
         }
-        Task {
-            let repo = SavedVerseRepository()
-            let all = (try? await repo.fetchAll(userId: userId)) ?? []
-            isSavedCurrentVerse = all.contains { $0.verseId == verseId }
-        }
+        let repo = SavedVerseRepository()
+        let all = (try? await repo.fetchAll(userId: userId)) ?? []
+        isSavedCurrentVerse = all.contains { $0.verseId == verseId }
     }
 
     /// 말씀 저장 토글 — 이미 저장됐으면 삭제, 아니면 저장
@@ -135,27 +135,34 @@ final class HomeViewModel: ObservableObject {
             return
         }
 
-        if isSavedCurrentVerse {
+        guard !isTogglingSave else { return }
+        isTogglingSave = true
+        // 낙관적 업데이트 — 즉시 UI 반영
+        let wasSaved = isSavedCurrentVerse
+        isSavedCurrentVerse = !wasSaved
+
+        if wasSaved {
             // 삭제
             Task {
+                defer { isTogglingSave = false }
                 let repo = SavedVerseRepository()
                 let all = (try? await repo.fetchAll(userId: userId)) ?? []
                 if let target = all.first(where: { $0.verseId == verse.id }) {
                     try? await repo.delete(id: target.id, userId: userId)
                 }
-                isSavedCurrentVerse = false
                 showToast("저장이 취소되었습니다")
             }
         } else {
             // 저장
             let savedVerse = makeSavedVerse(from: verse, displayedImageUrl: displayedImageUrl)
             Task {
+                defer { isTogglingSave = false }
                 do {
                     let repo = SavedVerseRepository()
                     try await repo.save(savedVerse, userId: userId)
-                    isSavedCurrentVerse = true
                     showToast("저장되었습니다")
                 } catch {
+                    isSavedCurrentVerse = wasSaved  // 실패 시 롤백
                     showToast("저장에 실패했습니다. 다시 시도해주세요")
                 }
             }
