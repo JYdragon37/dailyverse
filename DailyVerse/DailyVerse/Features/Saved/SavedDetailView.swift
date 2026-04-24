@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Combine
 import Photos
 
@@ -247,15 +248,14 @@ struct SavedDetailView: View {
             .padding(.top, 56)
             .padding(.trailing, 20)
         }
-        // 브랜딩 로고 (좌하단)
-        .overlay(alignment: .bottomLeading) {
+        // 브랜딩 로고 (하단 중앙)
+        .overlay(alignment: .bottom) {
             Image("LogoMMColor")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 44)
+                .frame(width: 48)
                 .opacity(0.70)
-                .padding(.leading, 20)
-                .padding(.bottom, 108)
+                .padding(.bottom, 112)
                 .allowsHitTesting(false)
         }
         // 하단 버튼 영역
