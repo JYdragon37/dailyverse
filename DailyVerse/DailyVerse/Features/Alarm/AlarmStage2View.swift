@@ -186,14 +186,14 @@ struct AlarmStage2View: View {
 
     private var greetingHeader: some View {
         HStack(alignment: .top, spacing: 14) {
-            // 좌측: mm 로고 — 화면 왼쪽에서 약간 떨어짐
-            Image("LogoMM")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 72, height: 72)
-                .padding(-28)
-                .padding(.leading, 8)
-                .padding(.top, 4)
+            // 좌측: mm 브랜드 텍스트 (DancingScript 커시브)
+            // — 이미지 대신 폰트 텍스트로 → 배경 없이 어떤 배경에서도 깔끔하게 표시
+            Text("mm")
+                .font(.custom("DancingScript", size: 36).weight(.bold))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                .padding(.leading, 4)
+                .padding(.top, 6)
 
             // 우측: 인사말 / 날짜+날씨 / 시간 — 모두 같은 수직선
             VStack(alignment: .leading, spacing: 6) {
