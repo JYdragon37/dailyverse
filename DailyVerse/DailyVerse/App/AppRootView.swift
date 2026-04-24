@@ -76,34 +76,34 @@ struct AppRootView: View {
                     .transition(.opacity)
             }
 
-            // MARK: - Stage 1 — 전체화면 알람 (TabBar 없음)
-            // zIndex(30): SplashView(20)보다 높아야 알람 탭 → 앱 실행 시 Splash에 안 가려짐
-            // 온보딩 전 표시 방지는 AlarmCoordinator.init()의 onboardingV2Completed 체크로 처리
+            // MARK: - Stage 1 — 전체화면 알람 (Legacy iOS)
             if alarmCoordinator.stage == .stage1 {
                 AlarmStage1View()
+                    .ignoresSafeArea()
                     .transition(.opacity)
                     .zIndex(30)
             }
 
-            // MARK: - Stage 1.5 — 웨이크업 미션 (v5.1)
-            if alarmCoordinator.stage == .stage1_5 {
-                WakeMissionView(
-                    mission: alarmCoordinator.activeMission,
-                    nickname: NicknameManager.shared.nickname,
-                    verse: alarmCoordinator.activeVerse,
-                    onComplete: { alarmCoordinator.completeMission() },
-                    onSkip: { alarmCoordinator.completeMission() }
-                )
-                .transition(.dvFade)
-                .zIndex(30)
-            }
-
-            // MARK: - Stage 2 — 웰컴 스크린 (0.6s Fade-in)
+            // MARK: - Stage 2 — 말씀+날씨 웰컴 스크린
             if alarmCoordinator.stage == .stage2 {
                 AlarmStage2View()
                     .transition(.dvFade)
                     .zIndex(31)
             }
+
+            #if DEBUG
+            if UserDefaults.standard.bool(forKey: "debugShowStage1") {
+                AlarmStage1View()
+                    .ignoresSafeArea()
+                    .zIndex(50)
+            }
+            if UserDefaults.standard.bool(forKey: "debugShowAuthWelcome") {
+                AuthWelcomeView(onSkip: {})
+                    .ignoresSafeArea()
+                    .zIndex(52)
+                    .environmentObject(authManager)
+            }
+            #endif
         }
         .animation(.dvStageTransition, value: alarmCoordinator.stage)
         .animation(.easeInOut(duration: 0.4), value: loadingCoordinator.state == .ready)

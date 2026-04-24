@@ -14,12 +14,22 @@ struct AuthWelcomeView: View {
 
     var body: some View {
         ZStack {
-            // 배경: SplashView와 동일한 청록→파란보라→보라 그라데이션
+            // 배경: 새벽 숲 사진
+            GeometryReader { geo in
+                Image("AuthWelcomeBG")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
+            .ignoresSafeArea()
+
+            // 상단→하단 다크 오버레이 (텍스트 가독성)
             LinearGradient(
                 colors: [
-                    Color(red: 0.40, green: 0.82, blue: 0.86),
-                    Color(red: 0.45, green: 0.62, blue: 0.88),
-                    Color(red: 0.62, green: 0.45, blue: 0.85),
+                    Color.black.opacity(0.30),
+                    Color.black.opacity(0.15),
+                    Color.black.opacity(0.55),
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -27,9 +37,9 @@ struct AuthWelcomeView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer().frame(height: 56)
+                Spacer()
 
-                // MARK: - 로고 영역
+                // MARK: - 로고 + 태그라인 (중앙 그룹)
                 logoSection
                     .opacity(logoAppeared ? 1 : 0)
                     .offset(y: logoAppeared ? 0 : 20)
@@ -57,23 +67,25 @@ struct AuthWelcomeView: View {
     // MARK: - 로고 섹션
 
     private var logoSection: some View {
-        VStack(spacing: 20) {
-            Image("AppLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 140, height: 140)
-                .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 8)
+        VStack(spacing: 0) {
+            // 로고 + "Wake with the Word" 타이트하게 묶음
+            // LogoMM 이미지는 1024×1024이지만 실제 콘텐츠는 중앙 16% → 음수 패딩으로 여백 제거
+            VStack(spacing: 6) {
+                Image("LogoMM")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 195, height: 195)
+                    .padding(.vertical, -78)   // 위아래 42% 투명 여백 제거
+                    .shadow(color: .black.opacity(0.45), radius: 24, x: 0, y: 10)
 
-            Text("Morning Manna")
-                .font(.dvLargeTitle)
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
+                Text("Wake with the Word")
+                    .font(.dvSubtitle)
+                    .foregroundColor(.white.opacity(0.80))
+                    .shadow(color: .black.opacity(0.30), radius: 3, x: 0, y: 1)
+            }
 
-            Text("크리스천을 위한 최고의 알람 앱")
-                .font(.dvSubtitle)
-                .foregroundColor(.white.opacity(0.82))
+            Spacer().frame(height: 44)
 
-            Spacer().frame(height: 12)
             VStack(spacing: 4) {
                 Text("하나님 말씀으로")
                     .font(.system(size: 22, weight: .bold))
@@ -83,6 +95,7 @@ struct AuthWelcomeView: View {
                     .foregroundColor(.white)
             }
             .multilineTextAlignment(.center)
+            .shadow(color: .black.opacity(0.40), radius: 4, x: 0, y: 2)
         }
     }
 
@@ -110,7 +123,7 @@ struct AuthWelcomeView: View {
             Button(action: { onSkip() }) {
                 Text("로그인 없이 둘러보기")
                     .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundColor(.white.opacity(0.70))
                     .padding(.vertical, 12)
             }
         }

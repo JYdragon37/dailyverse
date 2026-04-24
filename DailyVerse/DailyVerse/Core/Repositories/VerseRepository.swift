@@ -83,6 +83,9 @@ actor VerseRepository {
             if let verses = try? await fetchVerses() {
                 if let v = cachedVerseIfExists() { return v }  // 재확인
                 if let found = verses.first(where: { $0.id == cachedId }) {
+                    // ★ setVerseId 재호출: todayVerseId 상태를 명시적으로 갱신해
+                    //   이후 호출에서도 같은 말씀이 반환되도록 보장
+                    cacheManager.setVerseId(found.id, for: mode)
                     return found
                 }
             }

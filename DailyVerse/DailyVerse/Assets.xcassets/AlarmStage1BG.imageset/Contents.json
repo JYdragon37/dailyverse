@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "alarm_stage1_1.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

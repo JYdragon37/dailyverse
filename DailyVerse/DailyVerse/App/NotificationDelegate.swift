@@ -27,6 +27,9 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         // alertStyle에 따라 소리/진동 처리
         let alertStyle = notification.request.content.userInfo["alert_style"] as? String ?? "soundAndVibration"
         switch alertStyle {
+        case "silent":
+            // _fg 포그라운드 전용 트리거 — 배너·소리 없이 willPresent 수신만
+            completionHandler([])
         case "vibration":
             // 진동만: 시스템 배너 없이 햅틱만
             UINotificationFeedbackGenerator().notificationOccurred(.warning)

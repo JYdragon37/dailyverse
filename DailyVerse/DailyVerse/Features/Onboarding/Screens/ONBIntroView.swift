@@ -202,14 +202,13 @@ struct ONBIntroView: View {
                 .frame(height: 0.7)
 
             VStack(spacing: 5) {
-                Text("크리스천을 위한 최고의 알람 앱")
+                Text("하루의 첫 순간, 주님과 함께")
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.70))
                     .kerning(1.2)
                     .multilineTextAlignment(.center)
 
-                // 앱 지정 필기체 폰트
-                Text("Morning Manna")
+                Text("Wake with the Word")
                     .font(.dvTitle)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)

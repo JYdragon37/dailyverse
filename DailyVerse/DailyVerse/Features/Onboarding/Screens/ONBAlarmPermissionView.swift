@@ -22,7 +22,7 @@ struct ONBAlarmPermissionView: View {
 
                 // 헤더
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("첫 알람을")
+                    Text("\(vm.nicknameDisplay), 첫 알람을")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     Text("설정해볼까요?")

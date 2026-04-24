@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var showLoginPrompt = false
     @State private var showWeatherDetail = false   // #4 날씨 상세
     @State private var heartPulse = false
+    @State private var isSaved = false
 
     init(viewModel: HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -42,7 +43,7 @@ struct HomeView: View {
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.48)
+                                      y: geo.size.height * 0.53)
                     }
                 } else {
                     // 로딩 스켈레톤 — 말씀이 아직 로드되지 않은 동안 표시
@@ -64,7 +65,7 @@ struct HomeView: View {
                         .padding(.horizontal, hPad)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .position(x: geo.size.width / 2,
-                                  y: geo.size.height * 0.48)
+                                  y: geo.size.height * 0.53)
                         .animation(.dvShimmer, value: viewModel.currentVerse == nil)
                     }
                 }
@@ -233,27 +234,22 @@ struct HomeView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
 
-            // 성경 참조 + 테마 + DB 인덱스 (2줄 띄움)
-            HStack(spacing: 8) {
+            // 성경 참조 + 하트 + 인덱스 + 화살표
+            HStack(alignment: .center, spacing: 8) {
+                // 출처: 항상 전체 표시 (lineLimit 없음, 좌측 우선)
                 Text(verse.reference)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)          // HStack 내 공간 우선 확보
 
-                if let firstTheme = verse.theme.first, firstTheme != "all" {
-                    Text(firstTheme.capitalized)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.dvAccentGold)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Color.dvAccentGold.opacity(0.2))
-                        .clipShape(Capsule())
-                }
+                Spacer(minLength: 6)
 
-                Spacer()
-
-                // 하트 저장 버튼
+                // 하트 저장 버튼 (저장 전: 흰색 / 저장 후: 톤다운 흰색)
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                         heartPulse = true
+                        isSaved = true
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                         heartPulse = false
@@ -262,11 +258,11 @@ struct HomeView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.18))
+                            .fill(Color.white.opacity(isSaved ? 0.12 : 0.18))
                             .frame(width: 36, height: 36)
-                        Image(systemName: "heart.fill")
+                        Image(systemName: isSaved ? "heart.fill" : "heart.fill")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(isSaved ? .white.opacity(0.45) : .white)
                             .scaleEffect(heartPulse ? 1.4 : 1.0)
                     }
                 }
@@ -283,7 +279,7 @@ struct HomeView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.5))
             }
-            .padding(.top, 18)  // 출처: 말씀과 2줄 간격
+            .padding(.top, 18)
 
             // 말씀 깊게 보기 힌트
             HStack(spacing: 8) {
@@ -306,6 +302,7 @@ struct HomeView: View {
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)
+        .onChange(of: viewModel.currentVerse?.id) { _ in isSaved = false }
     }
 
     /// "v_007" → "#7" 형태로 변환

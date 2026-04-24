@@ -10,6 +10,13 @@ final class MeditationViewModel: ObservableObject {
     @Published var showWriteSheet = false
     @Published var todayVerse: Verse? = nil
 
+    // MARK: - 월별 달력 네비게이션
+    @Published var calendarMonth: Date = Date()          // 현재 보여주는 월
+    @Published var calendarMeditatedDates: Set<String> = []  // 해당 월의 묵상 날짜
+    @Published var isCalendarLoading = false
+
+    private var calendarUserId: String = ""
+
     private let repository: MeditationRepository
     let streakManager: StreakManager
 
@@ -38,6 +45,37 @@ final class MeditationViewModel: ObservableObject {
         streakManager.updateMeditatedDates(meditatedDates)
         streakManager.checkAndResetIfBroken()
         isLoading = false
+
+        // 달력: 현재 월 초기 로드
+        calendarUserId = userId
+        let ymf = DateFormatter(); ymf.dateFormat = "yyyy-MM"
+        calendarMeditatedDates = Set(loadedHist.map { $0.dateKey }
+            .filter { $0.hasPrefix(ymf.string(from: calendarMonth)) })
+    }
+
+    // MARK: - 달력 월 변경
+
+    func changeCalendarMonth(by delta: Int) {
+        guard let newMonth = Calendar.current.date(
+            byAdding: .month, value: delta, to: calendarMonth) else { return }
+        calendarMonth = newMonth
+        Task { await loadCalendarMonth() }
+    }
+
+    private func loadCalendarMonth() async {
+        guard !calendarUserId.isEmpty else { return }
+        isCalendarLoading = true
+        let ymf = DateFormatter(); ymf.dateFormat = "yyyy-MM"
+        let ym = ymf.string(from: calendarMonth)
+
+        // 이번 달이면 이미 로드된 history 재사용 (Firestore 호출 절약)
+        let currentYM = ymf.string(from: Date())
+        if ym == currentYM {
+            calendarMeditatedDates = Set(history.map { $0.dateKey }.filter { $0.hasPrefix(ym) })
+        } else {
+            calendarMeditatedDates = await repository.fetchDateKeys(userId: calendarUserId, yearMonth: ym)
+        }
+        isCalendarLoading = false
     }
 
     // MARK: - Today Verse

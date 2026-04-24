@@ -108,12 +108,18 @@ class DailyCacheManager {
         guard let entity = try? context.fetch(request).first,
               let json = entity.json,
               let data = json.data(using: .utf8) else { return nil }
-        // TTL: DailyVerseCache.isValid()와 동일한 04:00 기준 하루
-        // 24시간 고정 TTL 대신 날짜 기준을 사용해 캐시 미스로 인한 글귀 재선택을 방지
-        if let cachedAt = entity.cachedAt, !Self.isSameDay(cachedAt, as: Date()) {
-            context.delete(entity)
-            PersistenceController.shared.save()
-            return nil
+        // TTL: DailyVerseCache.isValid()와 완전히 동일한 04:00 기준 하루
+        // ★ 이전 isSameDay(cachedAt, Date()) 방식은 cachedAt에도 effectiveDay를 적용해
+        //   새벽 0~3시에 저장된 캐시를 같은 날 오후에 만료로 잘못 판단하는 버그가 있었다.
+        //   DailyVerseCache(date: cachedAt)을 임시 생성해 isValid()로 체크하면
+        //   UserDefaults 캐시와 동일한 기준으로 TTL을 판단한다.
+        if let cachedAt = entity.cachedAt {
+            let tempCache = DailyVerseCache(date: cachedAt)
+            if !DailyVerseCache.isValid(tempCache) {
+                context.delete(entity)
+                PersistenceController.shared.save()
+                return nil
+            }
         }
         return try? JSONDecoder().decode(Verse.self, from: data)
     }

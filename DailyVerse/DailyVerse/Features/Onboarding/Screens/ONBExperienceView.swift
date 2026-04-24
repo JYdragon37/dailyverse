@@ -25,11 +25,11 @@ struct ONBExperienceView: View {
 
     // MARK: - 시뮬레이션 콘텐츠
 
-    private let verseShort     = "내가 산 자들의 땅에서\n여호와의 선하심을 보게 될 것을 믿었도다"
-    private let verseFull      = "내가 산 자들의 땅에서 여호와의 선하심을\n보게 될 것을 믿었도다.\n너는 여호와를 바라라, 강하고 담대하라,\n여호와를 바라라."
-    private let reference      = "시편 27:13-14"
-    private let interpretation = "다윗은 극심한 위협 속에서도 하나님의 선하심을 '믿었다'고 고백합니다. 두려움이 엄습할 때도 포기하지 않고 하나님을 바라보는 것, 그것이 담대함의 시작입니다."
-    private let application    = "오늘 무겁게 느껴지는 순간이 찾아올 때, 잠시 멈추고 '여호와를 바라라'를 마음속으로 되뇌어보세요. 강함은 억지로 만드는 게 아니라 바라봄에서 자연스럽게 흘러옵니다."
+    private let verseShort     = "아침에 나로 하여금\n주의 인자한 말씀을 듣게 하소서"
+    private let verseFull      = "아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서\n내가 주를 의뢰함이니이다\n내가 다닐 길을 알게 하소서\n내가 내 영혼을 주께 드림이니이다"
+    private let reference      = "시편 143:8"
+    private let interpretation = "다윗이 원수들에게 쫓겨 영혼이 짓눌린 상황에서 드린 기도야. '인자한 말씀'은 변하지 않는 하나님의 사랑과 신실함을 가리켜 — 어떤 아침이든 그 사랑이 먼저 도착해 있어. 하루를 시작하기 전, 말씀을 여는 것 자체가 이미 하나님을 의뢰하는 행동이야."
+    private let application    = "오늘 아침 눈을 뜨자마자 \"주님, 오늘도 말씀으로 시작할게요\"라고 한 마디 건네봐."
 
     // MARK: - Body
 
@@ -108,7 +108,7 @@ struct ONBExperienceView: View {
             HStack(spacing: 6) {
                 Image(systemName: "alarm.fill")
                     .font(.system(size: 11))
-                Text("Morning Manna")
+                Text("morning manna")
                     .font(.dvCaption)
             }
             .foregroundColor(.white.opacity(0.80))
@@ -196,7 +196,6 @@ struct ONBExperienceView: View {
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.50)
             }
         }
-        .opacity(stage2Visible ? 1 : 0)
     }
 
     // MARK: - Stage 3 (해석 + 일상 적용)
@@ -452,7 +451,6 @@ struct ONBExperienceView: View {
         // 진동 멈춤
         withAnimation(.linear(duration: 0.1)) { badgeShake = 0 }
         withAnimation(.easeInOut(duration: 0.6)) { simPhase = .stage2 }
-        withAnimation(.easeIn(duration: 0.5).delay(0.4)) { stage2Visible = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             withAnimation(.easeIn(duration: 0.4)) { ctaVisible = true }
         }

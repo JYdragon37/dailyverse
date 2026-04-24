@@ -12,9 +12,8 @@ final class AlarmCoordinator: ObservableObject {
 
     enum AlarmStage: Equatable {
         case none
-        case stage1
-        case stage1_5   // v5.1: 웨이크업 미션 수행
-        case stage2
+        case stage1     // 전체화면 알람 (Legacy iOS) — 시간+말씀+스누즈/종료
+        case stage2     // 말씀+날씨 웰컴 스크린
     }
 
     @Published var stage: AlarmStage = .none {
@@ -114,15 +113,6 @@ final class AlarmCoordinator: ObservableObject {
         // stage2 이미 표시 중이면 무시
         guard stage != .stage2 else { return }
 
-        // ★ BackgroundService가 먼저 .stage1을 세팅한 경우 (iOS 26 AlarmKit + LegacyEngine 동시 동작)
-        // stage1 → stage2 즉시 전환 (데이터는 이미 로드됨)
-        if stage == .stage1 {
-            stopAlarmFeedback()
-            stage = .stage2
-            alarmLog.info("✅ [Coordinator] AlarmKit stop: .stage1 → .stage2 (데이터 재사용)")
-            return
-        }
-
         // stage == .none: 콜드런치 케이스
         guard !isHandling else { return }
         isHandling = true
@@ -142,12 +132,10 @@ final class AlarmCoordinator: ObservableObject {
         activeSoundId        = activeAlarm?.soundId    ?? "song"
         activeVolume         = activeAlarm?.volume     ?? 0.8
         snoozeCount          = 0
-        stage = .stage2   // ← 즉시 표시
+        stage = .stage2
 
-        // Stage2 진입 시 알람 사운드 이어서 재생 (알라미와 동일 UX)
-        // AlarmKit 잠금화면 사운드 → Stage2 앱 사운드로 연결
         startAlarmFeedback()
-        alarmLog.info("✅ [Coordinator] AlarmKit → stage = .stage2 즉시 표시 + 사운드 재생")
+        alarmLog.info("✅ [Coordinator] AlarmKit → stage = .stage2 즉시 표시")
 
         // Post-alarm Live Activity 종료 (잠금화면 "말씀 보기" 버튼 제거)
         if #available(iOS 26.0, *) {
@@ -178,7 +166,7 @@ final class AlarmCoordinator: ObservableObject {
     ) async {
         alarmLog.info("📲 [Coordinator] handleNotification 진입 — alarmId: \(alarmId), stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
         // stage 체크 + isHandling 플래그로 async 중 race condition 방지
-        guard stage == .none, !isHandling else {
+        guard stage == .none || stage == .stage1, !isHandling else {
             alarmLog.warning("⚠️ [Coordinator] 중복 호출 무시 — stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
             return
         }
@@ -202,16 +190,13 @@ final class AlarmCoordinator: ObservableObject {
         activeSoundId        = activeAlarm?.soundId        ?? soundId
         activeVolume         = activeAlarm?.volume         ?? volume
         snoozeCount = 0
+        // Legacy(iOS 15-25): Stage1(전체화면 알람) → 유저가 종료 버튼 탭 → Stage2
+        // AlarmKit(iOS 26+): handleAlarmKitStop()에서 Stage2 직행
         stage = .stage1
-        alarmLog.info("✅ [Coordinator] stage = .stage1 완료 — appState: \(UIApplication.shared.applicationState.rawValue)")
+        alarmLog.info("✅ [Coordinator] stage = .stage1 완료")
 
         startAlarmFeedback()
         cancelBackupNotifications(for: alarmId)
-
-        // iPhone은 requestSceneSessionActivation 미지원 (iPad 전용 멀티윈도우 API)
-        // iOS 26 AlarmKit 이전까지: 백그라운드 오디오 소리 + 알림 배너가 최선
-        // 사용자가 배너 탭 or FaceID+Raise to Wake 잠금해제 → 포그라운드 → stage1 렌더링됨
-        alarmLog.info("ℹ️ [Coordinator] iPhone 백그라운드 알람 완료 — 소리 재생 중, 배너 탭 시 Stage1 표시")
     }
 
     /// 연속 알람 백업 알림 전체 취소
@@ -227,15 +212,10 @@ final class AlarmCoordinator: ObservableObject {
 
     // MARK: - Stage Transitions
 
-    /// Stage 1 → Stage 1.5(미션) 또는 Stage 2
-    /// v5.1: 미션이 "none"이 아니면 Stage 1.5를 거침
+    /// Stage 전환 (iOS 26 통일: 항상 Stage2)
     func dismissToStage2() {
-        stopAlarmFeedback()  // Bug 2 수정
-        if activeMission != "none" {
-            stage = .stage1_5
-        } else {
-            stage = .stage2
-        }
+        stopAlarmFeedback()
+        stage = .stage2
     }
 
     func completeMission() {
@@ -319,32 +299,16 @@ final class AlarmCoordinator: ObservableObject {
 
     // MARK: - Private Helpers
 
-    /// 알람 발동 시 말씀 로드 우선순위:
-    /// 1. 오늘의 mode 캐시 (DailyVerseCache + Core Data)
-    /// 2. Firestore에서 mode 기반 선택
-    /// 3. fallbackVerseId로 Core Data 캐시 조회
-    /// 4. 번들 폴백 (Edge Case 2, 9)
+    /// 알람 발동 시 말씀 로드
+    /// ★ 버그 수정: 이전엔 직접 VerseSelector를 호출해 Home과 다른 말씀을 선택 후
+    ///   todayVerseId를 덮어써서 Home·묵상·알람 글귀가 달라지는 race condition 발생.
+    ///   → VerseRepository.shared.currentVerse()를 통해 actor 격리 + 공유 캐시 보장.
     private func loadVerse(mode: AppMode, fallbackVerseId: String) async -> Verse {
-        // 1. 오늘의 mode 캐시 확인 — 가장 최신 일별 말씀
-        if let cachedId = DailyCacheManager.shared.getVerseId(for: mode),
-           let verse = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
-            return verse
-        }
-        // 2. Firestore에서 mode 기반 선택 (온라인 시)
-        if let verses = try? await verseRepository.fetchVerses() {
-            let selector = VerseSelector()
-            if let selected = selector.select(from: verses, mode: mode, weather: nil) {
-                DailyCacheManager.shared.setVerseId(selected.id, for: mode)
-                return selected
-            }
-        }
-        // 3. fallbackVerseId로 Core Data 캐시 조회
-        if !fallbackVerseId.isEmpty,
-           let cached = DailyCacheManager.shared.loadCachedVerse(id: fallbackVerseId) {
-            return cached
-        }
-        // 4. 번들 폴백 (Edge Case 2, 9)
-        return fallbackVerse(for: mode)
+        // VerseRepository.currentVerse: actor 격리 + DailyCacheManager 공유 캐시 관리
+        // → Home·묵상·알람 모두 동일한 todayVerseId를 사용하게 됨
+        let cachedWeather = activeWeather ?? WeatherCacheManager().load()
+        let verse = await verseRepository.currentVerse(for: mode, weather: cachedWeather)
+        return verse
     }
 
     /// 이미지 선택 — mode + verse 테마/분위기 기반 스코어링 (HomeViewModel과 동일 알고리즘)

@@ -49,9 +49,9 @@ final class NotificationManager: NSObject {
     @available(iOS 26.0, *)
     private func scheduleForegroundTrigger(_ alarm: Alarm, verse: Verse) {
         let content = UNMutableNotificationContent()
-        content.title = "Morning Manna"
-        content.interruptionLevel = .timeSensitive
-        content.sound = nil  // AlarmKit이 음향 담당, 배너 없이 willPresent만 트리거
+        content.title = "mm"
+        content.interruptionLevel = .passive  // 배너 없이 willPresent만 트리거 (AlarmKit이 시스템 알람 담당)
+        content.sound = nil
         // alarmkit_stop 없음 → handleNotification → Stage1(전체화면 알람)
         // alert_style: silent → LegacyEngine 음향 없음 (AlarmKit이 담당)
         content.userInfo = [
@@ -126,7 +126,7 @@ final class NotificationManager: NSObject {
     /// 스누즈: UNTimeIntervalNotificationTrigger로 재스케줄 (앱 강제 종료 후에도 유지)
     func rescheduleSnooze(alarmId: UUID, verse: Verse, minutes: Int = 5) {
         let content = UNMutableNotificationContent()
-        content.title = "Morning Manna 🔔"
+        content.title = "mm"
         content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference)"
         if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
             content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
@@ -181,7 +181,7 @@ final class NotificationManager: NSObject {
         let center = UNUserNotificationCenter.current()
 
         let content = UNMutableNotificationContent()
-        content.title = "Morning Manna"
+        content.title = "mm"
         content.body = "📿 오늘 묵상을 아직 기록하지 않으셨어요"
         content.sound = .default
 

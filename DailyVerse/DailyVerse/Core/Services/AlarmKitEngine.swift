@@ -117,7 +117,7 @@ final class AlarmKitEngine: AlarmEngine {
         let alertPresentation: AlarmPresentation.Alert
         if #available(iOS 26.1, *) {
             alertPresentation = AlarmPresentation.Alert(
-                title: "DailyVerse 🔔",
+                title: "mm",
                 secondaryButton: snoozeButton,
                 secondaryButtonBehavior: .countdown
             )
@@ -128,7 +128,7 @@ final class AlarmKitEngine: AlarmEngine {
                 systemImageName: "xmark.circle.fill"
             )
             alertPresentation = AlarmPresentation.Alert(
-                title: "DailyVerse 🔔",
+                title: "mm",
                 stopButton: stopButton,
                 secondaryButton: snoozeButton,
                 secondaryButtonBehavior: .countdown
@@ -144,7 +144,7 @@ final class AlarmKitEngine: AlarmEngine {
         let attributes = AlarmAttributes(
             presentation: presentation,
             metadata: metadata,
-            tintColor: Color(red: 0.87, green: 0.67, blue: 0.20)  // dvAccentGold
+            tintColor: Color(red: 0.56, green: 0.78, blue: 0.93)  // mmSplashTop (#8FC7ED) — 앱 아이콘 스카이블루
         )
 
         // Alarm.Schedule 생성

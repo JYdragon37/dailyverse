@@ -76,8 +76,8 @@ private struct DVTabBar: View {
     private let tabs: [(Int, String, String)] = [
         (0, "홈",     "house.fill"),
         (1, "알람",   "alarm.fill"),
-        (2, "말씀들", "bookmark.fill"),
-        (3, "묵상", "leaf.fill"),
+        (2, "말씀들", "book.closed.fill"),
+        (3, "묵상",   "pencil.and.scribble"),
         (4, "프로필", "person.circle"),
     ]
 

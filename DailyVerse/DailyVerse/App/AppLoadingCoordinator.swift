@@ -41,8 +41,8 @@ final class AppLoadingCoordinator: ObservableObject {
     // MARK: - Start
 
     func start() async {
-        // Stage 1: 스플래시 (0.8초 — 애니메이션 완료 최소 시간)
-        try? await Task.sleep(nanoseconds: 800_000_000)
+        // Stage 1: 스플래시 (1.5초 — 애니메이션 전체 완료 최소 시간: Phase1~3 = 1.12s + 버퍼)
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
         state = .loading
 
         // Stage 2: 캐시 확인 (동기, @MainActor 안에서 직접 호출)
@@ -52,10 +52,15 @@ final class AppLoadingCoordinator: ObservableObject {
         async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
         _ = await (zoneLoad, goldenLoad)
 
-        // Stage 3: 유효 캐시 있으면 메모리 캐시만 복원 후 ready
+        // Stage 3: 유효 캐시 있으면 메모리 캐시 복원 + todayVerseId 고정 후 ready
         // (앱 재시작 시 VerseRepository.cachedVerses가 비워짐 → Home/Meditation 경쟁 조건 방지)
+        // ★ currentVerse()를 반드시 호출해 todayVerseId를 이 시점에 고정해야
+        //   이후 홈/묵상/알람 탭이 모두 같은 말씀을 사용할 수 있다.
         if hasCached {
             _ = try? await verseRepository.fetchVerses()
+            let mode = AppMode.current()
+            let cachedWeather = WeatherCacheManager().load()
+            _ = await verseRepository.currentVerse(for: mode, weather: cachedWeather)
             state = .ready
             return
         }

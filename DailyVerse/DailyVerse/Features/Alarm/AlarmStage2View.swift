@@ -67,7 +67,7 @@ struct AlarmStage2View: View {
                             .padding(.horizontal, hPad)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.53)
+                                      y: geo.size.height * 0.58)
                     }
                 }
             }
@@ -239,22 +239,12 @@ struct AlarmStage2View: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
 
-            // 성경 참조 + 테마 태그
-            HStack(spacing: 8) {
-                Text(verse.reference)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
-
-                if let firstTheme = verse.theme.first, firstTheme != "all" {
-                    Text(firstTheme.capitalized)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.dvAccentGold)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Color.dvAccentGold.opacity(0.2))
-                        .clipShape(Capsule())
-                }
-            }
-            .padding(.top, 18)
+            // 성경 참조 (테마 태그 제거)
+            Text(verse.reference)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.white.opacity(0.8))
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 18)
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
@@ -263,54 +253,44 @@ struct AlarmStage2View: View {
     // MARK: - Action Bar (safeAreaInset)
 
     private var actionBar: some View {
-        HStack(spacing: 12) {
-            // 말씀 더보기 버튼 (유연 너비, 우선순위 낮음)
-            Button { showVerseDetail = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "book.pages")
-                        .font(.system(size: 14))
-                        .accessibilityHidden(true)
-                    Text("말씀 더보기")
+        VStack(spacing: 10) {
+            HStack(spacing: 12) {
+                // 말씀 더보기
+                Button { showVerseDetail = true } label: {
+                    Text("📖  말씀 더보기")
                         .font(.system(size: 15, weight: .medium))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.10))
-                        .overlay(
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                .fill(Color.white.opacity(0.10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                )
                         )
-                )
-                .foregroundColor(.white)
-            }
-            .accessibilityLabel("말씀 해석과 일상 적용 보기")
-            .layoutPriority(0)
+                        .foregroundColor(.white)
+                }
+                .accessibilityLabel("말씀 해석과 일상 적용 보기")
 
-            // 정지 버튼 — 말씀더보기와 동일한 높이, 더 넓은 너비
-            Button { coordinator.dismissAll() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("정지")
+                // 일어나기
+                Button { coordinator.dismissAll() } label: {
+                    Text("☀️  일어나기")
                         .font(.system(size: 15, weight: .semibold))
-                }
-                .frame(minWidth: 100)
-                .padding(.vertical, 14)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.10))
-                        .overlay(
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                .fill(Color.dvAccentGold.opacity(0.20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.dvAccentGold.opacity(0.45), lineWidth: 1)
+                                )
                         )
-                )
-                .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.dvAccentGold)
+                }
+                .accessibilityLabel("알람 종료")
             }
-            .accessibilityLabel("알람 정지")
-            .layoutPriority(1)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

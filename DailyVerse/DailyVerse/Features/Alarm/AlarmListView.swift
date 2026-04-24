@@ -58,6 +58,10 @@ struct AlarmListView: View {
             Task { await permissionManager.checkNotification() }
             refreshTodayVerse()
         }
+        // 온보딩에서 알람 저장 완료 시 즉시 반영 (알람 탭이 이미 열려있는 경우)
+        .onReceive(NotificationCenter.default.publisher(for: .dvAlarmSaved)) { _ in
+            viewModel.loadAlarms()
+        }
     }
 
     // MARK: - 말씀 로드

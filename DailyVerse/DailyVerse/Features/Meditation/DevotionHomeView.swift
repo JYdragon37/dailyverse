@@ -16,6 +16,7 @@ struct DevotionHomeView: View {
     @State private var displayedStreak = 0
     @State private var hasLoadedOnce = false
     @State private var selectedMeditationEntry: MeditationEntry? = nil
+    @State private var isCalendarExpanded = false   // 달력 펼치기/접기
 
     // MARK: - Greeting
 
@@ -112,39 +113,76 @@ struct DevotionHomeView: View {
     // MARK: - 2. Verse Card
 
     private var verseCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let verse = viewModel.todayVerse {
-                Text(verse.verseShortKo)
-                    .font(.custom("PretendardVariable", size: 17))
-                    .foregroundColor(.white.opacity(0.9))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(6)
+        HStack(spacing: 0) {
+            // 좌측 골드 인덱스 바
+            RoundedRectangle(cornerRadius: 2)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.dvAccentGold, Color.dvAccentGold.opacity(0.4)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 3)
+                .padding(.vertical, 4)
+                .padding(.leading, 20)
 
-                Text(verse.reference)
-                    .font(.dvCaption)
-                    .foregroundColor(.dvAccentGold)
-            } else {
-                // 로딩 스켈레톤
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.10))
-                        .frame(height: 14)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.10))
-                        .frame(height: 14)
-                        .padding(.trailing, 60)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.07))
-                        .frame(width: 80, height: 12)
-                        .padding(.top, 4)
+            // 말씀 내용
+            VStack(alignment: .leading, spacing: 10) {
+                // Today's verse 레이블
+                Text("Today's verse")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.dvAccentGold.opacity(0.80))
+                    .tracking(0.8)
+
+                if let verse = viewModel.todayVerse {
+                    Text(verse.verseShortKo)
+                        .font(.custom("PretendardVariable", size: 17))
+                        .foregroundColor(.white.opacity(0.92))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(6)
+
+                    Text(verse.reference)
+                        .font(.dvCaption)
+                        .foregroundColor(.dvAccentGold)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.white.opacity(0.10))
+                            .frame(height: 14)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.white.opacity(0.10))
+                            .frame(height: 14)
+                            .padding(.trailing, 60)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.white.opacity(0.07))
+                            .frame(width: 80, height: 12)
+                            .padding(.top, 4)
+                    }
                 }
             }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 16)
+
+            Spacer()
         }
-        .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.dvBgSurface)
+                // 좌측 골드 글로우 그라데이션
+                LinearGradient(
+                    colors: [Color.dvAccentGold.opacity(0.08), Color.clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+            }
+        )
+        .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.dvBgSurface)
+                .stroke(Color.dvAccentGold.opacity(0.12), lineWidth: 1)
         )
         .opacity(verseAppeared ? 1 : 0)
         .animation(.easeOut(duration: 0.6), value: verseAppeared)
@@ -204,9 +242,9 @@ struct DevotionHomeView: View {
     // MARK: - 4. Streak Section
 
     private var streakSection: some View {
-        VStack(alignment: .leading, spacing: 28) {
+        VStack(alignment: .leading, spacing: 20) {
 
-            // 헤더
+            // 헤더 + 달력 토글 버튼
             HStack {
                 HStack(spacing: 6) {
                     Text("🔥")
@@ -216,17 +254,39 @@ struct DevotionHomeView: View {
                         .foregroundColor(.dvAccentGold)
                 }
                 Spacer()
-                Text("연속 묵상")
-                    .font(.dvCaption)
-                    .foregroundColor(.white.opacity(0.45))
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        isCalendarExpanded.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isCalendarExpanded ? "접기" : "전체 달력")
+                            .font(.dvCaption)
+                            .foregroundColor(.dvAccentGold)
+                        Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.dvAccentGold)
+                    }
+                }
+                .buttonStyle(.plain)
             }
 
-            // 14일 캘린더 그리드
-            DevotionCalendarGrid(
-                streakManager: viewModel.streakManager,
-                history: viewModel.history,
-                onEntryTap: { entry in selectedMeditationEntry = entry }
-            )
+            // Compact (14일) or Full (월별) 달력
+            if isCalendarExpanded {
+                DevotionCalendarGrid(
+                    viewModel: viewModel,
+                    history: viewModel.history,
+                    onEntryTap: { entry in selectedMeditationEntry = entry }
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            } else {
+                DevotionCompactGrid(
+                    streakManager: viewModel.streakManager,
+                    history: viewModel.history,
+                    onEntryTap: { entry in selectedMeditationEntry = entry }
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .padding(24)
         .background(
@@ -252,69 +312,182 @@ struct DevotionHomeView: View {
     }
 }
 
-// MARK: - DevotionCalendarGrid
+// MARK: - DevotionCompactGrid (기본 14일 뷰)
 
-private struct DevotionCalendarGrid: View {
+private struct DevotionCompactGrid: View {
 
     @ObservedObject var streakManager: StreakManager
     var history: [MeditationEntry]
     var onEntryTap: (MeditationEntry) -> Void
 
-    private static let isoFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        return f
+    private static let iso: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
     }()
-
-    private static let weekdayNames = ["일", "월", "화", "수", "목", "금", "토"]
+    private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
     private var last14Days: [(dateKey: String, dayNum: Int)] {
         let cal = Calendar.current
-        return (0..<14).reversed().map { daysAgo in
-            let date = cal.date(byAdding: .day, value: -daysAgo, to: Date())!
-            return (Self.isoFormatter.string(from: date), cal.component(.day, from: date))
+        return (0..<14).reversed().map { offset in
+            let date = cal.date(byAdding: .day, value: -offset, to: Date())!
+            return (Self.iso.string(from: date), cal.component(.day, from: date))
         }
     }
 
-    /// 첫 번째 행(7일 전~13일 전)의 요일 헤더 레이블
     private var weekdayLabels: [String] {
         let cal = Calendar.current
         return (0..<7).map { col in
             let date = cal.date(byAdding: .day, value: -(13 - col), to: Date())!
-            let weekday = cal.component(.weekday, from: date) - 1  // 0=일, 6=토
-            return Self.weekdayNames[weekday]
+            return Self.weekdays[cal.component(.weekday, from: date) - 1]
         }
     }
 
     private var todayKey: String { MeditationEntry.todayKey() }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
-            // 요일 헤더 행
-            ForEach(Array(weekdayLabels.enumerated()), id: \.offset) { _, label in
-                Text(label)
+        LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(weekdayLabels, id: \.self) { name in
+                Text(name)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.45))
+                    .foregroundColor(.white.opacity(0.40))
                     .frame(maxWidth: .infinity)
             }
-
-            // 날짜 셀 (14일)
             ForEach(last14Days, id: \.dateKey) { item in
                 let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
-                let isToday = item.dateKey == todayKey
-                let entry = history.first { $0.dateKey == item.dateKey }
-
-                DevotionDayDotCell(
-                    dayNum: item.dayNum,
-                    isMeditated: isMeditated,
-                    isToday: isToday
-                )
+                let isToday     = item.dateKey == todayKey
+                let entry       = history.first { $0.dateKey == item.dateKey }
+                DevotionDayDotCell(dayNum: item.dayNum,
+                                   isMeditated: isMeditated,
+                                   isToday: isToday)
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    if isMeditated, let entry {
-                        onEntryTap(entry)
+                .onTapGesture { if isMeditated, let entry { onEntryTap(entry) } }
+            }
+        }
+    }
+}
+
+// MARK: - DevotionCalendarGrid (월별 네비게이션)
+
+private struct DevotionCalendarGrid: View {
+
+    @ObservedObject var viewModel: MeditationViewModel
+    var history: [MeditationEntry]
+    var onEntryTap: (MeditationEntry) -> Void
+
+    private static let isoFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
+    }()
+    private static let weekdayNames = ["일", "월", "화", "수", "목", "금", "토"]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+
+    private var todayKey: String { MeditationEntry.todayKey() }
+
+    // 표시 중인 월의 헤더 텍스트 "2026년 4월"
+    private var monthTitle: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "yyyy년 M월"
+        return f.string(from: viewModel.calendarMonth)
+    }
+
+    // 미래 월 이동 불가
+    private var canGoForward: Bool {
+        let cal = Calendar.current
+        return cal.compare(viewModel.calendarMonth, to: Date(), toGranularity: .month) == .orderedAscending
+    }
+
+    // 이번 달인지 여부
+    private var isCurrentMonth: Bool {
+        Calendar.current.isDate(viewModel.calendarMonth, equalTo: Date(), toGranularity: .month)
+    }
+
+    // 해당 월의 날짜 그리드 (빈 셀 포함)
+    private var gridCells: [(dateKey: String?, dayNum: Int?)] {
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.year, .month], from: viewModel.calendarMonth)
+        guard let firstDay = cal.date(from: comps),
+              let range = cal.range(of: .day, in: .month, for: firstDay) else { return [] }
+
+        let firstWeekday = cal.component(.weekday, from: firstDay) - 1  // 0=일
+
+        var cells: [(dateKey: String?, dayNum: Int?)] = []
+        // 앞 빈 셀
+        for _ in 0..<firstWeekday { cells.append((nil, nil)) }
+        // 날짜 셀
+        let f = Self.isoFormatter
+        for day in range {
+            comps.day = day
+            if let date = cal.date(from: comps) {
+                cells.append((f.string(from: date), day))
+            }
+        }
+        return cells
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            // ── 월 네비게이션 헤더 ──────────────────────────
+            HStack {
+                Button { viewModel.changeCalendarMonth(by: -1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.6))
+                        .frame(width: 32, height: 32)
+                }
+
+                Spacer()
+
+                HStack(spacing: 6) {
+                    Text(monthTitle)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.85))
+                    if viewModel.isCalendarLoading {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                            .tint(.white.opacity(0.45))
+                    }
+                }
+
+                Spacer()
+
+                Button { viewModel.changeCalendarMonth(by: 1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(canGoForward ? .white.opacity(0.6) : .white.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                }
+                .disabled(!canGoForward)
+            }
+
+            // ── 요일 헤더 ───────────────────────────────────
+            LazyVGrid(columns: columns, spacing: 0) {
+                ForEach(Self.weekdayNames, id: \.self) { name in
+                    Text(name)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.40))
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 6)
+                }
+            }
+
+            // ── 날짜 그리드 ─────────────────────────────────
+            LazyVGrid(columns: columns, spacing: 10) {
+                ForEach(Array(gridCells.enumerated()), id: \.offset) { _, cell in
+                    if let dateKey = cell.dateKey, let dayNum = cell.dayNum {
+                        let isMeditated = viewModel.calendarMeditatedDates.contains(dateKey)
+                        let isToday = dateKey == todayKey
+                        let entry = history.first { $0.dateKey == dateKey }
+
+                        DevotionDayDotCell(dayNum: dayNum,
+                                           isMeditated: isMeditated,
+                                           isToday: isToday)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if isMeditated, let entry { onEntryTap(entry) }
+                        }
+                    } else {
+                        // 빈 셀 (월 첫 주 앞부분)
+                        Color.clear.frame(height: 28 + 5 + 14)
                     }
                 }
             }

@@ -233,7 +233,7 @@ final class LegacyAlarmEngine: AlarmEngine {
 
     private func makeContent(alarm: Alarm, verse: Verse) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
-        content.title    = "DailyVerse 🔔"
+        content.title    = "mm"
         content.subtitle = verse.verseShortKo          // 말씀 텍스트 (잠금화면 배너 2행)
         content.body     = verse.reference             // 성경 참조 (잠금화면 배너 3행)
         content.interruptionLevel = .timeSensitive

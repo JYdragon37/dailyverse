@@ -83,6 +83,29 @@ final class MeditationRepository {
         return Set(all.map { $0.dateKey }.filter { $0.hasPrefix(prefix) })
     }
 
+    /// 특정 월의 묵상 날짜 집합 반환 — 월별 달력 네비게이션용
+    /// yearMonth: "2026-04" 형식
+    func fetchDateKeys(userId: String, yearMonth: String) async -> Set<String> {
+        guard userId != "local" else {
+            if let cached = loadTodayCache(),
+               cached.dateKey.hasPrefix(yearMonth) {
+                return [cached.dateKey]
+            }
+            return []
+        }
+        let snapshot = try? await db
+            .collection("meditation_logs")
+            .document(userId)
+            .collection("entries")
+            .whereField("date_key", isGreaterThanOrEqualTo: "\(yearMonth)-01")
+            .whereField("date_key", isLessThan:             "\(yearMonth)-32")
+            .getDocuments()
+        let keys = snapshot?.documents.compactMap {
+            try? $0.data(as: MeditationEntry.self)
+        }.map { $0.dateKey } ?? []
+        return Set(keys)
+    }
+
     // MARK: - Offline Queue Flush
 
     func flushPendingIfNeeded() async {

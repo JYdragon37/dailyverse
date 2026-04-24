@@ -4,7 +4,11 @@ import CoreLocation
 import UserNotifications
 import AuthenticationServices
 
-// v5.1 — Settings 탭 (닉네임 추가, 단일 플랜, 외관 섹션)
+// v6.0 — Settings 전면 리디자인
+// 참고: 2024-2025 iOS 트렌드 (Toss / Apple HIG)
+// - 프로필 카드 상단 고정, 로그아웃·탈퇴 최하단 배치
+// - 컬러 아이콘 원형 배지 + 둥근 카드 섹션
+// - Form 제거 → 커스텀 ScrollView + VStack 카드
 
 struct SettingsView: View {
     @EnvironmentObject private var authManager: AuthManager
@@ -12,57 +16,75 @@ struct SettingsView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
-    // Design Ref: §6 — 인사말 언어 설정 (ko/en/random, 기본값: random)
     @AppStorage("greetingLanguage") private var greetingLanguage: String = "random"
 
-    @State private var showRetentionAlert = false       // 1단계: 붙잡기
-    @State private var showDeleteAccountAlert = false   // 2단계: 최종 확인
+    @State private var showRetentionAlert = false
+    @State private var showDeleteAccountAlert = false
     @State private var showSignOutAlert = false
     @State private var showLoginPrompt = false
     @State private var showNicknameEdit = false
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
+
     #if DEBUG
     @State private var showOnboardingPreview = false
+    @State private var showSplashPreview = false
     @AppStorage("onboardingV2Completed") private var onboardingCompleted = false
     #endif
-    // deleteSuccessMessage는 AuthManager.deletionCompleteMessage로 이동 (AppRootView에서 표시)
 
     private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "v\(version) (build \(build))"
+        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "v\(v) (\(b))"
     }
+
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            Form {
-                accountSection
-                subscriptionSection
-                permissionsSection
-                appearanceSection
-                homeBgSection
-                appInfoSection
-                feedbackSection
-                #if DEBUG
-                debugSection
-                #endif
-                // Fix 3: 탭바 겹침 방지 — 하단 여백
-                Color.clear.listRowBackground(Color.clear).frame(height: 60)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+
+                    // ── 프로필 카드 ─────────────────────────
+                    profileCard
+                        .padding(.horizontal, 16)
+                        .padding(.top, 4)
+
+                    // ── 외관 ────────────────────────────────
+                    sectionCard(title: "외관") { appearanceRows }
+
+                    // ── 앱 설정 ─────────────────────────────
+                    sectionCard(title: "앱 설정") { permissionRows }
+
+                    // ── 앱 정보 ─────────────────────────────
+                    sectionCard(title: "앱 정보") { appInfoRows }
+
+                    // ── 피드백 ──────────────────────────────
+                    sectionCard(title: "피드백") { feedbackRows }
+
+                    // ── 계정 관리 (로그인 시만, 최하단) ────
+                    if authManager.isLoggedIn {
+                        sectionCard(title: "계정 관리") { accountRows }
+                    }
+
+                    #if DEBUG
+                    sectionCard(title: "🛠 개발자 옵션") { debugRows }
+                    #endif
+
+                    Spacer().frame(height: 100)
+                }
             }
-            .scrollContentBackground(.hidden)
             .background(Color.dvBgDeep.ignoresSafeArea())
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
+            .toolbarBackground(Color.dvBgDeep.opacity(0.95), for: .navigationBar)
         }
         .task { await permissionManager.checkAll() }
-        // 1단계: 리텐션 팝업 (붙잡기)
+        .task { await permissionManager.checkAlarmKit() }
+        // ── Alerts ──────────────────────────────────────
         .alert("잠깐만요 🙏", isPresented: $showRetentionAlert) {
-            Button("그래도 탈퇴할게요", role: .destructive) {
-                showDeleteAccountAlert = true
-            }
+            Button("그래도 탈퇴할게요", role: .destructive) { showDeleteAccountAlert = true }
             Button("머물게요", role: .cancel) {}
         } message: {
             Text("지금까지 쌓아온 말씀과 묵상 기록이 모두 사라져요.\n정말 떠나실 건가요?")
@@ -79,7 +101,6 @@ struct SettingsView: View {
                     } catch let error as NSError
                         where error.domain == ASAuthorizationError.errorDomain
                            || error.code == ASAuthorizationError.canceled.rawValue {
-                        // 유저가 Apple 인증을 취소한 경우 — 에러 없이 조용히 종료
                     } catch {
                         let msg = error.localizedDescription
                         deleteErrorMessage = msg.isEmpty ? "탈퇴 중 오류가 발생했습니다. 다시 시도해주세요." : msg
@@ -95,292 +116,395 @@ struct SettingsView: View {
             set: { if !$0 { deleteErrorMessage = nil } }
         )) {
             Button("확인", role: .cancel) { deleteErrorMessage = nil }
-        } message: {
-            Text(deleteErrorMessage ?? "")
-        }
-        #if DEBUG
-        .fullScreenCover(isPresented: $showOnboardingPreview) {
-            OnboardingContainerView()
-        }
-        #endif
+        } message: { Text(deleteErrorMessage ?? "") }
+        .alert("닉네임 변경", isPresented: $showNicknameEdit) {
+            TextField("한글 5자 / 영어 8자 이내", text: $editingNickname)
+            Button("저장") {
+                Task {
+                    await nicknameManager.setNickname(editingNickname, userId: authManager.userId)
+                }
+            }
+            Button("취소", role: .cancel) {}
+        } message: { Text("한글 5자 또는 영어·숫자 8자 이내로 입력해주세요") }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {
                 showLoginPrompt = false
                 Task { await authManager.signIn() }
             } onDismiss: { showLoginPrompt = false }
         }
-        .alert("닉네임 변경", isPresented: $showNicknameEdit) {
-            TextField("한글 5자 / 영어 8자 이내", text: $editingNickname)
-            Button("저장") {
-                Task {
-                    await nicknameManager.setNickname(
-                        editingNickname,
-                        userId: authManager.userId
-                    )
-                }
-            }
-            Button("취소", role: .cancel) {}
-        } message: { Text("한글 5자 또는 영어·숫자 8자 이내로 입력해주세요") }
+        #if DEBUG
+        .fullScreenCover(isPresented: $showOnboardingPreview) {
+            OnboardingContainerView()
+        }
+        .fullScreenCover(isPresented: $showSplashPreview) {
+            SplashView()
+                .overlay(Color.clear.contentShape(Rectangle()).onTapGesture { showSplashPreview = false })
+                .ignoresSafeArea()
+        }
+        #endif
     }
 
-    // MARK: - Account
+    // MARK: - 프로필 카드
 
-    private var accountSection: some View {
-        Section("계정") {
-            // 닉네임 (v5.1)
-            HStack {
-                Image(systemName: "person.fill")
-                    .foregroundColor(.dvAccentGold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("닉네임")
-                        .font(.dvCaption).foregroundColor(.secondary)
-                    Text(nicknameManager.nickname)
-                        .font(.dvBody)
+    private var profileCard: some View {
+        Button {
+            editingNickname = nicknameManager.nickname
+            showNicknameEdit = true
+        } label: {
+            HStack(spacing: 14) {
+                // 이니셜 아바타
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "#4EC4B0"), Color(hex: "#7A9AD0"), Color(hex: "#9080CC")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    Text(String(nicknameManager.nickname.prefix(1)))
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
                 }
+                .frame(width: 52, height: 52)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 5) {
+                        Text("안녕하세요, \(nicknameManager.nickname)")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("👋")
+                            .font(.system(size: 15))
+                    }
+                    if authManager.isLoggedIn {
+                        Text(authManager.user?.email ?? "Apple 계정")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.50))
+                    } else {
+                        Text("닉네임 변경")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.50))
+                    }
+                }
+
                 Spacer()
-                Button("변경") {
-                    editingNickname = nicknameManager.nickname
-                    showNicknameEdit = true
-                }
-                .font(.dvCaption)
-                .foregroundColor(.dvAccentGold)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.30))
             }
-
-            if authManager.isLoggedIn {
-                HStack {
-                    Image(systemName: "envelope.fill")
-                        .foregroundColor(.secondary)
-                    Text(authManager.user?.email ?? "Apple 계정")
-                        .font(.dvBody).foregroundColor(.secondary)
-                }
-
-                Button("로그아웃") { showSignOutAlert = true }
-                    .foregroundColor(.primary)
-
-                Button("계정 탈퇴", role: .destructive) { showRetentionAlert = true }
-            } else {
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.dvBgSurface)
+            )
+        }
+        .buttonStyle(.plain)
+        // 비로그인 시 로그인 버튼 추가
+        .overlay(alignment: .bottomTrailing) {
+            if !authManager.isLoggedIn {
                 Button {
                     showLoginPrompt = true
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "person.badge.plus")
-                        Text("로그인 / 회원가입")
-                    }
+                    Text("로그인")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "#1A2340"))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.dvAccentGold)
+                        .clipShape(Capsule())
                 }
-                .foregroundColor(.dvAccentGold)
+                .padding(16)
             }
         }
     }
 
-    // MARK: - Subscription (v5.1: 단일 플랜 안내)
+    // MARK: - 섹션 카드 빌더
 
-    private var subscriptionSection: some View {
-        Section("구독") {
-            HStack {
-                Label("현재 플랜", systemImage: "checkmark.seal.fill")
-                    .foregroundColor(.dvAccentGold)
-                Spacer()
-                Text("전체 기능 제공")
-                    .font(.dvCaption).foregroundColor(.secondary)
+    @ViewBuilder
+    private func sectionCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.40))
+                .padding(.horizontal, 20)
+                .padding(.top, 22)
+                .padding(.bottom, 8)
+
+            VStack(spacing: 0) {
+                content()
             }
-
-            HStack {
-                Image(systemName: "info.circle")
-                    .foregroundColor(.secondary)
-                Text("구독 기능은 향후 업데이트에서 도입됩니다")
-                    .font(.dvCaption).foregroundColor(.secondary)
-            }
-        }
-    }
-
-    // MARK: - Permissions
-
-    private var permissionsSection: some View {
-        Section("권한") {
-            PermissionRow(
-                title: "위치",
-                icon: "location.fill",
-                statusText: permissionManager.locationStatusText,
-                isGranted: permissionManager.locationAuthorized,
-                onOpenSettings: { permissionManager.openAppSettings() }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.dvBgSurface)
             )
-            PermissionRow(
-                title: "알림",
-                icon: "bell.fill",
-                statusText: permissionManager.notificationStatusText,
-                isGranted: permissionManager.notificationAuthorized,
-                onOpenSettings: { permissionManager.openAppSettings() }
-            )
-            // AlarmKit 권한 (iOS 26+) — 잠금화면 전체화면 알람
-            if #available(iOS 26.0, *) {
-                PermissionRow(
-                    title: "알람",
-                    icon: "alarm.fill",
-                    statusText: permissionManager.alarmKitStatus,
-                    isGranted: permissionManager.alarmKitAuthorized,
-                    onOpenSettings: { permissionManager.openAppSettings() }
-                )
-            }
-            // 실시간 활동 (Live Activity) — iOS 설정에서만 관리 가능
-            HStack {
-                Label("실시간 활동", systemImage: "waveform")
-                    .foregroundColor(.primary)
+            .padding(.horizontal, 16)
+        }
+    }
+
+    // MARK: - 외관 섹션
+
+    @ViewBuilder
+    private var appearanceRows: some View {
+        // 인사말 언어
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 14) {
+                iconBadge("text.bubble.fill", color: Color(hex: "#5E9CF5"))
+                Text("인사말 언어")
+                    .font(.dvBody)
+                    .foregroundColor(.white)
                 Spacer()
-                Button("설정 열기") {
-                    permissionManager.openAppSettings()
-                }
-                .font(.system(size: 14))
-                .foregroundColor(.dvAccentGold)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+
+            Picker("인사말 언어", selection: $greetingLanguage) {
+                Text("한국어").tag("ko")
+                Text("English").tag("en")
+                Text("랜덤").tag("random")
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 14)
         }
-        .task { await permissionManager.checkAlarmKit() }
+
+        rowDivider
+
+        // 다크 모드
+        row(icon: "moon.fill", iconColor: Color(hex: "#8B7FCC"), title: "다크 모드") {
+            Text("시스템")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.40))
+        }
     }
 
-    // MARK: - Appearance (v5.1 신규)
+    // MARK: - 앱 설정 섹션
 
-    private var appearanceSection: some View {
-        Section("외관") {
-            HStack {
-                Image(systemName: "moon.fill").foregroundColor(.dvAccentGold)
-                Text("다크 모드")
+    @ViewBuilder
+    private var permissionRows: some View {
+        permissionRow(icon: "bell.fill", iconColor: Color(hex: "#E05E5E"),
+                      title: "알림", statusText: permissionManager.notificationStatusText,
+                      isGranted: permissionManager.notificationAuthorized)
+        rowDivider
+        permissionRow(icon: "location.fill", iconColor: Color(hex: "#5E9CF5"),
+                      title: "위치", statusText: permissionManager.locationStatusText,
+                      isGranted: permissionManager.locationAuthorized)
+        if #available(iOS 26.0, *) {
+            rowDivider
+            permissionRow(icon: "alarm.fill", iconColor: Color(hex: "#E0965E"),
+                          title: "알람", statusText: permissionManager.alarmKitStatus,
+                          isGranted: permissionManager.alarmKitAuthorized)
+        }
+        rowDivider
+        row(icon: "waveform", iconColor: Color(hex: "#5EC49F"), title: "실시간 활동") {
+            Button("설정 열기") { permissionManager.openAppSettings() }
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color.dvAccentGold)
+        }
+    }
+
+    // MARK: - 앱 정보 섹션
+
+    @ViewBuilder
+    private var appInfoRows: some View {
+        Link(destination: URL(string: "https://example.com/terms")!) {
+            row(icon: "doc.text.fill", iconColor: Color(hex: "#8B8B9A"), title: "이용약관") {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.25))
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Link(destination: URL(string: "https://example.com/privacy")!) {
+            row(icon: "lock.shield.fill", iconColor: Color(hex: "#5E9CF5"), title: "개인정보처리방침") {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.25))
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        row(icon: "info.circle.fill", iconColor: Color(hex: "#6B6B7A"), title: "버전") {
+            Text(appVersion)
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.40))
+        }
+    }
+
+    // MARK: - 피드백 섹션
+
+    @ViewBuilder
+    private var feedbackRows: some View {
+        Button {
+            if let url = URL(string: "https://apps.apple.com/app/id0") {
+                UIApplication.shared.open(url)
+            }
+        } label: {
+            row(icon: "star.fill", iconColor: Color(hex: "#E0B85E"), title: "앱 리뷰 남기기") {
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.25))
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Link(destination: URL(string: "mailto:support@dailyverse.app")!) {
+            row(icon: "envelope.fill", iconColor: Color(hex: "#5E9CF5"), title: "문의하기") {
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.25))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - 계정 관리 섹션 (최하단, 로그인 시만)
+
+    @ViewBuilder
+    private var accountRows: some View {
+        Button { showSignOutAlert = true } label: {
+            row(icon: "rectangle.portrait.and.arrow.right",
+                iconColor: Color(hex: "#8B8B9A"), title: "로그아웃") {
+                EmptyView()
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Button { showRetentionAlert = true } label: {
+            HStack(spacing: 14) {
+                iconBadge("person.fill.xmark", color: Color(hex: "#E05E5E").opacity(0.85))
+                Text("계정 탈퇴")
+                    .font(.dvBody)
+                    .foregroundColor(Color(red: 0.88, green: 0.37, blue: 0.37))
                 Spacer()
-                Text("시스템 따라가기")
-                    .font(.dvCaption).foregroundColor(.secondary)
             }
-
-            // 인사말 언어 설정
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Image(systemName: "text.bubble.fill").foregroundColor(.dvAccentGold)
-                    Text("인사말 언어")
-                }
-                Picker("인사말 언어", selection: $greetingLanguage) {
-                    Text("한국어").tag("ko")
-                    Text("English").tag("en")
-                    Text("랜덤").tag("random")
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
         }
+        .buttonStyle(.plain)
     }
 
-    // MARK: - Home Background
-
-    private var homeBgSection: some View {
-        Section("홈 배경") {
-            HStack {
-                Image(systemName: "photo.on.rectangle")
-                    .foregroundColor(.dvAccentGold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("배경 이미지 설정")
-                        .font(.dvBody)
-                    Text("말씀들 탭에서 저장한 말씀의 상세 화면에서 설정할 수 있어요")
-                        .font(.dvCaption)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
-
-    // MARK: - App Info
-
-    private var appInfoSection: some View {
-        Section("앱 정보") {
-            HStack {
-                Text("버전")
-                Spacer()
-                Text(appVersion).font(.dvCaption).foregroundColor(.secondary)
-            }
-            Link("이용약관", destination: URL(string: "https://example.com/terms")!)
-                .foregroundColor(.primary)
-            Link("개인정보처리방침", destination: URL(string: "https://example.com/privacy")!)
-                .foregroundColor(.primary)
-        }
-    }
-
-    // MARK: - Debug (DEBUG 빌드 전용)
+    // MARK: - Debug 섹션 (DEBUG only)
 
     #if DEBUG
-    private var debugSection: some View {
-        Section {
-            Button {
-                onboardingCompleted = false
-                showOnboardingPreview = true
-            } label: {
-                Label("온보딩 처음부터 보기", systemImage: "arrow.counterclockwise")
+    @ViewBuilder
+    private var debugRows: some View {
+        Button { showSplashPreview = true } label: {
+            row(icon: "sparkle", iconColor: Color.dvAccentSky, title: "스플래시 미리보기") {
+                EmptyView()
             }
-            .foregroundColor(.orange)
-
-            Button {
-                DailyCacheManager.shared.clearCache()
-            } label: {
-                Label("말씀 캐시 초기화", systemImage: "trash")
-            }
-            .foregroundColor(.red)
-
-            Button {
-                UserDefaults.standard.set(false, forKey: "featureTourV2Shown")
-            } label: {
-                Label("피처 투어 다시보기", systemImage: "sparkles")
-            }
-            .foregroundColor(.blue)
-        } header: {
-            Text("🛠 개발자 옵션 (DEBUG only)")
         }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Button {
+            onboardingCompleted = false
+            showOnboardingPreview = true
+        } label: {
+            row(icon: "arrow.counterclockwise", iconColor: .orange, title: "온보딩 다시 보기") {
+                EmptyView()
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Button { DailyCacheManager.shared.clearCache() } label: {
+            row(icon: "trash.fill", iconColor: .red, title: "말씀 캐시 초기화") {
+                EmptyView()
+            }
+        }
+        .buttonStyle(.plain)
+
+        rowDivider
+
+        Button {
+            UserDefaults.standard.set(false, forKey: "featureTourV2Shown")
+        } label: {
+            row(icon: "sparkles", iconColor: .blue, title: "피처 투어 다시보기") {
+                EmptyView()
+            }
+        }
+        .buttonStyle(.plain)
     }
     #endif
 
-    // MARK: - Feedback
+    // MARK: - 공통 컴포넌트
 
-    private var feedbackSection: some View {
-        Section("피드백") {
-            Button {
-                if let url = URL(string: "https://apps.apple.com/app/id0") {
-                    UIApplication.shared.open(url)
-                }
-            } label: {
-                Label("⭐ 앱 리뷰 남기기", systemImage: "star.fill")
-            }
-            .foregroundColor(.primary)
-
-            Link("📨 문의하기", destination: URL(string: "mailto:support@dailyverse.app")!)
-                .foregroundColor(.primary)
+    @ViewBuilder
+    private func row<Trailing: View>(
+        icon: String,
+        iconColor: Color,
+        title: String,
+        @ViewBuilder trailing: () -> Trailing
+    ) -> some View {
+        HStack(spacing: 14) {
+            iconBadge(icon, color: iconColor)
+            Text(title)
+                .font(.dvBody)
+                .foregroundColor(.white)
+            Spacer()
+            trailing()
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
     }
-}
 
-// MARK: - PermissionRow
-
-private struct PermissionRow: View {
-    let title: String
-    let icon: String
-    let statusText: String
-    let isGranted: Bool
-    let onOpenSettings: () -> Void
-
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(isGranted ? .dvAccentGold : .secondary)
-                .frame(width: 24)
+    private func permissionRow(icon: String, iconColor: Color, title: String, statusText: String, isGranted: Bool) -> some View {
+        HStack(spacing: 14) {
+            iconBadge(icon, color: iconColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.dvBody)
-                Text(statusText).font(.dvCaption).foregroundColor(.secondary)
+                Text(title).font(.dvBody).foregroundColor(.white)
+                Text(statusText).font(.system(size: 12)).foregroundColor(.white.opacity(0.45))
             }
             Spacer()
-            if !isGranted {
-                Button("설정 열기", action: onOpenSettings)
-                    .font(.dvCaption)
-                    .foregroundColor(.dvAccentGold)
+            if isGranted {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color(hex: "#5EC49F"))
+            } else {
+                Button("설정") { permissionManager.openAppSettings() }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color.dvAccentGold)
             }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+
+    private func iconBadge(_ systemName: String, color: Color) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(.white)
+            .frame(width: 30, height: 30)
+            .background(color)
+            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+
+    private var rowDivider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.07))
+            .frame(height: 0.5)
+            .padding(.leading, 60)
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     SettingsView()
         .environmentObject(AuthManager())
         .environmentObject(SubscriptionManager())
         .environmentObject(PermissionManager())
+        .preferredColorScheme(.dark)
 }

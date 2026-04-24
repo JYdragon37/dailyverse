@@ -25,10 +25,10 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 닉네임
     @Published var nicknameInput: String = ""
 
-    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "NY" 표시
+    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "Stranger" 표시
     var nicknameDisplay: String {
         let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? "NY" : t
+        return t.isEmpty ? "Stranger" : t
     }
 
     // MARK: - Screen 3: 알람 설정 (단일 알람 — 기본 07:00)
@@ -61,27 +61,27 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - 네비게이션
 
+    /// 슬라이드 방향 — OnboardingContainerView의 transition 방향 결정
+    @Published var isGoingForward: Bool = true
+
     func next() {
         guard currentPage < Self.totalPages - 1 else {
             completeOnboarding()
             return
         }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-            currentPage += 1
-            savedPage = currentPage
-        }
+        isGoingForward = true   // transition 방향 먼저 설정
+        currentPage += 1
+        savedPage = currentPage
     }
 
     func previous() {
         guard currentPage > 0 else { return }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-            currentPage -= 1
-            savedPage = currentPage
-        }
+        isGoingForward = false  // transition 방향 먼저 설정
+        currentPage -= 1
+        savedPage = currentPage
     }
 
     func skip() {
-        // v2.0: 단순 skip (스킵 카운트 제거 — 4단계면 충분)
         next()
     }
 
@@ -120,21 +120,33 @@ final class OnboardingViewModel: ObservableObject {
     private func saveFirstAlarms() {
         guard morningAlarmEnabled else { return }
 
-        // 이미 알람이 존재하면 중복 생성 방지
         let existing = alarmRepository.fetchAll()
-        guard existing.isEmpty else { return }
 
-        let alarm = Alarm(
-            id: UUID(),
-            time: morningAlarmTime,
-            repeatDays: [0, 1, 2, 3, 4, 5, 6],
-            theme: "hope",
-            isEnabled: true,
-            label: "아침의 말씀",
-            snoozeInterval: 5
-        )
-        try? alarmRepository.save(alarm)
-        notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
+        if existing.isEmpty {
+            // 알람이 없으면 신규 생성
+            let alarm = Alarm(
+                time: morningAlarmTime,
+                repeatDays: [0, 1, 2, 3, 4, 5, 6],
+                theme: "hope",
+                isEnabled: true,
+                label: Alarm.defaultLabel(for: morningAlarmTime)
+            )
+            try? alarmRepository.save(alarm)
+            notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
+        } else {
+            // 기존 첫 번째 알람의 시간을 온보딩에서 선택한 시간으로 업데이트
+            // (비로그인 유저는 매 실행마다 온보딩이 재시작되므로 upsert 필요)
+            var alarm = existing[0]
+            alarm.time = morningAlarmTime
+            alarm.isEnabled = true
+            try? alarmRepository.update(alarm)
+            notificationManager.cancel(alarmId: alarm.id)
+            notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
+        }
+
+        // 백그라운드 타이머 갱신 + 알람 탭이 이미 열려있는 경우 즉시 반영
+        AlarmBackgroundService.shared.rescheduleTimers()
+        NotificationCenter.default.post(name: .dvAlarmSaved, object: nil)
     }
 }
 

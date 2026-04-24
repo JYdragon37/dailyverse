@@ -14,4 +14,6 @@ extension Notification.Name {
     static let dvResetMeditationNav = Notification.Name("dvResetMeditationNav")
     /// AlarmKit(iOS 26+) 종료 버튼 탭 — StopAlarmIntent에서 발송
     static let dvAlarmKitStopped = Notification.Name("dvAlarmKitStopped")
+    /// 온보딩에서 알람 저장 완료 — AlarmListView 즉시 갱신용
+    static let dvAlarmSaved = Notification.Name("dvAlarmSaved")
 }
