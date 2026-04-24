@@ -8,6 +8,7 @@ import SwiftUI
 struct SavedView: View {
     @StateObject private var viewModel = SavedViewModel()
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     @State private var selectedVerse: SavedVerse?
     @State private var showLoginPrompt = false
@@ -128,6 +129,7 @@ struct SavedView: View {
                     ForEach(viewModel.filteredVerses) { savedVerse in
                         SavedCardView(
                             savedVerse: savedVerse,
+                            isPremium: subscriptionManager.isPremium,
                             onTap: { selectedVerse = savedVerse },
                             onDelete: {
                                 Task {
@@ -280,6 +282,7 @@ struct SavedView: View {
 
 private struct SavedCardView: View {
     let savedVerse: SavedVerse
+    let isPremium: Bool
     let onTap: () -> Void
     let onDelete: () -> Void
 
@@ -331,6 +334,23 @@ private struct SavedCardView: View {
                             .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 1)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .allowsHitTesting(false)
+                    }
+
+                    // 브랜드 워터마크 — Free 유저만 표시
+                    if !isPremium {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Text("mm")
+                                    .font(.custom("DancingScript-Regular", size: 15).weight(.bold))
+                                    .foregroundColor(.white.opacity(0.50))
+                                    .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                                    .padding(.trailing, 8)
+                                    .padding(.bottom, 8)
+                            }
+                        }
+                        .allowsHitTesting(false)
                     }
                 }
                 .frame(width: geo.size.width, height: geo.size.width * 4 / 3)

@@ -371,9 +371,20 @@ DailyVerseWidgetsBundle
 - 광고 잠금 카드: 흐림 처리 + "광고 시청 후 열람하기 ▶"
 - Premium 잠금 카드: 🔒 아이콘 + "Premium에서 전체 아카이브를 만나보세요" + [Premium 시작하기]
 
+### 카드 워터마크 (브랜딩)
+- **Free 유저**: 각 카드 이미지 우측 하단에 "mm" (DancingScript, opacity 50%) 워터마크 표시
+- **Premium 유저**: 워터마크 없음 (Premium 혜택 중 하나)
+- 구현: `SavedCardView(isPremium: subscriptionManager.isPremium)` 파라미터 전달
+
+### 브랜딩 (v1.1)
+- **홈 탭**: 배경 하단 중앙 "morning manna" DancingScript 13pt, opacity 30% 워터마크
+- **말씀들 탭**: 그리드 스크롤 맨 아래 "mm" + "morning manna" footer (항상 표시)
+- **알람 팝업(Stage 2)**: 인사말 좌측 "mm" DancingScript 36pt Bold
+- **묵상 다이어리**: 하단 콜로폰 "morning manna"
+
 ### 빈 상태 (Empty State) 3가지
-1. 비로그인: 북마크 아이콘 + "말씀을 저장하려면 로그인이 필요해요" + [Apple로 시작하기]
-2. 로그인 후 저장 없음: 하트 아이콘 + "아직 저장된 말씀이 없어요" + [홈으로 가기]
+1. 비로그인: mm 로고(DancingScript 72pt) + "저장한 말씀이 여기에 모여요" + [로그인 하기]
+2. 로그인 후 저장 없음: mm 로고(DancingScript 72pt) + "아직 저장된 말씀이 없어요" + [홈으로 가기]
 3. Free 유저 30일 초과만 남음: "지난 말씀을 모두 보고 싶으신가요?" + [Premium 시작하기]
 
 ### 카드 상세 화면
