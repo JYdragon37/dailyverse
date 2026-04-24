@@ -47,7 +47,7 @@ struct VerseDetailBottomSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("오늘의 적용", systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.dvAccentGold)
+                            .foregroundColor(.dvAccentSky)
 
                         Text(applicationWithNickname)
                             .font(.system(size: 17, weight: .regular))
