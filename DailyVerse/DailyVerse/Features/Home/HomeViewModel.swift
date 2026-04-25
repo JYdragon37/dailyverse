@@ -200,7 +200,8 @@ final class HomeViewModel: ObservableObject {
         if let next = await verseRepository.nextVerse(
             excluding: currentId,
             for: currentMode,
-            weather: weather
+            weather: weather,
+            userId: authManager.userId
         ) {
             currentVerse = next
         } else {
@@ -238,7 +239,7 @@ final class HomeViewModel: ObservableObject {
     private func loadVerse(for mode: AppMode) async {
         // 같은 모드의 verse가 이미 있으면 재로드 안 함 (탭 전환 시 verse 변경 방지)
         if currentVerse != nil && currentMode == mode { return }
-        let verse = await verseRepository.currentVerse(for: mode, weather: weather, userId: authManager.userId)
+        let verse = await verseRepository.currentVerse(for: mode, weather: weather)
         currentVerse = verse
     }
 

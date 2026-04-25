@@ -41,7 +41,9 @@ actor VerseRepository {
     /// - 각 await 이후 반드시 캐시를 재확인 (double-check)
     ///   → 동시에 실행 중인 다른 Task가 먼저 캐시를 설정했으면 그 값을 사용
     ///   → 홈/묵상/알람 어느 경로로 호출해도 같은 날 같은 Zone은 같은 말씀 반환
-    func currentVerse(for mode: AppMode, weather: WeatherData?, userId: String? = nil) async -> Verse {
+    /// 오늘의 말씀 — 하루 1회 결정, Zone/유저 무관하게 동일 (04:00 기준)
+    /// userId 제외 로직 없음: daily verse는 결정론적이어야 모든 화면이 일치함
+    func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
 
         // ── 캐시 재확인 헬퍼 (double-check locking) ──────────────────────────
         // await 이후 다른 Task가 먼저 캐시를 설정했을 수 있으므로 항상 재확인
@@ -91,35 +93,15 @@ actor VerseRepository {
             }
         }
 
-        // 3. 유저별 이력 기반 말씀 선택 (캐시 없을 때만)
+        // 3. 오늘의 말씀 선택 (캐시 없을 때만 — 결정론적, 유저 이력 제외 없음)
         if let verses = try? await fetchVerses() {
             if let v = cachedVerseIfExists() { return v }
 
-            // 유저 이력 로드 (비로그인 시 빈 Set → 글로벌 cooldown만 적용)
-            let uid = userId ?? ""
-            let recentIds: Set<String>
-            if !uid.isEmpty {
-                let ids = await firestoreService.fetchRecentVerseIds(userId: uid)
-                recentIds = Set(ids)
-            } else {
-                recentIds = []
-            }
-
-            if let selected = selector.select(from: verses, mode: mode, weather: weather,
-                                               excludingUserHistory: recentIds) {
+            // per-user 제외 없음: daily verse는 모든 화면이 동일해야 함
+            // (per-user 제외는 nextVerse()에서만 적용)
+            if let selected = selector.select(from: verses, mode: mode, weather: weather) {
                 cacheManager.setVerseId(selected.id, for: mode)
-                // 전역 show_count + 유저 이력 + verse_stats 동시 업데이트
-                Task {
-                    await self.firestoreService.markVerseAsShown(verseId: selected.id)
-                    if !uid.isEmpty {
-                        await self.firestoreService.recordVerseShown(
-                            verseId: selected.id,
-                            userId: uid,
-                            zone: mode.rawValue,
-                            currentIds: Array(recentIds)
-                        )
-                    }
-                }
+                Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
                 return selected
             }
         }
@@ -128,12 +110,31 @@ actor VerseRepository {
         return fallbackVerse(for: mode)
     }
 
-    /// [다음 말씀] — cooldown 통과한 구절 중 현재 제외 후 선택
-    func nextVerse(excluding currentId: String, for mode: AppMode, weather: WeatherData?) async -> Verse? {
+    /// [다음 말씀] — per-user 이력 제외 적용 (daily verse와 달리 개인화 OK)
+    func nextVerse(excluding currentId: String, for mode: AppMode, weather: WeatherData?,
+                   userId: String? = nil) async -> Verse? {
         guard let verses = try? await fetchVerses() else { return nil }
-        let result = selector.selectNext(from: verses, excluding: currentId, mode: mode, weather: weather)
+
+        // 유저 이력 로드 (비로그인 시 빈 Set)
+        let uid = userId ?? ""
+        let recentIds: Set<String>
+        if !uid.isEmpty {
+            let ids = await firestoreService.fetchRecentVerseIds(userId: uid)
+            recentIds = Set(ids)
+        } else {
+            recentIds = []
+        }
+
+        let result = selector.selectNext(from: verses, excluding: currentId, mode: mode,
+                                         weather: weather, excludingUserHistory: recentIds)
         if let result {
-            Task { await self.firestoreService.markVerseAsShown(verseId: result.id) }
+            Task {
+                await self.firestoreService.markVerseAsShown(verseId: result.id)
+                if !uid.isEmpty {
+                    await self.firestoreService.recordVerseShown(
+                        verseId: result.id, userId: uid, zone: mode.rawValue, currentIds: Array(recentIds))
+                }
+            }
         }
         return result
     }
