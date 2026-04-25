@@ -41,7 +41,7 @@ actor VerseRepository {
     /// - 각 await 이후 반드시 캐시를 재확인 (double-check)
     ///   → 동시에 실행 중인 다른 Task가 먼저 캐시를 설정했으면 그 값을 사용
     ///   → 홈/묵상/알람 어느 경로로 호출해도 같은 날 같은 Zone은 같은 말씀 반환
-    func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
+    func currentVerse(for mode: AppMode, weather: WeatherData?, userId: String? = nil) async -> Verse {
 
         // ── 캐시 재확인 헬퍼 (double-check locking) ──────────────────────────
         // await 이후 다른 Task가 먼저 캐시를 설정했을 수 있으므로 항상 재확인
@@ -96,10 +96,10 @@ actor VerseRepository {
             if let v = cachedVerseIfExists() { return v }
 
             // 유저 이력 로드 (비로그인 시 빈 Set → 글로벌 cooldown만 적용)
-            let userId = await MainActor.run { AuthManager.shared.userId ?? "" }
+            let uid = userId ?? ""
             let recentIds: Set<String>
-            if !userId.isEmpty {
-                let ids = await firestoreService.fetchRecentVerseIds(userId: userId)
+            if !uid.isEmpty {
+                let ids = await firestoreService.fetchRecentVerseIds(userId: uid)
                 recentIds = Set(ids)
             } else {
                 recentIds = []
@@ -111,10 +111,10 @@ actor VerseRepository {
                 // 전역 show_count + 유저 이력 + verse_stats 동시 업데이트
                 Task {
                     await self.firestoreService.markVerseAsShown(verseId: selected.id)
-                    if !userId.isEmpty {
+                    if !uid.isEmpty {
                         await self.firestoreService.recordVerseShown(
                             verseId: selected.id,
-                            userId: userId,
+                            userId: uid,
                             zone: mode.rawValue,
                             currentIds: Array(recentIds)
                         )
