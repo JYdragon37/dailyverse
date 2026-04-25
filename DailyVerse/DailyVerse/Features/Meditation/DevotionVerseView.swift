@@ -187,10 +187,11 @@ struct DevotionVerseView: View {
                     readingText: readingText,
                     viewModel: viewModel,
                     prefillPrayer: prefillPrayer,
-                    prefillGratitude: prefillGratitude
+                    prefillGratitude: prefillGratitude,
+                    isEditMode: editMode
                 )
             ) {
-                Text("✨ 묵상 응답 쓰기")
+                Text(editMode ? "✅ 묵상 수정 응답 쓰기" : "✨ 묵상 응답 쓰기")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)

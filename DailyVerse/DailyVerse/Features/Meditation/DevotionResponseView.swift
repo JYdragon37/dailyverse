@@ -13,6 +13,7 @@ struct DevotionResponseView: View {
     // 수정 모드 pre-fill 값 (기본값: 빈 문자열)
     var prefillPrayer: String = ""
     var prefillGratitude: [String] = []
+    var isEditMode: Bool = false   // true = 기존 묵상 수정 (streak 업데이트 불필요)
 
     // MARK: - Focus
 
@@ -295,7 +296,7 @@ struct DevotionResponseView: View {
             .allowsHitTesting(false)
 
             Button { handleComplete() } label: {
-                Text("✨ 묵상 마치기")
+                Text(isEditMode ? "✅ 묵상 수정 완료" : "✨ 묵상 마치기")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)

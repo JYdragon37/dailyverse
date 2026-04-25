@@ -144,9 +144,14 @@ struct SavedDetailView: View {
                         activityItems: [image],
                         applicationActivities: nil
                     )
+                    // keyWindow 기준으로 가장 상단 VC 탐색
                     if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let root = scene.windows.first?.rootViewController {
-                        root.present(av, animated: true)
+                       let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first {
+                        var presenter = window.rootViewController
+                        while let presented = presenter?.presentedViewController {
+                            presenter = presented
+                        }
+                        presenter?.present(av, animated: true)
                     }
                 }
                 isGeneratingShare = false
@@ -453,7 +458,7 @@ struct SavedDetailView: View {
             // 5. mm 브랜드 로고 (좌하단)
             if let logo = UIImage(named: "LogoMMColor") {
                 let logoSize = size.width * 0.12
-                let logoX = hPad
+                let logoX = (size.width - logoSize) / 2   // 하단 중앙
                 let logoY = size.height - logoSize - size.width * 0.08
                 logo.draw(in: CGRect(x: logoX, y: logoY, width: logoSize, height: logoSize),
                           blendMode: .normal, alpha: 0.75)

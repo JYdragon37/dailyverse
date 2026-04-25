@@ -77,28 +77,14 @@ struct DevotionShareCardRenderer {
             let refAttrs: [NSAttributedString.Key: Any] = [.font: refFont, .foregroundColor: UIColor.white.withAlphaComponent(0.8)]
             refText.draw(in: CGRect(x: hPad, y: refY, width: size.width - hPad * 2, height: 60), withAttributes: refAttrs)
 
-            // 5. 기도 (있을 때만, 하단 영역)
-            let trimmed = prayer.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                let prayerY = size.height * 0.74
-                let prayerPara = NSMutableParagraphStyle()
-                prayerPara.alignment = .center
-                prayerPara.lineSpacing = 10
-
-                let prayerFont = UIFont(name: "PretendardVariable", size: 38) ?? UIFont.systemFont(ofSize: 38)
-                let gold = UIColor(red: 0.784, green: 0.592, blue: 0.333, alpha: 1)
-                let prayerAttrs: [NSAttributedString.Key: Any] = [.font: prayerFont, .foregroundColor: gold, .paragraphStyle: prayerPara]
-                trimmed.draw(in: CGRect(x: 120, y: prayerY, width: size.width - 240, height: 160), withAttributes: prayerAttrs)
+            // 5. mm 브랜드 로고 이미지 (하단 중앙)
+            if let logo = UIImage(named: "LogoMMColor") {
+                let logoSize: CGFloat = size.width * 0.14
+                let logoX = (size.width - logoSize) / 2
+                let logoY = size.height - logoSize - size.width * 0.07
+                logo.draw(in: CGRect(x: logoX, y: logoY, width: logoSize, height: logoSize),
+                          blendMode: .normal, alpha: 0.70)
             }
-
-            // 6. DailyVerse 워터마크 (하단)
-            let wmPara = NSMutableParagraphStyle(); wmPara.alignment = .center
-            let wmAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 28, weight: .medium),
-                .foregroundColor: UIColor.white.withAlphaComponent(0.40),
-                .paragraphStyle: wmPara
-            ]
-            "morning manna".draw(in: CGRect(x: 0, y: size.height - 110, width: size.width, height: 50), withAttributes: wmAttrs)
         }
     }
 

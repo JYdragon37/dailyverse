@@ -16,6 +16,7 @@ struct VerseDetailBottomSheet: View {
     let onSave: () -> Void
     let onMeditation: () -> Void
     let onClose: () -> Void
+    var showMeditationButton: Bool = true   // 알람 팝업 컨텍스트에서는 false
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
     @State private var justSaved = false
@@ -139,8 +140,8 @@ struct VerseDetailBottomSheet: View {
             }
             .accessibilityLabel("말씀 저장하기")
 
-            // 묵상 버튼
-            Button(action: onMeditation) {
+            // 묵상 버튼 (알람 팝업 컨텍스트에서는 숨김)
+            if showMeditationButton { Button(action: onMeditation) {
                 HStack(spacing: 6) {
                     Image(systemName: "pencil.and.scribble")
                         .font(.system(size: 14))
@@ -160,6 +161,7 @@ struct VerseDetailBottomSheet: View {
                 .foregroundColor(.white)
             }
             .accessibilityLabel("묵상 탭으로 이동")
+            }   // end if showMeditationButton
 
             // 닫기 버튼
             Button(action: onClose) {

@@ -118,7 +118,8 @@ struct AlarmStage2View: View {
                         verse: verse,
                         onSave: { handleSave() },
                         onMeditation: { showVerseDetail = false },
-                        onClose: { showVerseDetail = false }
+                        onClose: { showVerseDetail = false },
+                        showMeditationButton: false
                     )
                 }
             }
@@ -301,10 +302,6 @@ struct AlarmStage2View: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .padding(.bottom, 8)
-        .background(
-            Color.dvBgDeep.opacity(0.85)
-                .overlay(Rectangle().fill(.ultraThinMaterial))
-        )
     }
 
     // MARK: - Helpers

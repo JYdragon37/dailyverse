@@ -210,11 +210,11 @@ final class MeditationViewModel: ObservableObject {
         showWriteSheet = false
     }
 
-    private func applyEntry(_ entry: MeditationEntry, userId: String) {
+    private func applyEntry(_ entry: MeditationEntry, userId: String, recordStreak: Bool = true) {
         todayEntry = entry
         history.removeAll { $0.dateKey == entry.dateKey }
         history.insert(entry, at: 0)
-        streakManager.recordMeditation()
+        if recordStreak { streakManager.recordMeditation() }
         // 오늘 묵상 완료 → 저녁 리마인더 취소 (saveQuick/saveRead/saveEntry 공통)
         NotificationManager.shared.cancelTodayMeditationReminder()
         Task {
@@ -254,15 +254,16 @@ final class MeditationViewModel: ObservableObject {
         let verseRef = todayVerse?.reference ?? ""
 
         if var existing = todayEntry {
+            // 기존 entry 수정 — streak 업데이트 불필요 (이미 오늘 묵상으로 카운트됨)
             existing.prayer = prayer.isEmpty ? nil : prayer
             existing.readingText = readingText.isEmpty ? nil : readingText
             if !prayerItems.isEmpty { existing.prayerItems = prayerItems }
             existing.updatedAt = Date()
             do {
                 try await repository.save(existing)
-                applyEntry(existing, userId: uid)
+                applyEntry(existing, userId: uid, recordStreak: false)
             } catch {
-                applyEntry(existing, userId: uid)
+                applyEntry(existing, userId: uid, recordStreak: false)
                 showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
                 return
             }
