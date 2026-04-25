@@ -60,12 +60,14 @@ struct EditCompleteView: View {
                 glowOpacity = 0.25
                 messageOpacity = 1.0
             }
-            // 1.5초 후 자동 dismiss → showEditFlow = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                dismiss()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    NotificationCenter.default.post(name: .dvMeditationEditCompleted, object: nil)
+            // 1.5초 후 자동 dismiss → 뷰 라이프사이클과 함께 취소 가능한 Task 사용
+            Task {
+                try? await Task.sleep(for: .seconds(1.5))
+                await MainActor.run {
+                    dismiss()
                 }
+                try? await Task.sleep(for: .milliseconds(100))
+                NotificationCenter.default.post(name: .dvMeditationEditCompleted, object: nil)
             }
         }
     }
