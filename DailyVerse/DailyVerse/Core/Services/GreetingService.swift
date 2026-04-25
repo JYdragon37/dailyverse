@@ -26,6 +26,15 @@ enum GreetingLanguage: String, CaseIterable {
 }
 
 // MARK: - GreetingService
+//
+// Firestore 컬렉션 구조:
+//   greetings       — 홈화면 Zone별 인사말 (load() 사용)
+//   alarm_greetings — 알람 Stage2 팝업 전용 인사말 (loadAlarmGreeting() 사용)
+//
+// 두 컬렉션은 동일한 스키마(gr_id, zone_id, language, text, char_count)를
+// 공유하지만 맥락(홈 vs 알람)에 따라 어조와 내용이 다르게 관리됩니다.
+//   홈:  "Good morning, beloved. 오늘도..." (일상적, 부드러운 시작)
+//   알람: "밤 알람이에요, beloved..." (알람 종료 직후 웰컴 맥락)
 
 @MainActor
 class GreetingService: ObservableObject {
@@ -39,6 +48,7 @@ class GreetingService: ObservableObject {
 
     /// 캐시 key: "{zone_id}_{resolved_lang}" 예: "deep_dark_ko"
     private var cache: [String: String] = [:]
+    /// 알람 전용 캐시 (홈 캐시와 독립 관리 — 같은 Zone이어도 다른 문구)
     private var alarmCache: [String: String] = [:]
     private let db = Firestore.firestore()
 

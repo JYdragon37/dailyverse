@@ -4,30 +4,31 @@ class VerseSelector {
 
     /// 현재 Zone + 날씨 기반으로 최적 말씀 선택
     /// v6.0: 8-zone 기준, theme/mood "all" 지원
-    /// 스코어링: 테마 겹침 +3, 분위기 겹침 +2, 날씨 일치 +2, 계절 일치 +1
-    func select(from verses: [Verse], mode: AppMode, weather: WeatherData?) -> Verse? {
-        let filtered = verses.filter {
-            $0.status == "active" &&
-            $0.curated == true &&
-            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all")) &&
-            $0.isEligible
+    /// v6.1: 유저별 최근 이력(recentIds) 기반 중복 노출 최소화
+    /// 스코어링: 테마 +3, 분위기 +2, 날씨 +2, 계절 +1, 선호 테마 +5, 전역 인기 -1/10회
+    func select(from verses: [Verse], mode: AppMode, weather: WeatherData?,
+                excludingUserHistory recentIds: Set<String> = []) -> Verse? {
+        let base = verses.filter {
+            $0.status == "active" && $0.curated == true &&
+            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
         }
 
-        // cooldown 통과 구절이 없으면 제한 없이 전체에서 선택
-        let pool = filtered.isEmpty ? verses.filter {
-            $0.status == "active" &&
-            $0.curated == true &&
-            ($0.mode.contains(mode.rawValue) || $0.mode.contains("all"))
-        } : filtered
+        // 1차: 유저 이력 제외 + cooldown 통과
+        var pool = base.filter { !recentIds.contains($0.id) && $0.isEligible }
+        // 2차: 유저 이력 제외만 (cooldown 완화)
+        if pool.isEmpty { pool = base.filter { !recentIds.contains($0.id) } }
+        // 3차: 전체 풀 (모든 구절을 이미 봤을 때 — 386개 이상 사용 시 사실상 미도달)
+        if pool.isEmpty { pool = base }
 
         guard !pool.isEmpty else { return nil }
         return score(pool, mode: mode, weather: weather)
     }
 
-    /// [다음 말씀]: 현재 표시 중인 말씀 제외 후 선택
-    func selectNext(from verses: [Verse], excluding currentId: String, mode: AppMode, weather: WeatherData?) -> Verse? {
+    /// [다음 말씀]: 현재 말씀 + 유저 이력 제외 후 선택
+    func selectNext(from verses: [Verse], excluding currentId: String, mode: AppMode, weather: WeatherData?,
+                    excludingUserHistory recentIds: Set<String> = []) -> Verse? {
         let remaining = verses.filter { $0.id != currentId }
-        return select(from: remaining, mode: mode, weather: weather)
+        return select(from: remaining, mode: mode, weather: weather, excludingUserHistory: recentIds)
     }
 
     /// 알람 테마에 맞는 말씀 선택

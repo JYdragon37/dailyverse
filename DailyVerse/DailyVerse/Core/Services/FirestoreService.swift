@@ -20,16 +20,46 @@ class FirestoreService {
         return try? doc.data(as: Verse.self)
     }
 
-    /// v5.1 — 말씀 노출 후 last_shown + show_count 업데이트 (Cooldown 로직)
+    /// v5.1 — 말씀 노출 후 last_shown + show_count 업데이트 (하위 호환 유지)
     func markVerseAsShown(verseId: String) async {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let today = formatter.string(from: Date())
-
         try? await db.collection("verses").document(verseId).updateData([
             "last_shown": today,
             "show_count": FieldValue.increment(Int64(1))
         ])
+    }
+
+    // MARK: - 유저별 말씀 이력 (v6.0 — 1만 유저 대응 중복 노출 최소화)
+
+    /// 유저의 최근 본 말씀 ID 목록 조회 (max 30)
+    func fetchRecentVerseIds(userId: String) async -> [String] {
+        guard let doc = try? await db.collection("users").document(userId).getDocument(),
+              let ids = doc.data()?["recent_verse_ids"] as? [String] else { return [] }
+        return ids
+    }
+
+    /// 말씀 노출 후 유저 이력 추가 + 전역 verse_stats 업데이트
+    /// - recentIds: 현재 유저의 이력 (FIFO, max 30)
+    func recordVerseShown(verseId: String, userId: String, zone: String, currentIds: [String]) async {
+        // 유저 이력: 최신 verseId 앞에 추가, max 30개 유지
+        var updated = [verseId] + currentIds.filter { $0 != verseId }
+        if updated.count > 30 { updated = Array(updated.prefix(30)) }
+
+        // users/{uid}.recent_verse_ids 업데이트
+        try? await db.collection("users").document(userId).updateData([
+            "recent_verse_ids": updated
+        ])
+
+        // verse_stats/{verse_id} 글로벌 통계 업데이트 (STATS 시트 연동용)
+        let statsRef = db.collection("verse_stats").document(verseId)
+        try? await statsRef.setData([
+            "verse_id": verseId,
+            "total_shown": FieldValue.increment(Int64(1)),
+            "last_updated": FieldValue.serverTimestamp(),
+            "zone_breakdown.\(zone)": FieldValue.increment(Int64(1))
+        ], merge: true)
     }
 
     // MARK: - Images

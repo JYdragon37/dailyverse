@@ -11,6 +11,7 @@ struct DVUser: Codable, Equatable {
     var subscriptionExpireAt: Date?
     var settings: UserSettings
     var pinnedImages: PinnedImages  // v5.1 — 모드별 핀 이미지
+    var recentVerseIds: [String]    // v6.0 — 유저별 최근 본 말씀 ID (max 30, FIFO) — 중복 노출 방지
 
     struct UserSettings: Codable, Equatable {
         var timezone: String
@@ -100,6 +101,7 @@ struct DVUser: Codable, Equatable {
         case subscriptionStatus  = "subscription_status"
         case subscriptionExpireAt = "subscription_expire_at"
         case pinnedImages        = "pinned_images"
+        case recentVerseIds      = "recent_verse_ids"
     }
 
     init(from decoder: Decoder) throws {
@@ -113,6 +115,7 @@ struct DVUser: Codable, Equatable {
         subscriptionExpireAt = try container.decodeIfPresent(Date.self, forKey: .subscriptionExpireAt)
         settings            = try container.decodeIfPresent(UserSettings.self, forKey: .settings) ?? .default
         pinnedImages        = try container.decodeIfPresent(PinnedImages.self, forKey: .pinnedImages) ?? .empty
+        recentVerseIds      = try container.decodeIfPresent([String].self, forKey: .recentVerseIds) ?? []
     }
 
     init(
@@ -124,7 +127,8 @@ struct DVUser: Codable, Equatable {
         subscriptionStatus: String = "free",
         subscriptionExpireAt: Date? = nil,
         settings: UserSettings = .default,
-        pinnedImages: PinnedImages = .empty
+        pinnedImages: PinnedImages = .empty,
+        recentVerseIds: [String] = []
     ) {
         self.uid = uid
         self.email = email
@@ -135,5 +139,6 @@ struct DVUser: Codable, Equatable {
         self.subscriptionExpireAt = subscriptionExpireAt
         self.settings = settings
         self.pinnedImages = pinnedImages
+        self.recentVerseIds = recentVerseIds
     }
 }

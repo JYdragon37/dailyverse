@@ -91,14 +91,35 @@ actor VerseRepository {
             }
         }
 
-        // 3. Cooldown 알고리즘 선택 (캐시 없을 때만)
+        // 3. 유저별 이력 기반 말씀 선택 (캐시 없을 때만)
         if let verses = try? await fetchVerses() {
-            // await 후 재확인 — 경쟁 Task가 먼저 선택했으면 그 결과 사용 (동일 말씀 보장)
             if let v = cachedVerseIfExists() { return v }
 
-            if let selected = selector.select(from: verses, mode: mode, weather: weather) {
+            // 유저 이력 로드 (비로그인 시 빈 Set → 글로벌 cooldown만 적용)
+            let userId = await MainActor.run { AuthManager.shared.userId ?? "" }
+            let recentIds: Set<String>
+            if !userId.isEmpty {
+                let ids = await firestoreService.fetchRecentVerseIds(userId: userId)
+                recentIds = Set(ids)
+            } else {
+                recentIds = []
+            }
+
+            if let selected = selector.select(from: verses, mode: mode, weather: weather,
+                                               excludingUserHistory: recentIds) {
                 cacheManager.setVerseId(selected.id, for: mode)
-                Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
+                // 전역 show_count + 유저 이력 + verse_stats 동시 업데이트
+                Task {
+                    await self.firestoreService.markVerseAsShown(verseId: selected.id)
+                    if !userId.isEmpty {
+                        await self.firestoreService.recordVerseShown(
+                            verseId: selected.id,
+                            userId: userId,
+                            zone: mode.rawValue,
+                            currentIds: Array(recentIds)
+                        )
+                    }
+                }
                 return selected
             }
         }
