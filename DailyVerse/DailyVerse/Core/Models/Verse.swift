@@ -20,8 +20,8 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let usageCount: Int
     let notes: String?
     let alarmTopKo: String?              // 알람 목록 상단 전용 (없으면 verseShortKo 폴백)
-    let contemplationKo: String?         // 묵상 읽기 구절 — Screen 2 읽기 섹션 표시용 (50-200자)
-    let contemplationReference: String?  // 묵상 구절 출처 (예: "시편 62:5")
+    // schema_v1.3: contemplationKo, contemplationReference 제거 (Firestore 미사용 수식 복사본)
+    // schema_v1.3: translations(VerseTranslations) 제거 (Firestore에 없고 뷰에서 미사용)
     let contemplationInterpretation: String?  // 묵상 전용 해석 — Screen 2 해석 섹션
     let contemplationAppliance: String?       // 묵상 일상 적용 — Screen 3 섹션 1
     let question: String?                     // 묵상 질문 — Screen 3 섹션 2
@@ -31,19 +31,6 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let showCount: Int?
     let cooldownDays: Int?      // 기본값 7
 
-    // v5.1 — 번역본 (MVP: ko_nkrv만 사용)
-    let translations: VerseTranslations?
-
-    struct VerseTranslations: Codable, Equatable, Hashable {
-        let koNkrv: String?
-        let koEasy: String?
-
-        enum CodingKeys: String, CodingKey {
-            case koNkrv = "ko_nkrv"
-            case koEasy = "ko_easy"
-        }
-    }
-
     enum CodingKeys: String, CodingKey {
         case id = "verse_id"
         case verseShortKo = "verse_short_ko"
@@ -52,8 +39,6 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case mode, theme, mood, season, weather
         case interpretation, application, curated, status, notes
         case alarmTopKo = "alarm_top_ko"
-        case contemplationKo = "contemplation_ko"
-        case contemplationReference = "contemplation_reference"
         case contemplationInterpretation = "contemplation_interpretation"
         case contemplationAppliance = "contemplation_appliance"
         case question
@@ -61,7 +46,6 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case lastShown = "last_shown"
         case showCount = "show_count"
         case cooldownDays = "cooldown_days"
-        case translations
     }
 
     // MARK: - Cooldown 헬퍼
@@ -92,9 +76,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "어디에 있든, 어떤 시간이든 하나님의 손이 함께한다",
         application: "아직 깨어있는 이 시간, 하나님이 붙드심을 기억해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 2 — First Light (03–06) 여명 / 준비
@@ -109,9 +93,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "새벽/아침에 올리는 기도를 하나님이 들으신다는 다윗의 확신",
         application: "세상이 깨기 전 이 시간, 가장 먼저 하나님을 찾아봐",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 3 — Rise & Ignite (06–09) 아침 / 점화
@@ -126,9 +110,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "하나님이 직접 함께하겠다는 약속",
         application: "오늘 하루, 혼자가 아님을 기억하며 시작해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 4 — Peak Mode (09–12) 집중 / 성과
@@ -143,9 +127,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "자기 능력이 아닌 그리스도 안에서 주어지는 힘으로 사는 선언",
         application: "지금 이 집중의 시간, 능력 주시는 분께 연결돼봐",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 5 — Recharge (12–15) 정오 / 회복
@@ -160,9 +144,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "지혜의 길로 나아갈 때 앞길이 열린다",
         application: "잠깐 쉬어가도 괜찮아. 이 숨 고르는 시간도 하나님 안에 있어",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 6 — Second Wind (15–18) 오후 / 재점화
@@ -177,9 +161,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "예수님이 이미 세상을 이기셨기에 우리도 담대할 수 있다는 선언",
         application: "오후의 피로가 느껴져도, 이미 이긴 싸움 안에 서 있음을 기억해",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 7 — Golden Hour (18–21) 저녁 / 수확
@@ -194,9 +178,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "하나님이 목자처럼 돌봐주신다는 신뢰의 고백",
         application: "오늘 하루 수고했어. 채워주신 것들을 되돌아봐",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // Zone 8 — Wind Down (21–24) 밤 / 마무리
@@ -211,9 +195,9 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         interpretation: "베드로는 네로 황제의 박해가 시작되던 시절, 고향을 잃고 흩어진 사람들에게 편지를 쓰고 있었어. 그 상황에서 그가 전한 말이 바로 이거야—짐을 혼자 다 안고 있지 말고, 그냥 던져버리라고. 하나님이 이미 너를 신경 쓰고 있으니까.",
         application: "집에 돌아온 지금, 오늘 가장 무거웠던 걱정 하나를 떠올리고 '이건 내려놓을게'라고 조용히 말해봐.",
         curated: true, status: "active", usageCount: 0,
-        notes: nil, alarmTopKo: nil, contemplationKo: nil, contemplationReference: nil,
+        notes: nil, alarmTopKo: nil,
         contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
-        lastShown: nil, showCount: 0, cooldownDays: 7, translations: nil
+        lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
     // MARK: - 레거시 호환 (구 4-zone 이름 → 새 zone으로 매핑)

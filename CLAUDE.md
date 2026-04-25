@@ -636,22 +636,57 @@ struct WeatherData: Codable {
 
 ## 13. Firebase 스키마
 
+> **스키마 버전**: schema_v1.3 (2026-04-25)
+> **변경 이력**:
+> - schema_v1.3 (2026-04-25): `contemplation_ko`, `contemplation_reference` 제거 (verse_full_ko/reference의 수식 복사본으로 앱에서 미사용), `meditation_logs` 루트 컬렉션 제거 (빈 컬렉션), iOS `Verse.translations` 구조체 제거
+
 ### verses/{verse_id}
 ```
-text_ko: String
-text_full_ko: String
-reference: String
-book: String, chapter: Int, verse: Int
-mode: [String]       // "morning" | "afternoon" | "evening" | "all"
-theme: [String]      // hope, courage, strength, renewal, wisdom, focus, patience, gratitude, peace, comfort, reflection, rest
-mood: [String]       // bright, calm, warm, serene, dramatic, cozy
-season: [String]     // spring, summer, autumn, winter, all
-weather: [String]    // sunny, cloudy, rainy, snowy, any
-interpretation: String
-application: String
+verse_id: String
+verse_short_ko: String       // 카드 표시용 핵심 구절 (35자 이내)
+verse_full_ko: String        // 전체 구절 원문 (개역한글)
+reference: String            // "이사야 41:10"
+book: String
+chapter: Int, verse: Int
+mode: [String]               // Zone 시간대: deep_dark | first_light | rise_ignite | peak_mode | recharge | second_wind | golden_hour | wind_down | all
+theme: [String]              // hope, courage, strength, renewal, wisdom, focus, patience, gratitude, peace, comfort, reflection, rest
+mood: [String]               // bright, calm, warm, serene, dramatic, cozy
+season: [String], weather: [String]
+interpretation: String       // 홈/묵상 해석 (80-150자, ~야/이야 말투)
+application: String          // 홈/묵상 일상 적용 (40-80자)
+contemplation_interpretation: String  // 묵상 전용 깊은 해석
+contemplation_appliance: String       // 묵상 전용 일상 적용
+alarm_top_ko: String?        // 알람 목록 상단 표시 (35자 이내, 없으면 verse_short_ko 폴백)
+question: String?            // 묵상 응답 질문
 curated: Bool
-status: String       // active | draft | inactive
+status: String               // active | draft | inactive
 usage_count: Int
+cooldown_days: Int           // 기본 7일 (같은 구절 재표시 간격)
+last_shown: String?, show_count: Int
+
+// ─── 제거된 필드 (schema_v1.3) ───────────────────────────
+// contemplation_ko      → verse_full_ko와 동일한 수식 복사본이었음. 앱 미사용
+// contemplation_reference → reference와 동일한 수식 복사본이었음. 앱 미사용
+```
+
+### app_config/content_version
+```
+current_version: String      // e.g. "content_v1.2"
+updated_at: String           // "YYYY-MM-DD"
+total_active_verses: Int
+description: String
+```
+
+### content_changelog/{version_id}
+```
+version: String
+date: String
+type: String                 // content | schema
+description: String
+verses_added: Int
+total_active: Int
+zones_affected: String
+notes: String
 ```
 
 ### images/{image_id}

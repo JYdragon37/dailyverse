@@ -18,10 +18,10 @@ const SHEET_ID = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
 const SHEET_NAME = 'VERSES';
 
 // 수식 매핑: { 대상 컬럼명: 원본 컬럼명 }
+// schema_v1.3 (2026-04-25): contemplation_ko 제거 (verse_full_ko 수식 복사본, 앱 미사용)
 const FORMULA_MAP = {
   contemplation_interpretation: 'interpretation',
   contemplation_appliance: 'application',
-  contemplation_ko: 'verse_full_ko',
 };
 
 // 열 번호(0-indexed) → 열 문자 변환 (0=A, 1=B, ..., 25=Z, 26=AA ...)
