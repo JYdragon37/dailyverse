@@ -517,7 +517,6 @@
 				81782BC3F5931801D8A784E9 /* SubscriptionManager.swift */,
 				A2000003A2000003A2000003 /* StreakManager.swift */,
 				DC574AED1BAE4561C1662061 /* UpsellManager.swift */,
-				C1B056CAB5ECC5E14EA735E7 /* WeatherAdviceService.swift */,
 					C70CAA8E33538F96E54341FF /* WeatherCacheManager.swift */,
 			);
 			path = Managers;
@@ -664,6 +663,7 @@
 				BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */,
 				CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */,
 				28A58F7583B183DE6CD8BF92 /* GreetingService.swift */,
+				C1B056CAB5ECC5E14EA735E7 /* WeatherAdviceService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
