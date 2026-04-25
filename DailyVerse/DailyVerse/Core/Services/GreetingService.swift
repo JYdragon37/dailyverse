@@ -55,9 +55,16 @@ class GreetingService: ObservableObject {
     // MARK: - Public
 
     /// Zone 진입 시 호출. 캐시 히트 → 즉시 반환, miss → Firestore fetch.
+    /// daily_cards에 절기 greeting이 있으면 우선 사용
     func load(for mode: AppMode, language: GreetingLanguage) async {
         let resolvedLang = language.resolved()
         let cacheKey = "\(mode.rawValue)_\(resolvedLang)"
+
+        // 0. 절기 카드 greeting 우선 확인
+        if let eventGreeting = await fetchEventGreeting(language: resolvedLang) {
+            currentGreeting = eventGreeting
+            return
+        }
 
         // 1. 캐시 히트: 같은 Zone 재진입 시 동일 greeting 유지
         if let cached = cache[cacheKey] {
@@ -97,9 +104,16 @@ class GreetingService: ObservableObject {
     }
 
     /// 알람 화면 전용 인사말 로드 — alarm_greetings 컬렉션 (폴백: AppMode.alarmGreetingKr/En)
+    /// 절기 당일은 daily_cards.greeting_ko/en 우선 사용
     func loadAlarmGreeting(for mode: AppMode, language: GreetingLanguage) async {
         let resolvedLang = language.resolved()
         let cacheKey = "alarm_\(mode.rawValue)_\(resolvedLang)"
+
+        // 절기 카드 greeting 우선 확인
+        if let eventGreeting = await fetchEventGreeting(language: resolvedLang) {
+            currentAlarmGreeting = eventGreeting
+            return
+        }
 
         if let cached = alarmCache[cacheKey] {
             currentAlarmGreeting = cached
@@ -149,6 +163,22 @@ class GreetingService: ObservableObject {
     }
 
     // MARK: - Private
+
+    /// 오늘 날짜의 daily_cards 문서에서 절기 greeting 반환 (없으면 nil)
+    private func fetchEventGreeting(language: String) async -> String? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+
+        guard let doc = try? await db.collection("daily_cards").document(today).getDocument(),
+              doc.exists,
+              let data = doc.data(),
+              (data["active"] as? Bool) != false else { return nil }
+
+        let key = language == "ko" ? "greeting_ko" : "greeting_en"
+        guard let text = data[key] as? String, !text.isEmpty else { return nil }
+        return text
+    }
 
     private func useFallback(mode: AppMode, lang: String) {
         // Plan SC: Firestore 실패 시 하드코딩 폴백으로 정상 표시

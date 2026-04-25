@@ -85,14 +85,18 @@ class FirestoreService {
         let doc = try await db.collection("daily_cards").document(dateString).getDocument()
         guard doc.exists, let data = doc.data() else { return nil }
 
-        // 모드별 키 우선, 없으면 공통 키 폴백
-        let modeData = data[mode.rawValue] as? [String: Any] ?? data
+        // all_zones=true면 모드 무관 공통 데이터 사용, 아니면 모드별 키 우선
+        let allZones = data["all_zones"] as? Bool ?? false
+        let modeData = allZones ? data : (data[mode.rawValue] as? [String: Any] ?? data)
         return DailyCard(
             date: dateString,
-            verseId: modeData["verse_id"] as? String,
-            imageId: modeData["image_id"] as? String,
-            label: modeData["label"] as? String,
-            note: modeData["note"] as? String
+            verseId: modeData["verse_id"] as? String ?? data["verse_id"] as? String,
+            imageId: modeData["image_id"] as? String ?? data["image_id"] as? String,
+            label: data["event_name"] as? String ?? modeData["label"] as? String,
+            note: data["notes"] as? String ?? modeData["note"] as? String,
+            greetingKo: data["greeting_ko"] as? String,
+            greetingEn: data["greeting_en"] as? String,
+            eventName: data["event_name"] as? String
         )
     }
 
@@ -153,25 +157,6 @@ class FirestoreService {
     func fetchBackgroundImage(for mode: AppMode) async throws -> BackgroundImage? {
         let candidates = try await fetchBackgroundImages(for: mode, weatherCondition: "all")
         return candidates.randomElement()
-    }
-
-    // MARK: - Daily Word (오늘의 한마디 Gallery 저장)
-
-    func saveDailyWord(_ entry: DailyWordEntry, userId: String) async throws {
-        try await db.collection("daily_words")
-            .document(userId)
-            .collection("words")
-            .document(entry.id)
-            .setData(from: entry)
-    }
-
-    func fetchDailyWords(userId: String) async throws -> [DailyWordEntry] {
-        let snapshot = try await db.collection("daily_words")
-            .document(userId)
-            .collection("words")
-            .order(by: "saved_at", descending: true)
-            .getDocuments()
-        return snapshot.documents.compactMap { try? $0.data(as: DailyWordEntry.self) }
     }
 
     // MARK: - User
@@ -252,4 +237,8 @@ struct DailyCard {
     let imageId: String?
     let label: String?      // "부활절 특별 말씀" 등
     let note: String?       // 큐레이션 의도 메모
+    // 절기 특별 인사말 (없으면 greetings 컬렉션 사용)
+    let greetingKo: String?
+    let greetingEn: String?
+    let eventName: String?  // "크리스마스", "부활절" 등
 }
