@@ -6,7 +6,7 @@ import UIKit
 
 struct DevotionShareCardRenderer {
 
-    static func render(verse: Verse?, prayer: String, backgroundImage: UIImage? = nil) -> UIImage {
+    static func render(verse: Verse?, backgroundImage: UIImage? = nil) -> UIImage {
         let size = CGSize(width: 1080, height: 1920)
         let renderer = UIGraphicsImageRenderer(size: size)
 

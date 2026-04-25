@@ -135,6 +135,14 @@ struct SavedDetailView: View {
                     ]
                     NSAttributedString(string: ref, attributes: refAttrs)
                         .draw(at: CGPoint(x: hPad, y: size.height * 0.72))
+                    // mm 브랜드 로고 (하단 중앙)
+                    if let logo = UIImage(named: "LogoMMColor") {
+                        let logoSize = size.width * 0.12
+                        let logoX = (size.width - logoSize) / 2
+                        let logoY = size.height - logoSize - size.width * 0.07
+                        logo.draw(in: CGRect(x: logoX, y: logoY, width: logoSize, height: logoSize),
+                                  blendMode: .normal, alpha: 0.70)
+                    }
                 }
             }
 

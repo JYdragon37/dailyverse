@@ -106,13 +106,14 @@ final class MeditationViewModel: ObservableObject {
 
         // 오늘 묵상이 이미 있으면 prayerItems에 추가(업데이트)
         if var existing = todayEntry {
+            // 기존 entry에 prayerItem 추가 — streak 중복 카운트 방지
             existing.prayerItems.append(newItem)
             existing.updatedAt = Date()
             do {
                 try await repository.save(existing)
-                applyEntry(existing, userId: uid)
+                applyEntry(existing, userId: uid, recordStreak: false)
             } catch {
-                applyEntry(existing, userId: uid)
+                applyEntry(existing, userId: uid, recordStreak: false)
                 showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
                 return
             }

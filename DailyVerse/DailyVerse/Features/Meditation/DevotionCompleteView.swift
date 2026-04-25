@@ -223,7 +223,7 @@ struct DevotionCompleteView: View {
 
     private func handleShare() {
         let bgImage = loadingCoordinator.zoneBgImage
-        let image = DevotionShareCardRenderer.render(verse: verse, prayer: prayer, backgroundImage: bgImage)
+        let image = DevotionShareCardRenderer.render(verse: verse, backgroundImage: bgImage)
         shareImage = image
         showShareSheet = true
     }
