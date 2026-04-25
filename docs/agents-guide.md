@@ -1,4 +1,4 @@
-# DailyVerse 서브 에이전트 가이드
+# morning manna 서브 에이전트 가이드
 
 > 이 프로젝트에서 Claude Code가 활용하는 서브 에이전트 목록입니다.
 > 각 에이전트는 특정 역할에 특화되어 있으며, 복잡한 작업을 병렬/순차로 처리합니다.
@@ -10,7 +10,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **Google Sheets** | [DailyVerse 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **Google Sheets** | [morning manna 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ `scripts/serviceAccountKey.json`으로 Claude Code가 직접 편집 가능 |
 | **Sheets ID** | `1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig` |
 | **시트 탭** | `VERSES` (v_001~v_180+), `ALARM_VERSES` (av_001~av_105) |
@@ -29,7 +29,7 @@ node upload_verses.js           # 신규 말씀 업로드
 ## 카테고리 구조
 
 ```
-DailyVerse 에이전트
+morning manna 에이전트
 │
 ├── 🎨 Category A. 화면 개발 (UI/UX)
 │   ├── swiftui-builder       — SwiftUI 뷰 구현
@@ -84,7 +84,7 @@ DailyVerse 에이전트
 
 **프롬프트 패턴**:
 ```
-DailyVerse iOS 앱의 {뷰 이름}을 구현/수정해주세요.
+morning manna iOS 앱의 {뷰 이름}을 구현/수정해주세요.
 
 규칙:
 - project.pbxproj 절대 수정 금지 (신규 파일 추가 불가)
@@ -113,7 +113,7 @@ DailyVerse iOS 앱의 {뷰 이름}을 구현/수정해주세요.
 
 **프롬프트 패턴**:
 ```
-DailyVerse iOS 앱의 {기능명} 화면 설계를 위한 레퍼런스를 조사해주세요.
+morning manna iOS 앱의 {기능명} 화면 설계를 위한 레퍼런스를 조사해주세요.
 
 조사 대상 앱: {앱 목록 — Calm, Headspace, YouVersion, Apple Weather 등}
 조사 항목:
@@ -122,7 +122,7 @@ DailyVerse iOS 앱의 {기능명} 화면 설계를 위한 레퍼런스를 조사
 - 인터랙션·애니메이션 방식
 - 권고 문구 톤앤매너
 
-DailyVerse 감성(청록→보라 그라데이션, 골드 강조, 경건한 분위기)과
+morning manna 감성(청록→보라 그라데이션, 골드 강조, 경건한 분위기)과
 어울리는 방향을 제안해주세요.
 ```
 
@@ -134,7 +134,7 @@ DailyVerse 감성(청록→보라 그라데이션, 골드 강조, 경건한 분�
 
 **프롬프트 패턴**:
 ```
-design-researcher의 리서치 결과를 바탕으로 DailyVerse의 {화면명}을
+design-researcher의 리서치 결과를 바탕으로 morning manna의 {화면명}을
 아래 디자인 방향으로 업데이트해주세요.
 
 적용 파일:
@@ -157,7 +157,7 @@ project.pbxproj 수정 금지. 기존 파일만 수정합니다.
 
 **프롬프트 패턴**:
 ```
-DailyVerse의 아래 화면들의 디자인 일관성을 검증해주세요.
+morning manna의 아래 화면들의 디자인 일관성을 검증해주세요.
 
 검증 항목:
 - 색상 대비 비율 (WCAG AA: 4.5:1 이상)
@@ -182,7 +182,7 @@ DailyVerse의 아래 화면들의 디자인 일관성을 검증해주세요.
 
 **프롬프트 패턴**:
 ```
-DailyVerse iOS 프로젝트의 {작업명}을 처리해주세요.
+morning manna iOS 프로젝트의 {작업명}을 처리해주세요.
 
 프로젝트 정보:
 - 플랫폼: iOS 16+, Swift 5.9
@@ -206,7 +206,7 @@ project.pbxproj 수정이 필요한 경우:
 
 **프롬프트 패턴**:
 ```
-DailyVerse의 알람 시스템 관련 작업입니다.
+morning manna의 알람 시스템 관련 작업입니다.
 
 알람 아키텍처:
 - NotificationManager: 스케줄링·취소·재스케줄
@@ -236,7 +236,7 @@ DailyVerse의 알람 시스템 관련 작업입니다.
 
 **프롬프트 패턴**:
 ```
-DailyVerse의 날씨 서비스 관련 작업입니다.
+morning manna의 날씨 서비스 관련 작업입니다.
 
 날씨 레이어 구조:
 - WeatherService: WeatherKit(1차) → OWM(폴백)
@@ -260,7 +260,7 @@ OWM One Call 3.0은 유료 — 폴백 시 uvIndex nil 처리 정상
 
 **프롬프트 패턴**:
 ```
-DailyVerse의 수익화 레이어 관련 작업입니다.
+morning manna의 수익화 레이어 관련 작업입니다.
 
 수익화 구조:
 - SubscriptionManager: RevenueCat SDK, 엔타이틀먼트 체크
@@ -285,7 +285,7 @@ DailyVerse의 수익화 레이어 관련 작업입니다.
 
 **프롬프트 패턴**:
 ```
-DailyVerse Firebase 관련 작업입니다.
+morning manna Firebase 관련 작업입니다.
 
 Firebase 구조:
 - Firestore: verses/{id}, images/{id}, users/{uid},
@@ -309,7 +309,7 @@ Apple Sign-In 실패 케이스 5가지 처리 필수.
 
 **프롬프트 패턴**:
 ```
-DailyVerse 데이터 레이어 관련 작업입니다.
+morning manna 데이터 레이어 관련 작업입니다.
 
 핵심 모델: Verse, VerseImage, Alarm, User, SavedVerse,
            DailyVerseCache, WeatherData, MeditationEntry
@@ -335,7 +335,7 @@ DailyCacheManager: 05:00 기준 일별 말씀 고정, Core Data 저장
 
 **프롬프트 패턴**:
 ```
-DailyVerse Sprint {N} 완료 후 검증을 수행해주세요.
+morning manna Sprint {N} 완료 후 검증을 수행해주세요.
 
 검증 범위:
 {테스트할 기능 목록}
@@ -441,7 +441,7 @@ PRD 형태로 요구사항을 구조화합니다.
 
 **프롬프트 패턴**:
 ```
-DailyVerse 앱에서 {키워드/기능}와 관련된 코드를 탐색해주세요.
+morning manna 앱에서 {키워드/기능}와 관련된 코드를 탐색해주세요.
 
 탐색 범위: /Users/jeongyong/workspace/dailyverse/DailyVerse/DailyVerse/
 찾아야 할 것: {구체적인 탐색 목표}
@@ -460,7 +460,7 @@ DailyVerse 앱에서 {키워드/기능}와 관련된 코드를 탐색해주세�
 ```
 {조사 주제}에 대해 리서치해주세요.
 
-DailyVerse 컨텍스트:
+morning manna 컨텍스트:
 - iOS 크리스천 알람 앱
 - 감성 이미지 + 성경 말씀 + 날씨 결합
 - 배려하는 친구의 말투, 청록→보라 그라데이션 감성
@@ -468,7 +468,7 @@ DailyVerse 컨텍스트:
 조사 항목:
 {구체적인 조사 내용}
 
-DailyVerse에 적합한 방향으로 정리해주세요.
+morning manna에 적합한 방향으로 정리해주세요.
 ```
 
 ---
@@ -490,7 +490,7 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 
 ## Category G — 콘텐츠 제작 (말씀 문구)
 
-> 말씀 해석·일상 적용 문구를 작성하고 DailyVerse 톤에 맞게 다듬는 파이프라인입니다.
+> 말씀 해석·일상 적용 문구를 작성하고 morning manna 톤에 맞게 다듬는 파이프라인입니다.
 >
 > **콘텐츠 QA 파이프라인**: 생성(content-writer) → 자동검증(check_content_quality.js) → AI검증(content-checker) → 수정(content-fixer)
 >
@@ -528,7 +528,7 @@ DailyVerse에 적합한 방향으로 정리해주세요.
 
 **프롬프트 패턴**:
 ```
-DailyVerse verses/ 컬렉션의 {필드명} 필드를 아래 v9.0 가이드라인으로 점검해줘.
+morning manna verses/ 컬렉션의 {필드명} 필드를 아래 v9.0 가이드라인으로 점검해줘.
 serviceAccountKey 경로: /Users/jeongyong/workspace/dailyverse/scripts/serviceAccountKey.json
 
 [검수 기준]
@@ -586,7 +586,7 @@ v_yyy: "수정된 텍스트"
 ---
 
 ### `tone-reviewer` (general-purpose 활용)
-**역할**: 작성된 문구의 말투가 DailyVerse 기준에 맞는지 점검·수정
+**역할**: 작성된 문구의 말투가 morning manna 기준에 맞는지 점검·수정
 **주로 사용**: 새 문구 배치 전 QA (`fix_tone_v1~v3.js` 패턴)
 
 > 📖 **상세 규칙**: `docs/contents-guideline.md` §5-5 "콘텐츠 검수 체크리스트"

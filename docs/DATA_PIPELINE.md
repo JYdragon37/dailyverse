@@ -1,4 +1,4 @@
-# DailyVerse 데이터 파이프라인 가이드
+# morning manna 데이터 파이프라인 가이드
 
 > 말씀(Verse)과 이미지(Image)를 Firebase에 업로드하고 관리하는 방법을 정리한 문서입니다.
 > 최종 업데이트: 2026-04-04

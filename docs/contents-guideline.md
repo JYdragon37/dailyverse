@@ -1,4 +1,4 @@
-# DailyVerse 콘텐츠 가이드라인
+# morning manna 콘텐츠 가이드라인
 
 > **상태**: 확정 — v9.0
 > 마지막 업데이트: 2026-04-14 (생성 파이프라인·Zone 컨텍스트·LLM 프롬프트 통합)
@@ -9,7 +9,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **Google Sheets** | [DailyVerse 콘텐츠 시트 열기](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **Google Sheets** | [morning manna 콘텐츠 시트 열기](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ Claude Code가 `scripts/serviceAccountKey.json`으로 직접 편집 가능 |
 | **Sheets → Firestore** | `node scripts/sync_sheets_to_firestore.js` |
 | **수식 재적용** | `node scripts/apply_formula_fields.js` |
@@ -236,7 +236,7 @@ interpretation  application
 
 ### 4-2. Zone 기준표
 
-> **8개 Zone** = DailyVerse가 하루를 나누는 단위. 각 Zone은 유저가 처한 상황과 감정이 다르므로,
+> **8개 Zone** = morning manna가 하루를 나누는 단위. 각 Zone은 유저가 처한 상황과 감정이 다르므로,
 > 같은 성경 구절이어도 Zone에 따라 `application` 톤과 `verse_short_ko` 선택이 달라져야 합니다.
 
 | Zone | 시간대 | 유저 상황 | 감정 상태 | 말씀 역할 | theme 풀 | mood 풀 |
@@ -455,8 +455,8 @@ interpretation  application
 
 ```
 [역할]
-너는 DailyVerse 앱의 말씀 콘텐츠 작가야.
-DailyVerse는 크리스천을 위한 iOS 알람 앱으로, 하루 8개 시간대(Zone)마다
+너는 morning manna 앱의 말씀 콘텐츠 작가야.
+morning manna는 크리스천을 위한 iOS 알람 앱으로, 하루 8개 시간대(Zone)마다
 유저의 상황에 맞는 성경 말씀을 제공해.
 글쓰기 스타일: 설교자가 아닌 유저의 신앙 친구. 교회 강단 언어 아님.
 목표: 그 순간 유저에게 필요한 말씀을 가장 자연스럽고 따뜻하게 전달.
@@ -728,7 +728,7 @@ application 컨텍스트: {§4-2 Zone 기준표 → "application 예시" 항목�
 
 ```
 [역할]
-너는 DailyVerse 앱의 말씀 콘텐츠 작가야.
+너는 morning manna 앱의 말씀 콘텐츠 작가야.
 알람이 울리는 그 순간, 유저의 첫 번째 말씀 접점이 되는 콘텐츠를 써.
 설교자가 아닌 친구처럼. 무겁지 않게. 그 순간에 딱 맞게.
 
