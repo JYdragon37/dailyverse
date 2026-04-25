@@ -1,4 +1,4 @@
-# DailyVerse 이미지 생성 가이드라인 v1.1
+# DailyVerse 이미지 생성 가이드라인 v1.2
 
 > 이 파일은 DailyVerse 앱에 사용되는 모든 이미지를 생성할 때의 기준 문서입니다.
 > AI 이미지 생성 도구(Genspark 등)에 프롬프트를 입력하기 전 반드시 숙지하세요.
@@ -317,4 +317,4 @@ no text no letters no watermark, documentary DSLR realism
 
 ---
 
-*최종 업데이트: 2026-04-16 | v1.1*
+*최종 업데이트: 2026-04-25 | v1.2 — Sheets IMAGE_GUIDE 탭 + Firestore writing_guide/image_guide 문서화 완료*
