@@ -1,22 +1,25 @@
-# DailyVerse — 프로젝트 전체 컨텍스트
+# morning manna — 프로젝트 전체 컨텍스트
 
-> 이 파일은 DailyVerse 프로젝트의 단일 진실 원본(Single Source of Truth)입니다.
+> 이 파일은 morning manna 프로젝트의 단일 진실 원본(Single Source of Truth)입니다.
 > 어떤 LLM이든 이 파일 하나를 읽으면 전체 프로젝트를 즉시 파악할 수 있도록 작성되었습니다.
-> 최종 업데이트: 2026-04-11 (PRD v4.0 + 화면 설계 v1.1 기준)
+> 최종 업데이트: 2026-04-25 (브랜딩 리뉴얼 + 콘텐츠 2차 확장 + 절기 시스템 기준)
+> _(구 앱명: DailyVerse — Xcode 프로젝트·폴더 구조는 DailyVerse 유지)_
 
 ---
 
 ## 1. 제품 개요
 
-**DailyVerse**는 크리스천을 위한 iOS 알람 앱이다.
+**morning manna**는 크리스천을 위한 iOS 알람 앱이다.
 기존 알람의 기계적인 경험에 성경 말씀·감성 이미지·실시간 날씨를 결합하여,
 이미 습관화된 "알람 확인" 행동에 영적 루틴을 자연스럽게 얹는다.
 
+- **브랜드명**: morning manna (소문자) / 약칭 mm
 - **슬로건**: 하루의 끝과 시작을 경건하게
 - **핵심 철학**: 알람 중심 설계. 별도 앱 진입 장벽 최소화. 하루 3번 자연스럽게 말씀 접촉.
 - **플랫폼**: iOS 16+ (iPhone 전용, MVP)
 - **버전**: v1.0 MVP
 - **개발 방식**: Claude Code + SwiftUI
+- **기본 닉네임**: "beloved" (온보딩 미설정 시 기본값)
 
 ---
 
@@ -296,7 +299,7 @@ AlarmEngineFactory.make()
 ### AlarmKit 잠금화면 흐름
 ```
 알람 시각 → 시스템 잠금화면 표시:
-  🕐 Alarm / 07:00 / DailyVerse / [5분 스누즈] / [밀어서 중단]
+  🕐 Alarm / 07:00 / morning manna / [5분 스누즈] / [밀어서 중단]
     ↓ 밀어서 중단
   DVStopAlarmIntent 실행 (supportedModes: .foreground(.immediate))
     ↓ Face ID 자동 인증 → 앱 포그라운드 전환
@@ -438,7 +441,7 @@ DailyVerseWidgetsBundle
 
 | 화면 | 목적 | 핵심 경험 | 액션 |
 |------|------|-----------|------|
-| Screen 1 공감 | "나 이거야" 감정 유발 | 일반 알람 → DailyVerse 알람 전환 애니메이션 | [시작하기 →] |
+| Screen 1 공감 | "나 이거야" 감정 유발 | 일반 알람 → morning manna 알람 전환 애니메이션 | [시작하기 →] |
 | Screen 2 체험 | 내일 아침 예고 | Stage 1/2 시뮬레이션 즉시 재생 | [다음 →] |
 | Screen 3 닉네임 | 투자감 형성 | 타이핑 애니메이션 (현행 유지) | [시작하기 →] |
 | Screen 4 알람 설정 | 핵심 행동 완료 | 시간 피커 + 알림 권한 요청 | [내일 아침 말씀 받기] |
@@ -971,7 +974,7 @@ snooze_count: Int16
 ---
 
 ### Sprint 4 — 알람 탭 + 알람 울림 UX
-> DailyVerse의 핵심 차별점.
+> morning manna의 핵심 차별점.
 
 | # | 태스크 | 담당 에이전트 | 산출물 |
 |---|--------|-------------|--------|
@@ -1042,15 +1045,16 @@ snooze_count: Int16
 
 ---
 
-## 25. 콘텐츠 현황 (2026-04-15 기준, v9.0)
+## 25. 콘텐츠 현황 (2026-04-25 기준, content_v1.2 + schema_v1.3)
 
 ### 데이터 소스 접근 정보
 
 | 항목 | 내용 |
 |------|------|
-| **Google Sheets** | [DailyVerse 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
+| **Google Sheets** | [morning manna 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ 서비스 계정 직접 편집 가능 (`scripts/serviceAccountKey.json`) |
 | **상세 가이드** | `docs/contents-guideline.md` (v9.0 — 생성 파이프라인·Zone 컨텍스트·LLM 프롬프트 통합) |
+| **DB 버전** | `content_v1.2` / Firestore `app_config/content_version` 실시간 확인 가능 |
 
 > Claude Code는 `scripts/serviceAccountKey.json`을 통해 Google Sheets API 편집 권한을 보유합니다.
 
@@ -1061,24 +1065,29 @@ snooze_count: Int16
 | 스크립트 | 용도 |
 |--------|------|
 | `sync_sheets_to_firestore.js` | Sheets → Firestore 전체 동기화 |
-| `sync_firestore_to_sheet.js` | Firestore → Sheets 역동기화 |
-| `apply_formula_fields.js` | contemplation_* 수식 필드 재적용 (4개 컬럼) |
-| `generate_question_new.js` | `question` 필드 생성 (Claude API, --dry-run/--range 지원) |
+| `apply_formula_fields.js` | contemplation_interpretation/appliance 수식 재적용 (2개 컬럼) |
+| `generate_question_new.js` | `question` 필드 생성 (Claude API) |
 | `update_to_korv.js` | `verse_full_ko`/`verse_short_ko` 개역한글 원문 업데이트 |
-| `check_content_quality.js` | 콘텐츠 품질 검증 (글자수·말투·원어 표기) |
-| `setup_content_guide.js` | WRITING_GUIDE + ZONE_GUIDE 탭/컬렉션 동기화 |
+| `check_content_quality.js` | 콘텐츠 품질 검증 |
 
 ---
 
 ### Google Sheets 탭 구조
 
-| 탭 | 용도 |
-|----|------|
-| `VERSES` | 메인 말씀 (v_001~v_180) |
-| `ALARM_VERSES` | 알람 탭 전용 말씀 (av_001~av_105) |
-| `WRITING_GUIDE` | 필드별 생성 규칙 + LLM 프롬프트 (v9.0) |
-| `ZONE_GUIDE` | 8개 Zone × 유저 상황·감정·말씀 역할·application 예시 |
-| `IMAGES` | 감성 배경 이미지 메타데이터 |
+| 탭 | 버전 | 용도 |
+|----|------|------|
+| `VERSES` | — | 메인 말씀 (v_001~v_431, active **398개**) |
+| `ALARM_VERSES` | **Deprecated** | ~~알람 탭 전용 말씀~~ (앱 미사용, 숨김 처리) |
+| `DAILY_CARDS` | — | 절기 특별 편성 (2026년 12개 절기) |
+| `WRITING_GUIDE` | v9.1 | 필드별 생성 규칙 + LLM 프롬프트 (묵상 필드 포함) |
+| `ZONE_GUIDE` | v2.0 | 8개 Zone × 유저 상황·감정·말씀 역할 |
+| `TAG_GUIDE` | v1.2 | theme/mood/tone 태그 기준 |
+| `LLM_GUIDE` | v9.1 | Claude 프롬프트 공식 가이드 |
+| `GREETING_GUIDE` | v1.0 | greeting + alarm_greetings 작성 기준 |
+| `IMAGE_GUIDE` | v1.2 | Zone 배경·말씀 배경 이미지 생성 가이드 |
+| `DAILY_CARDS_GUIDE` | v1.0 | 절기 편성 시스템 운영 가이드 |
+| `IMAGES` | — | 감성 배경 이미지 메타데이터 |
+| `CHANGELOG` | — | DB·스키마·가이드 버전 이력 |
 
 ---
 
@@ -1086,51 +1095,83 @@ snooze_count: Int16
 
 | 컬렉션 | 범위/수량 | 용도 |
 |--------|---------|------|
-| `verses/` | v_001~v_180 (active **161개**, inactive 18개) | 홈화면 + 알람 + 묵상 탭 말씀 |
-| `alarm_verses/` | av_001~av_105 (105개) | 알람 탭 오늘의 말씀 카드 전용 |
-| `writing_guide/` | 7개 문서 | 필드별 생성 규칙 + LLM 프롬프트 |
-| `zone_guide/` | 8개 문서 | Zone별 유저 상황·감정·말씀 역할 |
+| `verses/` | v_001~v_431 (active **398개**) | 홈화면 + 알람 + 묵상 탭 말씀 + 절기 말씀 |
+| `daily_cards/` | 2026년 12개 절기 | 절기 특별 편성 — 해당 날짜 모든 유저에게 우선 적용 |
+| `alarm_greetings/` | 35개 | 알람 Stage2 팝업 인사말 (Zone별) |
+| `greetings/` | 134개 | 홈화면 Zone 인사말 |
+| `background_images/` | — | Zone별 고정 배경 이미지 |
+| `images/` | 49개 active | 감성 말씀 배경 이미지 |
+| `verse_stats/` | — | 구절별 전역 노출 통계 (1만 유저 대응) |
+| `writing_guide/` | — | 가이드 메타데이터 |
+| `zone_guide/` | 8개 | Zone별 컨텍스트 |
+| `app_config/content_version` | 1개 | 현재 콘텐츠 DB 버전 정보 |
+| `content_changelog/` | — | 버전별 변경 이력 |
+| ~~`alarm_verses/`~~ | **Deprecated** | iOS 앱 미사용 — 문서 0개 |
 
 ---
 
-### verses/ 컬렉션 필드 현황 (v9.0)
+### verses/ 컬렉션 필드 현황 (schema_v1.3)
 
 | 필드 | 상태 | 비고 |
 |------|------|------|
 | `verse_full_ko` | ✅ 전체 완료 | **개역한글 원문** (1961, 퍼블릭 도메인) |
-| `verse_short_ko` | ✅ 전체 완료 | 개역한글에서 핵심 문장 추출 |
-| `interpretation` | ✅ 전체 완료 | DailyVerse 독자 작성 (친근한 현대 한국어) |
+| `verse_short_ko` | ✅ 전체 완료 | 개역한글에서 핵심 문장 추출 (35자 이내) |
+| `interpretation` | ✅ 전체 완료 | morning manna 독자 작성 (친근한 현대 한국어) |
 | `application` | ✅ 전체 완료 | Zone 시간대 반영 행동 가이드 |
-| `question` | ✅ 전체 완료 | 묵상 응답 질문 180개 생성 (`generate_question_new.js`) |
-| `contemplation_*` | ✅ 수식 자동 | Sheets 수식으로 원본 컬럼 자동 참조 — 별도 작성 불필요 |
-| `alarm_top_ko` | 선택 필드 | verse_short_ko ≤ 35자이면 생략 |
+| `contemplation_interpretation` | ✅ 전체 완료 | 묵상 탭 전용 깊은 해석 |
+| `contemplation_appliance` | ✅ 전체 완료 | 묵상 탭 전용 일상 적용 |
+| `question` | ✅ 전체 완료 | 묵상 응답 질문 |
+| `alarm_top_ko` | 선택 필드 | 알람 탭 상단 표시 (없으면 verse_short_ko 폴백) |
+| ~~`contemplation_ko`~~ | **제거됨** | schema_v1.3 — verse_full_ko 수식 복사본이었음 |
+| ~~`contemplation_reference`~~ | **제거됨** | schema_v1.3 — reference 수식 복사본이었음 |
 
 ---
 
-### 말씀 저작권 (v9.0 변경)
+### users/{uid} 유저 모델 추가 필드 (v6.0 — 1만 유저 대응)
+
+```
+recent_verse_ids: [String]  // 최근 본 말씀 ID (max 30, FIFO) — 중복 노출 방지
+```
+
+### daily_cards/{YYYY-MM-DD} 절기 편성 구조
+
+```
+event_name: String      // "크리스마스", "부활절" 등
+verse_id: String        // verses 컬렉션 ID
+image_id: String?       // 절기 전용 이미지
+greeting_ko: String     // 절기 한국어 인사말 (10~20자)
+greeting_en: String     // 절기 영어 인사말 (15~35자)
+all_zones: Bool         // true = 모든 Zone 동일 적용
+active: Bool            // false = 비활성화
+notes: String?
+```
+
+---
+
+### 말씀 저작권
 
 | 필드 | 출처 | 저작권 |
 |------|------|--------|
 | `verse_full_ko`, `verse_short_ko` | **개역한글** (대한성서공회, 1961) | 퍼블릭 도메인 (2011년 만료) — 출처 표기 필수 |
-| `interpretation`, `application`, `question` | DailyVerse 독자 작성 | DailyVerse 소유 |
+| `interpretation`, `application`, `question`, `contemplation_*` | morning manna 독자 작성 | morning manna 소유 |
 
 > ⚠️ 앱 이용약관/정보 섹션에 "성경 본문: 개역한글, 대한성서공회" 출처 표기 필요
 
 ---
 
-### 콘텐츠 생성 파이프라인 (v9.0)
+### 콘텐츠 생성 파이프라인
 
 ```
 verse_full_ko (개역한글 원문, 앵커)
     ↓
-verse_short_ko (핵심 문장 추출)
+verse_short_ko (핵심 문장 발췌, 35자 이내)
     ↓
-interpretation + application (DailyVerse 독자 작성, Zone 반영)
+interpretation + application (Zone 반영, ~야/이야/해봐 말투)
+    ↓
+contemplation_interpretation + contemplation_appliance (묵상 탭 전용)
     ↓
 question (묵상 응답 질문, Claude API)
 ```
-
-상세 규칙 및 LLM 프롬프트: `docs/contents-guideline.md §4~§6`
 
 ---
 
@@ -1138,9 +1179,9 @@ question (묵상 응답 질문, Claude API)
 
 | 단계 | 에이전트/스크립트 | 주요 검증 항목 |
 |------|----------------|-------------|
-| 생성 | `content-writer`, `generate_question_new.js`, `update_to_korv.js` | 신규 콘텐츠 생성 |
-| 자동 검증 | `check_content_quality.js` | 글자수·말투·원어 표기·중복 |
-| AI 검증 | `content-checker` | Zone 맥락 정합성·interpretation 구조·번영신학 위험 표현 |
+| 생성 | `content-writer` (Claude Haiku API) | 신규 콘텐츠 생성 |
+| 자동 검증 | `check_content_quality.js`, `run_content_qa.js` | 글자수·말투·원어 표기·중복 |
+| AI 검증 | `content-checker` | Zone 맥락 정합성·interpretation 구조·번영신학 위험 |
 | 수정 | `content-fixer` | Sheets + Firestore 배치 업데이트 |
 
 ---

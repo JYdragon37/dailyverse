@@ -1,7 +1,8 @@
 # morning manna 데이터 파이프라인 가이드
 
 > 말씀(Verse)과 이미지(Image)를 Firebase에 업로드하고 관리하는 방법을 정리한 문서입니다.
-> 최종 업데이트: 2026-04-04
+> 최종 업데이트: 2026-04-25 (schema_v1.3 + content_v1.2 반영)
+> ⚠️ 필드명 주의: `verse_short_ko` → `verse_short_ko`, `verse_full_ko` → `verse_full_ko`, `alarm_top_ko` → `alarm_top_ko`
 
 ---
 
@@ -37,9 +38,9 @@ images 컬렉션  ← "이미지 메타데이터 시트"
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
 | `verse_id` | string | ✅ | 고유 ID, 기존 마지막+1 | `"v_011"` |
-| `text_ko` | string | ✅ | **카드에 표시되는 요약 구절** | `"두려워하지 말라 내가 너와 함께 함이라"` |
-| `text_full_ko` | string | ✅ | 바텀시트에 표시되는 전체 구절 | `"두려워하지 말라 ... 도와주리라"` |
-| `alarm_text_ko` | string | ❌ | 알람 탭 전용 텍스트 (없으면 null) | `"오늘도 함께하시는 하나님"` |
+| `verse_short_ko` | string | ✅ | **카드에 표시되는 요약 구절** | `"두려워하지 말라 내가 너와 함께 함이라"` |
+| `verse_full_ko` | string | ✅ | 바텀시트에 표시되는 전체 구절 | `"두려워하지 말라 ... 도와주리라"` |
+| `alarm_top_ko` | string | ❌ | 알람 탭 전용 텍스트 (없으면 null) | `"오늘도 함께하시는 하나님"` |
 | `reference` | string | ✅ | 성경 참조 | `"이사야 41:10"` |
 | `book` | string | ✅ | 성경책 이름 | `"이사야"` |
 | `chapter` | number | ✅ | 장 | `41` |
@@ -131,9 +132,9 @@ inactive → 비활성 (표시 안 됨)
 ```javascript
 {
   verse_id: "v_011",             // ← 기존 마지막 번호 + 1
-  text_ko: "여기에 요약 구절",
-  text_full_ko: "여기에 전체 구절 (더 긴 버전)",
-  alarm_text_ko: null,           // 알람 전용 텍스트 (없으면 null)
+  verse_short_ko: "여기에 요약 구절",
+  verse_full_ko: "여기에 전체 구절 (더 긴 버전)",
+  alarm_verse_short_ko: null,           // 알람 전용 텍스트 (없으면 null)
   reference: "성경책 장:절",
   book: "성경책명",
   chapter: 1,
@@ -286,15 +287,15 @@ node upload_images.js
 
 ---
 
-### C. 알람 전용 텍스트(alarm_text_ko) 추가
+### C. 알람 전용 텍스트(alarm_top_ko) 추가
 
 기존 구절에 알람 탭 전용 글귀를 추가하려면 `upload_verses.js`에서 해당 구절만 수정 후 재실행합니다. PATCH 방식이라 기존 데이터는 유지됩니다.
 
 ```javascript
-// 기존 v_001에 alarm_text_ko만 추가하는 경우
+// 기존 v_001에 alarm_top_ko만 추가하는 경우
 {
   verse_id: "v_001",
-  alarm_text_ko: "오늘도 두려워 말아요. 함께 하시는 분이 있으니",
+  alarm_verse_short_ko: "오늘도 두려워 말아요. 함께 하시는 분이 있으니",
   // 나머지 필드는 그대로 유지됨 (덮어쓰지 않음)
 }
 ```
@@ -358,6 +359,6 @@ DailyCacheManager.swift → 30분 캐시, 05:00 기준 하루 고정
 2. **status: "draft"** 로 올리면 앱에 표시되지 않음 — 검수 전 임시 저장 용도
 3. **curated: true** 는 신학 검수가 완료된 구절에만 사용 — false면 앱에서 제외됨
 4. **이미지 파일명** 은 영문/숫자/언더스코어만 사용 (한글, 공백 금지)
-5. **alarm_text_ko** 를 비워두면 앱이 자동으로 `text_ko`를 대신 사용
+5. **alarm_top_ko** 를 비워두면 앱이 자동으로 `verse_short_ko`를 대신 사용
 6. **is_sacred_safe: false** 이미지는 Gallery 탭에만 표시, 홈 배경/알람 배경 불가
 7. **재업로드** 는 안전함 — PATCH 방식이라 기존 데이터 덮어쓰지 않고 지정한 필드만 업데이트
