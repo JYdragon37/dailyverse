@@ -649,11 +649,17 @@ application 컨텍스트: {§4-2 Zone 기준표 → "application 예시" 항목�
 
 ---
 
-## 6. Alarm Verse — 알람 말씀
+## 6. Alarm Verse — ~~알람 말씀~~ (Deprecated)
 
-**Firestore 컬렉션**: `alarm_verses/`
+> ⚠️ **Deprecated (2026-04-25, schema_v1.3)**
+> `alarm_verses` 컬렉션은 iOS 앱에서 완전히 미사용 상태입니다.
+> 알람 팝업 Stage2의 성경 말씀은 `verses` 컬렉션의 `DailyCacheManager`를 통해 **홈화면과 동일한 말씀**을 표시합니다.
+> 알람 탭 상단 오늘의 말씀 카드는 `verses` 컬렉션의 `alarm_top_ko` 필드를 사용합니다.
+> Sheets의 `ALARM_VERSES` 탭은 숨김 처리되었습니다.
+
+**[구 정보 보존용]** Firestore 컬렉션: `alarm_verses/` (문서 0개, 미사용)
 **ID 형식**: `av_001`, `av_002` ...
-**사용 위치**: 알람 탭 "오늘의 말씀" 카드 (Random Access)
+**~~사용 위치~~**: ~~알람 탭 "오늘의 말씀" 카드 (Random Access)~~ → `verses.alarm_top_ko`로 대체됨
 
 ---
 
