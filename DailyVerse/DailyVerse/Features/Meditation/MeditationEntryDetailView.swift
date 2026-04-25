@@ -302,7 +302,7 @@ struct MeditationEntryDetailView: View {
                 .fill(ruleColor)
                 .frame(width: 32, height: 0.7)
 
-            Image("LogoMM")
+            Image("LogoMMColor")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 48, height: 48)
@@ -467,7 +467,7 @@ private struct DiarySnapshotView: View {
             // 콜로폰
             VStack(spacing: 6) {
                 Rectangle().fill(ruleColor).frame(width: 32, height: 0.7)
-                Image("LogoMM")
+                Image("LogoMMColor")
                     .resizable().scaledToFit()
                     .frame(width: 48, height: 48)
                     .padding(.vertical, -18)
