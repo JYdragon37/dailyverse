@@ -205,6 +205,10 @@ struct MeditationEntryDetailView: View {
                 verse = verses.first { $0.id == id }
             }
         }
+        // 수정 완료 노티 수신 → 수정 흐름 닫기 (다이어리로 자동 복귀)
+        .onReceive(NotificationCenter.default.publisher(for: .dvMeditationEditCompleted)) { _ in
+            showEditFlow = false
+        }
     }
 
     // MARK: - 헤더 (연도 포함)

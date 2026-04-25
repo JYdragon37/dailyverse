@@ -16,4 +16,6 @@ extension Notification.Name {
     static let dvAlarmKitStopped = Notification.Name("dvAlarmKitStopped")
     /// 온보딩에서 알람 저장 완료 — AlarmListView 즉시 갱신용
     static let dvAlarmSaved = Notification.Name("dvAlarmSaved")
+    /// 묵상 수정 완료 — MeditationEntryDetailView의 showEditFlow = false 트리거
+    static let dvMeditationEditCompleted = Notification.Name("dvMeditationEditCompleted")
 }

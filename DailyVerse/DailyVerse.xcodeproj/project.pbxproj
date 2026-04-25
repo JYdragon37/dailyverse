@@ -76,6 +76,7 @@
 		A3000007A3000007A3000007 /* DevotionHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007A2000007A2000007 /* DevotionHomeView.swift */; };
 		A3000008A3000008A3000008 /* DevotionVerseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000008A2000008A2000008 /* DevotionVerseView.swift */; };
 		A3000009A3000009A3000009 /* DevotionResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009A2000009A2000009 /* DevotionResponseView.swift */; };
+		8691B2F6AB01BAAA470B4F2E /* EditCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B76E2F87EA6CD286FB67FBA /* EditCompleteView.swift */; };
 		A300000AA300000AA300000A /* DevotionCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000AA200000AA200000A /* DevotionCompleteView.swift */; };
 		A300000BA300000BA300000B /* DevotionShareCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000BA200000BA200000B /* DevotionShareCard.swift */; };
 		A3451B2853226F022339DAA6 /* SavedVerseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97449D55F8DB9F917F590C3 /* SavedVerseRepository.swift */; };
@@ -229,6 +230,7 @@
 		A2000007A2000007A2000007 /* DevotionHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevotionHomeView.swift; sourceTree = "<group>"; };
 		A2000008A2000008A2000008 /* DevotionVerseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevotionVerseView.swift; sourceTree = "<group>"; };
 		A2000009A2000009A2000009 /* DevotionResponseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevotionResponseView.swift; sourceTree = "<group>"; };
+		5B76E2F87EA6CD286FB67FBA /* EditCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCompleteView.swift; sourceTree = "<group>"; };
 		A200000AA200000AA200000A /* DevotionCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevotionCompleteView.swift; sourceTree = "<group>"; };
 		A200000BA200000BA200000B /* DevotionShareCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevotionShareCard.swift; sourceTree = "<group>"; };
 		A3664800DCA8F54718AE0379 /* Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alarm.swift; sourceTree = "<group>"; };
@@ -473,7 +475,9 @@
 				A2000007A2000007A2000007 /* DevotionHomeView.swift */,
 				A2000008A2000008A2000008 /* DevotionVerseView.swift */,
 				A2000009A2000009A2000009 /* DevotionResponseView.swift */,
-				A200000AA200000AA200000A /* DevotionCompleteView.swift */,
+				5B76E2F87EA6CD286FB67FBA /* EditCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCompleteView.swift; sourceTree = "<group>"; };
+		A200000AA200000AA200000A /* DevotionCompleteView.swift */,
+					5B76E2F87EA6CD286FB67FBA /* EditCompleteView.swift */,
 				B200000AB200000AB200000A /* MeditationEntryDetailView.swift */,
 				A200000BA200000BA200000B /* DevotionShareCard.swift */,
 			);
@@ -912,7 +916,9 @@
 				A3000007A3000007A3000007 /* DevotionHomeView.swift in Sources */,
 				A3000008A3000008A3000008 /* DevotionVerseView.swift in Sources */,
 				A3000009A3000009A3000009 /* DevotionResponseView.swift in Sources */,
-				A300000AA300000AA300000A /* DevotionCompleteView.swift in Sources */,
+				8691B2F6AB01BAAA470B4F2E /* EditCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B76E2F87EA6CD286FB67FBA /* EditCompleteView.swift */; };
+		A300000AA300000AA300000A /* DevotionCompleteView.swift in Sources */,
+					8691B2F6AB01BAAA470B4F2E /* EditCompleteView.swift in Sources */,
 				B300000AB300000AB300000A /* MeditationEntryDetailView.swift in Sources */,
 				A300000BA300000BA300000B /* DevotionShareCard.swift in Sources */,
 				307B5303579AD7DEC0BBAEAC /* SavedViewModel.swift in Sources */,

@@ -74,11 +74,16 @@ struct DevotionResponseView: View {
             }
         }
         .fullScreenCover(isPresented: $showComplete) {
-            DevotionCompleteView(
-                verse: verse,
-                prayer: prayer,
-                viewModel: viewModel
-            )
+            if isEditMode {
+                // 수정 모드: 심플 완료 카드 → 1.5초 후 자동으로 다이어리 복귀
+                EditCompleteView()
+            } else {
+                DevotionCompleteView(
+                    verse: verse,
+                    prayer: prayer,
+                    viewModel: viewModel
+                )
+            }
         }
     }
 
