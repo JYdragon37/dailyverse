@@ -127,7 +127,6 @@
 		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
-		'WA100002WA100002WA100002' = {isa = PBXBuildFile; fileRef = WA100001WA100001WA100001; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -282,7 +281,6 @@
 		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
-		'WA100001WA100001WA100001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAdviceService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -658,7 +656,6 @@
 				B5814C3268942E53E0423363 /* NotificationManager.swift */,
 				01850BB01382CF53BBB11601 /* VerseSelector.swift */,
 				C1BB2A3C4EB162E8A4F48B7C /* WeatherService.swift */,
-				WA100001WA100001WA100001,
 				AA11BB22CC33DD44EE55FF66 /* AlarmEngine.swift */,
 				BB22CC33DD44EE55FF6677AA /* LegacyAlarmEngine.swift */,
 				CC33DD44EE55FF6677AABB22 /* AlarmKitEngine.swift */,
@@ -945,7 +942,6 @@
 				6D36DEAEEDB746B2BE54B40D /* BackgroundImage.swift in Sources */,
 				8D586943511A2E63EFC21281 /* WeatherData.swift in Sources */,
 				1FF7C326A5C192FB8BE58500 /* WeatherService.swift in Sources */,
-				WA100002WA100002WA100002,
 				B951AE80C46633E6FA2D3313 /* WeatherWidgetView.swift in Sources */,
 				A9A608883D740B33114493C9 /* Greeting.swift in Sources */,
 				95BC22AAAF42CEDCEA978FE3 /* GreetingService.swift in Sources */,
