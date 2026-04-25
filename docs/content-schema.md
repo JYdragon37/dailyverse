@@ -806,19 +806,36 @@ content-writer / 운영자              젠스파크 생성 이미지
 
 ---
 
-### 절기 편성 (daily_cards)
+### 절기 편성 (daily_cards + daily_card_images)
 
 > 크리스마스·부활절 등 특정 날짜에 모든 유저에게 동일 콘텐츠를 강제 적용하는 시스템.
-> Sheets `DAILY_CARDS` 탭 → Firestore `daily_cards/{YYYY-MM-DD}`.
-> 해당 날짜 홈·알람 인사말이 이 값으로 대체됨.
+> 오늘 날짜의 `daily_cards/{date}` 문서가 없으면 → 일반 Zone 플로우.
+> Zone 배경(`background_images/`)은 절기일에도 **변경되지 않음**.
+>
+> **설계 원칙**: 말씀(`verse_id`) = 편집자 확정 1개 (전체 유저 동일) · 이미지(`image_ids`) = 풀에서 랜덤 (유저마다 달라도 무방)
+
+#### daily_cards — 날짜별 편성
 
 | UI 표시명 | 표시 예시 | Sheets 탭 · 컬럼 | Firestore 컬렉션 · 필드 | Swift 프로퍼티 |
 |----------|---------|----------------|----------------------|-------------|
 | 절기 한국어 인사말 | `성탄을 축하해요!` | `DAILY_CARDS` · `greeting_ko` | `daily_cards` · `greeting_ko` | `DailyCard.greetingKo` |
 | 절기 영어 인사말 | `Merry Christmas!` | `DAILY_CARDS` · `greeting_en` | `daily_cards` · `greeting_en` | `DailyCard.greetingEn` |
 | 절기명 (내부) | `크리스마스` | `DAILY_CARDS` · `event_name` | `daily_cards` · `event_name` | `DailyCard.eventName` |
-| 말씀 ID (→ verses 조회) | `v_025` | `DAILY_CARDS` · `verse_id` | `daily_cards` · `verse_id` | `DailyCard.verseId` |
-| 이미지 ID (→ images 조회) | `img_012` | `DAILY_CARDS` · `image_id` | `daily_cards` · `image_id` | `DailyCard.imageId` |
+| **말씀** (확정 1개) | `v_025` | `DAILY_CARDS` · `verse_id` | `daily_cards` · `verse_id` | `DailyCard.verseId` |
+| **이미지 풀** (랜덤 선택) | `["dc_img_001","dc_img_002"]` | `DAILY_CARDS` · `image_ids` | `daily_cards` · `image_ids` | `DailyCard.imageIds` |
+
+#### daily_card_images — 절기 이미지 에셋
+
+| 필드 | 설명 | 예시 |
+|------|------|------|
+| `dc_image_id` | 문서 ID, 파일명에서 자동 생성 | `dc_img_childrens_sunday_kids_joy` |
+| `event_tag` | 절기 태그 (파일명 앞 2단어) | `childrens_sunday` |
+| `filename` | 파일명 | `dc_img_childrens_sunday_kids_joy.jpg` |
+| `storage_url` | Firebase Storage URL (`daily_card_images/` 폴더) | `https://...` |
+| `source` / `license` | 출처 / 라이선스 | `morning manna Design` / `Commercial` |
+
+**파일명 규칙**: `dc_img_{event_tag}_{설명}.jpg`
+**업로드**: `design_test/`에 넣고 → `🖼️ 이미지 업로드.command` (자동으로 `DAILY_CARDS_IMAGES` 탭 + `daily_card_images/` 컬렉션 등록)
 
 ---
 
@@ -891,7 +908,8 @@ content-writer / 운영자              젠스파크 생성 이미지
 - [x] verses (verse_short_ko, verse_full_ko, reference, interpretation, application, alarm_top_ko, question, theme)
 - [x] greetings (HOME_GREETINGS)
 - [x] alarm_greetings (ALARM_GREETINGS)
-- [x] daily_cards (절기 편성)
+- [x] daily_cards (절기 편성 — verse_id 1개 확정 + image_ids[] 풀 랜덤)
+- [x] daily_card_images (절기 이미지 에셋 — dc_img_* → DAILY_CARDS_IMAGES 탭 + daily_card_images/ 컬렉션)
 - [x] images / VERSE_IMAGES (감성 이미지)
 - [x] background_images / BACKGROUND_IMAGES (Zone 고정 배경)
 - [x] saved_verses (저장 스냅샷)

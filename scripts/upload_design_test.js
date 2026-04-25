@@ -75,7 +75,24 @@ const BG_HEADERS = [
   'tone','status','source','license','notes',
 ];
 
+// DAILY_CARDS_IMAGES Sheets 컬럼 순서
+const DC_IMG_HEADERS = [
+  'dc_image_id','event_tag','filename','storage_url','source','license','notes',
+];
+
 // ─── 파일명 파싱 헬퍼 ─────────────────────────────────────────────────────────
+
+/**
+ * dc_img_{event_tag}_{desc}.jpg 에서 event_tag 추출
+ * event_tag는 언더스코어 구분 1~2 단어
+ * 예: dc_img_childrens_sunday_kids_joy.jpg → event_tag = "childrens_sunday"
+ */
+function parseEventTag(filename) {
+  const base  = path.basename(filename, path.extname(filename));
+  const parts = base.replace(/^dc_img_/, '').split('_');
+  // 두 단어 조합이 더 자연스러운 경우가 많으므로 앞 2단어를 event_tag로 사용
+  return parts.slice(0, 2).join('_');
+}
 
 function parseZone(filename) {
   const base  = path.basename(filename, path.extname(filename));
@@ -355,6 +372,56 @@ async function uploadVerseImage(bucket, token, sheets, localPath, nextIdx) {
   return { ok: true };
 }
 
+// ─── Daily Card 이미지 업로드 (dc_img_*) ─────────────────────────────────────
+
+async function uploadDailyCardImage(bucket, token, sheets, localPath) {
+  const filename  = path.basename(localPath);
+  const eventTag  = parseEventTag(filename);
+  const imageId   = path.basename(filename, path.extname(filename)); // dc_img_childrens_sunday_kids_joy
+  const ext       = path.extname(filename).toLowerCase();
+  const contentType = ext === '.png' ? 'image/png' : 'image/jpeg';
+  const storagePath = `daily_card_images/${filename}`;
+  const storageUrl  = `https://storage.googleapis.com/${PROJECT_ID}.firebasestorage.app/${storagePath}`;
+
+  process.stdout.write(`  [dc] ${filename}\n       → event_tag:${eventTag}  id:${imageId}\n`);
+  if (isDryRun) { process.stdout.write('       [dry-run]\n'); return { ok: true }; }
+
+  // 중복 체크
+  const exists = await firestoreExists(token, 'daily_card_images', 'dc_image_id', imageId);
+  if (exists) { process.stdout.write('       이미 등록됨, 건너뜀\n'); return { skip: true }; }
+
+  // 1) Storage
+  await bucket.upload(localPath, {
+    destination: storagePath,
+    metadata: { contentType, cacheControl: 'public, max-age=31536000' },
+  });
+  await bucket.file(storagePath).makePublic();
+  process.stdout.write('       Storage ✅');
+
+  // 2) Sheets 먼저
+  const dcRow = [
+    imageId, eventTag, filename, storageUrl,
+    'morning manna Design', 'Commercial', '',
+  ];
+  // DAILY_CARDS_IMAGES 탭 헤더 확인 후 append
+  const existingRows = await getSheetRows(sheets, 'DAILY_CARDS_IMAGES', 'A:A');
+  if (existingRows.length === 0) {
+    await appendSheetRow(sheets, 'DAILY_CARDS_IMAGES', DC_IMG_HEADERS);
+  }
+  await appendSheetRow(sheets, 'DAILY_CARDS_IMAGES', dcRow);
+  process.stdout.write(' Sheets ✅');
+
+  // 3) Firestore daily_card_images/{imageId}
+  await firestoreSet(token, 'daily_card_images', imageId, {
+    dc_image_id: imageId, event_tag: eventTag, filename,
+    storage_url: storageUrl, source: 'morning manna Design', license: 'Commercial',
+    status: 'active',
+  });
+  process.stdout.write(' Firestore ✅\n');
+
+  return { ok: true };
+}
+
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -369,9 +436,10 @@ async function main() {
 
   const bgFiles  = allFiles.filter(f => f.startsWith('bg_')).sort();
   const imgFiles = allFiles.filter(f => f.startsWith('img_')).sort();
+  const dcFiles  = allFiles.filter(f => f.startsWith('dc_img_')).sort();
 
   console.log(`\n🖼️  morning manna Design Test 업로드${isDryRun ? ' [DRY-RUN]' : ''}`);
-  console.log(`📂 bg_* (Zone 배경): ${bgFiles.length}개 | img_* (감성 이미지): ${imgFiles.length}개`);
+  console.log(`📂 bg_* (Zone 배경): ${bgFiles.length}개 | img_* (감성 이미지): ${imgFiles.length}개 | dc_img_* (절기 이미지): ${dcFiles.length}개`);
   console.log(`📁 폴더: ${DESIGN_TEST_DIR}\n`);
 
   const { bucket } = initFirebase();
@@ -420,12 +488,31 @@ async function main() {
     }
   }
 
+  // ── 절기 이미지 처리 ────────────────────────────────────────────────────────
+  let dcOk = 0, dcSkip = 0, dcFail = 0;
+  if (dcFiles.length > 0) {
+    console.log('\n═══════════════════════════════════════════');
+    console.log(`절기 이미지 (dc_img_*) — ${dcFiles.length}개`);
+    console.log('═══════════════════════════════════════════');
+    for (const f of dcFiles) {
+      try {
+        const r = await uploadDailyCardImage(bucket, token, sheets, path.join(DESIGN_TEST_DIR, f));
+        if (r.ok) dcOk++; else dcSkip++;
+      } catch (e) {
+        console.error(`  ❌ ${f}: ${e.message}`);
+        dcFail++;
+      }
+    }
+  }
+
   // ── 결과 ────────────────────────────────────────────────────────────────────
   console.log('\n╔══════════════════════════════════════════╗');
   console.log('║             업로드 완료 요약              ║');
   console.log('╠══════════════════════════════════════════╣');
   console.log(`║ Zone 배경   성공:${String(bgOk).padStart(3)}  건너뜀:${String(bgSkip).padStart(3)}  실패:${String(bgFail).padStart(3)} ║`);
   console.log(`║ 감성 이미지 성공:${String(viOk).padStart(3)}  건너뜀:${String(viSkip).padStart(3)}  실패:${String(viFail).padStart(3)} ║`);
+  if (dcFiles.length > 0)
+    console.log(`║ 절기 이미지 성공:${String(dcOk).padStart(3)}  건너뜀:${String(dcSkip).padStart(3)}  실패:${String(dcFail).padStart(3)} ║`);
   console.log('╚══════════════════════════════════════════╝');
 
   if (!isDryRun && (bgOk + viOk) > 0) {

@@ -1119,7 +1119,8 @@ bg_{zone_id}_{weather}_{설명}.jpg   → weather: 해당 날씨만
 | `IMAGE_ASSETS` | — | 이미지 에셋 전체 목록 (자동 생성) |
 | `HOME_GREETINGS` | — | 홈 화면 인사말 (176개) |
 | `ALARM_GREETINGS` | — | 알람 Stage2 팝업 인사말 (35개) |
-| `DAILY_CARDS` | — | 절기 특별 편성 (12개) |
+| `DAILY_CARDS` | — | 절기 특별 편성 (12개) — image_ids 배열 지원 |
+| `DAILY_CARDS_IMAGES` | — | 절기 이미지 에셋 (dc_img_*, daily_card_images/ 컬렉션) |
 | `TAG_GUIDE` | v1.2 | theme/mood/tone 태그 기준 + Zone 컨텍스트 |
 | `LLM_GUIDE` | v9.1 | Claude 프롬프트 공식 가이드 + 필드별 생성 규칙 |
 | `GREETING_GUIDE` | v1.0 | 홈·알람 인사말 작성 기준 |
@@ -1177,14 +1178,34 @@ recent_verse_ids: [String]  // 최근 본 말씀 ID (max 30, FIFO) — 중복 �
 
 ```
 event_name: String      // "크리스마스", "부활절" 등
-verse_id: String        // verses 컬렉션 ID
-image_id: String?       // 절기 전용 이미지
+verse_id: String        // verses 컬렉션 ID (편집자 확정 1개)
+image_ids: [String]     // daily_card_images/ 컬렉션 dc_img_* IDs (앱이 랜덤 1개 선택)
 greeting_ko: String     // 절기 한국어 인사말 (10~20자)
 greeting_en: String     // 절기 영어 인사말 (15~35자)
 all_zones: Bool         // true = 모든 Zone 동일 적용
 active: Bool            // false = 비활성화
 notes: String?
 ```
+
+> **이미지 설계 원칙**: 말씀(`verse_id`)은 편집자가 확정한 1개 — 전체 유저 동일.
+> 이미지(`image_ids`)는 풀에서 앱이 랜덤 선택 — 유저마다 달라도 무방.
+> Zone 배경(`background_images/`)은 절기일에도 변경되지 않음.
+
+### daily_card_images/{dc_img_id} 절기 이미지
+
+```
+dc_image_id: String     // "dc_img_childrens_sunday_kids_joy" 형태
+event_tag: String       // 어떤 절기용인지 ("childrens_sunday", "christmas" 등)
+filename: String
+storage_url: String     // Firebase Storage: daily_card_images/ 폴더
+source: String
+license: String
+status: String          // "active"
+notes: String?
+```
+
+> Sheets 탭: `DAILY_CARDS_IMAGES` | Firestore: `daily_card_images/` | Storage: `daily_card_images/`
+> 업로드: `design_test/`에 `dc_img_{event_tag}_{설명}.jpg` 파일명으로 → `upload_design_test.js`
 
 ---
 

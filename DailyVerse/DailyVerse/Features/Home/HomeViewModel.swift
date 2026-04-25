@@ -245,16 +245,27 @@ final class HomeViewModel: ObservableObject {
 
     private func loadImage(for mode: AppMode) async {
         do {
+            // daily_cards 이미지 우선: 절기일에 특별 이미지 풀에서 랜덤 선택
+            if let card = try? await FirestoreService().fetchDailyCard(for: Date(), mode: mode),
+               !card.imageIds.isEmpty,
+               let randomId = card.imageIds.randomElement(),
+               let dailyImage = try? await FirestoreService().fetchDailyCardImage(id: randomId) {
+                currentImage = dailyImage
+                #if DEBUG
+                print("🖼️ [Image] Daily card image: \(dailyImage.id) | event: \(card.eventName ?? "-")")
+                #endif
+                return
+            }
+
+            // 일반 날: 스코어링 알고리즘으로 선택
             let images = try await verseRepository.fetchImages()
             #if DEBUG
             print("🖼️ [Image] Fetched \(images.count)개, mode=\(mode.rawValue)")
-            images.forEach { print("  - \($0.id): \($0.storageUrl)") }
             #endif
-            // v5.1: Gallery 핀 이미지 우선 적용
             let pinnedId = UserDefaults.standard.string(forKey: "pinnedImage_\(mode.rawValue)")
             currentImage = selectImage(from: images, mode: mode, pinnedImageId: pinnedId)
             #if DEBUG
-            print("🖼️ [Image] Selected: \(currentImage?.id ?? "nil") | URL: \(currentImage?.storageUrl ?? "-")")
+            print("🖼️ [Image] Selected: \(currentImage?.id ?? "nil")")
             #endif
         } catch {
             #if DEBUG

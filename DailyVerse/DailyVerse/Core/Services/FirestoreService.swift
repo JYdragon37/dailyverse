@@ -76,7 +76,7 @@ class FirestoreService {
     /// Bug E 수정: 모드별 큐레이션 카드 가져오기
     /// Firestore 구조: daily_cards/{YYYY-MM-DD}/{mode} (서브컬렉션 또는 모드 키)
     /// 현재 구조: daily_cards/{YYYY-MM-DD} 문서에 mode별 키 포함
-    /// 예: { morning: { verse_id: "v_001", image_id: "img_001" }, evening: {...} }
+    /// daily_cards/{date} 조회. image_ids 배열 지원 (dc_img_* → daily_card_images 컬렉션)
     func fetchDailyCard(for date: Date, mode: AppMode) async throws -> DailyCard? {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -88,15 +88,53 @@ class FirestoreService {
         // all_zones=true면 모드 무관 공통 데이터 사용, 아니면 모드별 키 우선
         let allZones = data["all_zones"] as? Bool ?? false
         let modeData = allZones ? data : (data[mode.rawValue] as? [String: Any] ?? data)
+
+        // image_ids: 배열 우선, 없으면 단일 image_id를 배열로 변환 (하위 호환)
+        let imageIds: [String] = {
+            if let arr = (modeData["image_ids"] ?? data["image_ids"]) as? [String] { return arr }
+            if let single = (modeData["image_id"] ?? data["image_id"]) as? String, !single.isEmpty {
+                return [single]
+            }
+            return []
+        }()
+
         return DailyCard(
             date: dateString,
             verseId: modeData["verse_id"] as? String ?? data["verse_id"] as? String,
-            imageId: modeData["image_id"] as? String ?? data["image_id"] as? String,
+            imageIds: imageIds,
             label: data["event_name"] as? String ?? modeData["label"] as? String,
             note: data["notes"] as? String ?? modeData["note"] as? String,
             greetingKo: data["greeting_ko"] as? String,
             greetingEn: data["greeting_en"] as? String,
             eventName: data["event_name"] as? String
+        )
+    }
+
+    /// daily_card_images/{dc_img_id} 단건 조회 → VerseImage로 변환
+    func fetchDailyCardImage(id: String) async throws -> VerseImage? {
+        let doc = try await db.collection("daily_card_images").document(id).getDocument()
+        guard doc.exists, let data = doc.data() else { return nil }
+        guard let storageUrl = data["storage_url"] as? String, !storageUrl.isEmpty else { return nil }
+        let eventTag = data["event_tag"] as? String ?? ""
+        return VerseImage(
+            id: id,
+            filename: data["filename"] as? String ?? id,
+            storageUrl: storageUrl,
+            source: data["source"] as? String ?? "morning manna Design",
+            sourceUrl: nil,
+            license: data["license"] as? String ?? "Commercial",
+            mode: ["all"],
+            theme: [eventTag],
+            mood: ["warm"],
+            season: ["all"],
+            weather: ["all"],
+            tone: "mid",
+            status: "active",
+            textPosition: "bottom",
+            textColor: nil,
+            isSacredSafe: true,
+            avoidThemes: [],
+            notes: data["notes"] as? String
         )
     }
 
@@ -232,13 +270,13 @@ class FirestoreService {
 // MARK: - DailyCard 모델 (daily_cards 컬렉션)
 
 struct DailyCard {
-    let date: String        // "YYYY-MM-DD"
-    let verseId: String?
-    let imageId: String?
-    let label: String?      // "부활절 특별 말씀" 등
-    let note: String?       // 큐레이션 의도 메모
+    let date: String            // "YYYY-MM-DD"
+    let verseId: String?        // 편집자 확정 말씀 1개
+    let imageIds: [String]      // dc_img_* 이미지 풀 — 앱이 랜덤 선택, daily_card_images/ 컬렉션
+    let label: String?          // "부활절 특별 말씀" 등
+    let note: String?           // 큐레이션 의도 메모
     // 절기 특별 인사말 (없으면 greetings 컬렉션 사용)
     let greetingKo: String?
     let greetingEn: String?
-    let eventName: String?  // "크리스마스", "부활절" 등
+    let eventName: String?      // "크리스마스", "부활절" 등
 }

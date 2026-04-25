@@ -311,6 +311,16 @@ final class AlarmCoordinator: ObservableObject {
 
     /// 이미지 선택 — mode + verse 테마/분위기 기반 스코어링 (HomeViewModel과 동일 알고리즘)
     private func loadImage(mode: AppMode, verse: Verse) async -> VerseImage? {
+        // daily_cards 이미지 우선: 절기일에 특별 이미지 풀에서 랜덤 선택
+        if let card = try? await FirestoreService().fetchDailyCard(for: Date(), mode: mode),
+           !card.imageIds.isEmpty,
+           let randomId = card.imageIds.randomElement(),
+           let dailyImage = try? await FirestoreService().fetchDailyCardImage(id: randomId) {
+            alarmLog.info("🖼️ [Alarm Image] Daily card image: \(dailyImage.id)")
+            return dailyImage
+        }
+
+        // 일반 날: 스코어링 알고리즘
         guard let images = try? await verseRepository.fetchImages() else { return nil }
 
         let active = images.filter { $0.status == "active" }
