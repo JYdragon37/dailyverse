@@ -110,6 +110,23 @@ class FirestoreService {
         )
     }
 
+    /// daily_cards 컬렉션에서 날짜 범위 내 절기일 Set<"yyyy-MM-dd"> 반환
+    /// 캘린더에서 절기 뱃지 표시용. active == true 인 문서만 포함.
+    func fetchHolidayDates(from startDate: Date, to endDate: Date) async throws -> Set<String> {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        let startStr = fmt.string(from: startDate)
+        let endStr   = fmt.string(from: endDate)
+
+        let snapshot = try await db.collection("daily_cards")
+            .whereField(FieldPath.documentID(), isGreaterThanOrEqualTo: startStr)
+            .whereField(FieldPath.documentID(), isLessThanOrEqualTo: endStr)
+            .whereField("active", isEqualTo: true)
+            .getDocuments()
+
+        return Set(snapshot.documents.map { $0.documentID })
+    }
+
     /// daily_card_images/{dc_img_id} 단건 조회 → VerseImage로 변환
     func fetchDailyCardImage(id: String) async throws -> VerseImage? {
         let doc = try await db.collection("daily_card_images").document(id).getDocument()

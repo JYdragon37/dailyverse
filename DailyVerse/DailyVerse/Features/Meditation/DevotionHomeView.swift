@@ -283,6 +283,7 @@ struct DevotionHomeView: View {
                 DevotionCompactGrid(
                     streakManager: viewModel.streakManager,
                     history: viewModel.history,
+                    holidayDates: viewModel.holidayDates,
                     onEntryTap: { entry in selectedMeditationEntry = entry }
                 )
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -318,6 +319,7 @@ private struct DevotionCompactGrid: View {
 
     @ObservedObject var streakManager: StreakManager
     var history: [MeditationEntry]
+    var holidayDates: Set<String> = []
     var onEntryTap: (MeditationEntry) -> Void
 
     private static let iso: DateFormatter = {
@@ -358,7 +360,8 @@ private struct DevotionCompactGrid: View {
                 let entry       = history.first { $0.dateKey == item.dateKey }
                 DevotionDayDotCell(dayNum: item.dayNum,
                                    isMeditated: isMeditated,
-                                   isToday: isToday)
+                                   isToday: isToday,
+                                   isHoliday: holidayDates.contains(item.dateKey))
                 .contentShape(Rectangle())
                 .onTapGesture { if isMeditated, let entry { onEntryTap(entry) } }
             }
@@ -480,7 +483,8 @@ private struct DevotionCalendarGrid: View {
 
                         DevotionDayDotCell(dayNum: dayNum,
                                            isMeditated: isMeditated,
-                                           isToday: isToday)
+                                           isToday: isToday,
+                                           isHoliday: viewModel.holidayDates.contains(dateKey))
                         .contentShape(Rectangle())
                         .onTapGesture {
                             if isMeditated, let entry { onEntryTap(entry) }
@@ -501,32 +505,48 @@ private struct DevotionDayDotCell: View {
     let dayNum: Int
     let isMeditated: Bool
     let isToday: Bool
+    var isHoliday: Bool = false   // 절기일 (daily_cards 등록)
 
     var body: some View {
         VStack(spacing: 5) {
-            ZStack {
-                Circle()
-                    .fill(dotFill)
-                    .frame(width: 28, height: 28)
-
-                // 오늘 미완료: 골드 stroke
-                if isToday && !isMeditated {
+            ZStack(alignment: .topTrailing) {
+                ZStack {
                     Circle()
-                        .stroke(Color.dvAccentGold, lineWidth: 2)
+                        .fill(dotFill)
                         .frame(width: 28, height: 28)
+
+                    // 오늘 미완료: 골드 stroke
+                    if isToday && !isMeditated {
+                        Circle()
+                            .stroke(Color.dvAccentGold, lineWidth: 2)
+                            .frame(width: 28, height: 28)
+                    }
+
+                    // 오늘 완료: 체크마크
+                    if isToday && isMeditated {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                    }
                 }
 
-                // 오늘 완료: 체크마크
-                if isToday && isMeditated {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
+                // 절기일 뱃지 — 원 우상단 작은 별
+                if isHoliday {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 7, weight: .bold))
+                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                        .background(
+                            Circle()
+                                .fill(Color.dvBgDeep)
+                                .frame(width: 11, height: 11)
+                        )
+                        .offset(x: 2, y: -2)
                 }
             }
 
             Text("\(dayNum)")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.white.opacity(0.40))
+                .font(.system(size: 11, weight: isHoliday ? .semibold : .medium))
+                .foregroundColor(isHoliday ? Color.dvAccentGold.opacity(0.8) : .white.opacity(0.40))
         }
     }
 

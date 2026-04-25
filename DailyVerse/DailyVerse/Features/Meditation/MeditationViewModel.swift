@@ -14,6 +14,7 @@ final class MeditationViewModel: ObservableObject {
     @Published var calendarMonth: Date = Date()          // 현재 보여주는 월
     @Published var calendarMeditatedDates: Set<String> = []  // 해당 월의 묵상 날짜
     @Published var isCalendarLoading = false
+    @Published var holidayDates: Set<String> = []        // 절기일 날짜 (daily_cards) — 28일 윈도우
 
     private var calendarUserId: String = ""
 
@@ -45,6 +46,15 @@ final class MeditationViewModel: ObservableObject {
         streakManager.updateMeditatedDates(meditatedDates)
         streakManager.checkAndResetIfBroken()
         isLoading = false
+
+        // 절기일 로드 (28일 윈도우 — 캘린더 그리드 커버)
+        Task {
+            let today    = Date()
+            let from28   = Calendar.current.date(byAdding: .day, value: -27, to: today) ?? today
+            if let dates = try? await FirestoreService().fetchHolidayDates(from: from28, to: today) {
+                await MainActor.run { holidayDates = dates }
+            }
+        }
 
         // 달력: 현재 월 초기 로드
         calendarUserId = userId
