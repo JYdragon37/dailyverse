@@ -32,6 +32,7 @@ struct SettingsView: View {
     @State private var showOnboardingPreview = false
     @State private var showSplashPreview = false
     @AppStorage("onboardingV2Completed") private var onboardingCompleted = false
+    @State private var contentVersion: String = "로딩 중..."
     #endif
 
     private var appVersion: String {
@@ -461,6 +462,29 @@ struct SettingsView: View {
             }
         }
         .buttonStyle(.plain)
+
+        rowDivider
+
+        // 콘텐츠 DB 버전
+        row(icon: "cylinder.split.1x2.fill", iconColor: Color.dvAccentGold, title: "콘텐츠 DB 버전") {
+            Text(contentVersion)
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .foregroundColor(.white.opacity(0.55))
+        }
+        .task {
+            await fetchContentVersion()
+        }
+    }
+
+    @MainActor
+    private func fetchContentVersion() async {
+        guard let url = URL(string: "https://firestore.googleapis.com/v1/projects/dailyverse-9260d/databases/(default)/documents/app_config/content_version") else { return }
+        // 공개 읽기 (규칙상 허용 시) 또는 토큰 없이 접근
+        // 실제로는 Firebase SDK fetchDocument 사용 권장
+        // 여기서는 FirestoreService를 통해 읽어옴
+        if let data = try? await FirestoreService().fetchContentVersion() {
+            contentVersion = data
+        }
     }
     #endif
 

@@ -201,6 +201,17 @@ class FirestoreService {
         }
         try await db.collection("users").document(uid).delete()
     }
+
+    // MARK: - 콘텐츠 DB 버전
+
+    /// app_config/content_version 문서에서 현재 버전 반환
+    func fetchContentVersion() async throws -> String {
+        let doc = try await db.collection("app_config").document("content_version").getDocument()
+        guard let version = doc.data()?["current_version"] as? String else { return "알 수 없음" }
+        let total = doc.data()?["total_active_verses"] as? Int ?? 0
+        let desc = doc.data()?["description"] as? String ?? ""
+        return "\(version) (\(total)개) — \(desc)"
+    }
 }
 
 // MARK: - DailyCard 모델 (daily_cards 컬렉션)
