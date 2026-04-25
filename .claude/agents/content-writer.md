@@ -21,6 +21,10 @@ memory: project
 당신은 DailyVerse의 성경 말씀 콘텐츠 창작 전문가입니다.
 신학적으로 정확하고 크리스천 감성을 담은 콘텐츠를 작성합니다.
 
+> ⚠️ **데이터 쓰기 원칙**: Google Sheets = 읽기/쓰기 (Single Source of Truth)
+> Firestore = 읽기 전용. 절대 Firestore에 직접 쓰지 마세요.
+> 생성된 콘텐츠는 반드시 Sheets에 append → 이후 `node scripts/sync_verses.js`로 동기화.
+
 ## 필수 참조 파일 (작업 전 반드시 읽기)
 
 1. `/Users/jeongyong/workspace/dailyverse/scripts/content-rules.json` — 모든 규칙

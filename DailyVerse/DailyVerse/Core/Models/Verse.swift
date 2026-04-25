@@ -20,11 +20,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let usageCount: Int
     let notes: String?
     let alarmTopKo: String?              // 알람 목록 상단 전용 (없으면 verseShortKo 폴백)
-    // schema_v1.3: contemplationKo, contemplationReference 제거 (Firestore 미사용 수식 복사본)
-    // schema_v1.3: translations(VerseTranslations) 제거 (Firestore에 없고 뷰에서 미사용)
-    let contemplationInterpretation: String?  // 묵상 전용 해석 — Screen 2 해석 섹션
-    let contemplationAppliance: String?       // 묵상 일상 적용 — Screen 3 섹션 1
-    let question: String?                     // 묵상 질문 — Screen 3 섹션 2
+    // schema_v1.3: contemplationKo, contemplationReference 제거 (수식 복사본)
+    // schema_v1.4: contemplationInterpretation, contemplationAppliance 제거
+    //              → 모든 화면이 interpretation / application 하나로 통일
+    let question: String?                     // 묵상 질문
 
     // v5.1 — cooldown 로직용
     let lastShown: String?      // "YYYY-MM-DD"
@@ -39,8 +38,6 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case mode, theme, mood, season, weather
         case interpretation, application, curated, status, notes
         case alarmTopKo = "alarm_top_ko"
-        case contemplationInterpretation = "contemplation_interpretation"
-        case contemplationAppliance = "contemplation_appliance"
         case question
         case usageCount = "usage_count"
         case lastShown = "last_shown"
@@ -77,7 +74,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "아직 깨어있는 이 시간, 하나님이 붙드심을 기억해",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -94,7 +91,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "세상이 깨기 전 이 시간, 가장 먼저 하나님을 찾아봐",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -111,7 +108,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "오늘 하루, 혼자가 아님을 기억하며 시작해",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -128,7 +125,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "지금 이 집중의 시간, 능력 주시는 분께 연결돼봐",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -145,7 +142,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "잠깐 쉬어가도 괜찮아. 이 숨 고르는 시간도 하나님 안에 있어",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -162,7 +159,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "오후의 피로가 느껴져도, 이미 이긴 싸움 안에 서 있음을 기억해",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -179,7 +176,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "오늘 하루 수고했어. 채워주신 것들을 되돌아봐",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -196,7 +193,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         application: "집에 돌아온 지금, 오늘 가장 무거웠던 걱정 하나를 떠올리고 '이건 내려놓을게'라고 조용히 말해봐.",
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
-        contemplationInterpretation: nil, contemplationAppliance: nil, question: nil,
+        question: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 

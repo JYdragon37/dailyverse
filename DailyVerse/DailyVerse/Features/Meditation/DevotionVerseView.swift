@@ -34,7 +34,7 @@ struct DevotionVerseView: View {
                     readingSection
                     dashedDivider
 
-                    let interp = verse?.contemplationInterpretation ?? verse?.interpretation ?? ""
+                    let interp = verse?.interpretation ?? ""
                     if !interp.isEmpty {
                         verseSectionHeader("💡 해석")
                         interpretationText(interp)

@@ -657,8 +657,6 @@ mood: [String]               // bright, calm, warm, serene, dramatic, cozy
 season: [String], weather: [String]
 interpretation: String       // 홈/묵상 해석 (80-150자, ~야/이야 말투)
 application: String          // 홈/묵상 일상 적용 (40-80자)
-contemplation_interpretation: String  // 묵상 전용 깊은 해석
-contemplation_appliance: String       // 묵상 전용 일상 적용
 alarm_top_ko: String?        // 알람 목록 상단 표시 (35자 이내, 없으면 verse_short_ko 폴백)
 question: String?            // 묵상 응답 질문
 curated: Bool
@@ -667,9 +665,10 @@ usage_count: Int
 cooldown_days: Int           // 기본 7일 (같은 구절 재표시 간격)
 last_shown: String?, show_count: Int
 
-// ─── 제거된 필드 (schema_v1.3) ───────────────────────────
-// contemplation_ko      → verse_full_ko와 동일한 수식 복사본이었음. 앱 미사용
-// contemplation_reference → reference와 동일한 수식 복사본이었음. 앱 미사용
+// ─── 제거된 필드 ───────────────────────────────────────────
+// schema_v1.3: contemplation_ko, contemplation_reference → 수식 복사본, 앱 미사용
+// schema_v1.4: contemplation_interpretation, contemplation_appliance
+//              → 모든 화면이 interpretation / application 단일 필드로 통일
 ```
 
 ### app_config/content_version
@@ -772,10 +771,37 @@ snooze_count: Int16
 
 ---
 
-## 16. 이미지 매칭 알고리즘
+## 16. 이미지 시스템
+
+### Zone 고정 배경 (background_images/) — 홈 탭 전용
+
+> **v7.0 (2026-04-26): Zone당 다중 배경 + 날씨별 배경 지원**
+
+- Firestore `background_images/` 컬렉션에서 `zone` 필드로 조회 → **랜덤 선택**
+- 문서 ID: `bg_{zone_id}_{설명}` (예: `bg_deep_dark_banpo_hanriver`)
+- Zone당 여러 장 등록 가능 — 앱이 앱 실행 시마다 랜덤 선택
+
+**날씨 필드 (`weather`)**:
+- `all` — 모든 날씨 조건에서 후보 (기본값)
+- `rainy` / `snowy` / `cloudy` / `sunny` / `misty` / `stormy` — 실제 날씨 일치 시만 후보
+
+**파일명 규칙** (sync_zone_backgrounds.js v7.0):
+```
+bg_{zone_id}_{설명}.jpg             → weather: all
+bg_{zone_id}_{weather}_{설명}.jpg   → weather: 해당 날씨만
+```
+
+**Zone별 자동 tone 추론**:
+| Zone | tone |
+|------|------|
+| deep_dark, first_light, wind_down | dark |
+| rise_ignite, peak_mode | bright |
+| recharge, second_wind, golden_hour | mid |
+
+### 감성 이미지 선택 알고리즘 (images/) — 알람 Stage1/2 + 저장
 
 ```
-1. 현재 모드와 일치하는(또는 "all") 이미지 필터링
+1. 현재 Zone과 일치하는(또는 "all") 이미지 필터링
 2. status == "active" 인 것만
 3. 스코어: 테마+3, 분위기+2, 날씨+2, 계절+1
 4. 최고 점수 이미지 중 랜덤 선택
@@ -1049,10 +1075,16 @@ snooze_count: Int16
 
 ### 데이터 소스 접근 정보
 
+> ⚠️ **데이터 쓰기 원칙 (2026-04-25 확정)**
+> - **Google Sheets = Single Source of Truth** (읽기/쓰기)
+> - **Firestore = 읽기 전용** — 에이전트·스크립트 모두 Firestore에 직접 쓰지 않는다
+> - 콘텐츠 생성·수정은 Sheets 먼저 → `sync_verses.js`로 Firestore 동기화
+
 | 항목 | 내용 |
 |------|------|
 | **Google Sheets** | [morning manna 콘텐츠 시트](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ 서비스 계정 직접 편집 가능 (`scripts/serviceAccountKey.json`) |
+| **스키마 레퍼런스** | `docs/content-schema.md` — 콘텐츠 타입·필드·화면·스크립트 매핑 한눈에 보기 |
 | **상세 가이드** | `docs/contents-guideline.md` (v9.0 — 생성 파이프라인·Zone 컨텍스트·LLM 프롬프트 통합) |
 | **DB 버전** | `content_v1.2` / Firestore `app_config/content_version` 실시간 확인 가능 |
 
@@ -1064,10 +1096,13 @@ snooze_count: Int16
 
 | 스크립트 | 용도 |
 |--------|------|
-| `sync_sheets_to_firestore.js` | Sheets → Firestore 전체 동기화 |
-| `apply_formula_fields.js` | contemplation_interpretation/appliance 수식 재적용 (2개 컬럼) |
-| `generate_question_new.js` | `question` 필드 생성 (Claude API) |
-| `update_to_korv.js` | `verse_full_ko`/`verse_short_ko` 개역한글 원문 업데이트 |
+| `sync_verses.js` | Sheets VERSES → Firestore 전체 동기화 |
+| `sync_home_greetings.js` | Sheets HOME_GREETINGS → Firestore greetings/ 동기화 |
+| `upload_alarm_greetings.js` | Sheets ALARM_GREETINGS → Firestore alarm_greetings/ 동기화 |
+| `sync_zone_backgrounds.js` (v7.0) | Zone 배경 업로드 — 다중 배경·날씨별 지원, `zone-backgrounds/` 폴더 기준 |
+| `upload_design_test.js` | **메인 이미지 업로드** — `design_test/` 폴더의 `bg_*`·`img_*` 파일을 Storage+Sheets+Firestore에 일괄 반영 |
+| `sync_verse_images.js` | Sheets VERSE_IMAGES 기반 이미지 동기화 (외부 URL 처리) |
+| `generate_meditation_questions.js` | `question` 필드 생성 (Claude API) |
 | `check_content_quality.js` | 콘텐츠 품질 검증 |
 
 ---
@@ -1076,18 +1111,23 @@ snooze_count: Int16
 
 | 탭 | 버전 | 용도 |
 |----|------|------|
-| `VERSES` | — | 메인 말씀 (v_001~v_431, active **398개**) |
-| `ALARM_VERSES` | **Deprecated** | ~~알람 탭 전용 말씀~~ (앱 미사용, 숨김 처리) |
-| `DAILY_CARDS` | — | 절기 특별 편성 (2026년 12개 절기) |
-| `WRITING_GUIDE` | v9.1 | 필드별 생성 규칙 + LLM 프롬프트 (묵상 필드 포함) |
-| `ZONE_GUIDE` | v2.0 | 8개 Zone × 유저 상황·감정·말씀 역할 |
-| `TAG_GUIDE` | v1.2 | theme/mood/tone 태그 기준 |
-| `LLM_GUIDE` | v9.1 | Claude 프롬프트 공식 가이드 |
-| `GREETING_GUIDE` | v1.0 | greeting + alarm_greetings 작성 기준 |
+| `VERSES` | — | 메인 말씀 (active **417개**) |
+| `VERSE_IMAGES` | — | 감성 이미지 메타데이터 (**95개**, img_001~img_095) |
+| `BACKGROUND_IMAGES` | — | Zone 배경 이미지 (**20개** active, Zone당 다중·날씨별 지원) |
+| `CONTENT_MAP` | — | 콘텐츠 타입 개요 (자동 생성) |
+| `SCREEN_MAP` | — | 화면×필드 매핑 매트릭스 (자동 생성) |
+| `IMAGE_ASSETS` | — | 이미지 에셋 전체 목록 (자동 생성) |
+| `HOME_GREETINGS` | — | 홈 화면 인사말 (176개) |
+| `ALARM_GREETINGS` | — | 알람 Stage2 팝업 인사말 (35개) |
+| `DAILY_CARDS` | — | 절기 특별 편성 (12개) |
+| `TAG_GUIDE` | v1.2 | theme/mood/tone 태그 기준 + Zone 컨텍스트 |
+| `LLM_GUIDE` | v9.1 | Claude 프롬프트 공식 가이드 + 필드별 생성 규칙 |
+| `GREETING_GUIDE` | v1.0 | 홈·알람 인사말 작성 기준 |
 | `IMAGE_GUIDE` | v1.2 | Zone 배경·말씀 배경 이미지 생성 가이드 |
 | `DAILY_CARDS_GUIDE` | v1.0 | 절기 편성 시스템 운영 가이드 |
-| `IMAGES` | — | 감성 배경 이미지 메타데이터 |
+| `STATS` | — | 콘텐츠 현황 대시보드 |
 | `CHANGELOG` | — | DB·스키마·가이드 버전 이력 |
+| `QA_LOG` | — | 콘텐츠 QA 자동 기록 |
 
 ---
 
@@ -1099,8 +1139,8 @@ snooze_count: Int16
 | `daily_cards/` | 2026년 12개 절기 | 절기 특별 편성 — 해당 날짜 모든 유저에게 우선 적용 |
 | `alarm_greetings/` | 35개 | 알람 Stage2 팝업 인사말 (Zone별) |
 | `greetings/` | 134개 | 홈화면 Zone 인사말 |
-| `background_images/` | — | Zone별 고정 배경 이미지 |
-| `images/` | 49개 active | 감성 말씀 배경 이미지 |
+| `background_images/` | **20개** active (Zone당 다중·날씨별) | Zone 배경 — 홈 풀스크린, Zone 쿼리 후 랜덤 선택 |
+| `images/` | **95개** active (img_001~img_095) | 감성 이미지 — 알람 Stage1 카드·Stage2 풀스크린·저장 스냅샷 |
 | `verse_stats/` | — | 구절별 전역 노출 통계 (1만 유저 대응) |
 | `writing_guide/` | — | 가이드 메타데이터 |
 | `zone_guide/` | 8개 | Zone별 컨텍스트 |
@@ -1118,12 +1158,12 @@ snooze_count: Int16
 | `verse_short_ko` | ✅ 전체 완료 | 개역한글에서 핵심 문장 추출 (35자 이내) |
 | `interpretation` | ✅ 전체 완료 | morning manna 독자 작성 (친근한 현대 한국어) |
 | `application` | ✅ 전체 완료 | Zone 시간대 반영 행동 가이드 |
-| `contemplation_interpretation` | ✅ 전체 완료 | 묵상 탭 전용 깊은 해석 |
-| `contemplation_appliance` | ✅ 전체 완료 | 묵상 탭 전용 일상 적용 |
 | `question` | ✅ 전체 완료 | 묵상 응답 질문 |
 | `alarm_top_ko` | 선택 필드 | 알람 탭 상단 표시 (없으면 verse_short_ko 폴백) |
-| ~~`contemplation_ko`~~ | **제거됨** | schema_v1.3 — verse_full_ko 수식 복사본이었음 |
-| ~~`contemplation_reference`~~ | **제거됨** | schema_v1.3 — reference 수식 복사본이었음 |
+| ~~`contemplation_ko`~~ | **제거됨** | schema_v1.3 — verse_full_ko 수식 복사본 |
+| ~~`contemplation_reference`~~ | **제거됨** | schema_v1.3 — reference 수식 복사본 |
+| ~~`contemplation_interpretation`~~ | **제거됨** | schema_v1.4 — interpretation으로 통일 |
+| ~~`contemplation_appliance`~~ | **제거됨** | schema_v1.4 — application으로 통일 |
 
 ---
 
@@ -1166,9 +1206,7 @@ verse_full_ko (개역한글 원문, 앵커)
     ↓
 verse_short_ko (핵심 문장 발췌, 35자 이내)
     ↓
-interpretation + application (Zone 반영, ~야/이야/해봐 말투)
-    ↓
-contemplation_interpretation + contemplation_appliance (묵상 탭 전용)
+interpretation + application (Zone 반영, ~야/이야/해봐 말투) ← 홈/묵상/저장 전 화면 공통
     ↓
 question (묵상 응답 질문, Claude API)
 ```
@@ -1182,7 +1220,7 @@ question (묵상 응답 질문, Claude API)
 | 생성 | `content-writer` (Claude Haiku API) | 신규 콘텐츠 생성 |
 | 자동 검증 | `check_content_quality.js`, `run_content_qa.js` | 글자수·말투·원어 표기·중복 |
 | AI 검증 | `content-checker` | Zone 맥락 정합성·interpretation 구조·번영신학 위험 |
-| 수정 | `content-fixer` | Sheets + Firestore 배치 업데이트 |
+| 수정 | `content-fixer` | Sheets 업데이트 (Firestore는 sync_verses.js로 별도 반영) |
 
 ---
 
@@ -1194,11 +1232,20 @@ question (묵상 응답 질문, Claude API)
 | 일일 06:00 고정 | `verses/` | Zone별 하루 고정 말씀 선택 |
 | 절기 당일 | `daily_cards/{날짜}` | 모든 유저 동일 말씀+인사말 강제 적용 |
 
-### 이미지
+### 이미지 현황 (2026-04-26 기준)
 
-- Genspark Pro 플랜 기반 생성 (상업적 사용 가능)
-- Zone별 고정 배경 8개 (`background_images/`) + 감성 이미지 49개 (`images/`) active
-- 부족 Zone: peak_mode(7개↓), recharge(6개↓), second_wind(6개↓) 추가 필요
+**Zone 고정 배경 (`background_images/`)**
+- 총 **20개** active (Zone당 다중 지원, v7.0)
+- Zone당 분포: deep_dark 2개 · first_light 3개 · rise_ignite 1개 · peak_mode 1개 · recharge 1개 · second_wind 1개 · golden_hour 1개 · wind_down 2개 (기존 8개 포함)
+- 날씨별 배경: `weather` 필드로 지원 (`all` / `sunny` / `rainy` / `snowy` / `misty` / `cloudy`)
+- 업로드 스크립트: `sync_zone_backgrounds.js` (v7.0) — 파일명에서 zone·weather 자동 파싱
+
+**감성 이미지 (`images/`)**
+- 기존 49개 + 신규 46개 = **95개** active (img_001~img_095)
+- 모두 9:16 세로형, 텍스트 가독성 확보
+- 출처: Genspark Pro / morning manna Design (상업적 사용 가능)
+- Zone별 분포: deep_dark 4 · first_light 6 · rise_ignite 5 · peak_mode 1 · recharge 5 · second_wind 5 · golden_hour 8 · wind_down 12 (신규 기준)
+- 업로드 스크립트: `upload_design_test.js` — design_test/ 폴더 원클릭 처리
 
 ---
 

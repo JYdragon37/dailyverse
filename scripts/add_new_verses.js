@@ -1,10 +1,15 @@
 require('dotenv').config();
 /**
- * add_new_verses.js — 신규 말씀 39개 일괄 생성 및 Firestore 추가
+ * add_new_verses.js — 신규 말씀 일괄 생성
  *
  * 생성 내용: verse_full_ko(개역한글), verse_short_ko, interpretation,
  *           application(Zone 반영), question
  * QA 초기 상태: status=active, qa_status=draft, curated=false
+ *
+ * 데이터 쓰기 원칙:
+ *   Google Sheets = Single Source of Truth (읽기/쓰기)
+ *   Firestore = 읽기 전용 — 직접 쓰기 금지
+ *   생성 후 Firestore 반영: node sync_verses.js
  *
  * 사용법:
  *   node add_new_verses.js --dry-run   # 미리보기만
@@ -13,7 +18,56 @@ require('dotenv').config();
 
 const admin    = require('firebase-admin');
 const Anthropic = require('@anthropic-ai/sdk');
+const { google } = require('googleapis');
+const path = require('path');
 const serviceAccount = require('./serviceAccountKey.json');
+
+// ── Google Sheets 설정 ────────────────────────────────────────────────────
+const SHEET_ID  = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
+const KEY_FILE  = path.join(__dirname, 'serviceAccountKey.json');
+const SHEET_TAB = 'VERSES';
+
+// VERSES 탭 컬럼 순서 (sync_firestore_to_sheet.js 기준)
+const COLUMN_ORDER = [
+  'verse_id', 'verse_short_ko', 'verse_full_ko', 'reference',
+  'book', 'chapter', 'verse', 'mode', 'theme', 'mood', 'season', 'weather',
+  'interpretation', 'application', 'curated', 'status', 'notes',
+  'usage_count', 'cooldown_days', 'last_shown', 'show_count',
+  'alarm_top_ko', 'contemplation_ko', 'contemplation_reference',
+  'contemplation_interpretation', 'contemplation_appliance', 'question',
+];
+
+async function getSheetsClient() {
+  const auth = new google.auth.GoogleAuth({
+    keyFile: KEY_FILE,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+  return google.sheets({ version: 'v4', auth });
+}
+
+// Firestore 문서 데이터 → 시트 행 배열 변환
+function docToRow(verseId, data) {
+  return COLUMN_ORDER.map(col => {
+    if (col === 'verse_id') return verseId;
+    const val = data[col];
+    if (val === undefined || val === null) return '';
+    if (Array.isArray(val)) return val.join(', ');
+    return String(val);
+  });
+}
+
+// Sheets VERSES 탭에 행 추가
+async function appendToSheets(verseId, docData) {
+  const sheets = await getSheetsClient();
+  const row = docToRow(verseId, docData);
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SHEET_ID,
+    range: `${SHEET_TAB}!A:AA`,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [row] },
+  });
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -218,7 +272,7 @@ async function main() {
         console.log('  app:', content.application.slice(0, 50));
         console.log('  q:', content.question.slice(0, 50));
       } else {
-        await db.collection('verses').doc(verseId).set({
+        const docData = {
           verse_id:              verseId,
           verse_full_ko:         content.verse_full_ko,
           verse_short_ko:        content.verse_short_ko,
@@ -239,8 +293,19 @@ async function main() {
           qa_issues:             [],
           qa_guideline_version:  'v9.0',
           qa_checked_at:         null,
-        });
-        console.log(`완료 (${content.verse_full_ko.length}자)`);
+        };
+
+        // Sheets 저장 (Single Source of Truth — Firestore 직접 쓰기 금지)
+        process.stdout.write(`Sheets 저장 중... `);
+        try {
+          await appendToSheets(verseId, docData);
+          console.log(`Sheets 완료 (${content.verse_full_ko.length}자)`);
+        } catch (sheetsErr) {
+          console.log(`Sheets 실패: ${sheetsErr.message}`);
+          errors++;
+          continue;
+        }
+
         success++;
       }
     } catch (e) {
@@ -259,6 +324,7 @@ async function main() {
   console.log('  node qa_ai_check.js          # 1차: Haiku');
   console.log('  node qa_ai_check.js --deep   # 2차: Sonnet');
   console.log('  node qa_approve.js');
+  console.log('  node sync_verses.js          # Firestore 동기화 (QA 승인 후 실행)');
 }
 
 main().catch(console.error).finally(() => process.exit());

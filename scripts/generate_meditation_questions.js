@@ -1,0 +1,348 @@
+require('dotenv').config();
+/**
+ * generate_meditation_questions.js
+ *
+ * Firestore verses 컬렉션에서 question 필드가 null/비어있는 문서를 찾아,
+ * Claude API로 콘텐츠를 생성한 뒤 Google Sheets VERSES 탭에 저장합니다.
+ * Firestore = 읽기 전용. 생성 후 Firestore 반영은 sync_verses.js 별도 실행.
+ *
+ * ── 필드 규격 ──────────────────────────────────────────────────
+ * question
+ *   분량: 40~80자
+ *   형식: 질문형 1~2문장
+ *   톤: 따뜻하고 개인적, 말씀 핵심과 일상 연결
+ *   금지: 닉네임 직접 포함, 설교조, 부담스러운 신앙 점검
+ *   예시: "오늘 이 말씀이 가장 필요한 순간은 언제일까요?"
+ * ────────────────────────────────────────────────────────────────
+ *
+ * 사용법:
+ *   # 빈 필드가 있는 전체 말씀 처리 (dry-run 미리보기)
+ *   node generate_meditation_questions.js --dry-run
+ *
+ *   # 실제 업로드
+ *   node generate_meditation_questions.js
+ *
+ *   # 특정 verse ID만 처리 (쉼표 구분)
+ *   node generate_meditation_questions.js --ids v_102,v_103,v_104
+ *
+ *   # 특정 범위 처리
+ *   node generate_meditation_questions.js --range v_102,v_180
+ *
+ * 환경 변수:
+ *   ANTHROPIC_API_KEY — Claude API 키 (필수)
+ */
+
+const admin = require('firebase-admin');
+const Anthropic = require('@anthropic-ai/sdk');
+const { google } = require('googleapis');
+const path = require('path');
+const serviceAccount = require('./serviceAccountKey.json');
+
+// ── 초기화 ──────────────────────────────────────────────────────
+if (!admin.apps.length) {
+  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+}
+const db = admin.firestore();
+
+const apiKey = process.env.ANTHROPIC_API_KEY;
+if (!apiKey) {
+  console.error('오류: ANTHROPIC_API_KEY 환경 변수가 설정되지 않았습니다.');
+  console.error('  export ANTHROPIC_API_KEY="sk-ant-..."');
+  process.exit(1);
+}
+const anthropic = new Anthropic({ apiKey });
+
+// ── Google Sheets 설정 ──────────────────────────────────────────
+const SHEET_ID = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
+const KEY_FILE = path.join(__dirname, 'serviceAccountKey.json');
+const SHEET_TAB = 'VERSES';
+
+// Sheets 클라이언트 (lazy init)
+let _sheetsClient = null;
+let _sheetHeaders = null;
+let _sheetRowMap = null; // verse_id → 1-based row number
+
+async function getSheetsClient() {
+  if (_sheetsClient) return _sheetsClient;
+  const auth = new google.auth.GoogleAuth({
+    keyFile: KEY_FILE,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+  _sheetsClient = google.sheets({ version: 'v4', auth });
+  return _sheetsClient;
+}
+
+// 컬럼 인덱스 → A1 알파벳 변환
+function colIndexToLetter(idx) {
+  let letter = '';
+  idx++; // 1-based
+  while (idx > 0) {
+    const mod = (idx - 1) % 26;
+    letter = String.fromCharCode(65 + mod) + letter;
+    idx = Math.floor((idx - mod) / 26);
+  }
+  return letter;
+}
+
+// 시트 헤더 + verse_id 행 맵 초기화 (1회 로드)
+async function initSheetIndex() {
+  if (_sheetHeaders && _sheetRowMap) return;
+  const sheets = await getSheetsClient();
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: `${SHEET_TAB}!A:A`, // verse_id 컬럼만 읽어서 빠르게
+  });
+  const colA = (res.data.values || []);
+
+  // 헤더는 별도 요청
+  const hRes = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: `${SHEET_TAB}!1:1`,
+  });
+  _sheetHeaders = (hRes.data.values || [[]])[0];
+
+  _sheetRowMap = {};
+  for (let i = 1; i < colA.length; i++) {
+    const vid = (colA[i] || [])[0];
+    if (vid) _sheetRowMap[vid] = i + 1; // 1-based
+  }
+}
+
+// Sheets question 컬럼 단일 셀 업데이트
+async function updateSheetQuestion(verseId, question) {
+  await initSheetIndex();
+  const rowNum = _sheetRowMap[verseId];
+  if (!rowNum) {
+    console.warn(`    [Sheets] ${verseId} 행을 찾을 수 없음 (스킵)`);
+    return;
+  }
+  const qIdx = _sheetHeaders.indexOf('question');
+  if (qIdx === -1) throw new Error('Sheets에서 question 컬럼을 찾을 수 없습니다.');
+  const colLetter = colIndexToLetter(qIdx);
+
+  const sheets = await getSheetsClient();
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SHEET_ID,
+    range: `${SHEET_TAB}!${colLetter}${rowNum}`,
+    valueInputOption: 'RAW',
+    requestBody: { values: [[question]] },
+  });
+}
+
+// ── CLI 인수 파싱 ──────────────────────────────────────────────
+const args = process.argv.slice(2);
+const isDryRun = args.includes('--dry-run');
+
+const targetIds = (() => {
+  const idx = args.indexOf('--ids');
+  if (idx === -1) return null;
+  return args[idx + 1].split(',').map(s => s.trim()).filter(Boolean);
+})();
+
+// --range v_102,v_180 형식으로 범위 지정 가능
+const rangeFilter = (() => {
+  const idx = args.indexOf('--range');
+  if (idx === -1) return null;
+  const parts = args[idx + 1].split(',').map(s => s.trim());
+  if (parts.length !== 2) return null;
+  return { start: parts[0], end: parts[1] };
+})();
+
+// ── 필드 누락 여부 확인 ──────────────────────────────────────────
+function isMissing(value) {
+  return value === undefined || value === null || value === '';
+}
+
+// ── ID 정렬용 숫자 추출 ──────────────────────────────────────────
+function extractNumber(id) {
+  const match = id.match(/(\d+)$/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+// ── 프롬프트 빌더 (v9.0) ────────────────────────────────────────
+function buildPrompt(doc) {
+  const ref = doc.reference || '';
+  // verse_full_ko 우선, 없으면 short 폴백
+  const verseText = doc.verse_full_ko || doc.verse_short_ko || doc.text_ko || '';
+  const interpretation = doc.interpretation || '';
+
+  // interpretation 핵심 1줄 추출 (첫 \n 이전)
+  const interpCore = interpretation.split('\n')[0] || interpretation.slice(0, 50);
+
+  const system = `너는 DailyVerse 앱의 말씀 콘텐츠 작가야.
+성경 말씀을 읽은 사용자에게 보여줄 묵상 질문을 작성해.
+설교자가 아닌 유저의 신앙 친구. 교회 강단 언어 아님.`;
+
+  const user = `아래 말씀의 핵심을 일상 삶에 연결하는 질문 1개를 작성해줘.
+
+말씀: ${verseText}
+출처: ${ref}
+${interpCore ? `해석 핵심: ${interpCore}` : ''}
+
+[규칙]
+- 40~80자 이내
+- 질문형 문장
+- 닉네임 없이 작성 (앱이 "{name}님, " 자동 합성하므로)
+- 형태: 선택형("A와 B 중") / 회상형("~했던 경험이 있나요?") / 상상형("~라면 어떨까요?") 중 1가지
+- 일상 언어, 종교 어조 최소화
+- 신앙 유무와 무관하게 누구나 공감 가능해야 함
+
+[금지]
+- "기도했나요?", "말씀을 읽었나요?" (신앙 행위 점검)
+- "~해야 합니까?", "~하셨나요?" (경어체)
+- 닉네임 직접 포함
+- 원어(히브리어·헬라어) 표기
+
+[좋은 예]
+- "요즘 가장 두렵게 느껴지는 것은 무엇인가요?" (회상형)
+- "지금 당신의 시선은 어디를 향해 있나요?" (성찰형)
+- "두려움보다 더 크다고 느껴지는 것이 있나요?" (선택형)
+
+[나쁜 예]
+- "오늘 하나님께 기도하셨나요?" → 신앙 행위 점검
+- "두려움이 찾아올 때 어떻게 해야 합니까?" → 경어·강요
+
+출력은 JSON만: {"question": "..."}`;
+
+  return { system, user };
+}
+
+// ── Claude API 호출 ──────────────────────────────────────────────
+async function generateQuestion(doc) {
+  const { system, user } = buildPrompt(doc);
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 256,
+    system,
+    messages: [{ role: 'user', content: user }],
+  });
+
+  const raw = message.content[0].text.trim();
+
+  // JSON 파싱 (코드 블록 래핑 제거 포함)
+  const jsonStr = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    throw new Error(`JSON 파싱 실패 (raw: ${raw.slice(0, 200)})`);
+  }
+}
+
+// ── 메인 ────────────────────────────────────────────────────────
+async function main() {
+  console.log('=== generate_meditation_questions.js ===');
+  console.log(`dry-run: ${isDryRun} | 대상: ${targetIds ? targetIds.join(', ') : rangeFilter ? `${rangeFilter.start}~${rangeFilter.end}` : '자동 감지 (question null/빈값)'}\n`);
+
+  // 1) Firestore에서 대상 문서 수집
+  let docs;
+  if (targetIds) {
+    const snapshots = await Promise.all(
+      targetIds.map(id => db.collection('verses').doc(id).get())
+    );
+    docs = snapshots.filter(s => s.exists).map(s => ({ id: s.id, data: s.data(), ref: s.ref }));
+    const missing = targetIds.filter(id => !snapshots.find(s => s.id === id && s.exists));
+    if (missing.length) console.warn(`경고: 존재하지 않는 ID: ${missing.join(', ')}`);
+  } else {
+    console.log('verses 컬렉션 읽는 중...');
+    const snapshot = await db.collection('verses').orderBy('__name__').get();
+    docs = snapshot.docs
+      .filter(s => {
+        const data = s.data();
+        if (!isMissing(data.question)) return false; // 이미 있으면 스킵
+
+        // 범위 필터 적용
+        if (rangeFilter) {
+          const num = extractNumber(s.id);
+          const startNum = extractNumber(rangeFilter.start);
+          const endNum = extractNumber(rangeFilter.end);
+          return num >= startNum && num <= endNum;
+        }
+        return true;
+      })
+      .map(s => ({ id: s.id, data: s.data(), ref: s.ref }));
+  }
+
+  if (docs.length === 0) {
+    console.log('처리할 말씀이 없습니다. 모든 question 필드가 이미 채워져 있어요.');
+    process.exit(0);
+  }
+
+  // ID 순서대로 정렬
+  docs.sort((a, b) => extractNumber(a.id) - extractNumber(b.id));
+
+  console.log(`처리 대상: ${docs.length}개 말씀\n`);
+
+  // 2) 생성 및 업로드
+  let success = 0;
+  let errors = 0;
+  const errorLog = [];
+
+  for (let i = 0; i < docs.length; i++) {
+    const { id, data, ref } = docs[i];
+    const refText = data.reference || id;
+    const verseText = data.verse_short_ko || data.text_ko || '';
+    process.stdout.write(`[${i + 1}/${docs.length}] ${id} (${refText}) 생성 중...`);
+
+    if (isDryRun) {
+      // dry-run: Claude API 호출 없이 대상 목록만 출력
+      console.log(' [dry-run]');
+      console.log(`  verse: ${verseText.slice(0, 40)}...`);
+      console.log(`  → Sheets question 컬럼 업데이트 예정 (Firestore는 sync_verses.js로 별도 동기화)`);
+    } else {
+      try {
+        const generated = await generateQuestion(data);
+        const question = generated.question || '';
+
+        // 분량 검증 (경고만, 업로드는 진행)
+        const len = question.length;
+        if (len < 40) {
+          process.stdout.write(` ⚠️ 너무 짧음 ${len}자`);
+        } else if (len > 80) {
+          process.stdout.write(` ⚠️ 너무 김 ${len}자`);
+        }
+
+        // Sheets 저장 (Single Source of Truth — Firestore 직접 쓰기 금지)
+        try {
+          await updateSheetQuestion(id, question);
+          console.log(` 완료 → "${question}" (${len}자) [Sheets]`);
+        } catch (sheetsErr) {
+          console.log(` Sheets 오류: ${sheetsErr.message}`);
+          errors++;
+          errorLog.push({ id, error: sheetsErr.message });
+          continue;
+        }
+
+        success++;
+      } catch (e) {
+        console.log(` 오류: ${e.message}`);
+        errors++;
+        errorLog.push({ id, error: e.message });
+      }
+    }
+
+    // API rate limit 방지: 요청 간 300ms 대기
+    if (i < docs.length - 1) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+
+  // 3) 결과 요약
+  console.log('\n===== 완료 =====');
+  if (isDryRun) {
+    console.log(`dry-run 미리보기: ${docs.length}개 (실제 업로드 없음)`);
+  } else {
+    console.log(`성공: ${success}개 | 오류: ${errors}개`);
+  }
+  if (errorLog.length) {
+    console.log('\n오류 목록:');
+    errorLog.forEach(({ id, error }) => console.log(`  ${id}: ${error}`));
+  }
+
+  process.exit(0);
+}
+
+main().catch(e => {
+  console.error('예상치 못한 오류:', e);
+  process.exit(1);
+});

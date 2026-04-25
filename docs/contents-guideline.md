@@ -7,11 +7,17 @@
 
 ## 📌 데이터 소스 접근
 
+> ⚠️ **데이터 쓰기 원칙 (2026-04-25 확정)**
+> - **Google Sheets = Single Source of Truth** (읽기 + 쓰기)
+> - **Firestore = 읽기 전용** — 절대 직접 쓰지 않는다
+> - 모든 콘텐츠 생성·수정은 Sheets에 먼저, 이후 `sync_verses.js`로 Firestore에 반영
+
 | 항목 | 내용 |
 |------|------|
 | **Google Sheets** | [morning manna 콘텐츠 시트 열기](https://docs.google.com/spreadsheets/d/1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig/edit) |
 | **편집 권한** | ✅ Claude Code가 `scripts/serviceAccountKey.json`으로 직접 편집 가능 |
-| **Sheets → Firestore** | `node scripts/sync_sheets_to_firestore.js` |
+| **스키마 레퍼런스** | `docs/content-schema.md` — 전체 콘텐츠 타입·필드·화면 매핑 한눈에 보기 |
+| **Sheets → Firestore 동기화** | `node scripts/sync_verses.js` |
 | **수식 재적용** | `node scripts/apply_formula_fields.js` |
 
 ---
@@ -166,7 +172,7 @@ Firebase Storage
 | `contemplation_reference` | `reference` | reference와 동일 출처 |
 
 > 수식 재적용 필요 시: `node scripts/apply_formula_fields.js`
-> Firestore 반영: `node scripts/sync_sheets_to_firestore.js`
+> Firestore 반영: `node scripts/sync_verses.js`
 
 ---
 

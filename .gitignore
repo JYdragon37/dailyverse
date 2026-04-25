@@ -31,3 +31,11 @@ scripts/dailyverse-*.json
 # 임시 patch 스크립트
 scripts/fix_verses.js
 scripts/fix_verses_sheets.js
+
+# Xcode 백업 파일
+*.bak
+*.bak[0-9]
+
+# AI 이미지 생성 zip 다운로드
+"AI Image Generation_*.zip"
+DailyVerse_iPhone_Wallpapers_*.zip

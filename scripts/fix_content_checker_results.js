@@ -301,7 +301,7 @@ async function main() {
     console.log(`| ${r.verseId.padEnd(8)} | ${r.field.padEnd(16)} | ${before} | ${after} |`);
   }
   console.log('\n총 ' + results.length + '건 수정 완료.');
-  console.log('Firestore 동기화 필요 시: node scripts/sync_sheets_to_firestore.js');
+  console.log('Firestore 동기화 필요 시: node scripts/sync_verses.js');
 }
 
 main().catch(err => {

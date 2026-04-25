@@ -36,14 +36,14 @@ struct SavedDetailView: View {
         let v = loadedVerse
             ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
             ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
-        return v?.contemplationInterpretation ?? v?.interpretation
+        return v?.interpretation
     }
 
     private var verseApplication: String? {
         let v = loadedVerse
             ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
             ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
-        return v?.contemplationAppliance ?? v?.application
+        return v?.application
     }
 
     private var backgroundGradient: LinearGradient {

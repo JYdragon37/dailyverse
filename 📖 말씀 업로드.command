@@ -12,7 +12,7 @@ echo "════════════════════════�
 echo "구글 시트 → Firestore 동기화 중..."
 echo ""
 
-node sync_sheets_to_firestore.js
+node sync_verses.js
 
 echo ""
 echo "───────────────────────────────"

@@ -320,7 +320,7 @@ async function main() {
   if (doSync) {
     console.log('\n🔄 Firestore 동기화 중...');
     const { execSync } = require('child_process');
-    execSync('node sync_sheets_to_firestore.js', { stdio: 'inherit', cwd: __dirname });
+    execSync('node sync_verses.js', { stdio: 'inherit', cwd: __dirname });
   }
 
   console.log(`\n✅ QA 완료 (run_id: ${runId})`);

@@ -12,8 +12,11 @@ struct AlarmStage2View: View {
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = true   // AlarmKit 콜드런치 대응: 처음부터 visible
     @State private var showVerseDetail: Bool = false
-    @State private var todayVerse: Verse? = nil
+    @State private var cachedFallbackVerse: Verse? = nil  // coordinator.activeVerse nil일 때만 사용
     @State private var toastMessage: String? = nil
+
+    /// 항상 coordinator.activeVerse 우선 — reactive하게 홈화면과 동일 말씀 보장
+    private var todayVerse: Verse? { coordinator.activeVerse ?? cachedFallbackVerse }
 
     // 알람 발동 시간 기준 zone (현재 시간 아님)
     private var alarmMode: AppMode { coordinator.activeMode }
@@ -86,20 +89,18 @@ struct AlarmStage2View: View {
                 await greetingService.loadAlarmGreeting(for: alarmMode, language: lang)
             }
             .onAppear {
-                // coordinator.activeVerse 우선 사용 — 홈화면과 동일 verse 보장
-                // (handleAlarmKitStop → loadVerse로 로드된 것, 홈화면과 같은 DailyCacheManager 경로)
-                if let verse = coordinator.activeVerse {
-                    todayVerse = verse
-                } else {
-                    // 폴백: DailyCacheManager에서 직접 로드
+                // coordinator.activeVerse는 computed property로 reactive하게 반영됨
+                // DailyCacheManager에 캐시된 말씀이 있으면 activeVerse 로드 완료 전까지 임시 표시
+                // Core Data miss 시: cachedFallbackVerse = nil → 말씀 영역 빈 화면 유지
+                //                  → coordinator.activeVerse 세팅 후 reactive 업데이트
+                // 하드코딩 폴백(fallbackRecharge 등) 절대 사용 안 함 — 홈화면과 다른 말씀 노출 방지
+                if coordinator.activeVerse == nil {
                     let mode = coordinator.activeMode
                     if let id = DailyCacheManager.shared.getVerseId(for: mode),
                        let verse = DailyCacheManager.shared.loadCachedVerse(id: id) {
-                        todayVerse = verse
-                    } else {
-                        todayVerse = Verse.fallbackVerses.first { $0.mode.contains(mode.rawValue) }
-                                     ?? Verse.fallbackRiseIgnite
+                        cachedFallbackVerse = verse
                     }
+                    // Core Data miss → cachedFallbackVerse 그대로 nil 유지
                 }
             }
             // 로그인 유도 시트
@@ -246,12 +247,29 @@ struct AlarmStage2View: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
 
-            // 성경 참조 (테마 태그 제거)
+            // 성경 참조
             Text(verse.reference)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.white.opacity(0.8))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 18)
+
+            // 말씀 깊게 보기 힌트 (HomeView와 동일 스타일)
+            Button { showVerseDetail = true } label: {
+                HStack(spacing: 8) {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.30))
+                        .frame(width: 20, height: 1)
+                    Text("말씀 깊게 보기")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(.white.opacity(0.45))
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+            }
+            .padding(.top, 12)
+            .accessibilityLabel("말씀 해석과 일상 적용 보기")
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
@@ -262,23 +280,31 @@ struct AlarmStage2View: View {
     private var actionBar: some View {
         VStack(spacing: 10) {
             HStack(spacing: 12) {
-                // 말씀 더보기
-                Button { showVerseDetail = true } label: {
-                    Text("📖  말씀 더보기")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.white.opacity(0.10))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                                )
-                        )
-                        .foregroundColor(.white)
+                // 스누즈
+                Button {
+                    coordinator.snooze()
+                } label: {
+                    VStack(spacing: 2) {
+                        Text("🌙  스누즈")
+                            .font(.system(size: 15, weight: .medium))
+                        Text("\(coordinator.activeSnoozeInterval)분 후")
+                            .font(.system(size: 11, weight: .regular))
+                            .opacity(0.7)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(coordinator.canSnooze ? 0.10 : 0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.white.opacity(coordinator.canSnooze ? 0.18 : 0.08), lineWidth: 1)
+                            )
+                    )
+                    .foregroundColor(.white.opacity(coordinator.canSnooze ? 1.0 : 0.35))
                 }
-                .accessibilityLabel("말씀 해석과 일상 적용 보기")
+                .disabled(!coordinator.canSnooze)
+                .accessibilityLabel(coordinator.canSnooze ? "\(coordinator.activeSnoozeInterval)분 스누즈" : "스누즈 횟수 초과")
 
                 // 일어나기
                 Button { coordinator.dismissAll() } label: {

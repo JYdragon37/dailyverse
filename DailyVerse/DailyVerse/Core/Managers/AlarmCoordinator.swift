@@ -12,8 +12,7 @@ final class AlarmCoordinator: ObservableObject {
 
     enum AlarmStage: Equatable {
         case none
-        case stage1     // 전체화면 알람 (Legacy iOS) — 시간+말씀+스누즈/종료
-        case stage2     // 말씀+날씨 웰컴 스크린
+        case stage2     // 말씀+날씨 웰컴 스크린 (iOS 26+ AlarmKit / Legacy 모두 직행)
     }
 
     @Published var stage: AlarmStage = .none {
@@ -166,7 +165,7 @@ final class AlarmCoordinator: ObservableObject {
     ) async {
         alarmLog.info("📲 [Coordinator] handleNotification 진입 — alarmId: \(alarmId), stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
         // stage 체크 + isHandling 플래그로 async 중 race condition 방지
-        guard stage == .none || stage == .stage1, !isHandling else {
+        guard stage == .none, !isHandling else {
             alarmLog.warning("⚠️ [Coordinator] 중복 호출 무시 — stage: \(String(describing: self.stage)), isHandling: \(self.isHandling)")
             return
         }
@@ -190,10 +189,9 @@ final class AlarmCoordinator: ObservableObject {
         activeSoundId        = activeAlarm?.soundId        ?? soundId
         activeVolume         = activeAlarm?.volume         ?? volume
         snoozeCount = 0
-        // Legacy(iOS 15-25): Stage1(전체화면 알람) → 유저가 종료 버튼 탭 → Stage2
-        // AlarmKit(iOS 26+): handleAlarmKitStop()에서 Stage2 직행
-        stage = .stage1
-        alarmLog.info("✅ [Coordinator] stage = .stage1 완료")
+        // Legacy(iOS 15-25) / AlarmKit(iOS 26+) 모두 Stage2 직행
+        stage = .stage2
+        alarmLog.info("✅ [Coordinator] stage = .stage2 완료 (Legacy 직행)")
 
         startAlarmFeedback()
         cancelBackupNotifications(for: alarmId)

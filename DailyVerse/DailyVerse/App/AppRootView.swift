@@ -75,15 +75,7 @@ struct AppRootView: View {
                     .transition(.opacity)
             }
 
-            // MARK: - Stage 1 — 전체화면 알람 (Legacy iOS)
-            if alarmCoordinator.stage == .stage1 {
-                AlarmStage1View()
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(30)
-            }
-
-            // MARK: - Stage 2 — 말씀+날씨 웰컴 스크린
+            // MARK: - Stage 2 — 말씀+날씨 웰컴 스크린 (iOS 26 AlarmKit / Legacy 모두 직행)
             if alarmCoordinator.stage == .stage2 {
                 AlarmStage2View()
                     .transition(.dvFade)
@@ -91,11 +83,6 @@ struct AppRootView: View {
             }
 
             #if DEBUG
-            if UserDefaults.standard.bool(forKey: "debugShowStage1") {
-                AlarmStage1View()
-                    .ignoresSafeArea()
-                    .zIndex(50)
-            }
             if UserDefaults.standard.bool(forKey: "debugShowAuthWelcome") {
                 AuthWelcomeView(onSkip: {})
                     .ignoresSafeArea()

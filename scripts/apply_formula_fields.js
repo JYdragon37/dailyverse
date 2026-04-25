@@ -114,7 +114,7 @@ async function main() {
   });
 
   console.log('\n🎉 완료! 3개 컬럼에 수식이 적용되었습니다.');
-  console.log('→ Google Sheets에서 확인 후 uploadVersesToFirestore() 또는 sync_sheets_to_firestore.js 실행하세요.');
+  console.log('→ Google Sheets에서 확인 후 uploadVersesToFirestore() 또는 sync_verses.js 실행하세요.');
 }
 
 main().catch(err => {

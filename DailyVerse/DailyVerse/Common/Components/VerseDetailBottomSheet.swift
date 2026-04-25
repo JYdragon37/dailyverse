@@ -35,7 +35,7 @@ struct VerseDetailBottomSheet: View {
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentGold)
 
-                        Text(verse.contemplationInterpretation ?? verse.interpretation)
+                        Text(verse.interpretation)
                             .font(.system(size: 17, weight: .regular))
                             .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
@@ -101,7 +101,7 @@ struct VerseDetailBottomSheet: View {
     }
 
     private var applicationWithNickname: String {
-        "\(nicknameManager.nickname), \(verse.contemplationAppliance ?? verse.application)"
+        "\(nicknameManager.nickname), \(verse.application)"
     }
 
     private var actionBar: some View {

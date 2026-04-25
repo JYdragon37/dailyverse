@@ -26,7 +26,7 @@ echo "────────────────────────�
 echo "업로드 시작..."
 echo ""
 
-node upload_backgrounds.js
+node sync_zone_backgrounds.js
 
 echo ""
 echo "───────────────────────────────"
