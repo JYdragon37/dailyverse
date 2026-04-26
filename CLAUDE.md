@@ -191,8 +191,7 @@ DailyVerse
 │
 └── 모달 / 오버레이
     ├── 알람 울림 Stage 0 (잠금화면 알림 배너)
-    ├── 알람 울림 Stage 1 (앱 진입 전체화면)
-    ├── 알람 울림 Stage 2 (웰컴 스크린)
+    ├── 알람 울림 Stage 2 (웰컴 스크린) ← iOS 26+·Legacy 모두 직행 (Stage 1 제거됨)
     ├── 말씀 상세 바텀시트
     ├── 업셀 바텀시트
     ├── 로그인 유도 바텀시트
@@ -314,30 +313,32 @@ AlarmEngineFactory.make()
 - `UNCalendarNotificationTrigger` + `.timeSensitive` 알림 배너 백업
 - 앱 강제 종료 시: UNNotification 배너 + `alarm_song.mp3` 재생
 
-### Stage 1 — 앱 내 전체화면 알람 (Legacy 전용)
-TabBar·NavigationBar 완전 숨김. 말씀 + 날씨 + 스누즈/종료 버튼.
-zIndex(30)으로 SplashView(20) 위에 표시.
+### Stage 1 — 제거됨 (2026-04-26)
+> **iOS 26+ (AlarmKit)** 은 원래부터 Stage2 직행.
+> **Legacy (iOS 15-25)** 도 Stage2 직행으로 변경. Stage1 뷰 코드 유지되나 미사용.
+> AlarmCoordinator.AlarmStage 에서 `stage1` 케이스 제거됨.
 
-### Stage 2 — 말씀 웰컴 스크린
-AlarmKit: StopIntent 후 직접 Stage2 진입 (Stage1 건너뜀).
-Legacy: Stage1 → "말씀 보기" → Stage2.
+### Stage 2 — 말씀 웰컴 스크린 (iOS 26+·Legacy 모두 직행)
 
 ```
 [감성 이미지 풀스크린]
 │
 ├── Zone 인사말 + 날짜/시간
 │
-├── 말씀 카드 (coordinator.activeVerse — 홈화면과 동일 verse)
+├── 말씀 카드
+│   ├── 말씀 텍스트 (verseFullKo)
+│   ├── 성경 참조
+│   └── "── 말씀 깊게 보기 ^" 힌트 (탭 → VerseDetailBottomSheet)
 │
 ├── 날씨 위젯
 │
-└── [♥저장] [말씀 더보기] [■ 종료]
+└── [🌙 스누즈 N분 후] [☀️ 일어나기]
 ```
 
 - `isVisible = true` 기본값 (백그라운드 렌더링 대응)
 - `dismissAll()` 2초 타임가드 (SwiftUI safeAreaInset 자동실행 버그 방지)
 - `coordinator.activeVerse` 사용 → 홈화면과 동일한 해석/일상적용 보장
-- "말씀 더보기" → `VerseDetailBottomSheet` (해석 + 오늘의 적용)
+- 스누즈: `canSnooze` false 시 버튼 비활성(opacity 0.35) — Legacy에서 Stage1 스누즈 역할 흡수
 
 ### Widget Extension (DailyVerseWidgets)
 ```

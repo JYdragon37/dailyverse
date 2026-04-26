@@ -5,6 +5,123 @@
 
 ---
 
+## 2026-04-26
+
+### AlarmStage1 제거 — iOS 15-25도 Stage2 직행
+
+**결정**: Legacy(iOS 15-25)에서도 Stage1(전체화면 알람)을 건너뛰고 Stage2(웰컴 스크린)로 직행
+
+**이유**: Stage1과 Stage2가 기능적으로 중복. Stage2 한 화면에 통합하는 것이 UX 단순화.
+
+**핵심 발견**: `AppLoadingCoordinator.fetchBackgroundImages()`가 이미 `randomElement()`로 다중 이미지를 선택하도록 구현되어 있었음 → Stage1을 지우고 Stage2에 스누즈 버튼을 추가하는 것만으로 완전 대체 가능.
+
+**변경**:
+- `AlarmCoordinator.AlarmStage` 에서 `stage1` 케이스 제거
+- `handleNotification()` guard: `stage == .none || stage == .stage1` → `stage == .none`
+- `AppRootView`: Stage1 렌더링 블록 제거
+- `AlarmStage2View`: 스누즈 버튼 추가 (`canSnooze` false 시 비활성), "말씀 깊게 보기 ^" 힌트 추가
+
+---
+
+### Zone 배경 다중 지원 + 날씨별 배경 (v7.0)
+
+**결정**: Zone 배경을 Zone당 1개 고정 → Zone당 N개 + 날씨별 선택
+
+**핵심 발견**: 앱 코드(`AppLoadingCoordinator`)가 이미 `fetchBackgroundImages()` → `randomElement()`로 다중 이미지를 지원하도록 구현되어 있었음. **앱 코드 수정 0줄**으로 데이터만 추가하면 됐음.
+
+**변경**:
+- Firestore 문서 ID: `bg_{zone_id}` 고정 → `bg_{zone_id}_{설명}` (복수 허용)
+- `BackgroundImage` 모델: `weather` 필드 추가 (all/sunny/rainy/snowy/misty/cloudy)
+- `sync_zone_backgrounds.js` v7.0: 파일명에서 zone_id·weather 자동 파싱
+- 이미지 현황: 8개 → 20개 active
+
+---
+
+### 이미지 업로드 워크플로우 표준화
+
+**결정**: 임의 폴더/스크립트 → `design_test/` 폴더 + 커맨드 파일 2개로 통일
+
+**배경**: 이미지 업로드 흐름이 복잡하고 규칙이 없어 오류 발생. 검수→리네임→업로드→삭제 전 단계를 하나의 워크플로우로 묶어야 함.
+
+**구조**:
+- `🔍 이미지 검수.command`: "검수해줘" 클립보드 복사 → Claude AI 검수+리네임
+- `🖼️ 이미지 업로드.command`: design_test/ → Storage + Sheets + Firestore + 삭제
+- `zone-image-inspector` 에이전트 v2.0: 검수 + 리네임 통합, design_test/ 기본값
+- 파일명 규칙: `bg_*`(Zone 배경) / `img_*`(감성) / `dc_img_*`(절기) 자동 분류
+
+---
+
+### daily_cards 이미지 1:N 지원
+
+**결정**: `image_id: String?` → `image_ids: [String]` (풀에서 앱이 랜덤 선택)
+
+**설계 원칙**:
+- 말씀(`verse_id`): 편집자 확정 1개 → 전체 유저 동일 (공동체 경험)
+- 이미지(`image_ids`): 풀에서 앱이 랜덤 → 유저마다 달라도 무방
+- Zone 배경: 절기일에도 변경 안 됨
+
+**추가**: `daily_card_images/` Firestore 컬렉션 신설 (`DAILY_CARDS_IMAGES` Sheets 탭, `dc_img_*` 파일 prefix)
+
+**핵심 발견**: `DailyCard.imageId`가 코드에 정의만 되어 있고 실제 어디서도 사용되지 않았음 (완전 미구현 상태). 이번에 `HomeViewModel.loadImage()` + `AlarmCoordinator.loadImage()` 두 곳에 처음으로 연결함.
+
+---
+
+### 묵상 달력 절기일 뱃지
+
+**결정**: daily_cards 등록 날짜에 달력 셀 우상단 ★ 뱃지 표시 (묵상 여부 무관)
+
+**구현**:
+- `FirestoreService.fetchHolidayDates(from:to:)`: 날짜 범위 쿼리 → active 절기일 Set 반환
+- `MeditationViewModel.holidayDates`: 28일 윈도우 로드
+- `DevotionDayDotCell`: `isHoliday` 파라미터 추가, 금색 ★ 뱃지 + 날짜 숫자 골드 강조
+
+---
+
+### 보안 전면 개선 (7개 항목)
+
+**결정**: App Store 출시 전 보안 취약점 일괄 해소
+
+**주요 결정 근거**:
+
+1. **ATS 비활성화 제거**: `NSAllowsArbitraryLoads = true`는 App Store 심사 거절 사유. HTTPS가 이미 모든 외부 API에서 지원되므로 즉시 제거 가능.
+
+2. **API 키 xcconfig 분리**: Info.plist에 하드코딩 = IPA 파일에서 3초 만에 추출 가능. `.gitignore`에 Secrets.xcconfig 등록하고 Xcode xcconfig 시스템 활용.
+
+3. **Firestore Security Rules**: 파일이 없었고 Firebase 콘솔에만 존재 → 버전 관리 불가. `firestore.rules`/`storage.rules` 파일 생성 후 서비스 계정 REST API로 직접 배포.
+
+4. **탈퇴 시 완전 삭제**: `meditation_logs/{uid}` 서브컬렉션이 미삭제 상태였음 → 개인정보보호법 위반 가능. 삭제 순서 중요: 하위 문서 → 부모 문서 순서.
+
+5. **Rate Limiting**: 클라이언트가 `verses/{id}.show_count`를 직접 업데이트 → 무제한 호출로 비용 급증·통계 조작 가능. 5분 쿨다운으로 방어.
+
+6. **SecureStorage**: 묵상 기도·감사를 UserDefaults에 저장하면 iCloud 백업에 포함. `isExcludedFromBackup = true` 디렉토리에 별도 저장.
+
+7. **CryptoKit 암호화 extension**: 기도·감사 필드 AES-GCM 암호화. 기존 평문 데이터 하위 호환 보장 (복호화 실패 시 원문 반환).
+
+**핵심 발견**: Xcode가 열려 있는 동안 외부에서 `project.pbxproj`를 수정하면 Xcode가 자기 버전으로 즉시 덮어씀 → Xcode 종료 후 수정, 또는 Xcode GUI에서 직접 설정이 유일한 방법.
+
+---
+
+### 스프레드시트 구조 전면 개편
+
+**결정**: 탭 18개 → 20개, 기능별 그룹+색상 분리, 수식 자동화
+
+**변경**:
+- 탭 그룹: 개요(회색)·데이터(초록)·분석(주황)·가이드(파랑)·로그(빨강)
+- OVERVIEW 탭 신설 (맨 왼쪽)
+- ZONE_GUIDE 탭 신설 (TAG_GUIDE에서 분리)
+- STATS: 하드코딩 → 수식 기반 자동화 (데이터 탭 실시간 참조)
+- 이미지 탭 미리보기 열 (IMAGE() 수식) + 행 높이 120px
+
+---
+
+## 알려진 미해결 이슈 업데이트 (2026-04-26)
+
+- ~~콘텐츠: peak_mode, recharge, second_wind Zone 이미지 부족~~ → 해소 (감성 이미지 95개로 증가)
+- 묵상 암호화: `MeditationEntry` extension 추가됐으나 실제 `save()/fetch()` 호출 지점에 `encrypt/decrypt` 연결 필요 (현재 미적용)
+- OpenWeatherMap API 키: Bundle ID 제한 설정 권장 (OWM 대시보드에서 수동 설정 필요)
+
+---
+
 ## 2026-04-18
 
 ### AlarmKit 잠금화면 알람 시스템 완성 (iOS 26)
@@ -106,5 +223,5 @@
 
 - Live Activity 잠금화면 권한: 온보딩에서 자연스럽게 요청하는 방법 개선 필요 (현재: 첫 알람 등록 시 자동 팝업)
 - iOS 15-25 백그라운드 서비스: 앱 완전 종료 시 알람 100% 보장 불가 (iOS 원천 한계)
-- 콘텐츠: peak_mode, recharge, second_wind Zone 이미지 부족 (각 7개 미만)
+- ~~콘텐츠: peak_mode, recharge, second_wind Zone 이미지 부족~~ → 2026-04-26 해소
 - RevenueCat API Key: 현재 유효하지 않음 (테스트 환경)
