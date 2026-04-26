@@ -37,7 +37,7 @@ const { google } = require('googleapis');
 
 const PROJECT_ID          = 'dailyverse-9260d';
 const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
-const IMAGES_DIR           = './zone-backgrounds';
+const IMAGES_DIR           = './image-assets/zone-backgrounds';
 const SHEETS_ID            = '1seUUYgtPf3iDSSl5cZrdNH63-uM9kR24QQ4FzOmLtig';
 const SHEET_NAME           = 'BACKGROUND_IMAGES';
 const SHEET_HEADERS        = [

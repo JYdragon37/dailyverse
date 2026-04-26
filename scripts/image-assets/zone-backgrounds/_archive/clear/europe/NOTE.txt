@@ -1,0 +1,2 @@
+원본 파일은 Firebase Storage에 있습니다.
+파일: florence_paris(5), greece_rome(6), prague(7) = 18개
