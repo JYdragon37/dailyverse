@@ -11,7 +11,7 @@
 | # | 카테고리 | 상태 |
 |---|----------|------|
 | 1 | 📖 콘텐츠 | ✅ 완료 |
-| 2 | 🖼 이미지 | 🔄 진행 예정 |
+| 2 | 🖼 이미지 | ✅ 완료 |
 | 3 | 🔥 Firebase / Firestore | ⬜ 대기 |
 | 4 | 📱 디바이스 / iOS 버전 | ⬜ 대기 |
 | 5 | 🔐 인증 / 계정 관리 | ⬜ 대기 |
@@ -73,7 +73,35 @@
 
 ---
 
-## 2. 🖼 이미지
+## 2. 🖼 이미지 ✅ 완료 (2026-04-27)
+
+### 딥다이브 결과
+
+| 항목 | 처리 내용 |
+|------|---------|
+| bright 톤 이미지 부족 | rise_ignite 6장 + peak_mode 8장 추가 (img_096~118) |
+| peak_mode 이미지 7개→15개 | 8장 추가 완성 |
+| recharge/second_wind 보강 | 각 5장, 4장 추가 |
+| 날씨별 Zone 배경 0개 | rainy 16개 + snowy 8개 weather 필드 완성 |
+| weather 필드 미설정 | 68개 전체 weather 컬럼 일괄 태깅 |
+| 폴더 구조 혼재 | `image-assets/` 최상위 통합 (zone-backgrounds + verse-images) |
+| Custom 출처 36개 | Genspark Commercial — 저작권 문제 없음 확인 |
+
+### 완료된 작업
+- 감성 이미지 91개 → **114개** (img_096~118, +23장)
+- Zone 배경 weather 태깅: rainy 16개, snowy 8개, misty 6개, cloudy 3개
+- snowy Zone 배경 8개 전 Zone 완성
+- `image-assets/` 폴더 구조: zone-backgrounds(날씨 상위) + verse-images(Zone 상위)
+- `.gitignore`: 이미지 파일 git 제외 (Firebase Storage에 원본)
+- `sync_zone_backgrounds.js` 경로 업데이트
+
+### 남은 이슈 (낮은 우선순위)
+- deep_dark/first_light/golden_hour/wind_down 감성 이미지 추가 가능 (현재 충분)
+- peak_mode/recharge snowy 배경 품질 개선 가능 (현재 통과)
+
+---
+
+### 원래 문제 분석
 
 | 문제 | 규모 | 대응 |
 |------|------|------|
