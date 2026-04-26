@@ -18,7 +18,14 @@ DerivedData/
 *.dSYM
 scripts/serviceAccountKey.json
 scripts/.env
-scripts/verse-images/
+# 이미지 아카이브 — Firebase Storage에 원본 있음, git 불필요
+scripts/image-assets/**/*.jpg
+scripts/image-assets/**/*.jpeg
+scripts/image-assets/**/*.png
+scripts/image-assets/**/*.webp
+# _archive 폴더 내 .gitkeep은 추적 (빈 폴더 구조 유지)
+!scripts/image-assets/**/.gitkeep
+# 구 경로 (하위 호환)
 scripts/zone-backgrounds/*.jpg
 scripts/zone-backgrounds/*.jpeg
 scripts/node_modules/
