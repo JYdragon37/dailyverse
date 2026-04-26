@@ -550,6 +550,7 @@
 				2887A4186DE41DB9975868C3 /* Assets.xcassets */,
 				9F1124A5D5A07D73CD794346 /* DailyVerse.entitlements */,
 				D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */,
+				AABB00112233445566778899 /* Secrets.xcconfig */,
 				7FB57E993FB06DBAF7CFF87F /* Info.plist */,
 				D158AF08A88AAD5B7F1DFDD2 /* App */,
 				FD5BC6EC12A37458E2C0B051 /* Common */,
