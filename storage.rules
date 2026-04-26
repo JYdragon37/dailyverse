@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─── 이미지 (공개 읽기) ────────────────────────────────────
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;  // 운영자만 (Admin SDK 사용)
+    }
+
+    match /backgrounds/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /background_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /daily_card_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

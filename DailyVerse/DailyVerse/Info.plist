@@ -39,15 +39,30 @@
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>OPENWEATHER_API_KEY</key>
-	<string>1fd0b74dbc916987213ea8ac4b596376</string>
+	<string>$(OPENWEATHER_API_KEY)</string>
 	<key>AIRKOREA_API_KEY</key>
-	<string>Mm87QYoZnDniZE0L1qBopn9I%2F%2F4gS2f4%2FVY14CzgBOx0DjB4pogtFF5fzJhkoaxEgqFrM0NTDA8u90wp1qgnQQ%3D%3D</string>
+	<string>$(AIRKOREA_API_KEY)</string>
 	<key>OPENAI_API_KEY</key>
 	<string>$(OPENAI_API_KEY)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>api.openweathermap.org</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<key>apis.data.go.kr</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSSupportsLiveActivities</key>
 	<true/>

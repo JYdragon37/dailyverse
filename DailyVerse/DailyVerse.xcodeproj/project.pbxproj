@@ -10,6 +10,7 @@
 		072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */; };
 		0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D5E70C69EA9646472CD1B /* ImageService.swift */; };
 		180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */; };
+		AA11BB22CC33DD4400000002 /* SecureStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD4400000001 /* SecureStorage.swift */; };
 		1C528303133A7B7C61EA6749 /* DailyCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2371090B1783F0C645407C54 /* DailyCacheManager.swift */; };
 		1C7A6A263D4A72ACF334B82B /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24AF2F893CA3C34B471EA3B /* User.swift */; };
 		1C911E1A79B015F16C4E0331 /* DailyVerse.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9356419B0560D5E2317D7077 /* DailyVerse.xcdatamodeld */; };
@@ -176,6 +177,7 @@
 		0D19195F4D72F84907257DAB /* VerseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseRepository.swift; sourceTree = "<group>"; };
 		0F264955BC54625E7CABE9A9 /* DVPostAlarmAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DVPostAlarmAttributes.swift; path = Shared/DVPostAlarmAttributes.swift; sourceTree = SOURCE_ROOT; };
 		1088954EE2EEAAFEBD2A13A7 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD4400000001 /* SecureStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStorage.swift; sourceTree = "<group>"; };
 		2371090B1783F0C645407C54 /* DailyCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCacheManager.swift; sourceTree = "<group>"; };
 		243625CDCB337E4190D69BD9 /* AlarmCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCoordinator.swift; sourceTree = "<group>"; };
 		24B1CA7D5CFA2423CC4A620C /* DailyVerseUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -511,6 +513,7 @@
 				243625CDCB337E4190D69BD9 /* AlarmCoordinator.swift */,
 				293F17253F05FCB2A946935F /* AuthManager.swift */,
 				2371090B1783F0C645407C54 /* DailyCacheManager.swift */,
+				AA11BB22CC33DD4400000001 /* SecureStorage.swift */,
 				CD34EF5678901234AB12CD34 /* NicknameManager.swift */,
 				08FC86AE7A2393C7D93F45FD /* OfflineFallbackManager.swift */,
 				267C4F08D42D76E708D0EE80 /* PermissionManager.swift */,
@@ -874,6 +877,7 @@
 				ABAD21462387E6F363957263 /* CoachMarkOverlay.swift in Sources */,
 				CE9BAF78EB60C4EAA003FCB3 /* Color+DailyVerse.swift in Sources */,
 				1C528303133A7B7C61EA6749 /* DailyCacheManager.swift in Sources */,
+				AA11BB22CC33DD4400000002 /* SecureStorage.swift in Sources */,
 				1C911E1A79B015F16C4E0331 /* DailyVerse.xcdatamodeld in Sources */,
 				54DFC37858E45A30BBF880C0 /* DailyVerseApp.swift in Sources */,
 				737915491CC78A7C0B23171A /* DailyVerseCache.swift in Sources */,

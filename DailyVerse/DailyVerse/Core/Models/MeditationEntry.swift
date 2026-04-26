@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 // MARK: - MeditationEntry
 // 하루 1개 묵상 기록. dateKey가 Firestore 문서 ID 겸용.
@@ -123,5 +124,41 @@ struct PrayerItem: Identifiable, Codable, Hashable {
         case text
         case isAnswered  = "is_answered"
         case answeredAt  = "answered_at"
+    }
+}
+
+// MARK: - 기도·감사 필드 암호화 (CryptoKit AES-GCM)
+
+extension MeditationEntry {
+
+    /// 앱 번들 ID + UID 조합으로 결정론적 키 생성
+    /// 같은 기기·같은 유저는 항상 같은 키를 가짐
+    static func encryptionKey(userId: String) -> SymmetricKey {
+        let bundleId = Bundle.main.bundleIdentifier ?? "morning.manna"
+        let seed = "\(bundleId).\(userId).meditation.v1"
+        let seedData = Data(seed.utf8)
+        let hash = SHA256.hash(data: seedData)
+        return SymmetricKey(data: hash)
+    }
+
+    static func encrypt(_ text: String, key: SymmetricKey) -> String {
+        guard !text.isEmpty,
+              let data = text.data(using: .utf8),
+              let sealed = try? AES.GCM.seal(data, using: key) else {
+            return text  // 암호화 실패 시 원문 반환 (하위 호환)
+        }
+        return sealed.combined?.base64EncodedString() ?? text
+    }
+
+    static func decrypt(_ text: String, key: SymmetricKey) -> String {
+        // Base64 디코딩 실패 = 이미 평문 (이전 데이터 하위 호환)
+        guard !text.isEmpty,
+              let data = Data(base64Encoded: text),
+              let sealed = try? AES.GCM.SealedBox(combined: data),
+              let decrypted = try? AES.GCM.open(sealed, using: key),
+              let result = String(data: decrypted, encoding: .utf8) else {
+            return text  // 평문 그대로 반환
+        }
+        return result
     }
 }

@@ -39,3 +39,6 @@ scripts/fix_verses_sheets.js
 # AI 이미지 생성 zip 다운로드
 "AI Image Generation_*.zip"
 DailyVerse_iPhone_Wallpapers_*.zip
+
+# API Keys (xcconfig)
+**/Secrets.xcconfig

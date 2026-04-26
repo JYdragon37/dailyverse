@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── 헬퍼 함수 ────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // ─── 콘텐츠 컬렉션 (읽기 전용) ─────────────────────────────
+    // 말씀, 이미지, 배경, 인사말, 절기 등 운영자만 수정
+    match /verses/{verseId} {
+      allow read: if true;
+      // show_count, last_shown 은 인증된 유저만 increment 허용
+      allow update: if isAuth()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['show_count', 'last_shown']);
+      allow create, delete: if false;
+    }
+
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /background_images/{imageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /daily_card_images/{imageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /greetings/{greetingId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /alarm_greetings/{greetingId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /daily_cards/{dateId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /daily_card_events/{eventId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /zone_guide/{zoneId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /writing_guide/{guideId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /app_config/{configId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /content_changelog/{changeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─── 전역 통계 ─────────────────────────────────────────────
+    // 인증된 유저만 increment 가능, 임의 값 설정 불가
+    match /verse_stats/{verseId} {
+      allow read: if isAuth();
+      // total_shown, last_updated, zone_breakdown.* 만 서버 increment 허용
+      allow create, update: if isAuth()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['total_shown', 'last_updated', 'zone_breakdown',
+                      'verse_id']);
+      allow delete: if false;
+    }
+
+    // ─── 유저 데이터 (본인만 읽기/쓰기) ────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      // recent_verse_ids, pinned_images, settings 필드만 클라이언트 수정 허용
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['recent_verse_ids', 'pinned_images', 'settings',
+                      'display_name', 'subscription_status',
+                      'subscription_expire_at']);
+      allow delete: if isOwner(userId);
+    }
+
+    // ─── 저장한 말씀 (본인만) ────────────────────────────────────
+    match /saved_verses/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ─── 묵상 기록 (본인만) ──────────────────────────────────────
+    match /meditation_logs/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

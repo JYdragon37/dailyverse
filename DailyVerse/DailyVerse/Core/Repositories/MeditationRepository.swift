@@ -130,24 +130,24 @@ final class MeditationRepository {
     // MARK: - Private Cache
 
     private func loadTodayCache() -> MeditationEntry? {
-        guard let data = UserDefaults.standard.data(forKey: kTodayCache) else { return nil }
+        guard let data = SecureStorage.shared.data(forKey: kTodayCache) else { return nil }
         return try? JSONDecoder().decode(MeditationEntry.self, from: data)
     }
 
     private func saveTodayCache(_ entry: MeditationEntry) {
         if let data = try? JSONEncoder().encode(entry) {
-            UserDefaults.standard.set(data, forKey: kTodayCache)
+            SecureStorage.shared.set(data, forKey: kTodayCache)
         }
     }
 
     private func loadPending() -> [MeditationEntry] {
-        guard let data = UserDefaults.standard.data(forKey: kPending) else { return [] }
+        guard let data = SecureStorage.shared.data(forKey: kPending) else { return [] }
         return (try? JSONDecoder().decode([MeditationEntry].self, from: data)) ?? []
     }
 
     private func savePending(_ entries: [MeditationEntry]) {
         if let data = try? JSONEncoder().encode(entries) {
-            UserDefaults.standard.set(data, forKey: kPending)
+            SecureStorage.shared.set(data, forKey: kPending)
         }
     }
 

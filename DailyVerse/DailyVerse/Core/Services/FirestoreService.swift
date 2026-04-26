@@ -4,6 +4,10 @@ import FirebaseFirestore
 class FirestoreService {
     private let db = Firestore.firestore()
 
+    // MARK: - Rate Limiting (통계 쓰기 남용 방지)
+    private var lastVerseStatUpdate: [String: Date] = [:]
+    private let verseStatCooldown: TimeInterval = 300  // 5분 쿨다운
+
     // MARK: - Verses
 
     func fetchVerses() async throws -> [Verse] {
@@ -22,6 +26,14 @@ class FirestoreService {
 
     /// v5.1 — 말씀 노출 후 last_shown + show_count 업데이트 (하위 호환 유지)
     func markVerseAsShown(verseId: String) async {
+        // Rate limit: 동일 말씀은 5분 내 재업데이트 방지
+        let now = Date()
+        let key = "mark_\(verseId)"
+        if let last = lastVerseStatUpdate[key], now.timeIntervalSince(last) < verseStatCooldown {
+            return
+        }
+        lastVerseStatUpdate[key] = now
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let today = formatter.string(from: Date())
@@ -43,6 +55,14 @@ class FirestoreService {
     /// 말씀 노출 후 유저 이력 추가 + 전역 verse_stats 업데이트
     /// - recentIds: 현재 유저의 이력 (FIFO, max 30)
     func recordVerseShown(verseId: String, userId: String, zone: String, currentIds: [String]) async {
+        // Rate limit: 동일 말씀+유저 조합은 5분 내 재기록 방지
+        let now = Date()
+        let key = "record_\(userId)_\(verseId)"
+        if let last = lastVerseStatUpdate[key], now.timeIntervalSince(last) < verseStatCooldown {
+            return
+        }
+        lastVerseStatUpdate[key] = now
+
         // 유저 이력: 최신 verseId 앞에 추가, max 30개 유지
         var updated = [verseId] + currentIds.filter { $0 != verseId }
         if updated.count > 30 { updated = Array(updated.prefix(30)) }
@@ -264,11 +284,23 @@ class FirestoreService {
     }
 
     func deleteUserData(uid: String) async throws {
+        // 1. saved_verses 삭제
         let savedVerses = try await db.collection("saved_verses")
             .document(uid).collection("verses").getDocuments()
         for doc in savedVerses.documents {
             try await doc.reference.delete()
         }
+        try? await db.collection("saved_verses").document(uid).delete()
+
+        // 2. meditation_logs 삭제 (기도·감사 개인 데이터)
+        let meditationEntries = try await db.collection("meditation_logs")
+            .document(uid).collection("entries").getDocuments()
+        for doc in meditationEntries.documents {
+            try await doc.reference.delete()
+        }
+        try? await db.collection("meditation_logs").document(uid).delete()
+
+        // 3. users 문서 삭제
         try await db.collection("users").document(uid).delete()
     }
 
