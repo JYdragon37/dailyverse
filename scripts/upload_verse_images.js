@@ -102,6 +102,7 @@ admin.initializeApp({
   storageBucket: `${PROJECT_ID}.firebasestorage.app`,
 });
 const db = admin.firestore(), bucket = admin.storage().bucket();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용
 
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 

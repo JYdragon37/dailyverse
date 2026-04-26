@@ -17,6 +17,7 @@ if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(require(SERVICE_ACCOUNT_PATH)) });
 }
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 
 // ── 수정 데이터 정의 ─────────────────────────────────────────────
 const PATCHES = [

@@ -15,6 +15,7 @@ if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 
 // ─── devotion_question 데이터 (verse ID → question) ──────────────────────────
 // 각 질문은 해당 말씀의 핵심 메시지와 연결되며, 닉네임 없이 저장됩니다.

@@ -40,6 +40,9 @@ struct SavedView: View {
             if authManager.isLoggedIn, let userId = authManager.userId {
                 await viewModel.loadSavedVerses(userId: userId)
             }
+            // Free 유저용 전면 광고 사전 로드
+            // TODO: 출시 전 isPremium 조건 복구
+            AdManager.shared.loadInterstitialAd()
         }
         .sheet(item: $selectedVerse) { savedVerse in
             SavedDetailView(savedVerse: savedVerse) {
@@ -66,6 +69,29 @@ struct SavedView: View {
             } else if !isLoggedIn {
                 viewModel.savedVerses = []
             }
+        }
+    }
+
+    // MARK: - 카드 탭 처리 (Free 유저: 전면 광고 → 상세 / Premium: 바로 상세)
+
+    // TODO: 출시 전 isPremium 조건 복구 — 현재 전체 계정 전면 광고 표시
+    private func handleCardTap(_ verse: SavedVerse) {
+        let rootVC = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.rootViewController.flatMap { vc -> UIViewController? in
+                var top = vc
+                while let presented = top.presentedViewController { top = presented }
+                return top
+            }
+
+        if let vc = rootVC, AdManager.shared.isInterstitialReady {
+            AdManager.shared.showInterstitialAd(from: vc) {
+                Task { @MainActor in
+                    selectedVerse = verse
+                }
+            }
+        } else {
+            selectedVerse = verse
         }
     }
 
@@ -125,20 +151,37 @@ struct SavedView: View {
                 emptyStateFilteredEmpty
                     .padding(.top, 60)
             } else {
-                LazyVGrid(columns: gridColumns, spacing: 12) {
-                    ForEach(viewModel.filteredVerses) { savedVerse in
-                        SavedCardView(
-                            savedVerse: savedVerse,
-                            isPremium: subscriptionManager.isPremium,
-                            onTap: { selectedVerse = savedVerse },
-                            onDelete: {
-                                Task {
-                                    if let userId = authManager.userId {
-                                        await viewModel.deleteSavedVerse(savedVerse, userId: userId)
+                let verses = viewModel.filteredVerses
+                LazyVStack(spacing: 0) {
+                    ForEach(Array(stride(from: 0, to: verses.count, by: 6)), id: \.self) { start in
+                        let chunk = Array(verses[start..<min(start + 6, verses.count)])
+                        let isLast = start + 6 >= verses.count
+
+                        LazyVGrid(columns: gridColumns, spacing: 12) {
+                            ForEach(chunk) { savedVerse in
+                                SavedCardView(
+                                    savedVerse: savedVerse,
+                                    isPremium: subscriptionManager.isPremium,
+                                    onTap: { handleCardTap(savedVerse) },
+                                    onDelete: {
+                                        Task {
+                                            if let userId = authManager.userId {
+                                                await viewModel.deleteSavedVerse(savedVerse, userId: userId)
+                                            }
+                                        }
                                     }
-                                }
+                                )
                             }
-                        )
+                        }
+                        .padding(.bottom, 12)
+
+                        // 6개마다 배너 (TODO: 출시 전 isPremium 조건 복구)
+                        if !isLast {
+                            BannerAdView()
+                                .frame(width: 300, height: 250)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)

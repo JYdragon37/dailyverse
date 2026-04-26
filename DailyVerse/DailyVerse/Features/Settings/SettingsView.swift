@@ -65,6 +65,13 @@ struct SettingsView: View {
                     // ── 피드백 ──────────────────────────────
                     sectionCard(title: "피드백") { feedbackRows }
 
+                    // ── 광고 배너 (TODO: 출시 전 isPremium 조건 복구) ──
+                    BannerAdView()
+                        .frame(width: 300, height: 250)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+
                     // ── 계정 관리 (로그인 시만, 최하단) ────
                     if authManager.isLoggedIn {
                         sectionCard(title: "계정 관리") { accountRows }

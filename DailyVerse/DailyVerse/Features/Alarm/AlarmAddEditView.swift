@@ -9,6 +9,7 @@ struct AlarmAddEditView: View {
     let onSave: (Alarm) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     // MARK: State
     @State private var selectedTime: Date
@@ -179,21 +180,14 @@ struct AlarmAddEditView: View {
                     }
                 }
 
-                // ── 광고 영역 ──
+                // ── 광고 영역 (TODO: 출시 전 isPremium 조건 복구) ──
                 Section {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.secondary.opacity(0.08))
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
-                        VStack(spacing: 6) {
-                            Image(systemName: "rectangle.fill.on.rectangle.fill").font(.system(size: 22)).foregroundColor(.secondary.opacity(0.5))
-                            Text("광고 영역").font(.system(size: 13, weight: .medium)).foregroundColor(.secondary)
-                            Text("300 × 250").font(.system(size: 11)).foregroundColor(.secondary.opacity(0.6))
-                        }
-                        .padding(.vertical, 24)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    BannerAdView()
+                        .frame(width: 300, height: 250)
+                        .frame(maxWidth: .infinity)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 } header: { Text("광고").font(.dvSectionTitle) }
 
                 // ── 주제 (4개 고정, 광고 아래) ──

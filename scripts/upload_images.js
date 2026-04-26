@@ -149,6 +149,7 @@ function initFirebase() {
   const serviceAccount = require(path.resolve(SERVICE_ACCOUNT_PATH));
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+admin.firestore().settings({ preferRest: true });  // gRPC 대신 REST 사용
     storageBucket: `${PROJECT_ID}.firebasestorage.app`,
   });
   return {

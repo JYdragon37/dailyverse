@@ -22,6 +22,7 @@
 		2B661F0350764A885C968D0B /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC5DCA569D0C1CE12E3C454 /* HomeViewModel.swift */; };
 		2D9B45A27985A88D21366BE7 /* Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3664800DCA8F54718AE0379 /* Alarm.swift */; };
 		3029BA70D7CD43CDE21BEFBC /* VerseDetailBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */; };
+		36558612A6FEB06C45809A64 /* BannerAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068EB732B3F70AFFB01FF016 /* BannerAdView.swift */; };
 		3033E570B28C2E74B3A645F9 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 01C2BCC9A543DD3A4F7C632B /* GoogleMobileAds */; };
 		307B5303579AD7DEC0BBAEAC /* SavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4556EFE58C2885CCFA3408 /* SavedViewModel.swift */; };
 		3473ED13E82E2A5C0FD505C5 /* AlarmStage1View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */; };
@@ -202,6 +203,7 @@
 		6CCAE0832E8DD982979CF5FA /* DailyVerseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseCache.swift; sourceTree = "<group>"; };
 		6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseDetailBottomSheet.swift; sourceTree = "<group>"; };
+		068EB732B3F70AFFB01FF016 /* BannerAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdView.swift; sourceTree = "<group>"; };
 		7F004FBA3779E9B8B11DF240 /* SavedVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVerse.swift; sourceTree = "<group>"; };
 		7FB57E993FB06DBAF7CFF87F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		81782BC3F5931801D8A784E9 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
@@ -420,6 +422,7 @@
 				A73D43781D887A90FC6FD043 /* ToastView.swift */,
 				8FF6B9D4FD3198F96F2C9EAC /* UpsellBottomSheet.swift */,
 				7A9F93D57146B07FB2964768 /* VerseDetailBottomSheet.swift */,
+				068EB732B3F70AFFB01FF016 /* BannerAdView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -948,6 +951,7 @@
 				CA4D31D463254471B4A8EED1 /* Verse.swift in Sources */,
 				629F14B1D0E6653F5176D72D /* VerseCardView.swift in Sources */,
 				3029BA70D7CD43CDE21BEFBC /* VerseDetailBottomSheet.swift in Sources */,
+				36558612A6FEB06C45809A64 /* BannerAdView.swift in Sources */,
 				61ADA793F70325E02C8C84D0 /* VerseImage.swift in Sources */,
 				E9F81CAAC8D2EBE9B9460986 /* VerseRepository.swift in Sources */,
 				84C61F6A5DDEF488E8E180CF /* VerseSelector.swift in Sources */,

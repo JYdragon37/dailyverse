@@ -58,34 +58,9 @@ struct VerseDetailBottomSheet: View {
                     }
 
                     // 4. 광고 슬롯 (Medium Rectangle 300×250)
-                    ZStack {
-                        // 광고 플레이스홀더 박스 — 광고 로드 전 / 미게재 시 표시
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.white.opacity(0.04))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(
-                                        Color.white.opacity(0.10),
-                                        style: StrokeStyle(lineWidth: 1, dash: [4, 4])
-                                    )
-                            )
-                            .frame(width: 300, height: 250)
-                            .overlay(
-                                VStack(spacing: 6) {
-                                    Image(systemName: "rectangle.and.pencil.and.ellipsis")
-                                        .font(.system(size: 22))
-                                        .foregroundColor(.white.opacity(0.20))
-                                    Text("AD")
-                                        .font(.system(size: 11, weight: .semibold))
-                                        .tracking(2)
-                                        .foregroundColor(.white.opacity(0.15))
-                                }
-                            )
-
-                        VerseBannerAdView()
-                    }
-                    .frame(width: 300, height: 250)
-                    .padding(.top, 8)
+                    BannerAdView()
+                        .frame(width: 300, height: 250)
+                        .padding(.top, 8)
 
                     Spacer(minLength: 100)
                 }
@@ -186,32 +161,7 @@ struct VerseDetailBottomSheet: View {
     }
 }
 
-// MARK: - AdMob 배너 광고 (Medium Rectangle 300×250)
-
-private struct VerseBannerAdView: UIViewRepresentable {
-
-    // TODO: 프로덕션 배포 전 실제 Ad Unit ID로 교체
-    // 현재: AdMob 테스트 ID (실제 광고 미게재)
-    // 실제 ID 예시: "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
-    private let adUnitID = "ca-app-pub-3940256099942544/2934735716"  // 테스트 ID
-
-    func makeUIView(context: Context) -> GADBannerView {
-        let banner = GADBannerView(adSize: GADAdSizeMediumRectangle)
-        banner.adUnitID = adUnitID
-        banner.rootViewController = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?.windows.first?.rootViewController
-        banner.load(GADRequest())
-        return banner
-    }
-
-    func updateUIView(_ uiView: GADBannerView, context: Context) {}
-
-    // 300×250 고정 크기
-    static func dismantleUIView(_ uiView: GADBannerView, coordinator: ()) {
-        uiView.removeFromSuperview()
-    }
-}
+// BannerAdView → Common/Components/BannerAdView.swift 참조
 
 // MARK: - iOS 버전 호환 Corner Radius Modifier
 

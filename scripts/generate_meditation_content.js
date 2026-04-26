@@ -10,6 +10,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 
 // 101개 말씀 묵상 콘텐츠
 const versesWithContent = [

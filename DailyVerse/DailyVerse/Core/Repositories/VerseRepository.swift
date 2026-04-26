@@ -93,13 +93,12 @@ actor VerseRepository {
             }
         }
 
-        // 3. 오늘의 말씀 선택 (캐시 없을 때만 — 결정론적, 유저 이력 제외 없음)
+        // 3. 오늘의 말씀 선택 (캐시 없을 때만 — Zone 무관, 전체 풀에서 결정론적 선택)
+        // Zone 필터 제거: 새벽 4시 캐시 리셋 시 어떤 Zone에서 열어도 동일한 풀 사용
         if let verses = try? await fetchVerses() {
             if let v = cachedVerseIfExists() { return v }
 
-            // per-user 제외 없음: daily verse는 모든 화면이 동일해야 함
-            // (per-user 제외는 nextVerse()에서만 적용)
-            if let selected = selector.select(from: verses, mode: mode, weather: weather) {
+            if let selected = selector.selectDailyVerse(from: verses, weather: weather) {
                 cacheManager.setVerseId(selected.id, for: mode)
                 Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
                 return selected

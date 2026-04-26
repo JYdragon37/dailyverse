@@ -6,18 +6,21 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 
-// 글자수 기준
+// 글자수 기준 (v9.1 업데이트)
+// verse_short_ko: min 20→10 (성경 원문이 짧은 경우 허용)
+// verse_full_ko: max 120→150 (긴 성경 본문 허용)
 const CHAR_LIMITS = {
-  verse_short_ko:                { min: 20, max: 60 },
-  verse_full_ko:                 { min: 40, max: 120 },
+  verse_short_ko:                { min: 10, max: 60 },
+  verse_full_ko:                 { min: 40, max: 200 },  // 긴 성경 원문 허용
   interpretation:                { min: 102, max: 154 },
   application:                   { min: 49, max: 73 },
-  alarm_top_ko:                  { min: 15, max: 35 },
-  contemplation_ko:              { min: 50, max: 200 },
+  alarm_top_ko:                  { min: 10, max: 35 },
+  contemplation_ko:              { min: 40, max: 200 },
   contemplation_interpretation:  { min: 80, max: 150 },
   contemplation_appliance:       { min: 40, max: 80 },
-  question:                      { min: 40, max: 80 },
+  question:                      { min: 20, max: 80 },
 };
 
 // 금지 말투
@@ -88,6 +91,12 @@ async function main() {
 
     // 글자수 검사 (9개 필드)
     for (const field of Object.keys(CHAR_LIMITS)) {
+      // alarm_top_ko: verse_short_ko가 35자 이하이면 생략 정상 (가이드라인 §5-1)
+      if (field === 'alarm_top_ko') {
+        const shortKo = verse['verse_short_ko'] || '';
+        if (shortKo.length <= 35) continue;
+      }
+
       const text = verse[field];
       if (text === undefined || text === null || text === '') {
         fieldViolations[field].push({

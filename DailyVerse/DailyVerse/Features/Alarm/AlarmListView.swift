@@ -6,6 +6,7 @@ import Combine
 struct AlarmListView: View {
     @StateObject private var viewModel = AlarmViewModel()
     @EnvironmentObject private var permissionManager: PermissionManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     @State private var todayVerse: Verse?
     @State private var showMaxAlarmsAlert = false
@@ -110,6 +111,16 @@ struct AlarmListView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+            }
+
+            // [광고] 알람 목록 하단 배너 (TODO: 출시 전 isPremium 조건 복구)
+            Section {
+                SmartBannerAdView()
+                    .frame(width: 320, height: 50)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 20, trailing: 20))
             }
         }
         .listStyle(.plain)
@@ -439,8 +450,12 @@ private struct AlarmEmptyStateView: View {
 }
 
 #Preview("알람 있음") {
-    AlarmListView().environmentObject(PermissionManager())
+    AlarmListView()
+        .environmentObject(PermissionManager())
+        .environmentObject(SubscriptionManager())
 }
 #Preview("알람 없음") {
-    AlarmListView().environmentObject(PermissionManager())
+    AlarmListView()
+        .environmentObject(PermissionManager())
+        .environmentObject(SubscriptionManager())
 }

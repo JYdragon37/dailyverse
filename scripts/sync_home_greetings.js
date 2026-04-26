@@ -13,6 +13,7 @@ if (!admin.apps.length) {
     });
 }
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 
 // Sheets 인증
 const sheetsAuth = new google.auth.GoogleAuth({

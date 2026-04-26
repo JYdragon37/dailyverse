@@ -114,7 +114,9 @@ function initFirebase() {
       storageBucket: `${PROJECT_ID}.firebasestorage.app`,
     });
   }
-  return { db: admin.firestore(), bucket: admin.storage().bucket() };
+  const _db = admin.firestore();
+  _db.settings({ preferRest: true });
+  return { db: _db, bucket: admin.storage().bucket() };
 }
 
 async function initSheets() {

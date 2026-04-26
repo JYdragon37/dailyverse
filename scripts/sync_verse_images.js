@@ -46,6 +46,7 @@ admin.initializeApp({
   storageBucket: `${PROJECT_ID}.firebasestorage.app`,
 });
 const db     = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST 사용 (로컬 TLS 우회)
 const bucket = admin.storage().bucket();
 
 // ─── Google Sheets 읽기 ────────────────────────────────────────────────────

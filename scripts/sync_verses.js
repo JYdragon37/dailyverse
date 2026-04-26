@@ -24,13 +24,14 @@ const SHEET_NAME = 'VERSES';
 const ARRAY_FIELDS    = ['mode', 'theme', 'mood', 'season', 'weather', 'avoid_themes'];
 const INT_FIELDS      = ['chapter', 'verse', 'usage_count', 'cooldown_days', 'show_count'];
 const BOOL_FIELDS     = ['curated', 'is_sacred_safe'];
-const NULLABLE_FIELDS = ['alarm_text_ko', 'last_shown', 'notes', 'source_url'];
+const NULLABLE_FIELDS = ['alarm_text_ko', 'last_shown', 'notes', 'source_url', 'question', 'alarm_top_ko'];
 
 // ─── 초기화 ────────────────────────────────────────────────────────────────
 
 const serviceAccount = require(path.resolve(SERVICE_ACCOUNT_PATH));
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
+db.settings({ preferRest: true });  // gRPC 대신 REST API 사용 (로컬 TLS 이슈 우회)
 
 // ─── Google Sheets 읽기 ────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ async function getSheetData() {
   const sheets = google.sheets({ version: 'v4', auth });
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SHEET_ID,
-    range: `${SHEET_NAME}!A:Z`,
+    range: `${SHEET_NAME}!A:AZ`,  // AZ까지 확장 — question(AA) 등 Z 이후 컬럼 포함
   });
   return response.data.values || [];
 }

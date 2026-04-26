@@ -2,7 +2,23 @@ import Foundation
 
 class VerseSelector {
 
-    /// 현재 Zone + 날씨 기반으로 최적 말씀 선택
+    /// 오늘의 말씀 선택 — Zone 필터 없이 전체 풀에서 선택 (하루 1개 결정론적)
+    /// daily_cards 없을 때 호출. 어떤 Zone에서 앱을 열어도 동일한 풀 사용.
+    func selectDailyVerse(from verses: [Verse], weather: WeatherData?,
+                          excludingUserHistory recentIds: Set<String> = []) -> Verse? {
+        // Zone 필터 없음 — active + curated 전체 풀
+        let base = verses.filter { $0.status == "active" && $0.curated == true }
+
+        var pool = base.filter { !recentIds.contains($0.id) && $0.isEligible }
+        if pool.isEmpty { pool = base.filter { !recentIds.contains($0.id) } }
+        if pool.isEmpty { pool = base }
+
+        guard !pool.isEmpty else { return nil }
+        // 스코어링: mode 없으므로 weather/season만 적용
+        return scoreDailyVerse(pool, weather: weather)
+    }
+
+    /// 현재 Zone + 날씨 기반으로 최적 말씀 선택 (다음 말씀, 알람 전용)
     /// v6.0: 8-zone 기준, theme/mood "all" 지원
     /// v6.1: 유저별 최근 이력(recentIds) 기반 중복 노출 최소화
     /// 스코어링: 테마 +3, 분위기 +2, 날씨 +2, 계절 +1, 선호 테마 +5, 전역 인기 -1/10회
@@ -38,6 +54,32 @@ class VerseSelector {
     }
 
     // MARK: - Private
+
+    /// Daily verse 전용 스코어링 — Zone 무관, weather/season + 선호 테마만 반영
+    private func scoreDailyVerse(_ verses: [Verse], weather: WeatherData?) -> Verse? {
+        let currentSeason   = currentSeasonTag()
+        let currentWeather  = weather?.condition ?? "any"
+        let preferredThemes: [String] = {
+            guard let data = UserDefaults.standard.data(forKey: "preferredThemes"),
+                  let themes = try? JSONDecoder().decode([String].self, from: data) else { return [] }
+            return themes
+        }()
+
+        let scored: [(Verse, Int)] = verses.map { verse in
+            var score = 0
+            if verse.weather.contains(currentWeather) || verse.weather.contains("any") { score += 2 }
+            if verse.season.contains(currentSeason)   || verse.season.contains("all")  { score += 1 }
+            if !preferredThemes.isEmpty && !Set(verse.theme).isDisjoint(with: Set(preferredThemes)) {
+                score += 5
+            }
+            return (verse, score)
+        }
+
+        let maxScore  = scored.map { $0.1 }.max() ?? 0
+        let topVerses = scored.filter { $0.1 == maxScore }.map { $0.0 }.sorted { $0.id < $1.id }
+        guard !topVerses.isEmpty else { return nil }
+        return topVerses[Self.dailySeedIndex(count: topVerses.count)]
+    }
 
     private func score(_ verses: [Verse], mode: AppMode, weather: WeatherData?) -> Verse? {
         let currentThemes = mode.themes
