@@ -68,7 +68,9 @@ function initFirebase() {
     credential: admin.credential.cert(serviceAccount),
     storageBucket: STORAGE_BUCKET,
   });
-  return { db: admin.firestore(), bucket: admin.storage().bucket() };
+  const _db = admin.firestore();
+  _db.settings({ preferRest: true });
+  return { db: _db, bucket: admin.storage().bucket() };
 }
 
 // ── 대상 파일 수집 ─────────────────────────────────────────────────────────────
