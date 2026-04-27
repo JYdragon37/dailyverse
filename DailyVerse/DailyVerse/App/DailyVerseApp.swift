@@ -60,10 +60,7 @@ struct DailyVerseApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if ProcessInfo.processInfo.environment["TEXT_LIMIT_TEST"] == "1" {
-                TextLimitTestView()
-            } else {
-                AppRootView()
+            AppRootView()
                     // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
                     .onOpenURL { url in
                         // dailyverse://alarm-stop?id=UUID — Live Activity 버튼 탭
@@ -149,7 +146,6 @@ struct DailyVerseApp: App {
                             NotificationCenter.default.post(name: .dvLowPowerModeWarning, object: nil)
                         }
                     }
-            }
         }
     }
 }
