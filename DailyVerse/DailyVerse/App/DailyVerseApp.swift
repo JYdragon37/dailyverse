@@ -95,12 +95,7 @@ struct DailyVerseApp: App {
                         if let email = authManager.user?.email {
                             await subscriptionManager.checkMasterAccount(email: email)
                         }
-                        // Q3: ATT(앱 추적 투명성) 팝업 — AdMob 타겟팅 광고 허용 요청
-                        // 앱 UI 로드 후 1초 딜레이 (Apple 권장: 컨텍스트 제공 후 요청)
-                        if #available(iOS 14, *) {
-                            try? await Task.sleep(for: .seconds(1))
-                            await ATTrackingManager.requestTrackingAuthorization()
-                        }
+                        // ATT 팝업은 첫 알람 저장 시점으로 이동 (AlarmViewModel.saveAlarm)
                     }
                     .onReceive(
                         NotificationCenter.default.publisher(

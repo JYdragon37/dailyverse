@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import AlarmKit
 import FirebaseAnalytics
+import AppTrackingTransparency
 
 @MainActor
 final class AlarmViewModel: ObservableObject {
@@ -53,6 +54,7 @@ final class AlarmViewModel: ObservableObject {
 
     func saveAlarm(_ alarm: Alarm) {
         let isNew = !alarms.contains(where: { $0.id == alarm.id })
+        let isFirstEver = isNew && alarms.isEmpty
         do {
             try alarmRepository.save(alarm)
             // Analytics: 신규 생성 vs 수정 구분
@@ -74,6 +76,13 @@ final class AlarmViewModel: ObservableObject {
             AlarmBackgroundService.shared.rescheduleTimers()
             loadAlarms()
             showSavedToast(for: alarm)
+            // ATT 팝업 — 첫 알람 저장 시점 (광고 컨텍스트와 자연스럽게 연결)
+            if isFirstEver, !UserDefaults.standard.bool(forKey: "attRequested") {
+                UserDefaults.standard.set(true, forKey: "attRequested")
+                if #available(iOS 14, *) {
+                    Task { await ATTrackingManager.requestTrackingAuthorization() }
+                }
+            }
         } catch {
             toastMessage = "알람 저장에 실패했습니다."
         }

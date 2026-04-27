@@ -38,11 +38,17 @@ struct HomeView: View {
                     GeometryReader { geo in
                         let w = geo.size.width
                         let hPad = max(w * 0.13, 40.0)
-                        verseCenter(verse: verse)
-                            .padding(.horizontal, hPad)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.53)
+                        VStack(alignment: .leading, spacing: 0) {
+                            // 말씀 시작 위치: 화면 33%에 상단 고정 (인사말 길이 무관)
+                            Spacer().frame(height: geo.size.height * 0.33)
+                            // ScrollView: 긴 말씀(150자+)이 탭바 아래로 밀릴 때 스크롤로 보완
+                            ScrollView(.vertical, showsIndicators: false) {
+                                verseCenter(verse: verse)
+                                    .padding(.horizontal, hPad)
+                                    .padding(.bottom, 100) // 탭바 여백
+                            }
+                        }
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .leading)
                     }
                 } else {
                     // 로딩 스켈레톤 — 말씀이 아직 로드되지 않은 동안 표시

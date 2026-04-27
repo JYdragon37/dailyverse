@@ -60,17 +60,24 @@ struct AlarmStage2View: View {
                     .padding(.top, 60)
                     .padding(.horizontal, 28)
             }
-            // 말씀 카드: 화면 중앙(48% 지점)에 배치
+            // 말씀 카드: 화면 50% 상단 고정 (헤더에 로고+시간 포함으로 HomeView보다 낮게)
             .overlay {
                 if let verse = todayVerse {
                     GeometryReader { geo in
                         let w = geo.size.width
                         let hPad = max(w * 0.13, 40.0)
-                        verseCenter(verse: verse)
-                            .padding(.horizontal, hPad)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .position(x: geo.size.width / 2,
-                                      y: geo.size.height * 0.58)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Spacer().frame(height: geo.size.height * 0.50)
+                            // ScrollView: 긴 말씀이 액션 버튼 영역을 침범할 때 스크롤로 보완
+                            // 하단 Spacer(110pt)로 [스누즈/일어나기] 버튼 항상 노출 보장
+                            ScrollView(.vertical, showsIndicators: false) {
+                                verseCenter(verse: verse)
+                                    .padding(.horizontal, hPad)
+                                    .padding(.bottom, 16)
+                            }
+                            Spacer().frame(height: 110) // 액션바(~90pt) + 여백 확보
+                        }
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .leading)
                     }
                 }
             }

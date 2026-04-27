@@ -49,7 +49,7 @@
 	<key>ADMOB_REWARDED_ID</key>
 	<string>$(ADMOB_REWARDED_ID)</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>관심사에 맞는 광고를 보여드리기 위해 사용됩니다. 동의하지 않아도 광고는 표시되지만 덜 관련성이 높을 수 있습니다.</string>
+	<string>morning manna를 무료로 유지하기 위해 광고를 사용합니다. 허용하시면 말씀의 감동과 어울리는 광고를 보여드려요.</string>
 	<key>OPENAI_API_KEY</key>
 	<string>$(OPENAI_API_KEY)</string>
 	<key>NSAppTransportSecurity</key>
