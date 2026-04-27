@@ -6,7 +6,7 @@ import GoogleSignIn
 import AppTrackingTransparency
 import OSLog
 
-private let appLog = Logger(subsystem: "com.dailyverse", category: "DailyVerseApp")
+private let appLog = Logger(subsystem: "com.morningmanna.app", category: "DailyVerseApp")
 
 @main
 struct DailyVerseApp: App {

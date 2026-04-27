@@ -6,7 +6,7 @@ import ActivityKit
 import SwiftUI
 import OSLog
 
-private let kitLog = Logger(subsystem: "com.dailyverse", category: "AlarmKitEngine")
+private let kitLog = Logger(subsystem: "com.morningmanna.app", category: "AlarmKitEngine")
 
 // DVPostAlarmAttributes는 Shared/DVPostAlarmAttributes.swift에 정의됨
 // (양쪽 타겟 공유 — unsupportedTarget 에러 방지)

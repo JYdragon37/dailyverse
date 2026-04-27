@@ -36,7 +36,7 @@ final class OfflineFallbackManager: Sendable {
     func isOffline() async -> Bool {
         await withCheckedContinuation { continuation in
             let monitor = NWPathMonitor()
-            let queue = DispatchQueue(label: "com.dailyverse.offline-check")
+            let queue = DispatchQueue(label: "com.morningmanna.app.offline-check")
             monitor.pathUpdateHandler = { path in
                 monitor.cancel()
                 continuation.resume(returning: path.status != .satisfied)

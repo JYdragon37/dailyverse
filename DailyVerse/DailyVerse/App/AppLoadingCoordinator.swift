@@ -212,7 +212,7 @@ final class AppLoadingCoordinator: ObservableObject {
     private func checkConnectivity() async -> Bool {
         await withCheckedContinuation { continuation in
             let monitor = NWPathMonitor()
-            let queue = DispatchQueue(label: "com.dailyverse.connectivity-check")
+            let queue = DispatchQueue(label: "com.morningmanna.app.connectivity-check")
             monitor.pathUpdateHandler = { path in
                 monitor.cancel()
                 continuation.resume(returning: path.status != .satisfied)

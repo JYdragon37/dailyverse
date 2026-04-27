@@ -6,7 +6,7 @@ import ActivityKit
 import AlarmKit
 import FirebaseAnalytics
 
-private let alarmLog = Logger(subsystem: "com.dailyverse", category: "AlarmCoordinator")
+private let alarmLog = Logger(subsystem: "com.morningmanna.app", category: "AlarmCoordinator")
 
 @MainActor
 final class AlarmCoordinator: ObservableObject {

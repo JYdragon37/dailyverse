@@ -5,7 +5,7 @@ import UserNotifications
 import UIKit
 import OSLog
 
-private let bgLog = Logger(subsystem: "com.dailyverse", category: "AlarmBackground")
+private let bgLog = Logger(subsystem: "com.morningmanna.app", category: "AlarmBackground")
 
 // MARK: - LegacyAlarmEngine (iOS 15–25)
 
