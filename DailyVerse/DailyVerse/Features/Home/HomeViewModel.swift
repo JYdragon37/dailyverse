@@ -163,7 +163,7 @@ final class HomeViewModel: ObservableObject {
                     showToast("저장되었습니다")
                 } catch {
                     isSavedCurrentVerse = wasSaved  // 실패 시 롤백
-                    showToast("저장에 실패했습니다. 다시 시도해주세요")
+                    showToast("저장에 실패했어요. 다시 시도해주세요")
                 }
             }
         }
@@ -185,7 +185,7 @@ final class HomeViewModel: ObservableObject {
                 isSavedCurrentVerse = true
                 showToast("저장되었습니다")
             } catch {
-                showToast("저장에 실패했습니다. 다시 시도해주세요")
+                showToast("저장에 실패했어요. 다시 시도해주세요")
             }
         }
     }

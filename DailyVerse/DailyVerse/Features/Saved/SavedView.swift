@@ -217,14 +217,11 @@ struct SavedView: View {
             Spacer()
 
             // mm 브랜드 로고
-            Text("mm")
-                .font(.custom("DancingScript-Regular", size: 72).weight(.bold))
-                .foregroundColor(.dvAccentGold.opacity(0.75))
-                .padding(.bottom, 4)
-
-            Text("morning manna")
-                .font(.custom("DancingScript-Regular", size: 16))
-                .foregroundColor(.white.opacity(0.35))
+            Image("LogoMMWhite")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 60)
+                .opacity(0.75)
                 .padding(.bottom, 28)
 
             Text("저장한 말씀이 여기에 모여요")
@@ -265,14 +262,11 @@ struct SavedView: View {
             Spacer()
 
             // mm 브랜드 로고
-            Text("mm")
-                .font(.custom("DancingScript-Regular", size: 72).weight(.bold))
-                .foregroundColor(.dvAccentGold.opacity(0.75))
-                .padding(.bottom, 4)
-
-            Text("morning manna")
-                .font(.custom("DancingScript-Regular", size: 16))
-                .foregroundColor(.white.opacity(0.35))
+            Image("LogoMMWhite")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 60)
+                .opacity(0.75)
                 .padding(.bottom, 28)
 
             Text("아직 저장된 말씀이 없어요")

@@ -14,7 +14,7 @@
 | 2 | 🖼 이미지 | ✅ 완료 |
 | 3 | 🔥 Firebase / Firestore | ✅ 완료 |
 | 4 | 📱 디바이스 / iOS 버전 | ✅ 완료 |
-| 5 | 🔐 인증 / 계정 관리 | ⬜ 대기 |
+| 5 | 🔐 인증 / 계정 관리 | ✅ 완료 |
 | 6 | ⏰ 알람 시스템 | ⬜ 대기 |
 | 7 | 💰 수익화 / 광고 | ⬜ 대기 |
 | 8 | 🚀 성능 / 속도 | ⬜ 대기 |
@@ -184,15 +184,39 @@
 
 ---
 
-## 5. 🔐 인증 / 계정 관리
+## 5. 🔐 인증 / 계정 관리 ✅ 완료 (2026-04-27)
+
+### 딥다이브 결과
+
+| 항목 | 처리 내용 |
+|------|---------|
+| 이메일 로그인 dead code | ✅ `signUpWithEmail`, `signInWithEmail` 메서드 제거 (앱스토어 심사 리스크 해소) |
+| Google 동일 이메일 충돌 | ✅ Firebase 에러 17012 → 친화적 에러 메시지 추가 |
+| 말씀 저장 실패 토스트 | ✅ 이미 구현됨, 문구 통일 ("저장에 실패했어요. 다시 시도해주세요") |
+| LoginPromptSheet 이메일 버튼 | ✅ 제거 (Google/Apple 2종만 표시) |
+| Apple 버튼 가시성 | ✅ 흰색 배경 + 검정 텍스트 (명확하게 보임) |
+| SavedView 빈 화면 로고 | ✅ DancingScript 텍스트 → `Image("LogoMMWhite")` 교체 |
+
+### 완료된 작업
+- `AuthManager.swift`: `signUpWithEmail`, `signInWithEmail` 제거
+- `AuthManager.signInWithGoogle()`: Firebase 17012 에러 → "이미 다른 방법으로 가입된 이메일이에요" 메시지
+- `HomeViewModel.swift`: 저장 실패 토스트 문구 통일
+- `LoginPromptSheet.swift`: 이메일 버튼 제거, Apple 버튼 흰색 배경으로 가시성 개선
+- `SavedView.swift`: 비로그인/빈 상태 로고를 `Image("LogoMMWhite")`로 교체 (두 곳)
+
+### 남은 이슈 (낮은 우선순위)
+- Apple Sign-In 정책 변경: Apple Developer 공지 모니터링 필요
+- 탈퇴 후 재가입 시 이전 saved_verses 복구 불가: 탈퇴 전 경고 문구로 대응 중
+- EmailAuthView.swift: LoginPromptSheet에서 분리됐으나 파일 자체 남아있음 → 심사 전 삭제 검토
+
+### 원래 문제 분석
 
 | 문제 | 규모 | 대응 |
 |------|------|------|
 | **Apple Sign-In 정책 변경** | Apple 요구사항 변경 시 앱 심사 거절 | Apple Developer 공지 구독 |
-| **Google Sign-In 계정 연동 충돌** | Apple + Google 동일 이메일 사용자가 각각 로그인 시 데이터 분리 | Firebase Auth 계정 연결(link) 처리 로직 구현 필요 |
+| **Google Sign-In 계정 연동 충돌** | Apple + Google 동일 이메일 → Firebase 17012 에러 | ✅ 친화적 에러 메시지 추가 |
 | **탈퇴 후 재가입** | uid 바뀌므로 이전 saved_verses 복구 불가 | 탈퇴 전 경고 문구 강화 |
-| **세션 만료 처리** | Firebase Auth 토큰 만료 시 조용히 실패 | 토큰 갱신 실패 → 자동 재로그인 유도 처리 |
-| **비로그인 유저 전환율** | 저장 기능 사용 안 하는 유저는 계정 없이 사용 | 저장 버튼 탭 시 로그인 유도 UX 개선 |
+| **이메일 로그인 dead code** | 앱스토어 심사 거절 리스크 | ✅ 코드 제거 완료 |
 
 ---
 

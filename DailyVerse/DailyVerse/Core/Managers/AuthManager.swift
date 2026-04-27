@@ -42,30 +42,6 @@ class AuthManager: ObservableObject {
     var isLoggedIn: Bool { user != nil }
     var userId: String? { user?.uid }
 
-    // MARK: - Email Auth
-
-    /// 이메일/비밀번호 회원가입
-    func signUpWithEmail(email: String, password: String) async {
-        do {
-            let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            // Firestore 유저 문서 생성
-            try? await FirestoreService().createUser(uid: result.user.uid, email: email, displayName: email.components(separatedBy: "@").first ?? "")
-            await MainActor.run { authError = nil }
-        } catch {
-            await MainActor.run { authError = error.localizedDescription }
-        }
-    }
-
-    /// 이메일/비밀번호 로그인
-    func signInWithEmail(email: String, password: String) async {
-        do {
-            _ = try await Auth.auth().signIn(withEmail: email, password: password)
-            await MainActor.run { authError = nil }
-        } catch {
-            await MainActor.run { authError = error.localizedDescription }
-        }
-    }
-
     /// Google Sign-In (GoogleSignIn-iOS SDK + Firebase Auth)
     func signInWithGoogle() async {
         guard let clientID = FirebaseApp.app()?.options.clientID else {
@@ -101,8 +77,13 @@ class AuthManager: ObservableObject {
                 try? await FirestoreService().createUser(uid: authResult.user.uid, email: email, displayName: displayName)
             }
             authError = nil
-        } catch {
-            authError = error.localizedDescription
+        } catch let error as NSError {
+            // 동일 이메일로 다른 인증 방식이 이미 존재하는 경우 (Firebase 에러 코드 17012)
+            if error.code == 17012 {
+                authError = "이미 다른 방법으로 가입된 이메일이에요. 기존 로그인 방식을 사용해주세요"
+            } else {
+                authError = error.localizedDescription
+            }
         }
     }
 
