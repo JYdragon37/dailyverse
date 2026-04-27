@@ -80,29 +80,19 @@
 
 ## 🔧 출시 전 필수
 
-- [ ] **Firestore minimum_version 문서 생성**
-  > Firebase 콘솔 → Firestore → `app_config` 컬렉션 → `minimum_version` 문서 생성
-  > 필드: `ios` (String) = `"1.0.0"`, `force_update` (Boolean) = `false`
-  > 치명적 버그 발생 시 `force_update: true` + `ios` 버전 올리면 앱스토어 강제 이동
+- [x] **Firestore minimum_version 문서 생성** ✅ 완료
+  > `ios: "1.0.0"`, `force_update: false` — 스크립트로 생성됨 (setup_app_config.js)
 
-- [ ] **Firestore 마스터 계정 문서 생성**
-  > Firebase 콘솔 → Firestore → `app_config` 컬렉션 → `master_accounts` 문서 생성
-  > 필드: `emails` (Array) = `["huhjungyong@gmail.com", "highkick370@gmail.com"]`
-  > 추후 이메일 추가/삭제는 Firebase 콘솔에서 직접 수정 (앱 업데이트 불필요)
+- [x] **Firestore 마스터 계정 문서 생성** ✅ 완료
+  > `emails: ["huhjungyong@gmail.com", "highkick370@gmail.com"]` — 스크립트로 생성됨
 
-- [ ] **이용약관·개인정보처리방침 Notion 페이지 생성 + URL 교체**
-  > 1. Notion에서 "morning manna 이용약관" 공개 페이지 생성
-  > 2. Notion에서 "morning manna 개인정보처리방침" 공개 페이지 생성
-  >    - 수집 항목: Firebase Analytics(사용패턴), Crashlytics(오류로그), AdMob(광고 ID)
-  >    - 보관 기간, 제3자 제공 내역(Google Firebase, Google AdMob), 삭제 방법 포함
-  > 3. 각 페이지 웹 공개 링크 추출
-  > 4. `SettingsView.swift` 라인 343, 354의 `example.com/terms`, `example.com/privacy` 교체
-  > ⚠️ 앱스토어 심사 전 필수
+- [x] **이용약관·개인정보처리방침 GitHub Pages 생성 + URL 교체** ✅ 완료
+  > `docs/legal/terms.html`, `docs/legal/privacy.html` 생성 완료
+  > SettingsView URL 교체 완료 → `https://jydragon37.github.io/dailyverse/legal/`
+  > ⚠️ GitHub Pages 활성화 필요: 리포지토리 Settings → Pages → main 브랜치 → /docs 폴더 → Save
 
-- [ ] **PrivacyInfo.xcprivacy Xcode 타겟에 추가**
-  > 파일 생성 완료: `DailyVerse/DailyVerse/PrivacyInfo.xcprivacy`
-  > Xcode에서: File > Add Files to "DailyVerse" > PrivacyInfo.xcprivacy 선택 > Target "DailyVerse" 체크
-  > ⚠️ 앱스토어 심사 전 필수
+- [x] **PrivacyInfo.xcprivacy Xcode 타겟에 추가** ✅ 완료
+  > project.pbxproj Python 스크립트로 자동 추가됨 (괄호 균형 검증 완료)
 
 - [ ] **App Store 리뷰 링크 ID 교체** — `SettingsView.swift` 라인 377
   > 현재: `https://apps.apple.com/app/id0` (더미값)
@@ -115,18 +105,15 @@
 
 - [x] **GADApplicationIdentifier 교체** ✅ 완료 — ca-app-pub-9794385634652581~2135671376
 
-- [ ] **isPremium 광고 조건 복구** (테스트 기간 제거한 5곳)
-  > `docs/ad-placement.plan.md` TODO 위치 참고
+- [x] **isPremium 광고 조건 복구** ✅ 완료 (Category 11에서 처리)
 
 - [ ] **개인정보처리방침 · 이용약관 URL** — `example.com` 플레이스홀더 교체
-  > `SettingsView.swift` 내 URL 2곳
-  > 실제 호스팅된 페이지 필요 (notion 공개 페이지도 가능)
+  > `SettingsView.swift` 라인 343, 354
+  > 실제 호스팅된 페이지 필요 (notion 공개 페이지도 가능) — 아래 항목과 동일
 
-- [ ] **개역한글 출처 표기** — SettingsView 앱 정보 섹션에 추가
-  > "성경 본문: 개역한글, 대한성서공회"
+- [x] **개역한글 출처 표기** ✅ 완료 (Category 10에서 처리)
 
-- [ ] **ATT(App Tracking Transparency) 팝업** 구현
-  > iOS 14.5+ 광고 추적 허용 팝업 — 미구현 시 App Store 심사 거절
+- [x] **ATT(App Tracking Transparency) 팝업** ✅ 완료 (Category 7에서 처리)
 
 - [ ] **앱스토어 리뷰 URL** 교체
   > `SettingsView.swift` 내 `https://apps.apple.com/app/id0` → 실제 앱 ID

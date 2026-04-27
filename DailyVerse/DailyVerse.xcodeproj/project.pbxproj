@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		50C4F4512F98E2C44DC6953F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0255BD562184832681E0B7C9 /* PrivacyInfo.xcprivacy */; };
+
 		072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */; };
 		180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */; };
 		1C528303133A7B7C61EA6749 /* DailyCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2371090B1783F0C645407C54 /* DailyCacheManager.swift */; };
@@ -166,6 +168,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0255BD562184832681E0B7C9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xcprivacy; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+
 		01850BB01382CF53BBB11601 /* VerseSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseSelector.swift; sourceTree = "<group>"; };
 		08AE01E46992F03B9036C5D7 /* VerseCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseCardView.swift; sourceTree = "<group>"; };
 		08FC86AE7A2393C7D93F45FD /* OfflineFallbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineFallbackManager.swift; sourceTree = "<group>"; };
@@ -551,6 +555,7 @@
 				9F1124A5D5A07D73CD794346 /* DailyVerse.entitlements */,
 				D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */,
 				7FB57E993FB06DBAF7CFF87F /* Info.plist */,
+				0255BD562184832681E0B7C9 /* PrivacyInfo.xcprivacy */,
 				D158AF08A88AAD5B7F1DFDD2 /* App */,
 				FD5BC6EC12A37458E2C0B051 /* Common */,
 				2613FCE9FF92BCB617BD0A18 /* Core */,
@@ -823,6 +828,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				50C4F4512F98E2C44DC6953F /* PrivacyInfo.xcprivacy in Resources */,
 				274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */,
 				180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */,
 				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,

@@ -342,7 +342,7 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var appInfoRows: some View {
-        Link(destination: URL(string: "https://example.com/terms")!) {
+        Link(destination: URL(string: "https://jydragon37.github.io/dailyverse/legal/terms.html")!) {
             row(icon: "doc.text.fill", iconColor: Color(hex: "#8B8B9A"), title: "이용약관") {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
@@ -353,7 +353,7 @@ struct SettingsView: View {
 
         rowDivider
 
-        Link(destination: URL(string: "https://example.com/privacy")!) {
+        Link(destination: URL(string: "https://jydragon37.github.io/dailyverse/legal/privacy.html")!) {
             row(icon: "lock.shield.fill", iconColor: Color(hex: "#5E9CF5"), title: "개인정보처리방침") {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
