@@ -12,7 +12,7 @@
 |---|----------|------|
 | 1 | 📖 콘텐츠 | ✅ 완료 |
 | 2 | 🖼 이미지 | ✅ 완료 |
-| 3 | 🔥 Firebase / Firestore | ⬜ 대기 |
+| 3 | 🔥 Firebase / Firestore | ✅ 완료 |
 | 4 | 📱 디바이스 / iOS 버전 | ⬜ 대기 |
 | 5 | 🔐 인증 / 계정 관리 | ⬜ 대기 |
 | 6 | ⏰ 알람 시스템 | ⬜ 대기 |
@@ -113,7 +113,31 @@
 
 ---
 
-## 3. 🔥 Firebase / Firestore
+## 3. 🔥 Firebase / Firestore ✅ 완료 (2026-04-27)
+
+### 딥다이브 결과
+
+| 항목 | 처리 내용 |
+|------|---------|
+| Spark → Blaze 전환 | ✅ 이미 완료 |
+| fetchVerses() 비용 (~$96/월) | ✅ 버전 기반 캐시 도입 → ~$2~3/월 |
+| fetchImages() 비용 | 세션 내 캐시 유지 (cold start만 118 reads — 허용) |
+| recent_verse_ids writes | 다음 말씀 버튼 없어 recordVerseShown() 미호출 — 비용 미미 |
+| saved_verses 읽기 패턴 | 저장 수만큼 reads, 상세는 Core Data 우선 — 문제 없음 |
+| Firestore 보안 규칙 | ✅ 이미 올바르게 설정됨 |
+
+### 완료된 작업
+- `VerseRepository.fetchVerses()` v7.0: 버전 체크(1 read) → Core Data → Firestore
+- `FirestoreService.fetchRawContentVersion()` 추가
+- `DailyCacheManager.loadAllCachedVerses()` 추가
+
+### 예상 비용 (1만 유저)
+- 이전: ~4,000,000 reads/일 → $96/월
+- 이후: ~20,000 reads/일 → $2~3/월
+
+---
+
+### 원래 문제 분석
 
 | 문제 | 규모 | 대응 |
 |------|------|------|
