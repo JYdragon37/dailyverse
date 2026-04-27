@@ -18,4 +18,6 @@ extension Notification.Name {
     static let dvAlarmSaved = Notification.Name("dvAlarmSaved")
     /// 묵상 수정 완료 — MeditationEntryDetailView의 showEditFlow = false 트리거
     static let dvMeditationEditCompleted = Notification.Name("dvMeditationEditCompleted")
+    /// 저전력 모드 활성화 — 알람 미작동 경고 토스트 트리거
+    static let dvLowPowerModeWarning = Notification.Name("dvLowPowerModeWarning")
 }

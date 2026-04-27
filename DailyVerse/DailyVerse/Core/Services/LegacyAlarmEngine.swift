@@ -316,6 +316,19 @@ final class LegacyAlarmEngine: AlarmEngine {
                 }
             }
         }
+        // Q4: 등록 완료 후 현재 UNNotification 개수 콘솔 출력 (64개 한도 추적)
+        LegacyAlarmEngine.logPendingNotificationCount()
+    }
+
+    // MARK: - UNNotification 개수 로그 (Q4: 64개 한도 추적)
+
+    /// 현재 등록된 UNNotification 개수를 Xcode 콘솔에 출력
+    /// 알람 미작동 신고 시 원인 파악용 — 서버 전송 없음
+    static func logPendingNotificationCount() {
+        Task {
+            let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+            bgLog.info("📊 [LegacyAlarmEngine] UNNotification 등록 개수: \(pending.count)/64\(pending.count >= 60 ? " ⚠️ 한도 근접" : "")")
+        }
     }
 
     func cancel(alarmId: UUID) async throws {
@@ -388,6 +401,32 @@ final class AlarmBackgroundService {
         #if DEBUG
         print("🔇 [BgService] 포그라운드 복귀 — silentPlayer 중지, alarmPlaying=\(alarmPlaying)")
         #endif
+    }
+
+    /// 콘텐츠 버전 변경 감지 시 모든 알람 알림 재등록 (Q3: 버전 업 후 배너 말씀 최신화)
+    /// - cachedVerseContentVersion과 alarmNotificationRegisteredVersion이 다르면 재등록 실행
+    /// - 재등록 후 alarmNotificationRegisteredVersion을 최신 버전으로 갱신
+    func reregisterIfVersionChanged() {
+        let currentVersion    = UserDefaults.standard.string(forKey: "cachedVerseContentVersion") ?? ""
+        let registeredVersion = UserDefaults.standard.string(forKey: "alarmNotificationRegisteredVersion") ?? ""
+        guard !currentVersion.isEmpty, currentVersion != registeredVersion else { return }
+
+        bgLog.info("🔄 [BgService] 콘텐츠 버전 변경 감지 (\(registeredVersion) → \(currentVersion)) — 알람 알림 재등록 시작")
+        let alarms = AlarmRepository().fetchAll().filter { $0.isEnabled }
+        for alarm in alarms {
+            let mode = AppMode.fromTime(alarm.time)
+            let verse: Verse
+            if let id = DailyCacheManager.shared.getVerseId(for: mode),
+               let v  = DailyCacheManager.shared.loadCachedVerse(id: id) {
+                verse = v
+            } else {
+                verse = OfflineFallbackManager.shared.fallbackVerse(for: mode)
+            }
+            NotificationManager.shared.cancel(alarmId: alarm.id)
+            NotificationManager.shared.schedule(alarm, verse: verse)
+        }
+        UserDefaults.standard.set(currentVersion, forKey: "alarmNotificationRegisteredVersion")
+        bgLog.info("✅ [BgService] 알람 알림 재등록 완료 — \(alarms.count)개 알람, version: \(currentVersion)")
     }
 
     /// 알람 추가·수정·삭제 후 타이머 재갱신

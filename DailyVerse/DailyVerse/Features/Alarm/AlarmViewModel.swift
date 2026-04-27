@@ -27,6 +27,19 @@ final class AlarmViewModel: ObservableObject {
         self.alarmRepository = alarmRepository
         self.notificationManager = notificationManager
         self.verseRepository = verseRepository
+
+        // Q2: 저전력 모드 활성화 시 경고 토스트
+        NotificationCenter.default.addObserver(
+            forName: .dvLowPowerModeWarning,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.toastMessage = "저전력 모드에서는 알람이 작동하지 않을 수 있어요"
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(4))
+                self?.toastMessage = nil
+            }
+        }
     }
 
     // MARK: - Load

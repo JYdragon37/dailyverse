@@ -15,7 +15,7 @@
 | 3 | 🔥 Firebase / Firestore | ✅ 완료 |
 | 4 | 📱 디바이스 / iOS 버전 | ✅ 완료 |
 | 5 | 🔐 인증 / 계정 관리 | ✅ 완료 |
-| 6 | ⏰ 알람 시스템 | ⬜ 대기 |
+| 6 | ⏰ 알람 시스템 | ✅ 완료 |
 | 7 | 💰 수익화 / 광고 | ⬜ 대기 |
 | 8 | 🚀 성능 / 속도 | ⬜ 대기 |
 | 9 | 📞 CS / 유저 응대 | ⬜ 대기 |
@@ -220,13 +220,31 @@
 
 ---
 
-## 6. ⏰ 알람 시스템
+## 6. ⏰ 알람 시스템 ✅ 완료 (2026-04-27)
+
+### 딥다이브 결과
+
+| 항목 | 처리 내용 |
+|------|---------|
+| 알람 배너 말씀 고착 | 허용 범위 (Stage2는 항상 최신 말씀 표시) |
+| 저전력 모드 알람 미작동 | ✅ 경고 토스트 추가 — AlarmViewModel observer |
+| 콘텐츠 업데이트 후 알람 재등록 | ✅ scenePhase.active 시 버전 변경 감지 → 자동 재등록 |
+| UNNotification 64개 한도 추적 | ✅ schedule() 완료 후 콘솔 로그 (`📊 UNNotification 등록 개수: N/64`) |
+
+### 완료된 작업
+- `Notification+DailyVerse.swift`: `.dvLowPowerModeWarning` 추가
+- `DailyVerseApp.swift`: `NSProcessInfoPowerStateDidChangeNotification` 감지 → `.dvLowPowerModeWarning` 포스트
+- `DailyVerseApp.swift`: `scenePhase == .active` 시 `AlarmBackgroundService.shared.reregisterIfVersionChanged()` 호출
+- `AlarmBackgroundService.reregisterIfVersionChanged()`: `cachedVerseContentVersion` 변경 감지 → 알람 알림 일괄 재등록
+- `AlarmViewModel.init()`: `.dvLowPowerModeWarning` 수신 시 4초 경고 토스트
+- `LegacyAlarmEngine.schedule()`: 등록 완료 후 `logPendingNotificationCount()` 호출 (Xcode 콘솔 전용)
+
+### 남은 이슈 (낮은 우선순위)
 
 | 문제 | 규모 | 대응 |
 |------|------|------|
 | **알람 미작동 신고** | 가장 많이 들어올 CS 이슈. 배터리 최적화·권한 설정 등 복합 원인 | FAQ에 자가진단 가이드 필수. 권한 체크 화면 개선 |
 | **스누즈 엣지케이스** | 스누즈 3회 제한이 엣지케이스에서 무한 반복 가능성 | `snoozeCount` 검증 로직 단위 테스트 |
-| **알람 소리 끊김** | Legacy 백그라운드 오디오 루프가 앱 업데이트/재시작 시 끊김 | `LegacyAlarmEngine` 재시작 복구 로직 검증 |
 | **타임존 이슈** | 해외 교민 유저 발생 시 타임존 처리 오류 | 서버사이드 타임존 기록 추가 권장 |
 | **알람 3개 제한 컴플레인** | "왜 3개밖에 못 만드나요?" CS 이슈 예상 | 제한 이유를 UI에 설명 문구로 추가 |
 

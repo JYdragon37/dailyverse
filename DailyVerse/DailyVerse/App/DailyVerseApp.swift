@@ -3,6 +3,9 @@ import Firebase
 import RevenueCat
 import GoogleMobileAds
 import GoogleSignIn
+import OSLog
+
+private let appLog = Logger(subsystem: "com.dailyverse", category: "DailyVerseApp")
 
 @main
 struct DailyVerseApp: App {
@@ -110,6 +113,7 @@ struct DailyVerseApp: App {
                             // iOS 26: 앱 활성화 시 타이머만 재갱신 (무음루프 없음)
                             if phase == .active {
                                 AlarmBackgroundService.shared.rescheduleTimers()
+                                AlarmBackgroundService.shared.reregisterIfVersionChanged()
                             }
                             return
                         }
@@ -118,8 +122,20 @@ struct DailyVerseApp: App {
                             AlarmBackgroundService.shared.start()
                         case .active:
                             AlarmBackgroundService.shared.stop()
+                            AlarmBackgroundService.shared.reregisterIfVersionChanged()
                         default:
                             break
+                        }
+                    }
+                    // Q2: 저전력 모드 감지 → 알람 미작동 경고 토스트
+                    .onReceive(
+                        NotificationCenter.default.publisher(
+                            for: NSProcessInfo.processInfoPowerStateDidChangeNotification
+                        )
+                    ) { _ in
+                        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+                            appLog.warning("⚠️ 저전력 모드 활성화 — 알람 백그라운드 미작동 가능성")
+                            NotificationCenter.default.post(name: .dvLowPowerModeWarning, object: nil)
                         }
                     }
             }
