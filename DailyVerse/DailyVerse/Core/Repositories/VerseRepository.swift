@@ -58,6 +58,8 @@ actor VerseRepository {
         }
         let versesToCache = verses
         await MainActor.run { versesToCache.forEach { cacheManager.cacheVerse($0) } }
+        // Q2: 버전 변경 시 이미지 디스크 캐시 클리어 → 새 이미지 URL 반영
+        await MainActor.run { ImageDiskCache.shared.clearAll() }
         return verses
     }
 

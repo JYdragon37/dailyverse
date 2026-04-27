@@ -41,13 +41,17 @@ final class AppLoadingCoordinator: ObservableObject {
     // MARK: - Start
 
     func start() async {
-        // Stage 1: 스플래시 (1.5초 — 애니메이션 전체 완료 최소 시간: Phase1~3 = 1.12s + 버퍼)
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        // Stage 2 캐시 확인을 먼저 — 딜레이 분기에 활용
+        let hasCached = cacheManager.hasValidCache()
+
+        // Stage 1: 스플래시
+        // - 캐시 히트(재방문): 1.0초 (애니메이션 Phase1~3 = 1.12s 이내 완료)
+        // - 캐시 미스(첫 방문): 1.5초 (로딩 인디케이터 표시 여유)
+        let splashDuration: UInt64 = hasCached ? 1_000_000_000 : 1_500_000_000
+        try? await Task.sleep(nanoseconds: splashDuration)
         state = .loading
 
-        // Stage 2: 캐시 확인 (동기, @MainActor 안에서 직접 호출)
-        // + 배경 이미지 비동기 로드
-        let hasCached = cacheManager.hasValidCache()
+        // Stage 2: 배경 이미지 비동기 로드
         async let zoneLoad: Void = loadZoneBackground()
         async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
         _ = await (zoneLoad, goldenLoad)

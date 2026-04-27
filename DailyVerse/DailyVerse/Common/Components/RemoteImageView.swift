@@ -109,6 +109,8 @@ final class ImageDiskCache {
     static let shared = ImageDiskCache()
 
     private let memoryCache = NSCache<NSString, UIImage>()
+    /// 디스크 캐시 최대 용량 (50MB) — 초과 시 오래된 파일부터 삭제
+    private let maxDiskBytes: Int = 50 * 1024 * 1024
 
     private let cacheDir: URL = {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -147,6 +149,36 @@ final class ImageDiskCache {
         guard let data = image.jpegData(compressionQuality: 0.8) else { return }
         let filePath = cacheDir.appendingPathComponent(key)
         try? data.write(to: filePath, options: .atomic)
+
+        // Q3: 50MB 한도 초과 시 오래된 파일부터 삭제 (LRU)
+        evictIfNeeded()
+    }
+
+    /// 디스크 캐시가 maxDiskBytes 초과 시 수정일 기준 오래된 파일부터 삭제
+    private func evictIfNeeded() {
+        guard let files = try? FileManager.default.contentsOfDirectory(
+            at: cacheDir, includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey]
+        ) else { return }
+
+        var totalSize = 0
+        var fileInfos: [(url: URL, size: Int, modified: Date)] = []
+        for file in files {
+            let size = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+            let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+            totalSize += size
+            fileInfos.append((url: file, size: size, modified: modified))
+        }
+
+        guard totalSize > maxDiskBytes else { return }
+
+        // 오래된 파일부터 삭제
+        let sorted = fileInfos.sorted { $0.modified < $1.modified }
+        var remaining = totalSize
+        for info in sorted {
+            guard remaining > maxDiskBytes else { break }
+            try? FileManager.default.removeItem(at: info.url)
+            remaining -= info.size
+        }
     }
 
     func clearAll() {
