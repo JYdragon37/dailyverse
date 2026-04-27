@@ -138,7 +138,7 @@ struct DailyVerseApp: App {
                     // Q2: 저전력 모드 감지 → 알람 미작동 경고 토스트
                     .onReceive(
                         NotificationCenter.default.publisher(
-                            for: NSProcessInfo.processInfoPowerStateDidChangeNotification
+                            for: Notification.Name("NSProcessInfoPowerStateDidChangeNotification")
                         )
                     ) { _ in
                         if ProcessInfo.processInfo.isLowPowerModeEnabled {
