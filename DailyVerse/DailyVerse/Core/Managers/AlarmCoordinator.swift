@@ -4,6 +4,7 @@ import UIKit
 import OSLog
 import ActivityKit
 import AlarmKit
+import FirebaseAnalytics
 
 private let alarmLog = Logger(subsystem: "com.dailyverse", category: "AlarmCoordinator")
 
@@ -19,6 +20,12 @@ final class AlarmCoordinator: ObservableObject {
         didSet {
             if stage != .none { stageSetAt = Date() }
             alarmLog.info("🔄 [Stage] \(String(describing: oldValue)) → \(String(describing: self.stage))")
+            // Analytics: Stage2 진입 시 알람 화면 열람 이벤트
+            if stage == .stage2 {
+                Analytics.logEvent("alarm_stage2_viewed", parameters: [
+                    "mode": activeMode.rawValue
+                ])
+            }
         }
     }
     /// SwiftUI safeAreaInset 버그 방지 — stage 세팅 직후 자동 dismiss 차단용 타임스탬프
@@ -91,6 +98,10 @@ final class AlarmCoordinator: ObservableObject {
         // AlarmKit StopIntent에서 온 경우: 시스템 잠금화면 알람 종료 후 Stage2 직행
         let alarmKitStop    = userInfo["alarmkit_stop"] as? Bool ?? false
 
+        // Analytics: 알람 발동 이벤트
+        Analytics.logEvent("alarm_triggered", parameters: [
+            "source": alarmKitStop ? "alarmkit" : "legacy"
+        ])
         if alarmKitStop {
             alarmLog.info("📲 [Coordinator] AlarmKit StopIntent 수신 → Stage2 직행")
             await handleAlarmKitStop(alarmId: alarmId, modeString: modeString, fallbackVerseId: verseId)

@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 import Combine
 import CoreLocation
+import FirebaseAnalytics
+import FirebaseCrashlytics
 
 @MainActor
 final class HomeViewModel: ObservableObject {
@@ -150,6 +152,7 @@ final class HomeViewModel: ObservableObject {
                 if let target = all.first(where: { $0.verseId == verse.id }) {
                     try? await repo.delete(id: target.id, userId: userId)
                 }
+                Analytics.logEvent("verse_unsaved", parameters: ["verse_id": verse.id])
                 showToast("저장이 취소되었습니다")
             }
         } else {
@@ -160,10 +163,12 @@ final class HomeViewModel: ObservableObject {
                 do {
                     let repo = SavedVerseRepository()
                     try await repo.save(savedVerse, userId: userId)
+                    Analytics.logEvent("verse_saved", parameters: ["verse_id": verse.id])
                     showToast("저장되었습니다")
                 } catch {
                     isSavedCurrentVerse = wasSaved  // 실패 시 롤백
                     showToast("저장에 실패했어요. 다시 시도해주세요")
+                    Crashlytics.crashlytics().record(error: error)
                 }
             }
         }

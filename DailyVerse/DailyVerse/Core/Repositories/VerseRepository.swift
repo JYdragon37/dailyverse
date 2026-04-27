@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import FirebaseCrashlytics
 
 actor VerseRepository {
     /// 싱글톤 — actor 격리로 currentVerse() 동시 호출 방지 (홈/묵상 말씀 불일치 버그 수정)
@@ -33,6 +34,15 @@ actor VerseRepository {
         if !cachedVerses.isEmpty, let last = lastFetched, Date().timeIntervalSince(last) < 1800 {
             return cachedVerses
         }
+        do {
+            return try await _fetchVersesInternal()
+        } catch {
+            Crashlytics.crashlytics().record(error: error)
+            throw error
+        }
+    }
+
+    private func _fetchVersesInternal() async throws -> [Verse] {
 
         // 2. 버전 체크 (1 read)
         let remoteVersion = (try? await firestoreService.fetchRawContentVersion()) ?? ""

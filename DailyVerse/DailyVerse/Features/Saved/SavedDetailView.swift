@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import Combine
 import Photos
+import FirebaseAnalytics
 
 struct SavedDetailView: View {
     let savedVerse: SavedVerse
@@ -94,6 +95,7 @@ struct SavedDetailView: View {
     }
 
     private func handleShare() {
+        Analytics.logEvent("verse_shared", parameters: ["verse_id": savedVerse.verseId])
         isGeneratingShare = true
         let text = verseText
         let ref  = verseReference

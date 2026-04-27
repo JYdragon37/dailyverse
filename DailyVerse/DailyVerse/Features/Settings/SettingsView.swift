@@ -388,7 +388,7 @@ struct SettingsView: View {
 
         rowDivider
 
-        Link(destination: URL(string: "mailto:support@dailyverse.app")!) {
+        Link(destination: URL(string: "mailto:morningmanna.app@gmail.com")!) {
             row(icon: "envelope.fill", iconColor: Color(hex: "#5E9CF5"), title: "문의하기") {
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 12, weight: .semibold))

@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import RevenueCat
+import FirebaseAnalytics
 
 // v5.1 — MVP는 단일 플랜. 모든 기능 전면 제공.
 // isPremium은 항상 true. 향후 구독 도입 시 RevenueCat 로직 재활성화.
@@ -28,6 +29,8 @@ final class SubscriptionManager: ObservableObject {
 
     func purchase() async {
         // v5.1: 단일 플랜 — 구매 플로우 미사용
+        // 향후 구독 도입 시 활성화:
+        Analytics.logEvent("subscription_started", parameters: nil)
     }
 
     func restore() async {
@@ -35,6 +38,9 @@ final class SubscriptionManager: ObservableObject {
     }
 
     func logOut() {
+        if subscriptionStatus == "premium" {
+            Analytics.logEvent("subscription_cancelled", parameters: nil)
+        }
         Task {
             try? await Purchases.shared.logOut()
         }

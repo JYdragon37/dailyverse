@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import AlarmKit
+import FirebaseAnalytics
 
 @MainActor
 final class AlarmViewModel: ObservableObject {
@@ -51,8 +52,15 @@ final class AlarmViewModel: ObservableObject {
     // MARK: - Save
 
     func saveAlarm(_ alarm: Alarm) {
+        let isNew = !alarms.contains(where: { $0.id == alarm.id })
         do {
             try alarmRepository.save(alarm)
+            // Analytics: 신규 생성 vs 수정 구분
+            let eventName = isNew ? "alarm_created" : "alarm_updated"
+            Analytics.logEvent(eventName, parameters: [
+                "theme": alarm.theme,
+                "repeat_days_count": alarm.repeatDays.count
+            ])
             let verse = notificationVerse(for: alarm)
             notificationManager.cancel(alarmId: alarm.id)
             if alarm.isEnabled {
@@ -81,6 +89,7 @@ final class AlarmViewModel: ObservableObject {
         // Core Data 즉시 삭제 — onAppear 재로드 시 복구 방지
         try? alarmRepository.delete(id: id)
         AlarmBackgroundService.shared.rescheduleTimers()
+        Analytics.logEvent("alarm_deleted", parameters: nil)
         pendingDeleteAlarm = alarm
         toastMessage = "알람이 삭제되었습니다."
 

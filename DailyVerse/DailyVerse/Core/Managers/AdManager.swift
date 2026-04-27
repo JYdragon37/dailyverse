@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import GoogleMobileAds
+import FirebaseAnalytics
 
 // Ad Unit ID — Secrets.xcconfig → Info.plist → Bundle 순으로 읽음
 // xcconfig에 값이 없으면 Google 공식 테스트 ID로 폴백
@@ -67,6 +68,7 @@ final class AdManager: ObservableObject {
         isAdReady = false
 
         ad.present(fromRootViewController: viewController) { [weak self] in
+            Analytics.logEvent("ad_watched", parameters: ["ad_type": "rewarded"])
             completion(true)
             Task { @MainActor [weak self] in
                 self?.rewardedAd = nil

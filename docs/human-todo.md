@@ -80,6 +80,10 @@
 
 ## 🔧 출시 전 필수
 
+- [ ] **App Store 리뷰 링크 ID 교체** — `SettingsView.swift` 라인 377
+  > 현재: `https://apps.apple.com/app/id0` (더미값)
+  > 앱 등록 후 부여받은 숫자 ID로 `id0` 교체 필요 (예: `id6736271234`)
+
 - [x] **Ad Unit ID 교체** ✅ 완료 — Secrets.xcconfig에 실제 ID 등록됨
   > banner: ca-app-pub-9794385634652581/3762868800
   > interstitial: ca-app-pub-9794385634652581/8113177357

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import FirebaseAnalytics
 
 @MainActor
 final class SavedViewModel: ObservableObject {
@@ -46,6 +47,7 @@ final class SavedViewModel: ObservableObject {
     // MARK: - Data Loading
 
     func loadSavedVerses(userId: String) async {
+        Analytics.logEvent("saved_tab_viewed", parameters: nil)
         isLoading = true
         do {
             let verses = try await savedVerseRepository.fetchAll(userId: userId)
