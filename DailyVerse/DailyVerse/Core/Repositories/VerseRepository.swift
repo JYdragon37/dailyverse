@@ -13,17 +13,49 @@ actor VerseRepository {
     private var cachedImages: [VerseImage] = []
     private var lastFetched: Date?
 
+    // 버전 기반 캐시 — UserDefaults 키
+    private let kCachedVerseVersion = "cachedVerseContentVersion"
+
     // MARK: - Verses
 
-    /// 전체 말씀 로드 (캐시 우선, 30분 TTL)
+    /// 전체 말씀 로드 — 버전 기반 캐시 (v7.0)
+    ///
+    /// 절감 효과:
+    ///   - 버전 동일: 1 read (content_version 확인만)
+    ///   - 버전 변경: ~200 reads (기존과 동일, 콘텐츠 업데이트 시만)
+    ///
+    /// 우선순위:
+    ///   1. 인메모리 캐시 (30분 TTL) — 가장 빠른 경로
+    ///   2. 버전 체크 → Core Data 캐시 (버전 일치 시)
+    ///   3. Firestore 전체 fetch (버전 불일치 또는 캐시 없음)
     func fetchVerses() async throws -> [Verse] {
+        // 1. 인메모리 캐시 (30분 TTL)
         if !cachedVerses.isEmpty, let last = lastFetched, Date().timeIntervalSince(last) < 1800 {
             return cachedVerses
         }
+
+        // 2. 버전 체크 (1 read)
+        let remoteVersion = (try? await firestoreService.fetchRawContentVersion()) ?? ""
+        let localVersion  = UserDefaults.standard.string(forKey: kCachedVerseVersion) ?? ""
+
+        if !remoteVersion.isEmpty && remoteVersion == localVersion {
+            // 버전 일치 → Core Data에서 전체 로드 (0 Firestore reads)
+            let cached = await MainActor.run { cacheManager.loadAllCachedVerses() }
+            if !cached.isEmpty {
+                cachedVerses = cached
+                lastFetched  = Date()
+                return cached
+            }
+        }
+
+        // 3. Firestore 전체 fetch (버전 불일치 or Core Data 미스)
         let verses = try await firestoreService.fetchVerses()
         cachedVerses = verses
-        lastFetched = Date()
-        // Core Data viewContext는 메인 스레드 전용 → MainActor에서 캐싱
+        lastFetched  = Date()
+        // 버전 기록 + Core Data 갱신
+        if !remoteVersion.isEmpty {
+            UserDefaults.standard.set(remoteVersion, forKey: kCachedVerseVersion)
+        }
         let versesToCache = verses
         await MainActor.run { versesToCache.forEach { cacheManager.cacheVerse($0) } }
         return verses

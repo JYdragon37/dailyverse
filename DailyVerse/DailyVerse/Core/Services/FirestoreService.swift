@@ -306,7 +306,13 @@ class FirestoreService {
 
     // MARK: - 콘텐츠 DB 버전
 
-    /// app_config/content_version 문서에서 현재 버전 반환
+    /// content_version 문자열만 반환 (버전 비교용 — 1 read)
+    func fetchRawContentVersion() async throws -> String {
+        let doc = try await db.collection("app_config").document("content_version").getDocument()
+        return doc.data()?["current_version"] as? String ?? ""
+    }
+
+    /// app_config/content_version 문서에서 현재 버전 반환 (디버그 표시용)
     func fetchContentVersion() async throws -> String {
         let doc = try await db.collection("app_config").document("content_version").getDocument()
         guard let version = doc.data()?["current_version"] as? String else { return "알 수 없음" }

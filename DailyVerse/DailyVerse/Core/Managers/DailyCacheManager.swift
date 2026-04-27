@@ -124,6 +124,19 @@ class DailyCacheManager {
         return try? JSONDecoder().decode(Verse.self, from: data)
     }
 
+    /// Core Data에 저장된 전체 말씀 로드 — TTL 무시 (버전 기반 캐시 전용)
+    /// 버전이 일치하면 콘텐츠가 유효하므로 날짜 TTL 체크를 건너뜀
+    func loadAllCachedVerses() -> [Verse] {
+        let context = PersistenceController.shared.context
+        let request = CachedVerse.fetchRequest()
+        guard let entities = try? context.fetch(request) else { return [] }
+        return entities.compactMap { entity -> Verse? in
+            guard let json = entity.json,
+                  let data = json.data(using: .utf8) else { return nil }
+            return try? JSONDecoder().decode(Verse.self, from: data)
+        }
+    }
+
     /// alarm_top_ko가 있는 구절 전체 로드 (알람 탭 Random Access 풀)
     func loadAlarmTopKoPool(excluding currentId: String?) -> [Verse] {
         let context = PersistenceController.shared.context
