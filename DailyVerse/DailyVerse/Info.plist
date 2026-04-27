@@ -42,6 +42,14 @@
 	<string>$(OPENWEATHER_API_KEY)</string>
 	<key>AIRKOREA_API_KEY</key>
 	<string>$(AIRKOREA_API_KEY)</string>
+	<key>ADMOB_BANNER_ID</key>
+	<string>$(ADMOB_BANNER_ID)</string>
+	<key>ADMOB_INTERSTITIAL_ID</key>
+	<string>$(ADMOB_INTERSTITIAL_ID)</string>
+	<key>ADMOB_REWARDED_ID</key>
+	<string>$(ADMOB_REWARDED_ID)</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>관심사에 맞는 광고를 보여드리기 위해 사용됩니다. 동의하지 않아도 광고는 표시되지만 덜 관련성이 높을 수 있습니다.</string>
 	<key>OPENAI_API_KEY</key>
 	<string>$(OPENAI_API_KEY)</string>
 	<key>NSAppTransportSecurity</key>

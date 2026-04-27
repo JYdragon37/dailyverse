@@ -3,6 +3,7 @@ import Firebase
 import RevenueCat
 import GoogleMobileAds
 import GoogleSignIn
+import AppTrackingTransparency
 import OSLog
 
 private let appLog = Logger(subsystem: "com.dailyverse", category: "DailyVerseApp")
@@ -92,6 +93,12 @@ struct DailyVerseApp: App {
                         // 닉네임 동기화 (로그인 유저만)
                         if let userId = authManager.userId {
                             await NicknameManager.shared.syncWithFirestore(userId: userId)
+                        }
+                        // Q3: ATT(앱 추적 투명성) 팝업 — AdMob 타겟팅 광고 허용 요청
+                        // 앱 UI 로드 후 1초 딜레이 (Apple 권장: 컨텍스트 제공 후 요청)
+                        if #available(iOS 14, *) {
+                            try? await Task.sleep(for: .seconds(1))
+                            await ATTrackingManager.requestTrackingAuthorization()
                         }
                     }
                     .onReceive(

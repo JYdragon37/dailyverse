@@ -80,9 +80,15 @@
 
 ## 🔧 출시 전 필수
 
-- [ ] **Ad Unit ID 교체** (테스트 ID → 실제 ID)
-  > `docs/ad-placement.plan.md` TODO 5곳 참고
-  > AdMob 콘솔에서 앱 등록 후 각 광고 유형별 Unit ID 생성 필요
+- [x] **Ad Unit ID 교체** ✅ 완료 — Secrets.xcconfig에 실제 ID 등록됨
+  > banner: ca-app-pub-9794385634652581/3762868800
+  > interstitial: ca-app-pub-9794385634652581/8113177357
+  > rewarded: ca-app-pub-9794385634652581/8645239404
+
+- [ ] **GADApplicationIdentifier 교체** — Info.plist 라인 40
+  > 현재: 테스트 App ID (ca-app-pub-3940256099942544~1458002511)
+  > AdMob 콘솔 → 앱 설정 → 앱 ID (ca-app-pub-XXXXXXXXXX~XXXXXXXXXX 형식)로 교체 필요
+  > ⚠️ 앱스토어 심사 전 필수 — 테스트 ID로 제출 시 심사 거절 가능
 
 - [ ] **isPremium 광고 조건 복구** (테스트 기간 제거한 5곳)
   > `docs/ad-placement.plan.md` TODO 위치 참고

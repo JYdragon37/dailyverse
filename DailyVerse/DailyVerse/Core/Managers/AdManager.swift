@@ -2,10 +2,12 @@ import SwiftUI
 import Combine
 import GoogleMobileAds
 
-// TODO: 프로덕션 배포 전 실제 Ad Unit ID로 교체
-// Google 공식 테스트 ID
-private let kRewardedAdUnitID     = "ca-app-pub-3940256099942544/1712485313"
-private let kInterstitialAdUnitID = "ca-app-pub-3940256099942544/4411468910"
+// Ad Unit ID — Secrets.xcconfig → Info.plist → Bundle 순으로 읽음
+// xcconfig에 값이 없으면 Google 공식 테스트 ID로 폴백
+private let kRewardedAdUnitID     = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String
+    ?? "ca-app-pub-3940256099942544/1712485313"
+private let kInterstitialAdUnitID = Bundle.main.infoDictionary?["ADMOB_INTERSTITIAL_ID"] as? String
+    ?? "ca-app-pub-3940256099942544/4411468910"
 
 @MainActor
 final class AdManager: ObservableObject {
@@ -43,7 +45,9 @@ final class AdManager: ObservableObject {
                     self.rewardedAd = ad
                     self.isAdReady = true
                 } else {
-                    self.isAdReady = false
+                    // Q4: 실패 시 3초 후 1회 재시도
+                    try? await Task.sleep(for: .seconds(3))
+                    self.loadAd()
                 }
             }
         }
@@ -85,6 +89,11 @@ final class AdManager: ObservableObject {
                 if let ad {
                     self.interstitialAd = ad
                     self.isInterstitialReady = true
+                } else {
+                    // Q4: 실패 시 3초 후 1회 재시도
+                    try? await Task.sleep(for: .seconds(3))
+                    self.interstitialAd = nil  // guard 조건 통과를 위해 nil 보장
+                    self.loadInterstitialAd()
                 }
             }
         }
