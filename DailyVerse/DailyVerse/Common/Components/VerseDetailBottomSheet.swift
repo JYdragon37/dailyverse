@@ -17,9 +17,11 @@ struct VerseDetailBottomSheet: View {
     let onMeditation: () -> Void
     let onClose: () -> Void
     var showMeditationButton: Bool = true   // 알람 팝업 컨텍스트에서는 false
+    /// 저장 여부 — 부모(HomeView/AlarmStage2)가 viewModel.isSavedCurrentVerse로 제어
+    /// isSaved 로컬 상태 제거: 로그인 여부와 무관하게 저장됨 표시되던 버그 수정
+    @Binding var isSaved: Bool
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
-    @State private var justSaved = false
 
     var body: some View {
         NavigationStack {
@@ -73,6 +75,7 @@ struct VerseDetailBottomSheet: View {
         .presentationDetents([.custom(VerseSheetDetent.self)])
         .presentationDragIndicator(.visible)
         .modifier(PresentationCornerRadiusModifier(radius: 24))
+        .modifier(SheetDarkBackgroundModifier())
     }
 
     private var applicationWithNickname: String {
@@ -83,27 +86,21 @@ struct VerseDetailBottomSheet: View {
         HStack(spacing: 10) {
             // 저장 버튼
             Button {
-                guard !justSaved else { return }
-                justSaved = true
                 onSave()
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(1.5))
-                    justSaved = false
-                }
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "heart.fill")
+                    Image(systemName: isSaved ? "heart.fill" : "heart")
                         .font(.system(size: 14))
-                        .scaleEffect(justSaved ? 1.3 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: justSaved)
-                    Text(justSaved ? "저장됨 ✓" : "저장")
+                        .scaleEffect(isSaved ? 1.3 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isSaved)
+                    Text(isSaved ? "저장됨 ✓" : "저장")
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 .background(
                     LinearGradient(
-                        colors: justSaved
+                        colors: isSaved
                             ? [Color.green.opacity(0.7), Color.green.opacity(0.5)]
                             : [Color.dvGold, Color.dvGold.opacity(0.8)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
@@ -111,7 +108,7 @@ struct VerseDetailBottomSheet: View {
                 )
                 .foregroundColor(.white)
                 .cornerRadius(14)
-                .animation(.easeInOut(duration: 0.3), value: justSaved)
+                .animation(.easeInOut(duration: 0.3), value: isSaved)
             }
             .accessibilityLabel("말씀 저장하기")
 
@@ -185,7 +182,26 @@ private struct PresentationCornerRadiusModifier: ViewModifier {
                 verse: .fallbackRiseIgnite,
                 onSave: {},
                 onMeditation: {},
-                onClose: {}
+                onClose: {},
+                isSaved: .constant(false)
             )
         }
+}
+
+// MARK: - Sheet 어두운 배경 (iOS 버전 분기)
+
+private struct SheetDarkBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 16.4, *) {
+            // regularMaterial: 뒤 배경이 은은하게 비치는 블러 재질
+            // preferredColorScheme(.dark): 라이트모드 기기/시뮬레이터에서도 어둡게
+            content
+                .presentationBackground(Color.black.opacity(0.7))
+                .preferredColorScheme(.dark)
+        } else {
+            content
+                .background(Color.dvBgDeep)
+                .preferredColorScheme(.dark)
+        }
+    }
 }

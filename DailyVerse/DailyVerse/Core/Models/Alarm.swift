@@ -136,3 +136,31 @@ struct Alarm: Identifiable, Codable, Equatable {
         case alertStyle      = "alert_style"
     }
 }
+
+// MARK: - 테마 한국어 이름
+
+extension Alarm {
+    /// theme ID → 한국어 표시 이름
+    var themeKorean: String {
+        switch theme {
+        case "hope":        return "소망"
+        case "courage":     return "새 힘"
+        case "strength":    return "힘"
+        case "renewal":     return "새로움"
+        case "wisdom":      return "지혜"
+        case "focus":       return "집중"
+        case "patience":    return "인내"
+        case "gratitude":   return "감사"
+        case "peace":       return "평안"
+        case "comfort":     return "위로"
+        case "reflection":  return "묵상"
+        case "rest":        return "안식"
+        case "faith":       return "믿음"
+        case "grace":       return "은혜"
+        case "trust":       return "신뢰"
+        case "stillness":   return "고요함"
+        case "surrender":   return "내려놓음"
+        default:            return theme.capitalized
+        }
+    }
+}

@@ -348,14 +348,10 @@ private struct AlarmCardRow: View {
                     .font(.system(size: 36, weight: .thin))
                     .foregroundColor(alarm.isEnabled ? .white : Color.dvTextHint)
 
-                if !alarm.label.isEmpty {
-                    Text(alarm.label).font(.dvCaption).foregroundColor(Color.dvTextSecondary)
-                }
-
                 HStack(spacing: 6) {
                     Text(alarm.repeatSummary).font(.dvCaption).foregroundColor(Color.dvTextSecondary)
                     Text("·").font(.dvCaption).foregroundColor(Color.dvTextSecondary)
-                    Text(alarm.theme.capitalized)
+                    Text(alarm.themeKorean)
                         .font(.dvCaption).foregroundColor(.dvGold)
                         .padding(.horizontal, 8).padding(.vertical, 2)
                         .background(Capsule().fill(Color.dvGold.opacity(0.15)))

@@ -9,6 +9,7 @@ struct AlarmStage2View: View {
     // Design Ref: §7-2 — 언어 설정 읽기
     @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
     @State private var showLoginPrompt: Bool = false
+    @State private var isSavedCurrentVerse: Bool = false
     @State private var heartScale: CGFloat = 1.0
     @State private var isVisible: Bool = true   // AlarmKit 콜드런치 대응: 처음부터 visible
     @State private var showVerseDetail: Bool = false
@@ -127,7 +128,8 @@ struct AlarmStage2View: View {
                         onSave: { handleSave() },
                         onMeditation: { showVerseDetail = false },
                         onClose: { showVerseDetail = false },
-                        showMeditationButton: false
+                        showMeditationButton: false,
+                        isSaved: $isSavedCurrentVerse
                     )
                 }
             }

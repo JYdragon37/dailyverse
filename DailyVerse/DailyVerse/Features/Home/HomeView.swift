@@ -373,9 +373,11 @@ struct HomeView: View {
                     onSave: handleSave,
                     onMeditation: {
                         showVerseDetail = false
+                        showLoginPrompt = false  // Issue 3: 탭 전환 시 로그인 팝업 초기화
                         NotificationCenter.default.post(name: .dvSwitchToMeditationTab, object: nil)
                     },
-                    onClose: { showVerseDetail = false }
+                    onClose: { showVerseDetail = false },
+                    isSaved: $viewModel.isSavedCurrentVerse
                 )
             }
         }
@@ -398,7 +400,13 @@ struct HomeView: View {
                 locationName: viewModel.weather?.cityName ?? ""
             )
             authManager.setPendingSave(pending)
-            showLoginPrompt = true
+            // iOS는 sheet가 열린 상태에서 두 번째 sheet를 바로 표시 못함
+            // → 먼저 verse detail 닫고 0.35초 후 로그인 팝업 표시
+            showVerseDetail = false
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.35))
+                showLoginPrompt = true
+            }
         }
     }
 
