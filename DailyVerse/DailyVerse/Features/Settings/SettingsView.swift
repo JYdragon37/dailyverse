@@ -385,7 +385,7 @@ struct SettingsView: View {
     @ViewBuilder
     private var feedbackRows: some View {
         Button {
-            if let url = URL(string: "https://apps.apple.com/app/id0") {
+            if let url = URL(string: "https://apps.apple.com/app/id6763995142") {
                 UIApplication.shared.open(url)
             }
         } label: {

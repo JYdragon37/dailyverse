@@ -166,7 +166,7 @@ struct AppRootView: View {
         // MARK: - 강제 업데이트 알럿
         .alert("업데이트 필요", isPresented: $loadingCoordinator.showForceUpdate) {
             Button("App Store 열기") {
-                if let url = URL(string: "https://apps.apple.com/app/id0") {
+                if let url = URL(string: "https://apps.apple.com/app/id6763995142") {
                     UIApplication.shared.open(url)
                 }
             }
