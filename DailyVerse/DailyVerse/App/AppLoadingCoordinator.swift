@@ -18,6 +18,8 @@ final class AppLoadingCoordinator: ObservableObject {
 
     @Published var state: LoadingState = .splash
     @Published var isOffline: Bool = false
+    /// 강제 업데이트 팝업 표시 여부
+    @Published var showForceUpdate: Bool = false
 
     /// 스플래시 중 미리 로드된 Zone 배경 이미지
     /// AppRootView 베이스 레이어에서 사용 → 스플래시 종료 즉시 올바른 이미지 표시
@@ -77,6 +79,9 @@ final class AppLoadingCoordinator: ObservableObject {
             return
         }
 
+        // Stage 4-b: 강제 업데이트 확인 (오프라인이 아닌 경우에만)
+        await checkForceUpdate()
+
         // Stage 5: Firestore 말씀 프리로드 + 오늘 말씀 캐싱
         // ⚠️ 이 단계가 완료된 후 state = .ready가 되므로
         //    홈/묵상/알람 탭이 모두 동일한 캐시를 읽어 같은 말씀을 표시한다.
@@ -86,6 +91,31 @@ final class AppLoadingCoordinator: ObservableObject {
         _ = await verseRepository.currentVerse(for: mode, weather: cachedWeather)
 
         state = .ready
+    }
+
+    // MARK: - 강제 업데이트 확인
+
+    /// Firestore app_config/minimum_version과 현재 앱 버전을 비교해 강제 업데이트 여부 결정
+    private func checkForceUpdate() async {
+        let (minVersion, forceUpdate) = await FirestoreService().fetchMinimumVersion()
+        guard forceUpdate else { return }
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        if isVersionBelow(current, minimum: minVersion) {
+            showForceUpdate = true
+        }
+    }
+
+    /// 버전 비교: current가 minimum 미만이면 true
+    private func isVersionBelow(_ current: String, minimum: String) -> Bool {
+        let cur = current.split(separator: ".").compactMap { Int($0) }
+        let min = minimum.split(separator: ".").compactMap { Int($0) }
+        for i in 0..<Swift.max(cur.count, min.count) {
+            let c = i < cur.count ? cur[i] : 0
+            let m = i < min.count ? min[i] : 0
+            if c < m { return true }
+            if c > m { return false }
+        }
+        return false
     }
 
     // MARK: - Zone Background 로드

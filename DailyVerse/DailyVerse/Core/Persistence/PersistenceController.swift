@@ -1,4 +1,5 @@
 import CoreData
+import FirebaseCrashlytics
 
 class PersistenceController {
     static let shared = PersistenceController()
@@ -29,7 +30,10 @@ class PersistenceController {
         do {
             try context.save()
         } catch {
+            Crashlytics.crashlytics().record(error: error)
+            #if DEBUG
             print("CoreData 저장 실패: \(error.localizedDescription)")
+            #endif
         }
     }
 }

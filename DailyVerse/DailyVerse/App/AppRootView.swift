@@ -163,6 +163,16 @@ struct AppRootView: View {
                     }
             }
         }
+        // MARK: - 강제 업데이트 알럿
+        .alert("업데이트 필요", isPresented: $loadingCoordinator.showForceUpdate) {
+            Button("App Store 열기") {
+                if let url = URL(string: "https://apps.apple.com/app/id0") {
+                    UIApplication.shared.open(url)
+                }
+            }
+        } message: {
+            Text("더 나은 서비스를 위해 최신 버전으로 업데이트가 필요합니다.")
+        }
         // MARK: - 온보딩 완료 → 인증 화면 트리거
         // 온보딩이 방금 완료됐고 아직 미로그인이면 AuthWelcomeView 표시
         .onChange(of: onboardingCompleted) { completed in

@@ -298,6 +298,20 @@ class FirestoreService {
         try await db.collection("users").document(uid).delete()
     }
 
+    // MARK: - 강제 업데이트
+
+    /// app_config/minimum_version 에서 iOS 최소 버전 + 강제 업데이트 여부 반환
+    /// Firestore 구조: { "ios": "1.0.0", "force_update": false }
+    func fetchMinimumVersion() async -> (minVersion: String, forceUpdate: Bool) {
+        guard let doc = try? await db.collection("app_config").document("minimum_version").getDocument(),
+              let data = doc.data() else {
+            return ("1.0.0", false)
+        }
+        let minVer   = data["ios"] as? String ?? "1.0.0"
+        let forceUp  = data["force_update"] as? Bool ?? false
+        return (minVer, forceUp)
+    }
+
     // MARK: - 마스터 계정 (앱 업데이트 없이 Firestore에서 관리)
 
     /// app_config/master_accounts 에서 프리미엄 자동 적용 이메일 목록 반환

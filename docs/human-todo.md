@@ -80,6 +80,11 @@
 
 ## 🔧 출시 전 필수
 
+- [ ] **Firestore minimum_version 문서 생성**
+  > Firebase 콘솔 → Firestore → `app_config` 컬렉션 → `minimum_version` 문서 생성
+  > 필드: `ios` (String) = `"1.0.0"`, `force_update` (Boolean) = `false`
+  > 치명적 버그 발생 시 `force_update: true` + `ios` 버전 올리면 앱스토어 강제 이동
+
 - [ ] **Firestore 마스터 계정 문서 생성**
   > Firebase 콘솔 → Firestore → `app_config` 컬렉션 → `master_accounts` 문서 생성
   > 필드: `emails` (Array) = `["huhjungyong@gmail.com", "highkick370@gmail.com"]`

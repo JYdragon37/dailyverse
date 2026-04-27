@@ -4,6 +4,7 @@ import FirebaseCore
 import FirebaseAuth
 import AuthenticationServices
 import FirebaseAnalytics
+import FirebaseCrashlytics
 import GoogleSignIn
 
 @MainActor
@@ -76,6 +77,9 @@ class AuthManager: ObservableObject {
                 let email = result.user.profile?.email ?? ""
                 try? await FirestoreService().createUser(uid: authResult.user.uid, email: email, displayName: displayName)
             }
+            // Q1+Q2: 유저 ID 설정
+            Crashlytics.crashlytics().setUserID(authResult.user.uid)
+            Analytics.setUserID(authResult.user.uid)
             authError = nil
         } catch let error as NSError {
             // 동일 이메일로 다른 인증 방식이 이미 존재하는 경우 (Firebase 에러 코드 17012)
@@ -103,6 +107,9 @@ class AuthManager: ObservableObject {
             )
             // v5.1: 로그인 후 닉네임 Firestore 동기화
             await NicknameManager.shared.syncWithFirestore(userId: firebaseUser.uid)
+            // Q1+Q2: 유저 ID 설정 (크래시/이벤트 귀속용)
+            Crashlytics.crashlytics().setUserID(firebaseUser.uid)
+            Analytics.setUserID(firebaseUser.uid)
             Analytics.logEvent("sign_in", parameters: ["method": "apple"])
         } catch let error as NSError {
             if error.code != ASAuthorizationError.canceled.rawValue {
@@ -117,6 +124,9 @@ class AuthManager: ObservableObject {
         Task { @MainActor in
             NicknameManager.shared.reset()
         }
+        // Q1+Q2: 유저 ID 초기화
+        Crashlytics.crashlytics().setUserID("")
+        Analytics.setUserID(nil)
         do {
             try authService.signOut()
         } catch {
