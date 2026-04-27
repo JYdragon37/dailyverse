@@ -25,7 +25,7 @@
 
 | 화면 | 섹션 | 표시 필드 |
 |------|------|---------|
-| 홈 탭 | 메인 말씀 카드 | `verse_short_ko`, `reference`, `theme[0]` |
+| 홈 탭 | 메인 말씀 카드 | `verse_full_ko`, `reference` |
 | 홈 탭 | 바텀시트 전체 구절 | `verse_full_ko`, `reference` |
 | 홈 탭 | 바텀시트 해석 | `interpretation` |
 | 홈 탭 | 바텀시트 적용 | `application` |
