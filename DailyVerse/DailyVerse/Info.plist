@@ -37,7 +37,7 @@
 	<key>NSAlarmKitUsageDescription</key>
 	<string>정해진 시간에 성경 말씀과 함께 알람을 울리기 위해 알람 권한이 필요합니다.</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-9794385634652581~2135671376</string>
 	<key>OPENWEATHER_API_KEY</key>
 	<string>$(OPENWEATHER_API_KEY)</string>
 	<key>AIRKOREA_API_KEY</key>
