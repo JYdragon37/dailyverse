@@ -61,6 +61,7 @@ struct DailyVerseApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                    .preferredColorScheme(.dark) // 앱 전체 다크 모드 고정
                     // Google Sign-In URL 핸들러 (로그인 후 앱으로 리다이렉트)
                     .onOpenURL { url in
                         // dailyverse://alarm-stop?id=UUID — Live Activity 버튼 탭

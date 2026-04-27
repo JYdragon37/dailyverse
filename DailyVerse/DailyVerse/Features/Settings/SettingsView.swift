@@ -303,14 +303,6 @@ struct SettingsView: View {
             .padding(.bottom, 14)
         }
 
-        rowDivider
-
-        // 다크 모드
-        row(icon: "moon.fill", iconColor: Color(hex: "#8B7FCC"), title: "다크 모드") {
-            Text("시스템")
-                .font(.system(size: 13))
-                .foregroundColor(.white.opacity(0.40))
-        }
     }
 
     // MARK: - 앱 설정 섹션
