@@ -63,6 +63,12 @@ struct AlarmListView: View {
         .onReceive(NotificationCenter.default.publisher(for: .dvAlarmSaved)) { _ in
             viewModel.loadAlarms()
         }
+        .alert("알람 권한 제한", isPresented: $viewModel.showAlarmKitDeniedAlert) {
+            Button("설정 열기") { permissionManager.openAppSettings() }
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("AlarmKit 권한이 거부되어 있어요.\n앱을 완전히 종료하면 알람이 울리지 않을 수 있어요.\n설정 앱에서 morning manna → 알람 권한을 허용해주세요.")
+        }
     }
 
     // MARK: - 말씀 로드

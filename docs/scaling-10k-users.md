@@ -13,7 +13,7 @@
 | 1 | 📖 콘텐츠 | ✅ 완료 |
 | 2 | 🖼 이미지 | ✅ 완료 |
 | 3 | 🔥 Firebase / Firestore | ✅ 완료 |
-| 4 | 📱 디바이스 / iOS 버전 | ⬜ 대기 |
+| 4 | 📱 디바이스 / iOS 버전 | ✅ 완료 |
 | 5 | 🔐 인증 / 계정 관리 | ⬜ 대기 |
 | 6 | ⏰ 알람 시스템 | ⬜ 대기 |
 | 7 | 💰 수익화 / 광고 | ⬜ 대기 |
@@ -150,12 +150,35 @@
 
 ---
 
-## 4. 📱 디바이스 / iOS 버전
+## 4. 📱 디바이스 / iOS 버전 ✅ 완료 (2026-04-27)
+
+### 딥다이브 결과
+
+| 항목 | 처리 내용 |
+|------|---------|
+| iOS 26 AlarmKit API 안정성 | iOS 26 이미 정식 출시 (2025.09) → API 확정, 리스크 해소 |
+| Legacy 앱 강제종료 시 알람 경고 | ✅ 저장 완료 후 iOS 15-25 기기에 경고 토스트 추가 |
+| AlarmKit 권한 거부 팝업 | ✅ 권한 거부 시 경고 알럿 + 설정 앱 딥링크 추가 |
+| Widget `#available` 가드 | ✅ `DailyVerseAlarmLiveActivity`에 `@available(iOS 26.0, *)` 추가 |
+| 구형 기기 성능 테스트 | ⬜ human-todo 추가 (직접 테스트 필요) |
+
+### 완료된 작업
+- `AlarmViewModel.showSavedToast()`: iOS 15-25에서 알람 저장 시 "앱을 완전히 종료하면 알람이 울리지 않을 수 있어요" 토스트 3초 추가 표시
+- `AlarmViewModel.saveAlarm()`: AlarmKit 권한 거부 시 `showAlarmKitDeniedAlert` 세팅
+- `AlarmListView`: AlarmKit 권한 거부 알럿 + "설정 열기" 버튼 추가
+- `DailyVerseWidgetsLiveActivity.swift`: `DailyVerseAlarmMetadata`, `DailyVerseAlarmLiveActivity`, `lockScreenView`에 `@available(iOS 26.0, *)` 추가
+- `DailyVerseWidgetsBundle.swift`: `DailyVerseAlarmLiveActivity` 조건부 포함 (`if #available(iOS 26.0, *)`)
+
+### 남은 이슈 (낮은 우선순위)
+- iPhone XR(A12) 실기기 또는 Instruments 성능 테스트 미진행 → human-todo
+- 다양한 노치/Dynamic Island 기기 시뮬레이터 테스트 필요
+
+### 원래 문제 분석
 
 | 문제 | 규모 | 대응 |
 |------|------|------|
 | **AlarmKit vs Legacy 분기 버그** | iOS 26+ / iOS 15-25 유저 혼재. 특정 버전에서만 알람 미작동 신고 | Crashlytics에 기기 모델 + iOS 버전 함께 로깅 |
-| **iOS 26 AlarmKit API 변경** | 현재 iOS 26 beta. 정식 출시 시 API 변경 가능성 | WWDC 공개 내용 즉시 추적. AlarmKit 코드 격리 유지 |
+| **iOS 26 AlarmKit API 변경** | iOS 26 이미 정식 출시 (2025.09) — 리스크 해소 | — |
 | **구형 디바이스 성능 저하** | iPhone XR(iOS 16 최소 지원)에서 감성 이미지 + 애니메이션 버벅임 | Instruments 프로파일링. 애니메이션 조건부 비활성화 옵션 |
 | **다양한 노치/레이아웃** | SafeArea 처리 미흡 시 특정 기기에서 UI 잘림 | iPhone SE·15 Pro Max·16 시뮬레이터 정기 테스트 |
 

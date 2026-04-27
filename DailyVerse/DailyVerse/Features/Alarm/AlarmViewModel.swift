@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import AlarmKit
 
 @MainActor
 final class AlarmViewModel: ObservableObject {
@@ -7,6 +8,7 @@ final class AlarmViewModel: ObservableObject {
     @Published var showAddEdit: Bool = false
     @Published var editingAlarm: Alarm? = nil
     @Published var toastMessage: String?
+    @Published var showAlarmKitDeniedAlert = false
 
     private var pendingDeleteAlarm: Alarm?
     private var undoTask: Task<Void, Never>?
@@ -42,6 +44,11 @@ final class AlarmViewModel: ObservableObject {
             notificationManager.cancel(alarmId: alarm.id)
             if alarm.isEnabled {
                 notificationManager.schedule(alarm, verse: verse)
+                if #available(iOS 26.0, *) {
+                    if AlarmManager.shared.authorizationState == .denied {
+                        showAlarmKitDeniedAlert = true
+                    }
+                }
             }
             AlarmBackgroundService.shared.rescheduleTimers()
             loadAlarms()
@@ -213,12 +220,19 @@ final class AlarmViewModel: ObservableObject {
             toastMessage = "내일 \(timeStr)\n\(contextMsg)"
         }
 
-        // 3초 후 자동 dismiss (되돌리기 없는 알람 ON 토스트)
+        // 3초 후 자동 dismiss
+        // iOS 26 미만: 앱 강제종료 시 알람 미작동 경고 토스트 추가 3초 표시
         undoTask?.cancel()
         undoTask = Task { @MainActor [weak self] in
             do { try await Task.sleep(for: .seconds(3)) } catch { return }
             guard let self else { return }
-            self.toastMessage = nil
+            if #available(iOS 26.0, *) {
+                self.toastMessage = nil
+            } else {
+                self.toastMessage = "앱을 완전히 종료하면\n알람이 울리지 않을 수 있어요"
+                do { try await Task.sleep(for: .seconds(3)) } catch { return }
+                self.toastMessage = nil
+            }
         }
     }
 

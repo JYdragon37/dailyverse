@@ -5,6 +5,7 @@ import SwiftUI
 
 // MARK: - AlarmKit Metadata (메인 앱과 동일 구조)
 
+@available(iOS 26.0, *)
 struct DailyVerseAlarmMetadata: AlarmMetadata {
     var alarmIdString: String
     var verseShortKo: String
@@ -15,6 +16,7 @@ struct DailyVerseAlarmMetadata: AlarmMetadata {
 
 // MARK: - AlarmKit Live Activity (시스템 알람 잠금화면)
 
+@available(iOS 26.0, *)
 struct DailyVerseAlarmLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<DailyVerseAlarmMetadata>.self) { context in
@@ -133,6 +135,7 @@ struct DVPostAlarmLiveActivity: Widget {
 
 // MARK: - Shared Lock Screen View
 
+@available(iOS 26.0, *)
 private func lockScreenView(alarmId: String, verse: String) -> some View {
     HStack(spacing: 14) {
         Image(systemName: "alarm.fill")

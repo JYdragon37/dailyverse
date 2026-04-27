@@ -63,6 +63,21 @@
 
 ---
 
+## 📱 디바이스 / iOS 버전
+
+### 🟡 단기
+
+- [ ] **구형 기기 성능 테스트** — iPhone XR 또는 Instruments Network Link Conditioner
+  > Xcode → Xcode → Open Developer Tool → Instruments → Time Profiler
+  > 또는 Simulator → 추가 설정 → Network Link Conditioner (3G 속도 시뮬레이션)
+  > 확인 항목: 첫 로딩 시 스켈레톤 화면 표시 여부, 감성 이미지 로딩 시 버벅임 여부
+
+- [ ] **다양한 기기 레이아웃 점검** — Xcode 시뮬레이터로 확인
+  > iPhone SE (3세대, 홈 버튼 있음), iPhone 15 Pro Max (Dynamic Island), iPhone 16
+  > 확인 항목: SafeArea 잘림 없는지, 알람 Stage2 레이아웃 정상 여부
+
+---
+
 ## 🔧 출시 전 필수
 
 - [ ] **Ad Unit ID 교체** (테스트 ID → 실제 ID)
