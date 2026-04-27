@@ -27,6 +27,15 @@ final class SubscriptionManager: ObservableObject {
         // applyCustomerInfo(customerInfo)
     }
 
+    /// 마스터 계정 확인 — Firestore app_config/master_accounts에 등록된 이메일이면 isPremium = true
+    /// 앱 업데이트 없이 Firebase 콘솔에서 직접 추가/삭제 가능
+    func checkMasterAccount(email: String) async {
+        let masterEmails = await FirestoreService().fetchMasterAccounts()
+        if masterEmails.contains(email.lowercased()) {
+            isPremium = true
+        }
+    }
+
     func purchase() async {
         // v5.1: 단일 플랜 — 구매 플로우 미사용
         // 향후 구독 도입 시 활성화:

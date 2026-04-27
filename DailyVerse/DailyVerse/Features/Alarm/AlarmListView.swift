@@ -119,7 +119,8 @@ struct AlarmListView: View {
                     .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
             }
 
-            // [광고] 알람 목록 하단 배너 (TODO: 출시 전 isPremium 조건 복구)
+            // [광고] 알람 목록 하단 배너 (Free 유저만 표시)
+            if !subscriptionManager.isPremium {
             Section {
                 SmartBannerAdView()
                     .frame(width: 320, height: 50)
@@ -128,6 +129,7 @@ struct AlarmListView: View {
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 20, trailing: 20))
             }
+            } // if !subscriptionManager.isPremium
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)

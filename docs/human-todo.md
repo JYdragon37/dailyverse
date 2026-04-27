@@ -80,6 +80,11 @@
 
 ## 🔧 출시 전 필수
 
+- [ ] **Firestore 마스터 계정 문서 생성**
+  > Firebase 콘솔 → Firestore → `app_config` 컬렉션 → `master_accounts` 문서 생성
+  > 필드: `emails` (Array) = `["huhjungyong@gmail.com", "highkick370@gmail.com"]`
+  > 추후 이메일 추가/삭제는 Firebase 콘솔에서 직접 수정 (앱 업데이트 불필요)
+
 - [ ] **이용약관·개인정보처리방침 Notion 페이지 생성 + URL 교체**
   > 1. Notion에서 "morning manna 이용약관" 공개 페이지 생성
   > 2. Notion에서 "morning manna 개인정보처리방침" 공개 페이지 생성

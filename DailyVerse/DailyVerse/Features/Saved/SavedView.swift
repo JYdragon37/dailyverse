@@ -41,8 +41,9 @@ struct SavedView: View {
                 await viewModel.loadSavedVerses(userId: userId)
             }
             // Free 유저용 전면 광고 사전 로드
-            // TODO: 출시 전 isPremium 조건 복구
-            AdManager.shared.loadInterstitialAd()
+            if !subscriptionManager.isPremium {
+                AdManager.shared.loadInterstitialAd()
+            }
         }
         .sheet(item: $selectedVerse) { savedVerse in
             SavedDetailView(savedVerse: savedVerse) {
@@ -74,8 +75,12 @@ struct SavedView: View {
 
     // MARK: - 카드 탭 처리 (Free 유저: 전면 광고 → 상세 / Premium: 바로 상세)
 
-    // TODO: 출시 전 isPremium 조건 복구 — 현재 전체 계정 전면 광고 표시
     private func handleCardTap(_ verse: SavedVerse) {
+        // Premium 유저: 광고 없이 바로 상세 이동
+        if subscriptionManager.isPremium {
+            selectedVerse = verse
+            return
+        }
         let rootVC = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first?.rootViewController.flatMap { vc -> UIViewController? in
@@ -175,8 +180,8 @@ struct SavedView: View {
                         }
                         .padding(.bottom, 12)
 
-                        // 6개마다 배너 (TODO: 출시 전 isPremium 조건 복구)
-                        if !isLast {
+                        // 6개마다 배너 (Free 유저만 표시)
+                        if !isLast && !subscriptionManager.isPremium {
                             BannerAdView()
                                 .frame(width: 300, height: 250)
                                 .frame(maxWidth: .infinity)
@@ -370,23 +375,24 @@ private struct SavedCardView: View {
                             .allowsHitTesting(false)
                     }
 
-                    // 브랜드 워터마크 — 현재 모든 계정에 표시
-                    // TODO: 구독 도입 시 `if !isPremium` 조건 복원
-                    VStack {
-                        Spacer()
-                        HStack {
+                    // 브랜드 워터마크 (Free 유저만 표시)
+                    if !isPremium {
+                        VStack {
                             Spacer()
-                            Image("LogoMMColor")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 28)
-                                .opacity(0.55)
-                                .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
-                                .padding(.trailing, 8)
-                                .padding(.bottom, 8)
+                            HStack {
+                                Spacer()
+                                Image("LogoMMColor")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 28)
+                                    .opacity(0.55)
+                                    .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
+                                    .padding(.trailing, 8)
+                                    .padding(.bottom, 8)
+                            }
                         }
+                        .allowsHitTesting(false)
                     }
-                    .allowsHitTesting(false)
                 }
                 .frame(width: geo.size.width, height: geo.size.width * 4 / 3)
             }

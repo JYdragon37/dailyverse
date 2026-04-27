@@ -228,6 +228,12 @@ class FirestoreService {
         }
     }
 
+    /// 하위 호환 — 단일 문서 방식 (레거시 경로; 새 로직은 fetchBackgroundImages 사용)
+    func fetchBackgroundImage(for mode: AppMode) async throws -> BackgroundImage? {
+        let candidates = try await fetchBackgroundImages(for: mode, weatherCondition: "all")
+        return candidates.randomElement()
+    }
+
     // MARK: - User
 
     func createUser(uid: String, email: String, displayName: String, nickname: String = "친구") async throws {
@@ -296,16 +302,6 @@ class FirestoreService {
 
         // 3. users 문서 삭제
         try await db.collection("users").document(uid).delete()
-    }
-
-    // MARK: - 마스터 계정 (앱 업데이트 없이 Firestore에서 관리)
-
-    /// app_config/master_accounts 에서 프리미엄 자동 적용 이메일 목록 반환
-    /// Firestore 구조: { "emails": ["user@example.com", ...] }
-    func fetchMasterAccounts() async -> [String] {
-        guard let doc = try? await db.collection("app_config").document("master_accounts").getDocument(),
-              let emails = doc.data()?["emails"] as? [String] else { return [] }
-        return emails.map { $0.lowercased() }
     }
 
     // MARK: - 콘텐츠 DB 버전

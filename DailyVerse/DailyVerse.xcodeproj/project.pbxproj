@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */; };
-		0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D5E70C69EA9646472CD1B /* ImageService.swift */; };
 		180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D26D238A8CCDA8BB60713E62 /* GoogleService-Info.plist */; };
 		1C528303133A7B7C61EA6749 /* DailyCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2371090B1783F0C645407C54 /* DailyCacheManager.swift */; };
 		1C7A6A263D4A72ACF334B82B /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24AF2F893CA3C34B471EA3B /* User.swift */; };
@@ -41,7 +40,6 @@
 		6173F810364A7103B900C34C /* AlarmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22E457DD726C00F9AD8F0A1 /* AlarmViewModel.swift */; };
 		61ADA793F70325E02C8C84D0 /* VerseImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F468336CB83CF3BAE30B97 /* VerseImage.swift */; };
 		629F14B1D0E6653F5176D72D /* VerseCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AE01E46992F03B9036C5D7 /* VerseCardView.swift */; };
-		636DD98EF33E4AB4D5DE00F3 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603F5A66AF244485140B6999 /* SettingsViewModel.swift */; };
 		655F3134A2FCD282261F48A3 /* AlarmCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243625CDCB337E4190D69BD9 /* AlarmCoordinator.swift */; };
 		6B755D1B159F2A14042B0884 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D5B2D5F62BE041FD609B53 /* PersistenceController.swift */; };
 		6B98DCA1E67409134C5BA73A /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1088954EE2EEAAFEBD2A13A7 /* AppRootView.swift */; };
@@ -84,7 +82,6 @@
 		A3451B2853226F022339DAA6 /* SavedVerseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97449D55F8DB9F917F590C3 /* SavedVerseRepository.swift */; };
 		A3FB01130A10D30E85787624 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBEC0AAE65799B77F5146D29 /* OnboardingContainerView.swift */; };
 		A6000001A6000001A6000001 /* AuthWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000001A5000001A5000001 /* AuthWelcomeView.swift */; };
-		A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */; };
 		A9000001A9000001A9000001 /* NicknameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8000001A8000001A8000001 /* NicknameSetupView.swift */; };
 		A9A608883D740B33114493C9 /* Greeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B4522FFF85B512B904360E /* Greeting.swift */; };
 		AA11BB22CC33DD4400000002 /* SecureStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD4400000001 /* SecureStorage.swift */; };
@@ -126,7 +123,6 @@
 		FA001006FA001006FA001006 /* PretendardVariable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA001005FA001005FA001005 /* PretendardVariable.ttf */; };
 		FA001016FA001016FA001016 /* SplashBackground.imageset in Resources */ = {isa = PBXBuildFile; fileRef = FA001015FA001015FA001015 /* SplashBackground.imageset */; };
 		FA5699AAD11898B968DE8EA3 /* OnboardingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54874B10A9BD5824B945E62 /* OnboardingKey.swift */; };
-		FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB100001FB100001FB100001 /* EmailAuthView.swift */; };
 		FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ECEAE1DF3AA034A7A65D24 /* MainTabView.swift */; };
 		FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B113511A4B97FE47D8D0CCE5 /* AdManager.swift */; };
 /* End PBXBuildFile section */
@@ -198,7 +194,6 @@
 		5B786208128A26CC650303F3 /* Font+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+DailyVerse.swift"; sourceTree = "<group>"; };
 		5D568DBC55498963AC27F468 /* DailyVerseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseApp.swift; sourceTree = "<group>"; };
 		5E61A63D33E6A03DA92C092E /* SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedView.swift; sourceTree = "<group>"; };
-		603F5A66AF244485140B6999 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		6B924F0588DBB8BA9303DF22 /* LoginPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPromptSheet.swift; sourceTree = "<group>"; };
 		6CCAE0832E8DD982979CF5FA /* DailyVerseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVerseCache.swift; sourceTree = "<group>"; };
 		6F1289DAA1F2D162ED05C28D /* DailyVerseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -210,7 +205,6 @@
 		83A8A5D9C6053C671E3CC6F9 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		87AF82929D2C67C67CB4354C /* Color+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+DailyVerse.swift"; sourceTree = "<group>"; };
 		883AE40A2F80AF5436D647BF /* AlarmRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRepository.swift; sourceTree = "<group>"; };
-		895D5E70C69EA9646472CD1B /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		8A3130072F80B28E009F815D /* alarm_song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm_song.mp3; sourceTree = "<group>"; };
 		8A78457A2F9D9AAC00F390C1 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		8AF103522F926FB90096BBCB /* DailyVerseWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DailyVerseWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -251,7 +245,6 @@
 		B22E457DD726C00F9AD8F0A1 /* AlarmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmViewModel.swift; sourceTree = "<group>"; };
 		B24AF2F893CA3C34B471EA3B /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		B5814C3268942E53E0423363 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
-		B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLimitTestView.swift; sourceTree = "<group>"; };
 		B666F0B835ED47E6FFAAF64B /* AlarmListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmListView.swift; sourceTree = "<group>"; };
 		B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BA4556EFE58C2885CCFA3408 /* SavedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedViewModel.swift; sourceTree = "<group>"; };
@@ -285,7 +278,6 @@
 		FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumPenScript-Regular.ttf"; sourceTree = "<group>"; };
 		FA001005FA001005FA001005 /* PretendardVariable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PretendardVariable.ttf; sourceTree = "<group>"; };
 		FA001015FA001015FA001015 /* SplashBackground.imageset */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SplashBackground.imageset; sourceTree = "<group>"; };
-		FB100001FB100001FB100001 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
@@ -502,8 +494,6 @@
 			isa = PBXGroup;
 			children = (
 				B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */,
-				FB100001FB100001FB100001 /* EmailAuthView.swift */,
-				603F5A66AF244485140B6999 /* SettingsViewModel.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -550,7 +540,6 @@
 		BD53E7188CC54A1CB404FEBD /* Dev */ = {
 			isa = PBXGroup;
 			children = (
-				B60D0FAF97E14067ADB9D8D8 /* TextLimitTestView.swift */,
 			);
 			path = Dev;
 			sourceTree = "<group>";
@@ -669,7 +658,6 @@
 			children = (
 				83A8A5D9C6053C671E3CC6F9 /* AuthService.swift */,
 				2E9E250D2931BE33AF0352F9 /* FirestoreService.swift */,
-				895D5E70C69EA9646472CD1B /* ImageService.swift */,
 				B5814C3268942E53E0423363 /* NotificationManager.swift */,
 				01850BB01382CF53BBB11601 /* VerseSelector.swift */,
 				C1BB2A3C4EB162E8A4F48B7C /* WeatherService.swift */,
@@ -897,7 +885,6 @@
 				BEAA3F18140EA87C7D2F8C82 /* Font+DailyVerse.swift in Sources */,
 				9DAB56CB74E13B304135646C /* HomeView.swift in Sources */,
 				2B661F0350764A885C968D0B /* HomeViewModel.swift in Sources */,
-				0D94422AB5BA67B0BE8C38B4 /* ImageService.swift in Sources */,
 				26C2724E4E900CC2FA4F7272 /* LoginPromptSheet.swift in Sources */,
 				BA7472EBF63048E7B88A7B811BB96468 /* RemoteImageView.swift in Sources */,
 				FCFE14BEF31C7AA9A2616C95 /* MainTabView.swift in Sources */,
@@ -939,12 +926,9 @@
 				A300000BA300000BA300000B /* DevotionShareCard.swift in Sources */,
 				307B5303579AD7DEC0BBAEAC /* SavedViewModel.swift in Sources */,
 				072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */,
-				FB100002FB100002FB100002 /* EmailAuthView.swift in Sources */,
-				636DD98EF33E4AB4D5DE00F3 /* SettingsViewModel.swift in Sources */,
 				EFC125389B06A667AA67EB37 /* SplashView.swift in Sources */,
 				EAF4BE04769B199E65BAA480 /* SubscriptionManager.swift in Sources */,
 				8B4A424041EC86CA8355E89D /* ToastView.swift in Sources */,
-				A6D654609742406997988D63 /* TextLimitTestView.swift in Sources */,
 				CF0B96F103A47333AD6CFC1A /* UpsellBottomSheet.swift in Sources */,
 				D5F33D017811A9768501255B /* UpsellManager.swift in Sources */,
 				1C7A6A263D4A72ACF334B82B /* User.swift in Sources */,

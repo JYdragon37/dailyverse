@@ -180,7 +180,8 @@ struct AlarmAddEditView: View {
                     }
                 }
 
-                // ── 광고 영역 (TODO: 출시 전 isPremium 조건 복구) ──
+                // ── 광고 영역 (Free 유저만 표시) ──
+                if !subscriptionManager.isPremium {
                 Section {
                     BannerAdView()
                         .frame(width: 300, height: 250)
@@ -189,6 +190,7 @@ struct AlarmAddEditView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 } header: { Text("광고").font(.dvSectionTitle) }
+                } // if !subscriptionManager.isPremium
 
                 // ── 주제 (4개 고정, 광고 아래) ──
                 Section {
