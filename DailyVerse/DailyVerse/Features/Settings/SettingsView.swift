@@ -367,6 +367,15 @@ struct SettingsView: View {
                 .font(.system(size: 13))
                 .foregroundColor(.white.opacity(0.40))
         }
+
+        rowDivider
+
+        // 개역한글 성경 출처 표기 (저작권 의무 표기)
+        row(icon: "book.fill", iconColor: Color(hex: "#6B6B7A"), title: "성경 본문") {
+            Text("개역한글, 대한성서공회")
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.35))
+        }
     }
 
     // MARK: - 피드백 섹션

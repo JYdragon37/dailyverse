@@ -80,6 +80,20 @@
 
 ## 🔧 출시 전 필수
 
+- [ ] **이용약관·개인정보처리방침 Notion 페이지 생성 + URL 교체**
+  > 1. Notion에서 "morning manna 이용약관" 공개 페이지 생성
+  > 2. Notion에서 "morning manna 개인정보처리방침" 공개 페이지 생성
+  >    - 수집 항목: Firebase Analytics(사용패턴), Crashlytics(오류로그), AdMob(광고 ID)
+  >    - 보관 기간, 제3자 제공 내역(Google Firebase, Google AdMob), 삭제 방법 포함
+  > 3. 각 페이지 웹 공개 링크 추출
+  > 4. `SettingsView.swift` 라인 343, 354의 `example.com/terms`, `example.com/privacy` 교체
+  > ⚠️ 앱스토어 심사 전 필수
+
+- [ ] **PrivacyInfo.xcprivacy Xcode 타겟에 추가**
+  > 파일 생성 완료: `DailyVerse/DailyVerse/PrivacyInfo.xcprivacy`
+  > Xcode에서: File > Add Files to "DailyVerse" > PrivacyInfo.xcprivacy 선택 > Target "DailyVerse" 체크
+  > ⚠️ 앱스토어 심사 전 필수
+
 - [ ] **App Store 리뷰 링크 ID 교체** — `SettingsView.swift` 라인 377
   > 현재: `https://apps.apple.com/app/id0` (더미값)
   > 앱 등록 후 부여받은 숫자 ID로 `id0` 교체 필요 (예: `id6736271234`)
