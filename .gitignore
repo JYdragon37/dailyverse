@@ -49,3 +49,4 @@ DailyVerse_iPhone_Wallpapers_*.zip
 
 # API Keys (xcconfig)
 **/Secrets.xcconfig
+functions/node_modules/
