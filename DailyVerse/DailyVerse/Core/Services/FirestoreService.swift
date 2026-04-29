@@ -91,6 +91,26 @@ class FirestoreService {
         return snapshot.documents.compactMap { try? $0.data(as: VerseImage.self) }
     }
 
+    // MARK: - Today Verse (서버 선택 — app_config/today_verse)
+
+    /// 서버에서 매일 04:00 KST에 결정한 오늘의 verseId 반환
+    /// Cloud Function이 app_config/today_verse에 기록하면 모든 유저가 동일한 말씀을 봄
+    func fetchTodayVerseId() async -> String? {
+        guard let doc = try? await db.collection("app_config").document("today_verse").getDocument(),
+              doc.exists,
+              let data = doc.data(),
+              let verseId = data["verse_id"] as? String,
+              !verseId.isEmpty else { return nil }
+
+        // 날짜 유효성 체크: 서버 기록 날짜가 오늘(KST 기준)이어야 함
+        guard let dateStr = data["date"] as? String else { return verseId }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        let todayStr = formatter.string(from: Date())
+        return dateStr == todayStr ? verseId : nil
+    }
+
     // MARK: - Daily Cards (v5.1 신규 — 큐레이션 카드)
 
     /// Bug E 수정: 모드별 큐레이션 카드 가져오기

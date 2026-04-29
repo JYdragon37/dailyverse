@@ -26,7 +26,7 @@ echo "────────────────────────�
 echo "업로드 시작..."
 echo ""
 
-node sync_zone_backgrounds.js
+NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_zone_backgrounds.js
 
 echo ""
 echo "───────────────────────────────"

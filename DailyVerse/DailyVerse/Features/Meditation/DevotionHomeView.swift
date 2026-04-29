@@ -1,4 +1,7 @@
 import SwiftUI
+import OSLog
+
+private let meditationLog = Logger(subsystem: "com.morningmanna.app", category: "MeditationCalendar")
 
 // MARK: - DevotionHomeView
 // 묵상 탭 Screen 1 — 홈 (인사말 + 말씀 카드 + CTA + 스트릭 섹션)
@@ -17,6 +20,8 @@ struct DevotionHomeView: View {
     @State private var hasLoadedOnce = false
     @State private var selectedMeditationEntry: MeditationEntry? = nil
     @State private var isCalendarExpanded = false   // 달력 펼치기/접기
+    /// load() 완료 전 탭된 날짜 — load 후 자동으로 detail 열기
+    @State private var pendingTapDateKey: String? = nil
 
     // MARK: - Greeting
 
@@ -66,6 +71,7 @@ struct DevotionHomeView: View {
         }
         .background(Color.dvBgDeep.ignoresSafeArea())
         .fullScreenCover(item: $selectedMeditationEntry) { entry in
+            let _ = meditationLog.info("🗓️ fullScreenCover presenting: \(entry.id)")
             MeditationEntryDetailView(entry: entry, viewModel: viewModel)
         }
         .task {
@@ -76,6 +82,14 @@ struct DevotionHomeView: View {
             }
             hasLoadedOnce = true
             animateStreakCount(to: viewModel.streakManager.currentStreak)
+            // load() 전에 탭된 날짜가 있으면 자동으로 detail 열기
+            if let dateKey = pendingTapDateKey {
+                pendingTapDateKey = nil
+                if let entry = viewModel.history.first(where: { $0.dateKey == dateKey })
+                    ?? (viewModel.todayEntry?.dateKey == dateKey ? viewModel.todayEntry : nil) {
+                    selectedMeditationEntry = entry
+                }
+            }
         }
         .onChange(of: viewModel.streakManager.currentStreak) { newValue in
             guard hasLoadedOnce else { return }
@@ -276,7 +290,8 @@ struct DevotionHomeView: View {
                 DevotionCalendarGrid(
                     viewModel: viewModel,
                     history: viewModel.history,
-                    onEntryTap: { entry in selectedMeditationEntry = entry }
+                    onEntryTap: { entry in selectedMeditationEntry = entry },
+                    onPendingTap: { dateKey in resolveAndOpen(dateKey: dateKey) }
                 )
                 .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
@@ -284,7 +299,8 @@ struct DevotionHomeView: View {
                     streakManager: viewModel.streakManager,
                     history: viewModel.history,
                     holidayDates: viewModel.holidayDates,
-                    onEntryTap: { entry in selectedMeditationEntry = entry }
+                    onEntryTap: { entry in selectedMeditationEntry = entry },
+                    onPendingTap: { dateKey in resolveAndOpen(dateKey: dateKey) }
                 )
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -297,6 +313,43 @@ struct DevotionHomeView: View {
     }
 
     // MARK: - Helpers
+
+    /// 날짜 탭 처리 — ForEach 클로저 캡처 문제 우회
+    /// history가 렌더 시점에 비어있어도 viewModel 최신 상태에서 entry를 직접 조회
+    private func resolveAndOpen(dateKey: String) {
+        meditationLog.info("🗓️ tap: \(dateKey) | history=\(viewModel.history.count) | todayEntry=\(viewModel.todayEntry?.dateKey ?? "nil") | hasLoaded=\(hasLoadedOnce)")
+
+        // 1. viewModel.history에서 즉시 조회 (렌더 시점 캡처 무관)
+        if let entry = viewModel.history.first(where: { $0.dateKey == dateKey }) {
+            meditationLog.info("🗓️ found in history → open")
+            selectedMeditationEntry = entry
+            meditationLog.info("🗓️ selectedMeditationEntry set: \(entry.id)")
+            return
+        }
+        // 2. todayEntry 확인
+        if let today = viewModel.todayEntry, today.dateKey == dateKey {
+            meditationLog.info("🗓️ found in todayEntry → open")
+            selectedMeditationEntry = today
+            return
+        }
+        // 3. 아직 로드 중 — load() 완료 후 자동 열기
+        meditationLog.warning("🗓️ entry not found — pendingTap set, reload triggered")
+        pendingTapDateKey = dateKey
+        if hasLoadedOnce {
+            Task { @MainActor in
+                let userId = authManager.userId ?? "local"
+                await viewModel.load(userId: userId)
+                meditationLog.info("🗓️ reload done — history=\(viewModel.history.count)")
+                if let entry = viewModel.history.first(where: { $0.dateKey == dateKey })
+                    ?? (viewModel.todayEntry?.dateKey == dateKey ? viewModel.todayEntry : nil) {
+                    selectedMeditationEntry = entry
+                    pendingTapDateKey = nil
+                } else {
+                    meditationLog.error("🗓️ entry still not found after reload for \(dateKey)")
+                }
+            }
+        }
+    }
 
     private func animateStreakCount(to target: Int) {
         guard target > 0 else {
@@ -321,6 +374,8 @@ private struct DevotionCompactGrid: View {
     var history: [MeditationEntry]
     var holidayDates: Set<String> = []
     var onEntryTap: (MeditationEntry) -> Void
+    /// load() 완료 전 탭 시 dateKey를 전달 — 부모가 load 후 자동으로 detail 열기
+    var onPendingTap: ((String) -> Void)? = nil
 
     private static let iso: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
@@ -357,13 +412,17 @@ private struct DevotionCompactGrid: View {
             ForEach(last14Days, id: \.dateKey) { item in
                 let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
                 let isToday     = item.dateKey == todayKey
-                let entry       = history.first { $0.dateKey == item.dateKey }
                 DevotionDayDotCell(dayNum: item.dayNum,
                                    isMeditated: isMeditated,
                                    isToday: isToday,
                                    isHoliday: holidayDates.contains(item.dateKey))
+                .frame(maxWidth: .infinity)           // 탭 영역: 그리드 셀 전체 너비
                 .contentShape(Rectangle())
-                .onTapGesture { if isMeditated, let entry { onEntryTap(entry) } }
+                .onTapGesture {
+                    meditationLog.info("🗓️ cell tapped: \(item.dateKey) isMeditated=\(isMeditated)")
+                    guard isMeditated else { return }
+                    onPendingTap?(item.dateKey)
+                }
             }
         }
     }
@@ -376,6 +435,7 @@ private struct DevotionCalendarGrid: View {
     @ObservedObject var viewModel: MeditationViewModel
     var history: [MeditationEntry]
     var onEntryTap: (MeditationEntry) -> Void
+    var onPendingTap: ((String) -> Void)? = nil
 
     private static let isoFormatter: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
@@ -479,15 +539,16 @@ private struct DevotionCalendarGrid: View {
                     if let dateKey = cell.dateKey, let dayNum = cell.dayNum {
                         let isMeditated = viewModel.calendarMeditatedDates.contains(dateKey)
                         let isToday = dateKey == todayKey
-                        let entry = history.first { $0.dateKey == dateKey }
 
                         DevotionDayDotCell(dayNum: dayNum,
                                            isMeditated: isMeditated,
                                            isToday: isToday,
                                            isHoliday: viewModel.holidayDates.contains(dateKey))
+                        .frame(maxWidth: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if isMeditated, let entry { onEntryTap(entry) }
+                            guard isMeditated else { return }
+                            onPendingTap?(dateKey)
                         }
                     } else {
                         // 빈 셀 (월 첫 주 앞부분)

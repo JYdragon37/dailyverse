@@ -11,6 +11,7 @@ struct SavedDetailView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
+    @ObservedObject private var nicknameManager = NicknameManager.shared
     @State private var showVerseDetail = false
     @State private var loadedVerse: Verse? = nil
     @State private var isSavingImage = false
@@ -176,25 +177,7 @@ struct SavedDetailView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Spacer(minLength: 8)
 
-                // 오늘의 적용
-                if let application = verseApplication {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("오늘의 적용", systemImage: "sparkles")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.dvAccentSky)
-                        Text(application)
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(.white.opacity(0.88))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(5)
-                    }
-                }
-
-                if verseApplication != nil && verseInterpretation != nil {
-                    Divider().padding(.vertical, 4)
-                }
-
-                // 해석
+                // 1. 해석
                 if let interpretation = verseInterpretation {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("해석", systemImage: "text.magnifyingglass")
@@ -205,6 +188,24 @@ struct SavedDetailView: View {
                             .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
                             .lineSpacing(4)
+                    }
+                }
+
+                if verseInterpretation != nil && verseApplication != nil {
+                    Divider().padding(.vertical, 4)
+                }
+
+                // 2. 오늘의 적용 (닉네임 포함)
+                if let application = verseApplication {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("오늘의 적용", systemImage: "sparkles")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.dvAccentSky)
+                        Text("\(nicknameManager.nickname), \(application)")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(.white.opacity(0.88))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(5)
                     }
                 }
 

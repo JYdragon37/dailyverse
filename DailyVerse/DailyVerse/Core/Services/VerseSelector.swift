@@ -2,11 +2,11 @@ import Foundation
 
 class VerseSelector {
 
-    /// 오늘의 말씀 선택 — Zone 필터 없이 전체 풀에서 선택 (하루 1개 결정론적)
-    /// daily_cards 없을 때 호출. 어떤 Zone에서 앱을 열어도 동일한 풀 사용.
+    /// 오늘의 말씀 선택 — 서버(Cloud Function) 미응답 시 폴백용
+    /// 날씨/테마/무드 스코어링 없음 → 모든 조건 동일 → 날짜 시드만으로 결정
+    /// 같은 날 같은 기기에서 항상 동일한 구절 반환 (서버 응답 없을 때만 사용)
     func selectDailyVerse(from verses: [Verse], weather: WeatherData?,
                           excludingUserHistory recentIds: Set<String> = []) -> Verse? {
-        // Zone 필터 없음 — active + curated 전체 풀
         let base = verses.filter { $0.status == "active" && $0.curated == true }
 
         var pool = base.filter { !recentIds.contains($0.id) && $0.isEligible }
@@ -14,11 +14,13 @@ class VerseSelector {
         if pool.isEmpty { pool = base }
 
         guard !pool.isEmpty else { return nil }
-        // 스코어링: mode 없으므로 weather/season만 적용
-        return scoreDailyVerse(pool, weather: weather)
+
+        // 스코어링 없음 — ID 정렬 후 날짜 시드로 결정론적 선택
+        let sorted = pool.sorted { $0.id < $1.id }
+        return sorted[Self.dailySeedIndex(count: sorted.count)]
     }
 
-    /// 현재 Zone + 날씨 기반으로 최적 말씀 선택 (다음 말씀, 알람 전용)
+    /// 현재 Zone + 날씨 기반으로 최적 말씀 선택 (알람 전용)
     /// v6.0: 8-zone 기준, theme/mood "all" 지원
     /// v6.1: 유저별 최근 이력(recentIds) 기반 중복 노출 최소화
     /// 스코어링: 테마 +3, 분위기 +2, 날씨 +2, 계절 +1, 선호 테마 +5, 전역 인기 -1/10회
@@ -40,7 +42,7 @@ class VerseSelector {
         return score(pool, mode: mode, weather: weather)
     }
 
-    /// [다음 말씀]: 현재 말씀 + 유저 이력 제외 후 선택
+    /// selectNext: 알람·테스트 전용 — 현재 말씀 제외 후 선택 (홈/묵상에서는 미사용)
     func selectNext(from verses: [Verse], excluding currentId: String, mode: AppMode, weather: WeatherData?,
                     excludingUserHistory recentIds: Set<String> = []) -> Verse? {
         let remaining = verses.filter { $0.id != currentId }

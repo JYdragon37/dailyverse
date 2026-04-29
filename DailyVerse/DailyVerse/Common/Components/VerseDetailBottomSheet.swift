@@ -60,11 +60,14 @@ struct VerseDetailBottomSheet: View {
                     }
 
                     // 4. 광고 슬롯 (Medium Rectangle 300×250)
+                    // clipped: AdMob UIKit 뷰가 프레임 밖으로 렌더링되어 actionBar 겹침 방지
                     BannerAdView()
                         .frame(width: 300, height: 250)
+                        .clipped()
                         .padding(.top, 8)
 
-                    Spacer(minLength: 100)
+                    // actionBar 높이 + safeArea 충분히 확보 (minHeight ~140pt)
+                    Spacer(minLength: 160)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)

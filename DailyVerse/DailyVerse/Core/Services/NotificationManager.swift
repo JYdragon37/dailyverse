@@ -176,18 +176,23 @@ final class NotificationManager: NSObject {
 
     // MARK: - 묵상 리마인더
 
-    /// 저녁 9시 묵상 리마인더 스케줄 (당일 묵상 미기록 시)
+    /// 묵상 리마인더 스케줄 — UserDefaults에서 시간 읽음
     func scheduleMeditationEveningReminder() {
-        let center = UNUserNotificationCenter.current()
+        let enabled = UserDefaults.standard.object(forKey: "meditationReminderEnabled") as? Bool ?? true
+        guard enabled else { return }
 
+        let hour = UserDefaults.standard.object(forKey: "meditationReminderHour") as? Int ?? 21
+        let minute = UserDefaults.standard.object(forKey: "meditationReminderMinute") as? Int ?? 0
+
+        let center = UNUserNotificationCenter.current()
         let content = UNMutableNotificationContent()
         content.title = "mm"
         content.body = "📿 오늘 묵상을 아직 기록하지 않으셨어요"
         content.sound = .default
 
         var components = DateComponents()
-        components.hour = 21
-        components.minute = 0
+        components.hour = hour
+        components.minute = minute
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
 
         let request = UNNotificationRequest(
@@ -198,13 +203,18 @@ final class NotificationManager: NSObject {
         center.add(request)
     }
 
+    /// 리마인더 완전 취소 (설정에서 OFF 시)
+    func disableMeditationReminder() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: ["meditation.evening.reminder"])
+    }
+
     /// 오늘 묵상 완료 시 호출 — 당일 리마인더 취소 후 내일 재스케줄
     func cancelTodayMeditationReminder() {
+        let enabled = UserDefaults.standard.object(forKey: "meditationReminderEnabled") as? Bool ?? true
+        guard enabled else { return }
         UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(
-                withIdentifiers: ["meditation.evening.reminder"]
-            )
-        // 내일 것 재스케줄
+            .removePendingNotificationRequests(withIdentifiers: ["meditation.evening.reminder"])
         scheduleMeditationEveningReminder()
     }
 }

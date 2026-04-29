@@ -184,7 +184,8 @@ struct DevotionCompleteView: View {
 
             // Secondary: 홈으로 돌아가기
             Button {
-                // 탭 전환 먼저 → dismiss 순서 보장
+                // 묵상 NavStack 리셋 + 탭 전환 → dismiss 순서 보장
+                NotificationCenter.default.post(name: .dvResetMeditationNav, object: nil)
                 NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     dismiss()

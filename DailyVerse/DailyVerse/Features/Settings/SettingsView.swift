@@ -18,6 +18,9 @@ struct SettingsView: View {
 
     @AppStorage("greetingLanguage") private var greetingLanguage: String = "random"
     @AppStorage("profileEmoji") private var profileEmoji: String = ""
+    @AppStorage("meditationReminderEnabled") private var meditationReminderEnabled: Bool = true
+    @AppStorage("meditationReminderHour") private var meditationReminderHour: Int = 21
+    @AppStorage("meditationReminderMinute") private var meditationReminderMinute: Int = 0
 
     @State private var showRetentionAlert = false
     @State private var showDeleteAccountAlert = false
@@ -25,6 +28,7 @@ struct SettingsView: View {
     @State private var showLoginPrompt = false
     @State private var showNicknameEdit = false
     @State private var showEmojiPicker = false
+    @State private var showReminderTimePicker = false
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
 
@@ -58,6 +62,9 @@ struct SettingsView: View {
 
                     // ── 앱 설정 ─────────────────────────────
                     sectionCard(title: "앱 설정") { permissionRows }
+
+                    // ── 묵상 리마인더 ────────────────────────
+                    sectionCard(title: "묵상 리마인더") { meditationReminderRows }
 
                     // ── 앱 정보 ─────────────────────────────
                     sectionCard(title: "앱 정보") { appInfoRows }
@@ -328,6 +335,128 @@ struct SettingsView: View {
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(Color.dvAccentGold)
         }
+    }
+
+    // MARK: - 묵상 리마인더 섹션
+
+    @ViewBuilder
+    private var meditationReminderRows: some View {
+        // 온/오프 토글
+        HStack(spacing: 14) {
+            iconBadge("bell.badge.fill", color: Color(hex: "#9B7FD4"))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("묵상 알림")
+                    .font(.dvBody)
+                    .foregroundColor(.white)
+                Text("오늘 묵상을 기록하지 않았을 때 알려드려요")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+            Spacer()
+            Toggle("", isOn: $meditationReminderEnabled)
+                .labelsHidden()
+                .tint(Color(hex: "#9B7FD4"))
+                .onChange(of: meditationReminderEnabled) { newValue in
+                    if newValue {
+                        NotificationManager.shared.scheduleMeditationEveningReminder()
+                    } else {
+                        NotificationManager.shared.disableMeditationReminder()
+                    }
+                }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+
+        // 시간 선택 (ON일 때만 표시)
+        if meditationReminderEnabled {
+            rowDivider
+            Button {
+                showReminderTimePicker = true
+            } label: {
+                HStack(spacing: 14) {
+                    iconBadge("clock.fill", color: Color(hex: "#6B6B9A"))
+                    Text("알림 시간")
+                        .font(.dvBody)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text(String(format: "%02d:%02d", meditationReminderHour, meditationReminderMinute))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
+                        .foregroundColor(Color(hex: "#9B7FD4"))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.25))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showReminderTimePicker) {
+                reminderTimePickerSheet
+            }
+        }
+    }
+
+    private var reminderTimePickerSheet: some View {
+        VStack(spacing: 0) {
+            // 핸들
+            Capsule()
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+
+            Text("알림 시간 설정")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.bottom, 8)
+
+            Text("묵상을 기록하지 않았을 때 이 시간에 알려드려요")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.50))
+                .padding(.bottom, 24)
+
+            // DatePicker (시간만)
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: {
+                        var c = DateComponents()
+                        c.hour = meditationReminderHour
+                        c.minute = meditationReminderMinute
+                        return Calendar.current.date(from: c) ?? Date()
+                    },
+                    set: { newDate in
+                        let c = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                        meditationReminderHour = c.hour ?? 21
+                        meditationReminderMinute = c.minute ?? 0
+                    }
+                ),
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .colorScheme(.dark)
+            .padding(.horizontal, 24)
+
+            Button {
+                NotificationManager.shared.scheduleMeditationEveningReminder()
+                showReminderTimePicker = false
+            } label: {
+                Text("저장")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "#1A2340"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.dvAccentGold)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 40)
+        }
+        .background(Color.dvBgDeep.ignoresSafeArea())
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.hidden)
     }
 
     // MARK: - 앱 정보 섹션

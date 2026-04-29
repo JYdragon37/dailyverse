@@ -12,10 +12,18 @@ struct MeditationEntryDetailView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
+    // 수정 완료 후 즉시 반영을 위한 live 복사본
+    @State private var liveEntry: MeditationEntry
     @State private var verse: Verse? = nil
     @State private var isSaving = false
     @State private var showSavedToast = false
     @State private var showEditFlow = false
+
+    init(entry: MeditationEntry, viewModel: MeditationViewModel) {
+        self.entry = entry
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self._liveEntry = State(initialValue: entry)
+    }
 
     // MARK: - 다이어리 테마 (시스템 무관 독립 설정)
     @AppStorage("diaryPrefersDark") private var diaryPrefersDark: Bool = true
@@ -62,24 +70,24 @@ struct MeditationEntryDetailView: View {
 
                     rule.padding(.horizontal, 28).padding(.top, 20)
 
-                    if let reading = entry.readingText, !reading.isEmpty {
+                    if let reading = liveEntry.readingText, !reading.isEmpty {
                         diarySection(icon: "✍️", label: "묵상 소감", body: reading)
                         rule.padding(.horizontal, 28)
                     }
 
-                    if let prayer = entry.prayer, !prayer.isEmpty {
+                    if let prayer = liveEntry.prayer, !prayer.isEmpty {
                         diarySection(icon: "🙏", label: "기도", body: prayer)
                         rule.padding(.horizontal, 28)
                     }
 
-                    if !entry.prayerItems.isEmpty {
+                    if !liveEntry.prayerItems.isEmpty {
                         gratitudeSection
                         rule.padding(.horizontal, 28)
                     }
 
-                    if entry.readingText?.isEmpty != false
-                        && entry.prayer?.isEmpty != false
-                        && entry.prayerItems.isEmpty {
+                    if liveEntry.readingText?.isEmpty != false
+                        && liveEntry.prayer?.isEmpty != false
+                        && liveEntry.prayerItems.isEmpty {
                         emptyState
                             .padding(.horizontal, 28)
                             .padding(.top, 32)
@@ -183,10 +191,10 @@ struct MeditationEntryDetailView: View {
                 DevotionVerseView(
                     verse: verse,
                     viewModel: viewModel,
-                    prefillReadingText: entry.readingText ?? "",
+                    prefillReadingText: liveEntry.readingText ?? "",
                     editMode: true,
-                    prefillPrayer: entry.prayer ?? "",
-                    prefillGratitude: entry.prayerItems.map { $0.text }
+                    prefillPrayer: liveEntry.prayer ?? "",
+                    prefillGratitude: liveEntry.prayerItems.map { $0.text }
                 )
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -197,7 +205,7 @@ struct MeditationEntryDetailView: View {
             }
         }
         .task {
-            let id = entry.verseId
+            let id = liveEntry.verseId
             guard !id.isEmpty else { return }
             if let v = DailyCacheManager.shared.loadCachedVerse(id: id) { verse = v; return }
             if let v = Verse.fallbackVerses.first(where: { $0.id == id }) { verse = v; return }
@@ -205,9 +213,14 @@ struct MeditationEntryDetailView: View {
                 verse = verses.first { $0.id == id }
             }
         }
-        // 수정 완료 노티 수신 → 수정 흐름 닫기 (다이어리로 자동 복귀)
+        // 수정 완료 노티 수신 → 수정 흐름 닫기 + liveEntry 즉시 갱신
         .onReceive(NotificationCenter.default.publisher(for: .dvMeditationEditCompleted)) { _ in
             showEditFlow = false
+            if let updated = viewModel.todayEntry, updated.id == liveEntry.id {
+                liveEntry = updated
+            } else if let updated = viewModel.history.first(where: { $0.id == liveEntry.id }) {
+                liveEntry = updated
+            }
         }
     }
 
@@ -238,7 +251,7 @@ struct MeditationEntryDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity)
 
-            Text("— \(entry.verseReference)")
+            Text("— \(liveEntry.verseReference)")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(goldColor)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -280,7 +293,7 @@ struct MeditationEntryDetailView: View {
                     .tracking(0.8)
             }
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(entry.prayerItems.enumerated()), id: \.1.id) { idx, item in
+                ForEach(Array(liveEntry.prayerItems.enumerated()), id: \.1.id) { idx, item in
                     HStack(alignment: .top, spacing: 10) {
                         Text("\(idx + 1).")
                             .font(.system(size: 17, weight: .semibold))
@@ -350,7 +363,7 @@ struct MeditationEntryDetailView: View {
 
         // 렌더링할 스냅샷 뷰 생성
         let snapshot = DiarySnapshotView(
-            entry: entry,
+            entry: liveEntry,
             verse: verse,
             bgColor: bgColor,
             inkColor: inkColor,
@@ -393,7 +406,7 @@ struct MeditationEntryDetailView: View {
     private var formattedDateWithYear: String {
         let parser = DateFormatter()
         parser.dateFormat = "yyyy-MM-dd"
-        guard let date = parser.date(from: entry.dateKey) else { return entry.dateKey }
+        guard let date = parser.date(from: liveEntry.dateKey) else { return liveEntry.dateKey }
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "ko_KR")
         fmt.dateFormat = "yyyy년 M월 d일 EEEE"

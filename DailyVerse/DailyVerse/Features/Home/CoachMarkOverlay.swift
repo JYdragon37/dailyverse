@@ -26,10 +26,10 @@ struct CoachMarkOverlay: View {
                 let h = geo.size.height
 
                 // 스텝별 하이라이트 프레임 (safe area 59pt + greetingHeader padding 60pt 반영)
-                let greetingRect = CGRect(x: 16, y: 118, width: w - 32, height: 82)
+                let greetingRect = CGRect(x: 16, y: 118, width: w - 32, height: 90)  // +10%
                 let weatherRect  = CGRect(x: 50, y: 225, width: w * 0.72, height: 28)
                 let verseRect    = CGRect(x: max(w * 0.13, 36), y: h * 0.34,
-                                         width: w - 2 * max(w * 0.13, 36), height: h * 0.22)
+                                         width: w - 2 * max(w * 0.13, 36), height: h * 0.264) // +20%
 
                 let target: CGRect = {
                     switch currentStep {
@@ -92,7 +92,7 @@ struct CoachMarkOverlay: View {
                          screenWidth: CGFloat,
                          screenHeight: CGFloat) -> some View {
 
-        let isAbove = target.midY > screenHeight * 0.45
+        let isAbove = target.midY > screenHeight * 0.5
         let tooltipY = isAbove
             ? target.minY - 130
             : target.maxY + 90

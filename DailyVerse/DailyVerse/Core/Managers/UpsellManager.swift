@@ -5,7 +5,6 @@ import Combine
 // 현재는 shouldShow가 항상 false를 반환하여 업셀 시트가 표시되지 않음.
 
 enum UpsellTrigger: String {
-    case nextVerse   = "next_verse"
     case saveVerse   = "save_verse"
     case savedAd     = "saved_ad"
     case savedLocked = "saved_locked"
@@ -13,7 +12,6 @@ enum UpsellTrigger: String {
 
     var message: String {
         switch self {
-        case .nextVerse:   return "오늘 말씀이 더 필요하신가요?"
         case .saveVerse:   return "이 말씀을 간직하고 싶으신가요?"
         case .savedAd:     return "광고 없이 모든 기록을 되돌아보세요"
         case .savedLocked: return "모든 말씀 기록을 되돌아보세요"
@@ -25,7 +23,7 @@ enum UpsellTrigger: String {
 @MainActor
 class UpsellManager: ObservableObject {
     @Published var shouldShow: Bool = false
-    @Published var currentTrigger: UpsellTrigger = .nextVerse
+    @Published var currentTrigger: UpsellTrigger = .saveVerse
 
     // v5.1: 단일 플랜 — 모든 업셀 비활성화
     func canShow(trigger: UpsellTrigger) -> Bool { return false }

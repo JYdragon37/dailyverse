@@ -54,8 +54,6 @@ final class MeditationRepository {
     func fetchHistory(userId: String, limit: Int = 30) async -> [MeditationEntry] {
         guard userId != "local" else {
             // 로컬(비로그인) 유저: Firestore 없음 → 오늘 캐시만 history에 포함
-            // history가 빈 배열이면 달력 탭 조건(entry != nil)이 충족되지 않고
-            // updateMeditatedDates([])가 meditatedDatesThisMonth를 초기화해 동그라미가 사라짐
             if let cached = loadTodayCache(),
                cached.dateKey == MeditationEntry.todayKey() {
                 return [cached]
@@ -69,9 +67,18 @@ final class MeditationRepository {
             .order(by: "date_key", descending: true)
             .limit(to: limit)
             .getDocuments()
-        return snapshot?.documents.compactMap {
+        var result = snapshot?.documents.compactMap {
             try? $0.data(as: MeditationEntry.self)
         } ?? []
+
+        // Firestore 결과가 비었으면 로컬 캐시로 폴백
+        // (네트워크 오류·묵상 완료 직후 재로드 경쟁 조건 대응)
+        if result.isEmpty,
+           let cached = loadTodayCache(),
+           cached.dateKey == MeditationEntry.todayKey() {
+            result = [cached]
+        }
+        return result
     }
 
     // MARK: - This Month Date Keys (히트맵용)
@@ -128,15 +135,17 @@ final class MeditationRepository {
     }
 
     // MARK: - Private Cache
+    // UserDefaults 사용: SecureStorage(파일 기반)보다 신뢰성 높음
+    // nav 리셋·앱 재실행 후에도 항상 읽기 가능
 
     private func loadTodayCache() -> MeditationEntry? {
-        guard let data = SecureStorage.shared.data(forKey: kTodayCache) else { return nil }
+        guard let data = UserDefaults.standard.data(forKey: kTodayCache) else { return nil }
         return try? JSONDecoder().decode(MeditationEntry.self, from: data)
     }
 
     private func saveTodayCache(_ entry: MeditationEntry) {
         if let data = try? JSONEncoder().encode(entry) {
-            SecureStorage.shared.set(data, forKey: kTodayCache)
+            UserDefaults.standard.set(data, forKey: kTodayCache)
         }
     }
 

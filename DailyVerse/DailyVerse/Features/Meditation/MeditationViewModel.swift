@@ -24,6 +24,21 @@ final class MeditationViewModel: ObservableObject {
     init(repository: MeditationRepository = MeditationRepository()) {
         self.repository = repository
         self.streakManager = StreakManager.shared
+
+        // 스플래시에서 결정된 말씀을 뷰 첫 렌더링 전에 동기적으로 로드 (버퍼 제거)
+        if let cachedId = DailyCacheManager.shared.getTodayVerseId(),
+           let verse    = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
+            self.todayVerse = verse
+        }
+
+        // nav 리셋 후에도 오늘 묵상 기록 즉시 복원 (UserDefaults 캐시 → history/todayEntry 동기 세팅)
+        // fetchHistory/fetchToday 비동기 결과를 기다리지 않아도 달력 탭이 즉시 동작
+        if let data = UserDefaults.standard.data(forKey: "meditation_today_v1"),
+           let cached = try? JSONDecoder().decode(MeditationEntry.self, from: data),
+           cached.dateKey == MeditationEntry.todayKey() {
+            self.history = [cached]
+            self.todayEntry = cached
+        }
     }
 
     // MARK: - Load

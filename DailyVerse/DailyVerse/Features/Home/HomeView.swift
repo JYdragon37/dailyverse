@@ -208,9 +208,11 @@ struct HomeView: View {
                     Button {
                         showWeatherDetail = true
                     } label: {
-                        // 홈화면: 상위 지역만 (서울특별시) — 탭하면 상세시트에서 전체(수색동) 표시
-                        let shortCity = weather.cityName.components(separatedBy: " ").first ?? weather.cityName
-                        Text("\(shortCity) \(weather.temperature)°C \(weather.conditionKo)")
+                        let isEnglish = greetingLanguagePref == "en"
+                        let rawCity = weather.cityName.components(separatedBy: " ").first ?? weather.cityName
+                        let displayCity = isEnglish ? englishCityName(rawCity) : rawCity
+                        let displayCondition = isEnglish ? weather.conditionEn : weather.conditionKo
+                        Text("\(displayCity) \(weather.temperature)°C \(displayCondition)")
                             .font(.system(size: 15, weight: .medium))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
@@ -1382,6 +1384,32 @@ private struct WeatherDetailTile: View {
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.dvBorderMid, lineWidth: 1))
         )
     }
+
+}
+
+// MARK: - 도시명 영어 변환 (파일 레벨 자유 함수)
+
+private func englishCityName(_ korean: String) -> String {
+    let map: [String: String] = [
+        "서울특별시": "Seoul",    "서울": "Seoul",
+        "부산광역시": "Busan",    "부산": "Busan",
+        "인천광역시": "Incheon",  "인천": "Incheon",
+        "대구광역시": "Daegu",    "대구": "Daegu",
+        "대전광역시": "Daejeon",  "대전": "Daejeon",
+        "광주광역시": "Gwangju",  "광주": "Gwangju",
+        "울산광역시": "Ulsan",    "울산": "Ulsan",
+        "세종특별자치시": "Sejong","세종": "Sejong",
+        "경기도": "Gyeonggi",   "강원도": "Gangwon",   "강원특별자치도": "Gangwon",
+        "충청북도": "Chungbuk",  "충청남도": "Chungnam",
+        "전라북도": "Jeonbuk",   "전라남도": "Jeonnam",  "전북특별자치도": "Jeonbuk",
+        "경상북도": "Gyeongbuk", "경상남도": "Gyeongnam",
+        "제주특별자치도": "Jeju", "제주": "Jeju",
+        "수원시": "Suwon",       "성남시": "Seongnam",  "고양시": "Goyang",
+        "용인시": "Yongin",      "안양시": "Anyang",    "안산시": "Ansan",
+        "화성시": "Hwaseong",    "남양주시": "Namyangju","평택시": "Pyeongtaek",
+        "의정부시": "Uijeongbu", "시흥시": "Siheung",   "파주시": "Paju",
+    ]
+    return map[korean] ?? korean
 }
 
 // MARK: - Preview

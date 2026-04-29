@@ -213,6 +213,17 @@ struct WeatherData: Codable, Equatable {
     /// 홈 미니위젯용 — 등급 텍스트만 (공간 제약)
     var dustSummary: String { dustGrade }
 
+    /// 날씨 상태 영어 표시 (condition 필드 기반)
+    var conditionEn: String {
+        switch condition {
+        case "sunny":  return "Sunny"
+        case "cloudy": return "Cloudy"
+        case "rainy":  return "Rainy"
+        case "snowy":  return "Snowy"
+        default:       return condition.capitalized
+        }
+    }
+
     var isValid: Bool {
         Date().timeIntervalSince(cachedAt) < 1800  // 30분
     }

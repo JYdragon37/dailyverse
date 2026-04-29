@@ -224,7 +224,53 @@ async function uploadOne(bucket, db, sheets, localPath) {
   return true;
 }
 
+// ─── 시트 → Firestore 상태 동기화 ─────────────────────────────────────────────
+// 이미 업로드된 이미지의 status 등 메타데이터를 시트 기준으로 Firestore에 반영
+// 시트에서 inactive로 바꾸면 이 함수가 Firestore에 즉시 반영함
+
+async function syncStatusFromSheet(db, sheets) {
+  console.log('\n🔄 시트 → Firestore 상태 동기화 중...');
+  const range = `${SHEET_NAME}!A:J`;
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: SHEETS_ID, range });
+  const rows = res.data.values || [];
+  if (rows.length < 2) { console.log('   시트 데이터 없음, 동기화 건너뜀'); return; }
+
+  const headers = rows[0].map(h => String(h).trim()); // image_id, filename, storage_url, ...
+  const idIdx     = headers.indexOf('image_id');
+  const urlIdx    = headers.indexOf('storage_url');
+  const statusIdx = headers.indexOf('status');
+  if (idIdx === -1 || urlIdx === -1 || statusIdx === -1) {
+    console.log('   필수 컬럼(image_id/storage_url/status) 없음, 동기화 건너뜀');
+    return;
+  }
+
+  let synced = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const row      = rows[i];
+    const imageId  = String(row[idIdx]  || '').trim();
+    const url      = String(row[urlIdx] || '').trim();
+    const status   = String(row[statusIdx] || 'active').trim() || 'active';
+    if (!imageId || !url.startsWith('https://storage.googleapis.com')) continue;
+
+    if (isDryRun) {
+      console.log(`   [dry-run] ${imageId}: status → ${status}`);
+    } else {
+      await db.collection('background_images').doc(imageId).set({ status }, { merge: true });
+      console.log(`   ✅ ${imageId}: status → ${status}`);
+    }
+    synced++;
+  }
+  console.log(`   동기화 완료: ${synced}개`);
+}
+
 async function main() {
+  const { db, bucket } = initFirebase();
+  const sheets = await initSheets();
+
+  // Step 1: 시트의 status를 Firestore에 동기화 (inactive 반영)
+  await syncStatusFromSheet(db, sheets);
+
+  // Step 2: 로컬 폴더에 새 파일이 없으면 종료
   if (!fs.existsSync(IMAGES_DIR)) {
     fs.mkdirSync(IMAGES_DIR, { recursive: true });
     console.log(`\n📁 폴더 생성: ${IMAGES_DIR}/`);
@@ -239,12 +285,9 @@ async function main() {
     .map(f => path.join(IMAGES_DIR, f))
     .sort();
 
-  console.log(`\n🌅 morning manna Zone 배경 업로드 v7.0${isDryRun ? ' [DRY-RUN]' : ''}`);
+  console.log(`\n🌅 morning manna Zone 배경 업로드 v7.1${isDryRun ? ' [DRY-RUN]' : ''}`);
   console.log(`📂 발견된 bg_* 파일: ${files.length}개\n`);
-  if (files.length === 0) { console.log('업로드할 파일이 없습니다.'); process.exit(0); }
-
-  const { db, bucket } = initFirebase();
-  const sheets = await initSheets();
+  if (files.length === 0) { console.log('새로 업로드할 파일이 없습니다.'); process.exit(0); }
 
   let ok = 0, fail = 0;
   for (const f of files) {

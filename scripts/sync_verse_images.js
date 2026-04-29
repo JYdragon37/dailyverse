@@ -182,10 +182,19 @@ async function main() {
       continue;
     }
 
-    // 이미 Firebase Storage URL이면 건너뜀
+    // 이미 Firebase Storage URL이면 → Storage 업로드는 건너뜀
+    // 단, Firestore 메타데이터(status 등)는 시트 기준으로 업데이트 (inactive 반영)
     if (sourceUrl.startsWith(FIREBASE_URL_PREFIX)) {
       const imageId = String(row[imageIdIdx] || '').trim() || `행${rowNum}`;
-      console.log(`   ⏭️  ${imageId}: 이미 업로드됨 — 건너뜀`);
+      const docData = { image_id: imageId, storage_url: sourceUrl };
+      headers.forEach((key, j) => {
+        if (!key || key === 'storage_url' || key === 'image_id' || key === 'filename') return;
+        const val = convertValue(key, row[j]);
+        if (val !== '' && val !== null && val !== undefined) docData[key] = val;
+      });
+      docData.status = docData.status || 'active';
+      await db.collection('images').doc(imageId).set(docData, { merge: true });
+      console.log(`   ✅ ${imageId}: 메타데이터 동기화 (status: ${docData.status})`);
       skipped++;
       continue;
     }

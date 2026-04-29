@@ -14,6 +14,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         Analytics.logEvent(AnalyticsEventAppOpen, parameters: nil)
         // AdMob은 메인스레드 didFinishLaunching에서 초기화
         GADMobileAds.sharedInstance().start(completionHandler: nil)
+        #if DEBUG
+        GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [
+            GADSimulatorID, "kGADSimulatorID"
+        ]
+        #endif
         return true
     }
 

@@ -46,7 +46,7 @@ struct AlarmAddEditView: View {
                 of: Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()) ?? Date()
             _selectedTime   = State(initialValue: nextHour)
             _selectedDays   = State(initialValue: Set([0, 1, 2, 3, 4, 5, 6]))
-            _selectedTheme  = State(initialValue: "hope")
+            _selectedTheme  = State(initialValue: "all")
             _labelText      = State(initialValue: Alarm.defaultLabel(for: nextHour))
             _snoozeEnabled  = State(initialValue: true)
             _wakeMission    = State(initialValue: "none")
@@ -313,7 +313,7 @@ struct AlarmAddEditView: View {
         .init(id: "peace",       name: "평안",   subtitle: "소음 속에서 평온 찾기",   icon: "leaf.fill",                  topColor: Color(hex: "#2A6A4A"), bottomColor: Color(hex: "#1A3A28")),
         .init(id: "courage",     name: "새 힘",  subtitle: "독수리처럼 비상하는 힘",  icon: "bolt.fill",                  topColor: Color(hex: "#8A4A2A"), bottomColor: Color(hex: "#4A2010")),
         .init(id: "gratitude",   name: "감사",   subtitle: "모든 것을 세어보기",      icon: "heart.fill",                  topColor: Color(hex: "#8A6A2A"), bottomColor: Color(hex: "#4A3810")),
-        .init(id: "wisdom",      name: "지혜",   subtitle: "빛 가운데 걷기",          icon: "book.fill",                  topColor: Color(hex: "#3A3A7A"), bottomColor: Color(hex: "#1A1A4A")),
+        .init(id: "all",          name: "모든 말씀", subtitle: "어떤 말씀도 좋아요",    icon: "sparkles",                   topColor: Color(hex: "#3A3A7A"), bottomColor: Color(hex: "#1A1A4A")),
         .init(id: "hope",        name: "소망",   subtitle: "내일을 향한 기대",        icon: "sparkles",                   topColor: Color(hex: "#2A5C8A"), bottomColor: Color(hex: "#1A3058")),
         .init(id: "strength",    name: "힘",     subtitle: "새 힘을 얻으리니",        icon: "figure.strengthtraining.traditional", topColor: Color(hex: "#7A3A6A"), bottomColor: Color(hex: "#401A38")),
         .init(id: "renewal",     name: "새로움", subtitle: "새 피조물로 거듭나기",    icon: "arrow.triangle.2.circlepath",topColor: Color(hex: "#2A7A5A"), bottomColor: Color(hex: "#1A4030")),

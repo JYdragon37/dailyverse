@@ -31,25 +31,31 @@ struct DevotionResponseView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    applianceSection.padding(.bottom, 20)
-                    dashedDivider.padding(.bottom, 20)
-                    questionSection.padding(.bottom, 20)
-                    dashedDivider.padding(.bottom, 20)
-                    prayerSection.padding(.bottom, 20)
-                    dashedDivider.padding(.bottom, 20)
-                    gratitudeSection.padding(.bottom, 20)
-                    Spacer(minLength: 16)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .frame(maxWidth: .infinity)
-            }
+        ZStack {
+            Color.dvBgDeep.ignoresSafeArea()
 
-            bottomCTA
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        applianceSection.padding(.bottom, 20)
+                        dashedDivider.padding(.bottom, 20)
+                        questionSection.padding(.bottom, 20)
+                        dashedDivider.padding(.bottom, 20)
+                        prayerSection.padding(.bottom, 20)
+                        dashedDivider.padding(.bottom, 20)
+                        gratitudeSection.padding(.bottom, 20)
+                        Spacer(minLength: 16)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .frame(maxWidth: .infinity)
+                }
+                .scrollDismissesKeyboard(.interactively)
+
+                bottomCTA
+            }
         }
+        .hideKeyboardOnTap()
         .background(Color.dvBgDeep.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.dvBgDeep, for: .navigationBar)

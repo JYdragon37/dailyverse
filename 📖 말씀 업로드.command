@@ -12,7 +12,7 @@ echo "════════════════════════�
 echo "구글 시트 → Firestore 동기화 중..."
 echo ""
 
-node sync_verses.js
+NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js
 
 echo ""
 echo "───────────────────────────────"

@@ -1,17 +1,23 @@
 import SwiftUI
 import GoogleMobileAds
 
+// MARK: - 광고 ID 헬퍼
+private func bannerAdUnitID() -> String {
+    #if DEBUG
+    return "ca-app-pub-3940256099942544/2934735716"  // Google 공식 테스트 배너
+    #else
+    return Bundle.main.infoDictionary?["ADMOB_BANNER_ID"] as? String
+        ?? "ca-app-pub-3940256099942544/2934735716"
+    #endif
+}
+
 // MARK: - AdMob 배너 광고 (Medium Rectangle 300×250)
-// Ad Unit ID: Secrets.xcconfig → Info.plist → Bundle 순으로 읽음
 
 struct BannerAdView: UIViewRepresentable {
 
-    private let adUnitID = Bundle.main.infoDictionary?["ADMOB_BANNER_ID"] as? String
-        ?? "ca-app-pub-3940256099942544/2934735716"  // xcconfig 누락 시 테스트 ID 폴백
-
     func makeUIView(context: Context) -> GADBannerView {
         let banner = GADBannerView(adSize: GADAdSizeMediumRectangle)
-        banner.adUnitID = adUnitID
+        banner.adUnitID = bannerAdUnitID()
         banner.rootViewController = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first?.rootViewController
@@ -30,12 +36,9 @@ struct BannerAdView: UIViewRepresentable {
 
 struct SmartBannerAdView: UIViewRepresentable {
 
-    private let adUnitID = Bundle.main.infoDictionary?["ADMOB_BANNER_ID"] as? String
-        ?? "ca-app-pub-3940256099942544/2934735716"  // xcconfig 누락 시 테스트 ID 폴백
-
     func makeUIView(context: Context) -> GADBannerView {
-        let banner = GADBannerView(adSize: GADAdSizeBanner)  // 320×50
-        banner.adUnitID = adUnitID
+        let banner = GADBannerView(adSize: GADAdSizeBanner)
+        banner.adUnitID = bannerAdUnitID()
         banner.rootViewController = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first?.rootViewController

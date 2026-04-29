@@ -60,6 +60,13 @@ final class HomeViewModel: ObservableObject {
         self.upsellManager = upsellManager
         self.permissionManager = permissionManager
 
+        // 스플래시에서 결정된 말씀을 뷰 첫 렌더링 전에 동기적으로 로드 (버퍼 제거)
+        // Core Data 조회라 비동기 불필요 — 즉시 currentVerse 세팅됨
+        if let cachedId = cacheManager.getTodayVerseId(),
+           let verse    = cacheManager.loadCachedVerse(id: cachedId) {
+            self.currentVerse = verse
+        }
+
         startModeCheckTimer()
         evaluateAlarmCTA()
         observeLocationUpdates()
@@ -195,24 +202,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    /// 다음 말씀 로드 (v5.1: 단일 플랜 — 모든 유저 사용 가능)
-    func nextVerse() async {
-        guard let currentId = currentVerse?.id else { return }
-
-        isLoading = true
-        defer { isLoading = false }
-
-        if let next = await verseRepository.nextVerse(
-            excluding: currentId,
-            for: currentMode,
-            weather: weather,
-            userId: authManager.userId
-        ) {
-            currentVerse = next
-        } else {
-            showToast("더 이상 표시할 말씀이 없어요")
-        }
-    }
+    // nextVerse 제거됨 — 다음 말씀 기능 없음 (모든 유저 동일 말씀 정책)
 
     // MARK: - Private: Data Loading
 
@@ -242,8 +232,10 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func loadVerse(for mode: AppMode) async {
-        // 같은 모드의 verse가 이미 있으면 재로드 안 함 (탭 전환 시 verse 변경 방지)
-        if currentVerse != nil && currentMode == mode { return }
+        // todayVerseId가 현재 표시 중인 말씀과 같으면 재로드 불필요
+        // todayVerseId가 다르거나 nil이면 재로드 (04:00 리셋 후, 알람이 새 말씀 설정 후 등)
+        let cachedId = cacheManager.getTodayVerseId()
+        if let cachedId, currentVerse?.id == cachedId { return }
         let verse = await verseRepository.currentVerse(for: mode, weather: weather)
         currentVerse = verse
     }

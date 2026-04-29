@@ -69,8 +69,19 @@ final class StreakManager: ObservableObject {
 
     /// 이번 달 묵상 날짜 업데이트 — Firestore 실제 기록으로 스트릭 재계산
     func updateMeditatedDates(_ dateKeys: Set<String>) {
-        meditatedDatesThisMonth = dateKeys
-        recalculateStreak(from: dateKeys)
+        if dateKeys.isEmpty {
+            // Firestore가 빈 배열 반환 (네트워크 오류·비로그인 등)
+            // recordMeditation()이 로컬에 기록한 오늘 날짜를 보존 — 지우지 않음
+            recalculateStreak(from: meditatedDatesThisMonth)
+            return
+        }
+        // Firestore 데이터 + 로컬에 기록된 오늘 날짜 병합 (완료 직후 재로드 경쟁 조건 대응)
+        let today = MeditationEntry.todayKey()
+        let merged = meditatedDatesThisMonth.contains(today)
+            ? dateKeys.union([today])
+            : dateKeys
+        meditatedDatesThisMonth = merged
+        recalculateStreak(from: merged)
     }
 
     /// dateKeys 기반으로 연속 스트릭을 정확히 재계산 (UserDefaults 보정)

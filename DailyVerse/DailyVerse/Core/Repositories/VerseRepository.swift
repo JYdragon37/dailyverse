@@ -37,6 +37,8 @@ actor VerseRepository {
         do {
             return try await _fetchVersesInternal()
         } catch {
+            print("❌ [VerseRepository] fetchVerses 실패: \(error.localizedDescription)")
+            print("❌ [VerseRepository] 상세: \(error)")
             Crashlytics.crashlytics().record(error: error)
             throw error
         }
@@ -90,28 +92,20 @@ actor VerseRepository {
     func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
 
         // ── 캐시 재확인 헬퍼 (double-check locking) ──────────────────────────
-        // await 이후 다른 Task가 먼저 캐시를 설정했을 수 있으므로 항상 재확인
         func cachedVerseIfExists() -> Verse? {
             guard let id = cacheManager.getVerseId(for: mode),
                   let v  = cacheManager.loadCachedVerse(id: id) else { return nil }
             return v
         }
 
-        // 1-a. 빠른 경로: 이미 캐시에 있으면 즉시 반환
+        // 1. 빠른 경로: 당일 캐시에 이미 있으면 즉시 반환 (Firestore 호출 없음)
         if let v = cachedVerseIfExists() { return v }
 
-        // 1-b. daily_cards 큐레이션 우선 (네트워크 await)
+        // 2. 절기 큐레이션 우선 (daily_cards — 성탄절, 부활절 등 특별일)
         if let card = try? await firestoreService.fetchDailyCard(for: Date(), mode: mode),
            let verseId = card.verseId {
-            // await 완료 후 재확인 — 동시 Task가 이미 캐시를 설정했을 수 있음
             if let v = cachedVerseIfExists() { return v }
-
-            if let cached = cacheManager.loadCachedVerse(id: verseId) {
-                cacheManager.setVerseId(verseId, for: mode)
-                return cached
-            }
             if let verses = try? await fetchVerses() {
-                // await 후 재확인
                 if let v = cachedVerseIfExists() { return v }
                 if let found = verses.first(where: { $0.id == verseId }) {
                     cacheManager.setVerseId(found.id, for: mode)
@@ -120,67 +114,38 @@ actor VerseRepository {
             }
         }
 
-        // 2. 오늘의 캐시 확인 (verseId가 있으면 반드시 같은 verse 유지)
-        if let cachedId = cacheManager.getVerseId(for: mode) {
-            if let verse = cacheManager.loadCachedVerse(id: cachedId) {
-                return verse
+        // 3. 서버 선택 말씀 (app_config/today_verse — Cloud Function이 04:00 KST에 기록)
+        //    모든 유저가 동일한 말씀을 보게 하는 핵심 경로
+        if let serverVerseId = await firestoreService.fetchTodayVerseId() {
+            if let v = cachedVerseIfExists() { return v }
+            // 구절 본문 로드 (Core Data 캐시 → Firestore 순)
+            if let cached = cacheManager.loadCachedVerse(id: serverVerseId) {
+                cacheManager.setVerseId(serverVerseId, for: mode)
+                return cached
             }
-            // Core Data TTL 만료 → Firestore에서 동일 verseId 재로드
             if let verses = try? await fetchVerses() {
-                if let v = cachedVerseIfExists() { return v }  // 재확인
-                if let found = verses.first(where: { $0.id == cachedId }) {
-                    // ★ setVerseId 재호출: todayVerseId 상태를 명시적으로 갱신해
-                    //   이후 호출에서도 같은 말씀이 반환되도록 보장
+                if let v = cachedVerseIfExists() { return v }
+                if let found = verses.first(where: { $0.id == serverVerseId }) {
                     cacheManager.setVerseId(found.id, for: mode)
                     return found
                 }
             }
         }
 
-        // 3. 오늘의 말씀 선택 (캐시 없을 때만 — Zone 무관, 전체 풀에서 결정론적 선택)
-        // Zone 필터 제거: 새벽 4시 캐시 리셋 시 어떤 Zone에서 열어도 동일한 풀 사용
+        // 4. 폴백: 서버 미응답 시 로컬 결정론적 선택 (날씨/테마/무드 스코어 없음)
         if let verses = try? await fetchVerses() {
             if let v = cachedVerseIfExists() { return v }
-
-            if let selected = selector.selectDailyVerse(from: verses, weather: weather) {
+            if let selected = selector.selectDailyVerse(from: verses, weather: nil) {
                 cacheManager.setVerseId(selected.id, for: mode)
-                Task { await self.firestoreService.markVerseAsShown(verseId: selected.id) }
                 return selected
             }
         }
 
-        // 4. 번들 폴백
+        // 5. 번들 폴백 (완전 오프라인)
         return fallbackVerse(for: mode)
     }
 
-    /// [다음 말씀] — per-user 이력 제외 적용 (daily verse와 달리 개인화 OK)
-    func nextVerse(excluding currentId: String, for mode: AppMode, weather: WeatherData?,
-                   userId: String? = nil) async -> Verse? {
-        guard let verses = try? await fetchVerses() else { return nil }
-
-        // 유저 이력 로드 (비로그인 시 빈 Set)
-        let uid = userId ?? ""
-        let recentIds: Set<String>
-        if !uid.isEmpty {
-            let ids = await firestoreService.fetchRecentVerseIds(userId: uid)
-            recentIds = Set(ids)
-        } else {
-            recentIds = []
-        }
-
-        let result = selector.selectNext(from: verses, excluding: currentId, mode: mode,
-                                         weather: weather, excludingUserHistory: recentIds)
-        if let result {
-            Task {
-                await self.firestoreService.markVerseAsShown(verseId: result.id)
-                if !uid.isEmpty {
-                    await self.firestoreService.recordVerseShown(
-                        verseId: result.id, userId: uid, zone: mode.rawValue, currentIds: Array(recentIds))
-                }
-            }
-        }
-        return result
-    }
+    // nextVerse 제거됨 — 다음 말씀 기능 없음 (모든 유저 동일 말씀 정책)
 
     // MARK: - Images
 
