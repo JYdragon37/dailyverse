@@ -298,7 +298,7 @@ struct DevotionHomeView: View {
                 DevotionCompactGrid(
                     streakManager: viewModel.streakManager,
                     history: viewModel.history,
-                    holidayDates: viewModel.holidayDates,
+                    holidayMap: viewModel.holidayMap,
                     onEntryTap: { entry in selectedMeditationEntry = entry },
                     onPendingTap: { dateKey in resolveAndOpen(dateKey: dateKey) }
                 )
@@ -372,7 +372,7 @@ private struct DevotionCompactGrid: View {
 
     @ObservedObject var streakManager: StreakManager
     var history: [MeditationEntry]
-    var holidayDates: Set<String> = []
+    var holidayMap: [String: String] = [:]
     var onEntryTap: (MeditationEntry) -> Void
     /// load() 완료 전 탭 시 dateKey를 전달 — 부모가 load 후 자동으로 detail 열기
     var onPendingTap: ((String) -> Void)? = nil
@@ -412,17 +412,17 @@ private struct DevotionCompactGrid: View {
             ForEach(last14Days, id: \.dateKey) { item in
                 let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
                 let isToday     = item.dateKey == todayKey
-                DevotionDayDotCell(dayNum: item.dayNum,
-                                   isMeditated: isMeditated,
-                                   isToday: isToday,
-                                   isHoliday: holidayDates.contains(item.dateKey))
-                .frame(maxWidth: .infinity)           // 탭 영역: 그리드 셀 전체 너비
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    meditationLog.info("🗓️ cell tapped: \(item.dateKey) isMeditated=\(isMeditated)")
-                    guard isMeditated else { return }
-                    onPendingTap?(item.dateKey)
-                }
+                DevotionDayDotCell(
+                    dayNum: item.dayNum,
+                    isMeditated: isMeditated,
+                    isToday: isToday,
+                    eventName: holidayMap[item.dateKey],
+                    onMeditationTap: {
+                        meditationLog.info("🗓️ cell tapped: \(item.dateKey) isMeditated=\(isMeditated)")
+                        onPendingTap?(item.dateKey)
+                    }
+                )
+                .frame(maxWidth: .infinity)
             }
         }
     }
@@ -540,16 +540,16 @@ private struct DevotionCalendarGrid: View {
                         let isMeditated = viewModel.calendarMeditatedDates.contains(dateKey)
                         let isToday = dateKey == todayKey
 
-                        DevotionDayDotCell(dayNum: dayNum,
-                                           isMeditated: isMeditated,
-                                           isToday: isToday,
-                                           isHoliday: viewModel.holidayDates.contains(dateKey))
+                        DevotionDayDotCell(
+                            dayNum: dayNum,
+                            isMeditated: isMeditated,
+                            isToday: isToday,
+                            eventName: viewModel.holidayMap[dateKey],
+                            onMeditationTap: {
+                                onPendingTap?(dateKey)
+                            }
+                        )
                         .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            guard isMeditated else { return }
-                            onPendingTap?(dateKey)
-                        }
                     } else {
                         // 빈 셀 (월 첫 주 앞부분)
                         Color.clear.frame(height: 28 + 5 + 14)
@@ -566,7 +566,12 @@ private struct DevotionDayDotCell: View {
     let dayNum: Int
     let isMeditated: Bool
     let isToday: Bool
-    var isHoliday: Bool = false   // 절기일 (daily_cards 등록)
+    var eventName: String? = nil          // nil = 절기 아님
+    var onMeditationTap: (() -> Void)? = nil
+
+    @State private var showEventLabel = false
+
+    private var isHoliday: Bool { eventName != nil }
 
     var body: some View {
         VStack(spacing: 5) {
@@ -604,10 +609,34 @@ private struct DevotionDayDotCell: View {
                         .offset(x: 2, y: -2)
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if isHoliday && !isMeditated {
+                    // 절기+미묵상: 절기 이름 토글
+                    withAnimation(.easeInOut(duration: 0.18)) { showEventLabel.toggle() }
+                } else if isMeditated {
+                    onMeditationTap?()
+                }
+            }
 
-            Text("\(dayNum)")
-                .font(.system(size: 11, weight: isHoliday ? .semibold : .medium))
-                .foregroundColor(isHoliday ? Color.dvAccentGold.opacity(0.8) : .white.opacity(0.40))
+            // 날짜 숫자 ↔ 절기 이름 (고정 높이 — 레이아웃 shift 없음)
+            ZStack {
+                Text("\(dayNum)")
+                    .font(.system(size: 11, weight: isHoliday ? .semibold : .medium))
+                    .foregroundColor(isHoliday ? Color.dvAccentGold.opacity(0.8) : .white.opacity(0.40))
+                    .opacity(showEventLabel ? 0 : 1)
+
+                if let name = eventName {
+                    Text(name)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(.dvAccentGold)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .opacity(showEventLabel ? 1 : 0)
+                }
+            }
+            .frame(height: 14)
+            .animation(.easeInOut(duration: 0.18), value: showEventLabel)
         }
     }
 

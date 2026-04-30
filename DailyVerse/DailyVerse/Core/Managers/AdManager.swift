@@ -3,12 +3,16 @@ import Combine
 import GoogleMobileAds
 import FirebaseAnalytics
 
-// Ad Unit ID — Secrets.xcconfig → Info.plist → Bundle 순으로 읽음
-// xcconfig에 값이 없으면 Google 공식 테스트 ID로 폴백
+// Ad Unit ID — DEBUG: Google 공식 테스트 ID / RELEASE: Secrets.xcconfig
+#if DEBUG
+private let kRewardedAdUnitID     = "ca-app-pub-3940256099942544/1712485313"
+private let kInterstitialAdUnitID = "ca-app-pub-3940256099942544/4411468910"
+#else
 private let kRewardedAdUnitID     = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String
     ?? "ca-app-pub-3940256099942544/1712485313"
 private let kInterstitialAdUnitID = Bundle.main.infoDictionary?["ADMOB_INTERSTITIAL_ID"] as? String
     ?? "ca-app-pub-3940256099942544/4411468910"
+#endif
 
 @MainActor
 final class AdManager: ObservableObject {

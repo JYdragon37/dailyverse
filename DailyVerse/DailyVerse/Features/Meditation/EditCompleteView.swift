@@ -19,7 +19,7 @@ struct EditCompleteView: View {
 
             // 방사형 glow
             RadialGradient(
-                colors: [Color.dvAccentSky.opacity(glowOpacity), Color.clear],
+                colors: [Color.dvAccentGold.opacity(glowOpacity), Color.clear],
                 center: .center,
                 startRadius: 0,
                 endRadius: 200
@@ -30,9 +30,10 @@ struct EditCompleteView: View {
             VStack(spacing: 28) {
                 Spacer()
 
-                // 이모지 (✅ — 수정 완료)
-                Text("✅")
-                    .font(.system(size: 80))
+                // 수정 완료 아이콘
+                Image(systemName: "pencil.and.scribble")
+                    .font(.system(size: 64, weight: .light))
+                    .foregroundColor(.dvAccentGold)
                     .scaleEffect(emojiScale)
                     .opacity(emojiOpacity)
 

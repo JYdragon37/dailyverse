@@ -96,8 +96,18 @@ class FirestoreService {
     /// 서버에서 매일 04:00 KST에 결정한 오늘의 verseId 반환
     /// Cloud Function이 app_config/today_verse에 기록하면 모든 유저가 동일한 말씀을 봄
     func fetchTodayVerseId() async -> String? {
-        guard let doc = try? await db.collection("app_config").document("today_verse").getDocument(),
-              doc.exists,
+        // source: .server 강제 — Firestore SDK 오프라인 캐시가 어제 문서를 반환해
+        // 날짜 체크 실패 → nil → 알고리즘 폴백으로 빠지는 버그 방지.
+        // 오프라인 시에는 SDK 캐시로 폴백.
+        let doc: DocumentSnapshot?
+        if let serverDoc = try? await db.collection("app_config").document("today_verse")
+            .getDocument(source: .server) {
+            doc = serverDoc
+        } else {
+            doc = try? await db.collection("app_config").document("today_verse").getDocument()
+        }
+
+        guard let doc, doc.exists,
               let data = doc.data(),
               let verseId = data["verse_id"] as? String,
               !verseId.isEmpty else { return nil }
@@ -152,7 +162,8 @@ class FirestoreService {
 
     /// daily_cards 컬렉션에서 날짜 범위 내 절기일 Set<"yyyy-MM-dd"> 반환
     /// 캘린더에서 절기 뱃지 표시용. active == true 인 문서만 포함.
-    func fetchHolidayDates(from startDate: Date, to endDate: Date) async throws -> Set<String> {
+    /// [String: String] — { "2026-12-25": "성탄절", ... }
+    func fetchHolidayMap(from startDate: Date, to endDate: Date) async throws -> [String: String] {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         let startStr = fmt.string(from: startDate)
@@ -164,7 +175,12 @@ class FirestoreService {
             .whereField("active", isEqualTo: true)
             .getDocuments()
 
-        return Set(snapshot.documents.map { $0.documentID })
+        var map = [String: String]()
+        for doc in snapshot.documents {
+            let name = doc.data()["event_name"] as? String ?? ""
+            if !name.isEmpty { map[doc.documentID] = name }
+        }
+        return map
     }
 
     /// daily_card_images/{dc_img_id} 단건 조회 → VerseImage로 변환

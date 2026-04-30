@@ -129,7 +129,7 @@ struct SavedDetailView: View {
                         .foregroundColor: UIColor.white,
                         .paragraphStyle: para
                     ]
-                    let hPad: CGFloat = 80
+                    let hPad: CGFloat = size.width * 0.13   // 화면 표시와 동일 비율
                     NSAttributedString(string: text, attributes: attrs)
                         .draw(in: CGRect(x: hPad, y: size.height * 0.38, width: size.width - hPad*2, height: size.height * 0.4))
                     let refAttrs: [NSAttributedString.Key: Any] = [
@@ -418,7 +418,7 @@ struct SavedDetailView: View {
         return renderer.image { ctx in
             let size    = background.size
             let cgCtx   = ctx.cgContext
-            let hPad    = size.width * 0.10
+            let hPad    = size.width * 0.13   // 화면 표시와 동일: max(w * 0.13, 40)
 
             // 1. 배경 이미지
             background.draw(in: CGRect(origin: .zero, size: size))

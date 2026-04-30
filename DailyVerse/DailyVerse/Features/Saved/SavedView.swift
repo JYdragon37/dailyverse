@@ -332,6 +332,14 @@ private struct SavedCardView: View {
         return f.string(from: savedVerse.savedAt)
     }
 
+    /// 카드 위에 표시할 말씀 텍스트
+    /// 1. savedVerse.verseFullKo (저장 당시 기록된 원문)
+    /// 2. Core Data 캐시에서 폴백 (기존 저장 말씀에 필드 없을 때)
+    private var overlayVerseText: String? {
+        if let full = savedVerse.verseFullKo, !full.isEmpty { return full }
+        return DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)?.verseFullKo
+    }
+
     private var weatherConditionEmoji: String {
         switch savedVerse.weatherCondition {
         case "sunny":  return "☀️"
@@ -357,13 +365,14 @@ private struct SavedCardView: View {
                     }
 
                     // 글귀 가독성을 위한 다크 스크림
-                    if savedVerse.verseFullKo != nil {
+                    if overlayVerseText != nil {
                         Color.black.opacity(0.38)
                             .allowsHitTesting(false)
                     }
 
                     // 글귀 오버레이
-                    if let text = savedVerse.verseFullKo {
+                    // verseFullKo 없는 기존 저장 말씀 → Core Data 캐시에서 폴백
+                    if let text = overlayVerseText {
                         Text(text)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.white.opacity(0.88))

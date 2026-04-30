@@ -1189,6 +1189,23 @@ bg_{zone_id}_{weather}_{설명}.jpg   → weather: 해당 날씨만
 | `generate_meditation_questions.js` | `question` 필드 생성 (Claude API) |
 | `check_content_quality.js` | 콘텐츠 품질 검증 |
 | `setup_verse_preview.js` | Google Sheets VERSE_PREVIEW 탭 초기 설정 + Apps Script 코드 VERSE_SCRIPT 탭에 저장 |
+| **`generate_verses.js`** (v2.0) | **말씀 일괄 생성** — Haiku 모델 + 5개 배치 병렬 처리 + 사전 ID 채번. `generate_verses_50.js` 대체. 60분 → 10분 이내 |
+
+### 말씀 생성 스크립트 사용법
+
+```bash
+# TARGET_VERSES 배열에 구절 목록 작성 후:
+cd scripts
+NODE_TLS_REJECT_UNAUTHORIZED=0 node generate_verses.js             # 실제 생성
+NODE_TLS_REJECT_UNAUTHORIZED=0 node generate_verses.js --dry-run   # ID 채번 미리보기
+NODE_TLS_REJECT_UNAUTHORIZED=0 node generate_verses.js --batch=10  # 배치 크기 변경
+NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js                 # 생성 후 Firestore 동기화
+```
+
+**v2.0 개선 사유:**
+- 구 버전(`generate_verses_50.js`): Sonnet 모델 + 순차 1개씩 + 1.2초 딜레이 → **60분 이상**
+- 신 버전(`generate_verses.js`): Haiku 모델 + 5개 병렬 배치 + 배치간 1초 딜레이 → **10분 이내**
+- ID 사전 채번으로 병렬 처리 시 verse_id 중복 완전 방지 (기존 버그 해결)
 
 ---
 

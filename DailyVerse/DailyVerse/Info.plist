@@ -106,6 +106,8 @@
 	<string>LaunchScreen</string>
 	<key>CFBundleDisplayName</key>
 	<string>morning manna</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- SKAdNetwork: Google AdMob 광고 귀속 추적 (CPM 정확도 향상) -->
 	<key>SKAdNetworkItems</key>
 	<array>

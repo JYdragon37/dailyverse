@@ -60,12 +60,9 @@ final class HomeViewModel: ObservableObject {
         self.upsellManager = upsellManager
         self.permissionManager = permissionManager
 
-        // 스플래시에서 결정된 말씀을 뷰 첫 렌더링 전에 동기적으로 로드 (버퍼 제거)
-        // Core Data 조회라 비동기 불필요 — 즉시 currentVerse 세팅됨
-        if let cachedId = cacheManager.getTodayVerseId(),
-           let verse    = cacheManager.loadCachedVerse(id: cachedId) {
-            self.currentVerse = verse
-        }
+        // 주의: init()에서 로컬 캐시로 동기 세팅하지 않음
+        // 서버(app_config/today_verse)가 다른 말씀을 가리킬 경우 캐시가 서버를 덮어쓰는 버그 방지
+        // loadVerse()가 비동기로 서버 우선 조회 후 세팅
 
         startModeCheckTimer()
         evaluateAlarmCTA()
@@ -232,10 +229,8 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func loadVerse(for mode: AppMode) async {
-        // todayVerseId가 현재 표시 중인 말씀과 같으면 재로드 불필요
-        // todayVerseId가 다르거나 nil이면 재로드 (04:00 리셋 후, 알람이 새 말씀 설정 후 등)
-        let cachedId = cacheManager.getTodayVerseId()
-        if let cachedId, currentVerse?.id == cachedId { return }
+        // 조기 반환 없음 — VerseRepository.currentVerse()가 서버 우선으로 처리
+        // 서버 ID == 현재 캐시 ID면 내부에서 빠른 경로로 반환 (Firestore 1회 read만)
         let verse = await verseRepository.currentVerse(for: mode, weather: weather)
         currentVerse = verse
     }

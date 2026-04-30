@@ -43,6 +43,9 @@ final class AppLoadingCoordinator: ObservableObject {
     // MARK: - Start
 
     func start() async {
+        // Stage 0: 고아 알림 정리 — 삭제된 알람의 UNNotification 잔존 방지
+        NotificationManager.shared.cleanupOrphanedNotifications()
+
         // Stage 2 캐시 확인을 먼저 — 딜레이 분기에 활용
         let hasCached = cacheManager.hasValidCache()
 

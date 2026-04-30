@@ -14,7 +14,7 @@ final class MeditationViewModel: ObservableObject {
     @Published var calendarMonth: Date = Date()          // 현재 보여주는 월
     @Published var calendarMeditatedDates: Set<String> = []  // 해당 월의 묵상 날짜
     @Published var isCalendarLoading = false
-    @Published var holidayDates: Set<String> = []        // 절기일 날짜 (daily_cards) — 28일 윈도우
+    @Published var holidayMap: [String: String] = [:]    // { "yyyy-MM-dd": "절기명" } — 28일 윈도우
 
     private var calendarUserId: String = ""
 
@@ -25,11 +25,9 @@ final class MeditationViewModel: ObservableObject {
         self.repository = repository
         self.streakManager = StreakManager.shared
 
-        // 스플래시에서 결정된 말씀을 뷰 첫 렌더링 전에 동기적으로 로드 (버퍼 제거)
-        if let cachedId = DailyCacheManager.shared.getTodayVerseId(),
-           let verse    = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
-            self.todayVerse = verse
-        }
+        // 주의: todayVerse는 init()에서 로컬 캐시로 세팅하지 않음
+        // 서버(app_config/today_verse)와 다른 구버전 캐시가 세팅되면 잘못된 말씀이 표시됨
+        // loadTodayVerse()가 비동기로 서버 우선 조회 후 세팅
 
         // nav 리셋 후에도 오늘 묵상 기록 즉시 복원 (UserDefaults 캐시 → history/todayEntry 동기 세팅)
         // fetchHistory/fetchToday 비동기 결과를 기다리지 않아도 달력 탭이 즉시 동작
@@ -62,12 +60,12 @@ final class MeditationViewModel: ObservableObject {
         streakManager.checkAndResetIfBroken()
         isLoading = false
 
-        // 절기일 로드 (28일 윈도우 — 캘린더 그리드 커버)
+        // 절기 맵 로드 (28일 윈도우 — 캘린더 그리드 커버)
         Task {
-            let today    = Date()
-            let from28   = Calendar.current.date(byAdding: .day, value: -27, to: today) ?? today
-            if let dates = try? await FirestoreService().fetchHolidayDates(from: from28, to: today) {
-                await MainActor.run { holidayDates = dates }
+            let today  = Date()
+            let from28 = Calendar.current.date(byAdding: .day, value: -27, to: today) ?? today
+            if let map = try? await FirestoreService().fetchHolidayMap(from: from28, to: today) {
+                await MainActor.run { holidayMap = map }
             }
         }
 
@@ -107,14 +105,8 @@ final class MeditationViewModel: ObservableObject {
 
     func loadTodayVerse() async {
         let mode = AppMode.current()
-        // 1. 캐시 우선 (홈 탭과 동일한 말씀 보장)
-        if let cachedId = DailyCacheManager.shared.getVerseId(for: mode),
-           let cached = DailyCacheManager.shared.loadCachedVerse(id: cachedId) {
-            todayVerse = cached
-            return
-        }
-        // 2. 캐시 없을 때 — 홈과 동일한 조건으로 선택해야 같은 말씀이 나옴
-        //    weather: nil 대신 WeatherCache를 전달해 홈 VerseSelector 점수와 일치시킴
+        // 서버(app_config/today_verse) 우선 — 로컬 캐시 조기 반환 제거
+        // VerseRepository.currentVerse()가 서버 확인 후 캐시와 비교해 처리
         let cachedWeather = WeatherCacheManager().load()
         let verse = await VerseRepository.shared.currentVerse(for: mode, weather: cachedWeather)
         todayVerse = verse

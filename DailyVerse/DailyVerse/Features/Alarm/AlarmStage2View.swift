@@ -120,6 +120,10 @@ struct AlarmStage2View: View {
                     showLoginPrompt = false
                 }
             }
+            // 로그인 성공 시 팝업 자동 닫기 (Google 로그인 등 내부 직접 호출 대응)
+            .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+                if isLoggedIn { showLoginPrompt = false }
+            }
             // 말씀 더보기 시트 (해석 + 일상 적용)
             .sheet(isPresented: $showVerseDetail) {
                 if let verse = todayVerse {

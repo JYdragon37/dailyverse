@@ -121,6 +121,34 @@ final class NotificationManager: NSObject {
         }
     }
 
+    // MARK: - 고아 알림 정리
+
+    /// 앱 시작 시 Core Data에 없는 alarm_id를 가진 UNNotification을 모두 제거
+    /// 시나리오: 알람 삭제 시 _fg 식별자 누락 버그, 앱 업데이트 전후 잔존 알림 등
+    func cleanupOrphanedNotifications() {
+        Task {
+            let center = UNUserNotificationCenter.current()
+            let pending = await center.pendingNotificationRequests()
+            guard !pending.isEmpty else { return }
+
+            // Core Data에 실제 존재하는 alarm ID 목록
+            let validIds = Set(AlarmRepository().fetchAll().map { $0.id.uuidString })
+
+            // alarm_id userInfo가 있는데 DB에 없으면 고아 알림
+            let orphanIds = pending.compactMap { req -> String? in
+                guard let alarmIdStr = req.content.userInfo["alarm_id"] as? String else { return nil }
+                return validIds.contains(alarmIdStr) ? nil : req.identifier
+            }
+
+            if !orphanIds.isEmpty {
+                center.removePendingNotificationRequests(withIdentifiers: orphanIds)
+                #if DEBUG
+                print("🧹 [NotificationManager] 고아 알림 \(orphanIds.count)개 제거: \(orphanIds.prefix(5))")
+                #endif
+            }
+        }
+    }
+
     // MARK: - Snooze
 
     /// 스누즈: UNTimeIntervalNotificationTrigger로 재스케줄 (앱 강제 종료 후에도 유지)

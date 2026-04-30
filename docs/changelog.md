@@ -1,7 +1,54 @@
 # morning manna — 변경 이력
 
-> 최종 업데이트: 2026-04-27
+> 최종 업데이트: 2026-04-30
 > 형식: `[날짜] 버전/태그 — 변경 내용`
+
+---
+
+## 2026-04-30 (말씀 버그 수정 + 절기 캘린더 + 스프레드시트 정리)
+
+### 버그 수정 — 잘못된 말씀 표시 (요한삼서 1:2 반복 노출)
+
+**근본 원인**: 3개의 버그가 연쇄 작동
+1. **Firestore SDK 오프라인 캐시 반환** — `fetchTodayVerseId()`가 서버 연결 전 어제 캐시 문서를 반환해 날짜 체크 실패 → nil → 알고리즘 폴백
+2. **알고리즘 결과 영구 캐시 저장** — 알고리즘이 선택한 잘못된 구절이 UserDefaults에 저장돼 다음 실행에서도 반환
+3. **서버 응답 시에도 stale 캐시 반환** — serverVerseId를 받아도 `loadVerse` 실패 시 캐시된 잘못된 구절 반환
+4. **`isEligible` ISO 8601 파싱 실패** — Cloud Function이 `"2026-04-29T19:00:03Z"` 형식으로 저장하는 `last_shown`을 `"yyyy-MM-dd"` 포매터로 파싱 실패 → 쿨다운 무시 → eligible pool 오염
+
+**수정 내역**:
+- `FirestoreService.fetchTodayVerseId()`: `source: .server` 강제 → Firestore SDK 캐시 우회, 오프라인 시만 캐시 폴백
+- `VerseRepository.currentVerse()`: 알고리즘 폴백 결과 `setVerseId()` 제거 (ephemeral)
+- `VerseRepository.currentVerse()`: `if/else` 구조로 서버 응답 시 stale 캐시 우회
+- `Verse.isEligible`: `ISO8601DateFormatter` 추가 — `"yyyy-MM-dd"` + ISO 8601 두 포맷 모두 처리
+
+**확인된 수학**: `20260430 % 517 = 234` → index 234 = v_259(요한삼서) — 결정론적 버그였음
+
+### 스프레드시트 정리 (Google Sheets)
+
+- **VERSES 중복 30개 inactive 처리**: `verse_short_ko` 완전 동일 쌍 정리 (시편 23:1-2 3중복 등)
+- **deprecated 컬럼 4개 삭제**: `contemplation_ko`, `contemplation_reference`, `contemplation_interpretation`, `contemplation_appliance` (schema_v1.3/v1.4 제거 선언됐으나 시트에 잔존)
+- **HOME_GREETINGS 중복 39개 삭제**: 배치 생성 시 앞부분 복붙으로 발생한 중복 인사말
+- **content_version** `v1.4` → `v1.5` 업데이트 (기기 캐시 강제 갱신)
+
+### Admin Script 정리
+
+- `upload_to_firestore.gs` 삭제 — `admin_apps_script.gs`(v3.1)에 통합
+- `admin_apps_script.gs` 버그 수정:
+  - VERSE_PREVIEW notes 컬럼 참조 오류 수정 (18열→19열)
+  - `buildVerseDocument_()` 타입 처리 개선 (`ARRAY_FIELDS`, `INT_FIELDS`, `BOOL_FIELDS` 상수화)
+
+### 묵상 달력 — 절기 표시 기능
+
+- **달력 별표 탭 시 절기 이름 표시**: 절기일(`★`) 셀 탭 → 날짜 숫자 ↔ 절기명 fade 토글 (고정 높이, 레이아웃 shift 없음)
+- **묵상 다이어리 날짜에 절기명 추가**: `"성탄절 · 2026년 12월 25일 목요일"` 형식
+- 갤러리 저장 이미지(`DiarySnapshotView`)에도 절기명 반영
+- `fetchHolidayDates()` → `fetchHolidayMap()` 변경 — `[String: String]` (날짜→절기명) 반환
+- `holidayDates: Set<String>` → `holidayMap: [String: String]`
+
+### 묵상 수정 완료 화면 (`EditCompleteView`)
+
+- 이모지 `✅` → SF Symbol `pencil.and.scribble` (골드, `.light` weight)
+- 방사형 glow: `dvAccentSky`(파란색) → `dvAccentGold` (앱 색상 통일)
 
 ---
 

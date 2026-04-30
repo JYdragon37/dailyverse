@@ -337,8 +337,12 @@ final class LegacyAlarmEngine: AlarmEngine {
             ids.append("\(alarmId.uuidString)_day\(day)")
             ids.append("\(alarmId.uuidString)_day\(day)_backup1")
             ids.append("\(alarmId.uuidString)_day\(day)_backup2")
+            // iOS 26 포그라운드 트리거 (scheduleForegroundTrigger에서 등록)
+            ids.append("\(alarmId.uuidString)_fg_\(day)")
         }
         for i in 1...5 { ids.append("\(alarmId.uuidString)_once_backup\(i)") }
+        // iOS 26 포그라운드 트리거 일회성
+        ids.append("\(alarmId.uuidString)_fg")
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
 

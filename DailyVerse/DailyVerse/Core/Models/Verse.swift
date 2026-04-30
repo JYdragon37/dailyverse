@@ -48,11 +48,23 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     // MARK: - Cooldown 헬퍼
 
     /// 이 구절이 오늘 표시 가능한지 (cooldown_days 경과 여부)
+    /// last_shown 포맷:
+    ///   - iOS markVerseAsShown → "yyyy-MM-dd"           예: "2026-04-29"
+    ///   - Cloud Function       → ISO 8601 with time    예: "2026-04-29T19:00:03.301Z"
+    /// 두 포맷 모두 처리해야 쿨다운이 정상 동작함
     var isEligible: Bool {
         guard let lastShown, let cooldownDays else { return true }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        guard let lastDate = formatter.date(from: lastShown) else { return true }
+        let lastDate: Date?
+        if lastShown.count == 10 {
+            // "yyyy-MM-dd" 포맷 (iOS markVerseAsShown)
+            let f = DateFormatter()
+            f.dateFormat = "yyyy-MM-dd"
+            lastDate = f.date(from: lastShown)
+        } else {
+            // ISO 8601 포맷 (Cloud Function) — "2026-04-29T19:00:03.301Z"
+            lastDate = ISO8601DateFormatter().date(from: lastShown)
+        }
+        guard let lastDate else { return true }
         let daysSince = Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day ?? 0
         return daysSince >= cooldownDays
     }

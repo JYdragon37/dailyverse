@@ -182,7 +182,7 @@ struct AlarmListView: View {
                         // 오늘의 말씀
                         if let verse = todayVerse {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Today's verse")
+                                Text("For you")
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundColor(.dvAccentGold.opacity(0.80))
                                     .tracking(0.8)

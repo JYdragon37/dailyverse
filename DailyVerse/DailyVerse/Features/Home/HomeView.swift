@@ -38,9 +38,11 @@ struct HomeView: View {
                     GeometryReader { geo in
                         let w = geo.size.width
                         let hPad = max(w * 0.13, 40.0)
+                        // 짧은 말씀(≤40자)은 여백이 커 보이므로 두 줄(60pt) 낮게 시작
+                        let isShortVerse = verse.verseFullKo.count <= 40
+                        let verseTopOffset = geo.size.height * 0.33 + (isShortVerse ? 60.0 : 0.0)
                         VStack(alignment: .leading, spacing: 0) {
-                            // 말씀 시작 위치: 화면 33%에 상단 고정 (인사말 길이 무관)
-                            Spacer().frame(height: geo.size.height * 0.33)
+                            Spacer().frame(height: verseTopOffset)
                             // ScrollView: 긴 말씀(150자+)이 탭바 아래로 밀릴 때 스크롤로 보완
                             ScrollView(.vertical, showsIndicators: false) {
                                 verseCenter(verse: verse)
@@ -87,6 +89,10 @@ struct HomeView: View {
             // #4 날씨 상세 시트 — viewModel을 직접 전달하여 새로고침 후 실시간 반영
             .sheet(isPresented: $showWeatherDetail) {
                 WeatherDetailSheet(viewModel: viewModel)
+            }
+            // 로그인 성공 시 로그인 팝업 자동 닫기 (Apple / Google 모두)
+            .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+                if isLoggedIn { showLoginPrompt = false }
             }
             .task { await viewModel.loadData() }
             .task { await viewModel.checkIfSaved() }

@@ -207,8 +207,21 @@ struct MeditationEntryDetailView: View {
         .task {
             let id = liveEntry.verseId
             guard !id.isEmpty else { return }
+
+            // 1. Core Data 캐시 (가장 빠름)
             if let v = DailyCacheManager.shared.loadCachedVerse(id: id) { verse = v; return }
+
+            // 2. 오늘의 말씀 캐시 — todayVerseId가 이 entry의 verseId와 같으면 직접 로드
+            if let todayId = DailyCacheManager.shared.getTodayVerseId(), todayId == id,
+               let v = DailyCacheManager.shared.loadCachedVerse(id: todayId) { verse = v; return }
+
+            // 3. 번들 폴백
             if let v = Verse.fallbackVerses.first(where: { $0.id == id }) { verse = v; return }
+
+            // 4. Firestore 단건 직접 조회 (active/curated 필터 없음 — 가장 확실한 경로)
+            if let v = try? await FirestoreService().fetchVerse(id: id) { verse = v; return }
+
+            // 5. 전체 구절 캐시에서 검색 (마지막 폴백)
             if let verses = try? await VerseRepository.shared.fetchVerses() {
                 verse = verses.first { $0.id == id }
             }
@@ -369,7 +382,8 @@ struct MeditationEntryDetailView: View {
             inkColor: inkColor,
             inkFaint: inkFaint,
             ruleColor: ruleColor,
-            goldColor: goldColor
+            goldColor: goldColor,
+            eventName: viewModel.holidayMap[liveEntry.dateKey]
         )
 
         let renderer = ImageRenderer(content: snapshot)
@@ -410,7 +424,11 @@ struct MeditationEntryDetailView: View {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "ko_KR")
         fmt.dateFormat = "yyyy년 M월 d일 EEEE"
-        return fmt.string(from: date)
+        let dateStr = fmt.string(from: date)
+        if let eventName = viewModel.holidayMap[liveEntry.dateKey] {
+            return "\(eventName) · \(dateStr)"
+        }
+        return dateStr
     }
 }
 
@@ -424,6 +442,7 @@ private struct DiarySnapshotView: View {
     let inkFaint: Color
     let ruleColor: Color
     let goldColor: Color
+    var eventName: String? = nil   // 절기 이름 (스냅샷 이미지에도 반영)
 
     private let pageWidth: CGFloat = 390
 
@@ -563,7 +582,9 @@ private struct DiarySnapshotView: View {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "ko_KR")
         fmt.dateFormat = "yyyy년 M월 d일 EEEE"
-        return fmt.string(from: date)
+        let dateStr = fmt.string(from: date)
+        if let name = eventName { return "\(name) · \(dateStr)" }
+        return dateStr
     }
 }
 

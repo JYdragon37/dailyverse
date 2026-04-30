@@ -91,54 +91,60 @@ actor VerseRepository {
     /// userId 제외 로직 없음: daily verse는 결정론적이어야 모든 화면이 일치함
     func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
 
-        // ── 캐시 재확인 헬퍼 (double-check locking) ──────────────────────────
-        func cachedVerseIfExists() -> Verse? {
-            guard let id = cacheManager.getVerseId(for: mode),
-                  let v  = cacheManager.loadCachedVerse(id: id) else { return nil }
+        // ── 특정 verseId로 verse 본문 로드 (캐시 → Firestore) ─────────────────
+        func loadVerse(id: String) async -> Verse? {
+            if let v = cacheManager.loadCachedVerse(id: id) {
+                cacheManager.setVerseId(id, for: mode)
+                return v
+            }
+            if let verses = try? await fetchVerses(),
+               let found = verses.first(where: { $0.id == id }) {
+                cacheManager.setVerseId(found.id, for: mode)
+                return found
+            }
+            return nil
+        }
+
+        // 1. 절기 큐레이션 (daily_cards — 성탄절, 부활절 등 특별일)
+        if let card = try? await firestoreService.fetchDailyCard(for: Date(), mode: mode),
+           let verseId = card.verseId,
+           let v = await loadVerse(id: verseId) {
             return v
         }
 
-        // 1. 빠른 경로: 당일 캐시에 이미 있으면 즉시 반환 (Firestore 호출 없음)
-        if let v = cachedVerseIfExists() { return v }
+        // 2. 서버 선택 말씀 (app_config/today_verse — Cloud Function 04:00 KST 기록)
+        let serverVerseId = await firestoreService.fetchTodayVerseId()
 
-        // 2. 절기 큐레이션 우선 (daily_cards — 성탄절, 부활절 등 특별일)
-        if let card = try? await firestoreService.fetchDailyCard(for: Date(), mode: mode),
-           let verseId = card.verseId {
-            if let v = cachedVerseIfExists() { return v }
-            if let verses = try? await fetchVerses() {
-                if let v = cachedVerseIfExists() { return v }
-                if let found = verses.first(where: { $0.id == verseId }) {
-                    cacheManager.setVerseId(found.id, for: mode)
-                    return found
-                }
+        if let serverVerseId {
+            // 로컬 캐시가 서버와 이미 일치하면 즉시 반환 (네트워크 최소화)
+            if let cachedId = cacheManager.getTodayVerseId(),
+               cachedId == serverVerseId,
+               let v = cacheManager.loadCachedVerse(id: serverVerseId) {
+                return v
+            }
+            // 불일치 or 캐시 없음 → 서버 버전으로 업데이트
+            if let v = await loadVerse(id: serverVerseId) { return v }
+
+            // 서버 ID는 알지만 verse 본문 로드 실패 → stale 캐시 사용 금지
+            // (캐시에 이전 알고리즘 결과가 남아 있어도 서버 판단을 우선)
+            // → 아래 알고리즘 폴백으로 낙하
+
+        } else {
+            // 3. 로컬 캐시 폴백 — 서버가 완전 미응답일 때만 사용
+            //    ⚠️ serverVerseId를 받았을 때는 이 블록에 진입하지 않음
+            //    → 기존 알고리즘 결과가 캐시에 남아도 오래된 값을 반환하지 않음
+            if let cachedId = cacheManager.getTodayVerseId(),
+               let v = cacheManager.loadCachedVerse(id: cachedId) {
+                return v
             }
         }
 
-        // 3. 서버 선택 말씀 (app_config/today_verse — Cloud Function이 04:00 KST에 기록)
-        //    모든 유저가 동일한 말씀을 보게 하는 핵심 경로
-        if let serverVerseId = await firestoreService.fetchTodayVerseId() {
-            if let v = cachedVerseIfExists() { return v }
-            // 구절 본문 로드 (Core Data 캐시 → Firestore 순)
-            if let cached = cacheManager.loadCachedVerse(id: serverVerseId) {
-                cacheManager.setVerseId(serverVerseId, for: mode)
-                return cached
-            }
-            if let verses = try? await fetchVerses() {
-                if let v = cachedVerseIfExists() { return v }
-                if let found = verses.first(where: { $0.id == serverVerseId }) {
-                    cacheManager.setVerseId(found.id, for: mode)
-                    return found
-                }
-            }
-        }
-
-        // 4. 폴백: 서버 미응답 시 로컬 결정론적 선택 (날씨/테마/무드 스코어 없음)
-        if let verses = try? await fetchVerses() {
-            if let v = cachedVerseIfExists() { return v }
-            if let selected = selector.selectDailyVerse(from: verses, weather: nil) {
-                cacheManager.setVerseId(selected.id, for: mode)
-                return selected
-            }
+        // 4. 알고리즘 폴백 (서버 응답 있으나 verse 로드 실패 OR 서버 미응답 + 캐시 없음)
+        // ⚠️ setVerseId 호출 없음 — 알고리즘 결과를 todayVerseId에 저장하지 않음
+        //    저장하면 다음 currentVerse() 호출 시 step3에서 잘못된 구절이 반환됨
+        if let verses = try? await fetchVerses(),
+           let selected = selector.selectDailyVerse(from: verses, weather: nil) {
+            return selected
         }
 
         // 5. 번들 폴백 (완전 오프라인)
