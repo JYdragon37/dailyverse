@@ -312,8 +312,11 @@ exports.selectDailyVerse = onSchedule(
     ).catch(() => {});
 
     // 6. show_count 업데이트
+    // last_shown을 Timestamp 대신 String "yyyy-MM-dd" (KST)로 저장
+    // iOS Verse 구조체가 String? 으로 선언돼 있어 Timestamp이면 Codable 디코딩 실패 → verse 제외됨
+    const kstDateStr = new Date(Date.now() + 9*60*60*1000).toISOString().slice(0, 10);
     await db.collection('verses').doc(selected.id).update({
-      last_shown:  admin.firestore.FieldValue.serverTimestamp(),
+      last_shown:  kstDateStr,
       show_count:  admin.firestore.FieldValue.increment(1),
     }).catch(e => logger.warn('show_count 업데이트 실패:', e.message));
 

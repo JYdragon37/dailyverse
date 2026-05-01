@@ -156,10 +156,11 @@ class DailyCacheManager {
 
     // MARK: - Private
 
-    /// DailyVerseCache.isValid()와 동일한 04:00 기준 "같은 날" 판단
-    /// - 새벽 00–03은 전날로 취급
+    /// DailyVerseCache.isValid()와 동일한 04:00 KST 기준 "같은 날" 판단
+    /// - 새벽 00–03 KST은 전날로 취급
     private static func isSameDay(_ date: Date, as reference: Date) -> Bool {
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
         func effectiveDay(_ d: Date) -> Date {
             let hour = calendar.component(.hour, from: d)
             if hour < 4 {

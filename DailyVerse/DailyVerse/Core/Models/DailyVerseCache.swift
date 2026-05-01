@@ -34,9 +34,11 @@ struct DailyVerseCache: Codable {
     var goldenHourImageId: String?
     var windDownImageId: String?
 
-    // 04:00 기준으로 "오늘"을 판단 (새벽 00–03은 전날 취급)
+    // 04:00 KST 기준으로 "오늘"을 판단 (새벽 00–03은 전날 취급)
+    // Calendar.current 대신 명시적 KST — Cloud Function 04:00 KST와 기준 통일
     static func isValid(_ cache: DailyVerseCache) -> Bool {
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
         let now = Date()
         let hour = calendar.component(.hour, from: now)
         let referenceDate: Date

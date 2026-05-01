@@ -46,7 +46,15 @@ final class AppLoadingCoordinator: ObservableObject {
         // Stage 0: 고아 알림 정리 — 삭제된 알람의 UNNotification 잔존 방지
         NotificationManager.shared.cleanupOrphanedNotifications()
 
-        // Stage 2 캐시 확인을 먼저 — 딜레이 분기에 활용
+        // ★ 콜드 스타트 시 DailyVerseCache 초기화
+        // 목적: 이전 세션의 잘못된 todayVerseId(알고리즘 결과 등)가 남아있을 경우
+        //       source:.server 실패 시 stale 캐시가 반환되는 순환 차단
+        // 효과: hasCached=false → non-cached 경로 → checkForceUpdate() → Firestore SDK 연결 확보
+        //       → fetchTodayVerseId(source:.server) 성공률 보장
+        // 주의: 매 콜드 스타트마다 Firestore에서 오늘의 말씀을 재확인 (필수)
+        cacheManager.clearCache()
+
+        // Stage 2 캐시 확인 — clearCache() 후이므로 항상 false (non-cached 경로 강제)
         let hasCached = cacheManager.hasValidCache()
 
         // Stage 1: 스플래시
@@ -61,10 +69,8 @@ final class AppLoadingCoordinator: ObservableObject {
         async let goldenLoad: Void = loadFixedBackground(mode: .windDown, assign: { self.windDownBgImage = $0 })
         _ = await (zoneLoad, goldenLoad)
 
-        // Stage 3: 유효 캐시 있으면 메모리 캐시 복원 + todayVerseId 고정 후 ready
-        // (앱 재시작 시 VerseRepository.cachedVerses가 비워짐 → Home/Meditation 경쟁 조건 방지)
-        // ★ currentVerse()를 반드시 호출해 todayVerseId를 이 시점에 고정해야
-        //   이후 홈/묵상/알람 탭이 모두 같은 말씀을 사용할 수 있다.
+        // Stage 3: clearCache() 후 hasCached는 항상 false — 이 블록은 실행되지 않음
+        // (콜드 스타트 캐시 초기화로 항상 non-cached 경로 사용)
         if hasCached {
             _ = try? await verseRepository.fetchVerses()
             let mode = AppMode.current()

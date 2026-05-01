@@ -130,7 +130,9 @@ class VerseSelector {
     /// - 새벽 00–03은 전날로 취급 (DailyVerseCache.isValid와 동일 기준)
     private static func dailySeedIndex(count: Int) -> Int {
         guard count > 1 else { return 0 }
-        let calendar = Calendar.current
+        // KST 명시 — Cloud Function의 04:00 KST 기준과 dayInt 통일
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
         let now = Date()
         let hour = calendar.component(.hour, from: now)
         let referenceDate: Date

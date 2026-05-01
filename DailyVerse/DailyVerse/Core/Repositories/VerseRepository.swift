@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 import FirebaseCrashlytics
+import OSLog
+
+private let verseLog = Logger(subsystem: "com.morningmanna.app", category: "VerseSelection")
 
 actor VerseRepository {
     /// 싱글톤 — actor 격리로 currentVerse() 동시 호출 방지 (홈/묵상 말씀 불일치 버그 수정)
@@ -13,6 +16,8 @@ actor VerseRepository {
     private var cachedVerses: [Verse] = []
     private var cachedImages: [VerseImage] = []
     private var lastFetched: Date?
+    /// content_version 문서에서 읽어온 오늘의 말씀 ID (fetchVerses() 호출 시 함께 캐시)
+    private var cachedTodayVerseId: String? = nil
 
     // 버전 기반 캐시 — UserDefaults 키
     private let kCachedVerseVersion = "cachedVerseContentVersion"
@@ -46,9 +51,18 @@ actor VerseRepository {
 
     private func _fetchVersesInternal() async throws -> [Verse] {
 
-        // 2. 버전 체크 (1 read)
-        let remoteVersion = (try? await firestoreService.fetchRawContentVersion()) ?? ""
+        // 2. 버전 체크 + 오늘 말씀 ID 동시 획득 (1 read)
+        let bundle = try? await firestoreService.fetchRawContentVersion()
+        let remoteVersion = bundle?.version ?? ""
         let localVersion  = UserDefaults.standard.string(forKey: kCachedVerseVersion) ?? ""
+        print("📖 [DIAG] fetchRawContentVersion: version=\(remoteVersion) todayVerseId=\(bundle?.todayVerseId ?? "nil") localVersion=\(localVersion)")
+
+        // today_verse_id를 content_version에서 캐시
+        if let verseId = bundle?.todayVerseId {
+            cachedTodayVerseId = verseId
+        }
+        let cachedId = cachedTodayVerseId
+        print("📖 [DIAG] cachedTodayVerseId after fetchRaw: \(cachedId ?? "nil")")
 
         if !remoteVersion.isEmpty && remoteVersion == localVersion {
             // 버전 일치 → Core Data에서 전체 로드 (0 Firestore reads)
@@ -102,6 +116,15 @@ actor VerseRepository {
                 cacheManager.setVerseId(found.id, for: mode)
                 return found
             }
+            // fetchVerses()의 compound 쿼리에 해당 verse가 없는 경우 직접 ID로 fetch
+            // (curated/status 타입 불일치 등으로 compound 쿼리에서 제외될 때 대비)
+            print("📖 [DIAG] loadVerse: compound 쿼리에서 \(id) 미발견 → direct fetch 시도")
+            if let verse = try? await firestoreService.fetchVerse(id: id) {
+                print("📖 [DIAG] loadVerse: direct fetch 성공 → \(id)")
+                cacheManager.setVerseId(id, for: mode)
+                return verse
+            }
+            print("📖 [DIAG] loadVerse: direct fetch도 실패 → \(id)")
             return nil
         }
 
@@ -112,18 +135,35 @@ actor VerseRepository {
             return v
         }
 
-        // 2. 서버 선택 말씀 (app_config/today_verse — Cloud Function 04:00 KST 기록)
-        let serverVerseId = await firestoreService.fetchTodayVerseId()
+        // 2. 서버 선택 말씀
+        // 우선순위: cachedTodayVerseId (fetchVerses()에서 content_version과 함께 읽음)
+        //          → content_version 읽기는 안정적으로 작동함이 로그로 확인됨
+        // 폴백: fetchTodayVerseId() (today_verse 문서 직접 읽기)
+        let serverVerseId: String?
+        if let cached = cachedTodayVerseId {
+            print("📖 [DIAG] serverVerseId from cachedTodayVerseId: \(cached)")
+            serverVerseId = cached
+        } else {
+            let fetched = await firestoreService.fetchTodayVerseId()
+            print("📖 [DIAG] serverVerseId from fetchTodayVerseId: \(fetched ?? "nil")")
+            serverVerseId = fetched
+        }
+        print("📖 [DIAG] final serverVerseId: \(serverVerseId ?? "nil"), mode: \(mode.rawValue)")
 
         if let serverVerseId {
             // 로컬 캐시가 서버와 이미 일치하면 즉시 반환 (네트워크 최소화)
             if let cachedId = cacheManager.getTodayVerseId(),
                cachedId == serverVerseId,
                let v = cacheManager.loadCachedVerse(id: serverVerseId) {
+                print("📖 [DIAG] returning from local cache: \(cachedId)")
                 return v
             }
             // 불일치 or 캐시 없음 → 서버 버전으로 업데이트
-            if let v = await loadVerse(id: serverVerseId) { return v }
+            if let v = await loadVerse(id: serverVerseId) {
+                print("📖 [DIAG] returning from loadVerse: \(serverVerseId)")
+                return v
+            }
+            print("📖 [DIAG] loadVerse(\(serverVerseId)) FAILED → algorithm")
 
             // 서버 ID는 알지만 verse 본문 로드 실패 → stale 캐시 사용 금지
             // (캐시에 이전 알고리즘 결과가 남아 있어도 서버 판단을 우선)

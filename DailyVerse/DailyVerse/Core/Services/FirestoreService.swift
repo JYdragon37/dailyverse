@@ -96,23 +96,17 @@ class FirestoreService {
     /// 서버에서 매일 04:00 KST에 결정한 오늘의 verseId 반환
     /// Cloud Function이 app_config/today_verse에 기록하면 모든 유저가 동일한 말씀을 봄
     func fetchTodayVerseId() async -> String? {
-        // source: .server 강제 — Firestore SDK 오프라인 캐시가 어제 문서를 반환해
-        // 날짜 체크 실패 → nil → 알고리즘 폴백으로 빠지는 버그 방지.
-        // 오프라인 시에는 SDK 캐시로 폴백.
-        let doc: DocumentSnapshot?
-        if let serverDoc = try? await db.collection("app_config").document("today_verse")
-            .getDocument(source: .server) {
-            doc = serverDoc
-        } else {
-            doc = try? await db.collection("app_config").document("today_verse").getDocument()
-        }
-
-        guard let doc, doc.exists,
+        // Firestore getDocument() 사용
+        // 호출 순서: fetchRawContentVersion() 성공 후 → Firestore 연결 확립 →
+        // 이 함수 호출 시점에는 SDK가 이미 연결된 상태 → getDocument() 정상 작동
+        // clearCache()로 non-cached 경로 보장 → checkForceUpdate() → SDK 연결 확립
+        guard let doc = try? await db.collection("app_config").document("today_verse").getDocument(),
+              doc.exists,
               let data = doc.data(),
               let verseId = data["verse_id"] as? String,
               !verseId.isEmpty else { return nil }
 
-        // 날짜 유효성 체크: 서버 기록 날짜가 오늘(KST 기준)이어야 함
+        // KST 날짜 유효성 체크: stale SDK 캐시 방어
         guard let dateStr = data["date"] as? String else { return verseId }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -360,10 +354,24 @@ class FirestoreService {
 
     // MARK: - 콘텐츠 DB 버전
 
-    /// content_version 문자열만 반환 (버전 비교용 — 1 read)
-    func fetchRawContentVersion() async throws -> String {
+    /// content_version 문서에서 (버전, 오늘 말씀 ID) 반환 — 1 read로 두 가지 정보 획득
+    /// content_version 읽기는 안정적으로 작동하므로 today_verse_id도 여기서 함께 읽음
+    func fetchRawContentVersion() async throws -> (version: String, todayVerseId: String?) {
         let doc = try await db.collection("app_config").document("content_version").getDocument()
-        return doc.data()?["current_version"] as? String ?? ""
+        let data = doc.data()
+        let version = data?["current_version"] as? String ?? ""
+        // today_verse_id: Cloud Function이 매일 04:00 KST에 content_version과 함께 기록
+        let todayVerseId = data?["today_verse_id"] as? String
+        let todayVerseDate = data?["today_verse_date"] as? String
+        // KST 날짜 체크 — stale 캐시 방어
+        if let verseId = todayVerseId, let dateStr = todayVerseDate {
+            let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+            fmt.timeZone = TimeZone(identifier: "Asia/Seoul")
+            if dateStr == fmt.string(from: Date()) {
+                return (version, verseId)
+            }
+        }
+        return (version, nil)
     }
 
     /// app_config/content_version 문서에서 현재 버전 반환 (디버그 표시용)

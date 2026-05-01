@@ -98,6 +98,20 @@ struct DailyVerseApp: App {
                         }
                         // ATT 팝업은 첫 알람 저장 시점으로 이동 (AlarmViewModel.saveAlarm)
                     }
+                    // 로그인 상태 변경 감지
+                    .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+                        if isLoggedIn, let email = authManager.user?.email {
+                            Task {
+                                await subscriptionManager.checkMasterAccount(email: email)
+                                // 로그인 후 today verse 강제 재조회 — 캐시된 잘못된 말씀 교정
+                                let mode = AppMode.current()
+                                let weather = WeatherCacheManager().load()
+                                _ = await VerseRepository.shared.currentVerse(for: mode, weather: weather)
+                            }
+                        } else if !isLoggedIn {
+                            subscriptionManager.logOut()
+                        }
+                    }
                     .onReceive(
                         NotificationCenter.default.publisher(
                             for: UIApplication.willEnterForegroundNotification
@@ -106,6 +120,10 @@ struct DailyVerseApp: App {
                         Task {
                             if let userId = authManager.userId {
                                 await NicknameManager.shared.syncWithFirestore(userId: userId)
+                            }
+                            // 포그라운드 복귀 시에도 premium 상태 재확인
+                            if let email = authManager.user?.email {
+                                await subscriptionManager.checkMasterAccount(email: email)
                             }
                         }
                     }
