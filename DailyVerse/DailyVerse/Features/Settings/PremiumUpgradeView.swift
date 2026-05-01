@@ -143,16 +143,82 @@ struct PremiumUpgradeView: View {
         .background(Color.dvBgSurface)
     }
 
+    // MARK: - CTA
+
     private var ctaSection: some View {
-        Text("CTA")
-            .foregroundColor(.white)
+        VStack(spacing: 12) {
+            if subscriptionManager.isPremium {
+                // Premium 유저 상태
+                HStack(spacing: 10) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color.dvAccentGold)
+                    Text("이미 Premium이에요")
+                        .font(.dvSubtitle)
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(Color.dvAccentGold.opacity(0.10))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.dvAccentGold.opacity(0.25), lineWidth: 1)
+                )
+            } else {
+                // 구매 버튼
+                Button {
+                    Task { await subscriptionManager.purchase() }
+                } label: {
+                    VStack(spacing: 3) {
+                        Text("Premium 시작하기")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("₩24,500/월")
+                            .font(.system(size: 13, weight: .medium))
+                            .opacity(0.75)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.dvAccentGold)
+                    .foregroundColor(Color(hex: "#1A2340"))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+
+                // 복원 버튼
+                Button {
+                    Task { await subscriptionManager.restore() }
+                } label: {
+                    Text("구독 복원하기")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.35))
+                }
+            }
+
+            // 안내 문구
+            Text("구독은 App Store에서 언제든지 해지할 수 있습니다")
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.25))
+                .multilineTextAlignment(.center)
+                .padding(.top, 4)
+        }
+        .padding(.horizontal, 24)
     }
 }
 
-#Preview {
+#Preview("Free 유저") {
     NavigationStack {
         PremiumUpgradeView()
             .environmentObject(SubscriptionManager())
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Premium 유저") {
+    let sm = SubscriptionManager()
+    sm.isPremium = true
+    return NavigationStack {
+        PremiumUpgradeView()
+            .environmentObject(sm)
     }
     .preferredColorScheme(.dark)
 }
