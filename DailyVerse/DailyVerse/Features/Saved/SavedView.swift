@@ -7,11 +7,16 @@ import SwiftUI
 
 struct SavedView: View {
     @StateObject private var viewModel = SavedViewModel()
+    @StateObject private var nativeAdPool = NativeAdPool()
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @ObservedObject private var adManager = AdManager.shared
 
     @State private var selectedVerse: SavedVerse?
     @State private var showLoginPrompt = false
+    @State private var showPremiumUpgrade = false
+    @State private var pendingAdVerse: SavedVerse? = nil
+    @State private var adTimeoutTask: Task<Void, Never>? = nil
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 14),
@@ -36,14 +41,42 @@ struct SavedView: View {
             }
             .background(Color.dvBgDeep.ignoresSafeArea())
         }
+        // 광고 로딩 대기 오버레이
+        .overlay {
+            if pendingAdVerse != nil {
+                ZStack {
+                    Color.black.opacity(0.6).ignoresSafeArea()
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.dvAccentGold)
+                            .scaleEffect(1.3)
+                        Text("광고 준비 중...")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: pendingAdVerse != nil)
+            }
+        }
         .task {
             if authManager.isLoggedIn, let userId = authManager.userId {
                 await viewModel.loadSavedVerses(userId: userId)
             }
-            // Free 유저용 전면 광고 사전 로드
             if !subscriptionManager.isPremium {
                 AdManager.shared.loadInterstitialAd()
+                // 말씀 로드 완료 후 슬롯 수 계산 → native 광고 로드
+                let slotCount = max(1, min(5, (viewModel.savedVerses.count / 6) + 1))
+                nativeAdPool.load(count: slotCount)
             }
+        }
+        // 광고 로드 완료 시 대기 중인 카드 자동 처리
+        .onChange(of: adManager.isInterstitialReady) { isReady in
+            guard isReady, let verse = pendingAdVerse else { return }
+            adTimeoutTask?.cancel()
+            pendingAdVerse = nil
+            showAdThenOpen(verse: verse)
         }
         .sheet(item: $selectedVerse) { savedVerse in
             SavedDetailView(savedVerse: savedVerse) {
@@ -63,6 +96,13 @@ struct SavedView: View {
                 showLoginPrompt = false
             }
         }
+        .sheet(isPresented: $showPremiumUpgrade) {
+            NavigationStack {
+                PremiumUpgradeView()
+                    .environmentObject(subscriptionManager)
+            }
+            .preferredColorScheme(.dark)
+        }
         .onChange(of: authManager.isLoggedIn) { isLoggedIn in
             if isLoggedIn, let userId = authManager.userId {
                 showLoginPrompt = false   // 로그인 성공 시 시트 자동 닫기
@@ -76,11 +116,33 @@ struct SavedView: View {
     // MARK: - 카드 탭 처리 (Free 유저: 전면 광고 → 상세 / Premium: 바로 상세)
 
     private func handleCardTap(_ verse: SavedVerse) {
-        // Premium 유저: 광고 없이 바로 상세 이동
         if subscriptionManager.isPremium {
             selectedVerse = verse
             return
         }
+
+        if AdManager.shared.isInterstitialReady {
+            // 광고 준비됨 → 즉시 표시
+            showAdThenOpen(verse: verse)
+        } else if AdManager.shared.isInterstitialLoading {
+            // 광고 로딩 중 → 오버레이 표시 후 대기 (최대 5초)
+            pendingAdVerse = verse
+            adTimeoutTask?.cancel()
+            adTimeoutTask = Task {
+                try? await Task.sleep(for: .seconds(5))
+                await MainActor.run {
+                    guard pendingAdVerse != nil else { return }
+                    pendingAdVerse = nil
+                    selectedVerse = verse
+                }
+            }
+        } else {
+            // 광고 없음 → 바로 진입
+            selectedVerse = verse
+        }
+    }
+
+    private func showAdThenOpen(verse: SavedVerse) {
         let rootVC = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first?.rootViewController.flatMap { vc -> UIViewController? in
@@ -88,15 +150,9 @@ struct SavedView: View {
                 while let presented = top.presentedViewController { top = presented }
                 return top
             }
-
-        if let vc = rootVC, AdManager.shared.isInterstitialReady {
-            AdManager.shared.showInterstitialAd(from: vc) {
-                Task { @MainActor in
-                    selectedVerse = verse
-                }
-            }
-        } else {
-            selectedVerse = verse
+        guard let vc = rootVC else { selectedVerse = verse; return }
+        AdManager.shared.showInterstitialAd(from: vc) {
+            Task { @MainActor in selectedVerse = verse }
         }
     }
 
@@ -115,92 +171,107 @@ struct SavedView: View {
         }
     }
 
-    // MARK: - Filter Picker (v5.2)
+    // MARK: - Premium Banner
 
-    private var filterPicker: some View {
-        HStack(spacing: 8) {
-            ForEach(SavedViewModel.SavedFilter.allCases, id: \.self) { filter in
-                let isSelected = viewModel.selectedFilter == filter
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        viewModel.selectedFilter = filter
-                    }
-                } label: {
-                    Text(filter.rawValue)
-                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(isSelected ? .black : .white.opacity(0.6))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(isSelected ? Color.dvAccentGold : Color.white.opacity(0.10))
-                        )
+    private var premiumBanner: some View {
+        Button {
+            showPremiumUpgrade = true
+        } label: {
+            HStack(spacing: 16) {
+                Text("👑")
+                    .font(.system(size: 28))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("더 많은 말씀을 되돌아보고 싶으신가요?")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                    Text("Premium으로 전체 아카이브를 열어보세요")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.50))
                 }
-                .buttonStyle(.plain)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color.dvAccentGold)
             }
-            Spacer()
+            .padding(16)
+            .background(Color.dvBgSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.dvAccentGold.opacity(0.22), lineWidth: 1)
+            )
         }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
     }
 
     // MARK: - Grid
 
     private var savedGrid: some View {
         ScrollView {
-            // 필터 탭 — 콘텐츠와 함께 스크롤
-            filterPicker
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
+            let verses = viewModel.savedVerses
+            // 6개씩 청크 분할 — 청크 뒤마다 네이티브 광고 삽입
+            let chunks = stride(from: 0, to: verses.count, by: 6).map {
+                Array(verses[$0..<min($0 + 6, verses.count)])
+            }
 
-            if viewModel.filteredVerses.isEmpty {
-                emptyStateFilteredEmpty
-                    .padding(.top, 60)
-            } else {
-                let verses = viewModel.filteredVerses
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(stride(from: 0, to: verses.count, by: 6)), id: \.self) { start in
-                        let chunk = Array(verses[start..<min(start + 6, verses.count)])
-                        let isLast = start + 6 >= verses.count
-
-                        LazyVGrid(columns: gridColumns, spacing: 12) {
-                            ForEach(chunk) { savedVerse in
-                                SavedCardView(
-                                    savedVerse: savedVerse,
-                                    isPremium: subscriptionManager.isPremium,
-                                    onTap: { handleCardTap(savedVerse) },
-                                    onDelete: {
-                                        Task {
-                                            if let userId = authManager.userId {
-                                                await viewModel.deleteSavedVerse(savedVerse, userId: userId)
-                                            }
+            LazyVStack(spacing: 0) {
+                ForEach(Array(chunks.enumerated()), id: \.offset) { chunkIdx, chunk in
+                    // 말씀 카드 2열 그리드
+                    LazyVGrid(columns: gridColumns, spacing: 12) {
+                        ForEach(chunk) { savedVerse in
+                            SavedCardView(
+                                savedVerse: savedVerse,
+                                isPremium: subscriptionManager.isPremium,
+                                onTap: { handleCardTap(savedVerse) },
+                                onDelete: {
+                                    Task {
+                                        if let userId = authManager.userId {
+                                            await viewModel.deleteSavedVerse(savedVerse, userId: userId)
                                         }
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
-                        .padding(.bottom, 12)
+                    }
+                    .padding(.bottom, 12)
 
-                        // 6개마다 배너 (Free 유저만 표시)
-                        if !isLast && !subscriptionManager.isPremium {
-                            BannerAdView()
-                                .frame(width: 300, height: 250)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
+                    // 청크 뒤 네이티브 광고 (Free 유저만, 마지막 청크도 표시)
+                    if !subscriptionManager.isPremium {
+                        if chunkIdx < nativeAdPool.ads.count {
+                            NativeAdCardView(nativeAd: nativeAdPool.ads[chunkIdx])
+                                .frame(height: 260)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.bottom, 16)
+                        } else {
+                            // 아직 로드 중 — 플레이스홀더
+                            NativeAdPlaceholder()
+                                .padding(.bottom, 16)
                         }
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
 
-                // 브랜드 footer — 데이터 있을 때도 항상 표시
-                Image("LogoMMColor")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 72)
-                    .opacity(0.30)
-                    .padding(.top, 16)
-                    .padding(.bottom, 100)
+                // Premium 업그레이드 배너 (Free 유저만)
+                if !subscriptionManager.isPremium {
+                    premiumBanner
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+
+            // 브랜드 footer
+            Image("LogoMMColor")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 72)
+                .opacity(0.30)
+                .padding(.top, 16)
+                .padding(.bottom, 100)
         }
     }
 
@@ -295,26 +366,6 @@ struct SavedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // v5.2: 필터 결과가 비어있을 때
-    private var emptyStateFilteredEmpty: some View {
-        let label: String = {
-            switch viewModel.selectedFilter {
-            case .home:  return "홈에서 저장한 말씀이 없어요"
-            case .alarm: return "알람에서 저장한 말씀이 없어요"
-            case .all:   return "저장된 말씀이 없어요"
-            }
-        }()
-        return VStack(spacing: 16) {
-            Image(systemName: "tray")
-                .font(.system(size: 44))
-                .foregroundColor(.white.opacity(0.3))
-            Text(label)
-                .font(.dvBody)
-                .foregroundColor(.white.opacity(0.5))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-    }
 }
 
 // MARK: - SavedCardView (v5.2: 이미지 썸네일 카드, 3:4 비율 + 하단 시간/날씨 바)

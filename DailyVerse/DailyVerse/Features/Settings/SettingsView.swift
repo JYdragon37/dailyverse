@@ -57,6 +57,9 @@ struct SettingsView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 4)
 
+                    // ── 구독 ─────────────────────────────────
+                    sectionCard(title: "구독") { subscriptionRows }
+
                     // ── 외관 ────────────────────────────────
                     sectionCard(title: "외관") { appearanceRows }
 
@@ -117,7 +120,10 @@ struct SettingsView: View {
             Text("지금까지 쌓아온 말씀과 묵상 기록이 모두 사라져요.\n정말 떠나실 건가요?")
         }
         .alert("로그아웃", isPresented: $showSignOutAlert) {
-            Button("로그아웃", role: .destructive) { authManager.signOut() }
+            Button("로그아웃", role: .destructive) {
+                subscriptionManager.logOut()  // isPremium 리셋
+                authManager.signOut()
+            }
             Button("취소", role: .cancel) {}
         } message: { Text("로그아웃 하시겠어요?") }
         .alert("계정을 탈퇴하시겠어요?", isPresented: $showDeleteAccountAlert) {
@@ -158,6 +164,9 @@ struct SettingsView: View {
                 showLoginPrompt = false
                 Task { await authManager.signIn() }
             } onDismiss: { showLoginPrompt = false }
+        }
+        .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+            if isLoggedIn { showLoginPrompt = false }
         }
         #if DEBUG
         .fullScreenCover(isPresented: $showOnboardingPreview) {
@@ -209,11 +218,24 @@ struct SettingsView: View {
                 showNicknameEdit = true
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
                         Text("안녕하세요, \(nicknameManager.nickname)")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                         Text("👋").font(.system(size: 15))
+                        if subscriptionManager.isPremium {
+                            HStack(spacing: 3) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("Premium")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                            .foregroundColor(.black.opacity(0.7))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(Color.dvAccentGold)
+                            .clipShape(Capsule())
+                        }
                     }
                     if authManager.isLoggedIn {
                         Text(authManager.user?.email ?? "Apple 계정")
@@ -281,6 +303,59 @@ struct SettingsView: View {
                     .fill(Color.dvBgSurface)
             )
             .padding(.horizontal, 16)
+        }
+    }
+
+    // MARK: - 구독 섹션
+
+    @ViewBuilder
+    private var subscriptionRows: some View {
+        if subscriptionManager.isPremium {
+            // Premium 유저
+            HStack(spacing: 14) {
+                iconBadge("checkmark.seal.fill", color: Color.dvAccentGold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Premium 구독 중")
+                        .font(.dvBody)
+                        .foregroundColor(.white)
+                    if let expDate = subscriptionManager.expirationDate {
+                        Text("갱신일: \(expDate.formatted(date: .abbreviated, time: .omitted))")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.40))
+                    }
+                }
+                Spacer()
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color.dvAccentGold)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+        } else {
+            // Free 유저 — NavigationLink
+            NavigationLink {
+                PremiumUpgradeView()
+                    .environmentObject(subscriptionManager)
+            } label: {
+                HStack(spacing: 14) {
+                    iconBadge("star.fill", color: Color.dvAccentGold)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Premium 업그레이드")
+                            .font(.dvBody)
+                            .foregroundColor(.white)
+                        Text("무제한 아카이브 · 광고 없음 · 테마 자유 선택")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.25))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
         }
     }
 
