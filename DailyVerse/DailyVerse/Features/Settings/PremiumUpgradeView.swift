@@ -3,6 +3,20 @@ import SwiftUI
 struct PremiumUpgradeView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
+    private struct FeatureRow {
+        let title: String
+        let free: String
+        let premium: String
+    }
+
+    private let features: [FeatureRow] = [
+        FeatureRow(title: "말씀 아카이브",  free: "7일",    premium: "무제한"),
+        FeatureRow(title: "알람 테마",      free: "자동",   premium: "자유 선택"),
+        FeatureRow(title: "광고",          free: "있음",   premium: "없음"),
+        FeatureRow(title: "카드 워터마크", free: "있음",   premium: "없음"),
+        FeatureRow(title: "묵상 기록",     free: "무제한", premium: "무제한"),
+    ]
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
@@ -49,9 +63,84 @@ struct PremiumUpgradeView: View {
         .padding(.bottom, 32)
     }
 
+    // MARK: - Comparison Table
+
     private var comparisonTable: some View {
-        Text("Table")
-            .foregroundColor(.white)
+        VStack(spacing: 0) {
+            // 헤더 행
+            HStack(spacing: 0) {
+                Text("기능")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.35))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 16)
+
+                Text("Free")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.35))
+                    .frame(width: 72, alignment: .center)
+
+                Text("Premium")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color.dvAccentGold)
+                    .frame(width: 96, alignment: .center)
+                    .padding(.trailing, 16)
+            }
+            .frame(height: 36)
+            .background(Color.dvBgSurface)
+
+            // 상단 구분선
+            Rectangle()
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 0.5)
+
+            // 기능 행들
+            ForEach(Array(features.enumerated()), id: \.offset) { index, row in
+                featureRow(row, isLast: index == features.count - 1)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 32)
+    }
+
+    private func featureRow(_ row: FeatureRow, isLast: Bool) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Text(row.title)
+                    .font(.dvBody)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 16)
+
+                Text(row.free)
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.40))
+                    .frame(width: 72, alignment: .center)
+
+                Text(row.premium)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color.dvAccentGold)
+                    .frame(width: 96, alignment: .center)
+                    .padding(.trailing, 16)
+            }
+            .frame(height: 48)
+            .background(
+                HStack(spacing: 0) {
+                    Color.clear.frame(maxWidth: .infinity)
+                    Color.clear.frame(width: 72)
+                    Color.dvAccentGold.opacity(0.06).frame(width: 96)
+                }
+            )
+
+            if !isLast {
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 0.5)
+                    .padding(.leading, 16)
+            }
+        }
+        .background(Color.dvBgSurface)
     }
 
     private var ctaSection: some View {
