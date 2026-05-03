@@ -173,13 +173,24 @@ async function runPreview() {
     const v = allVerses.find(x => x.id === todayData.verse_id);
     if (v) {
       selectedIds.push(v.id);
-      schedules.push({ offset: 0, dateStr: d0.dateStr, dayInt: d0.dayInt, verse: v, alts: [] });
+      schedules.push({ offset: 0, dateStr: d0.dateStr, dayInt: d0.dayInt, verse: v, alts: [], source: todayData.source || 'auto' });
     }
   } else {
-    const v = pickVerse(allVerses, d0.dayInt, []);
+    // daily_cards 확인 후 알고리즘 폴백
+    const dcDoc0 = await db.collection('daily_cards').doc(d0.dateStr).get();
+    let v;
+    let src0 = 'auto';
+    if (dcDoc0.exists && dcDoc0.data().active && dcDoc0.data().verse_id) {
+      v = allVerses.find(x => x.id === dcDoc0.data().verse_id) || pickVerse(allVerses, d0.dayInt, []);
+      if (dcDoc0.exists && dcDoc0.data().active && dcDoc0.data().verse_id && allVerses.find(x => x.id === dcDoc0.data().verse_id)) {
+        src0 = 'daily_card';
+      }
+    } else {
+      v = pickVerse(allVerses, d0.dayInt, []);
+    }
     if (v) {
       selectedIds.push(v.id);
-      schedules.push({ offset: 0, dateStr: d0.dateStr, dayInt: d0.dayInt, verse: v, alts: [] });
+      schedules.push({ offset: 0, dateStr: d0.dateStr, dayInt: d0.dayInt, verse: v, alts: [], source: src0 });
     }
   }
 
@@ -190,16 +201,29 @@ async function runPreview() {
     // verse_schedule에 이미 override가 있으면 그 id 우선
     const existing = await db.collection('verse_schedule').doc(dx.dateStr).get();
     let verse;
+    let srcDx = 'auto';
     if (existing.exists && existing.data().status === 'override' && existing.data().verse_id) {
       verse = allVerses.find(x => x.id === existing.data().verse_id) || pickVerse(allVerses, dx.dayInt, selectedIds);
+      srcDx = 'override';
     } else {
-      verse = pickVerse(allVerses, dx.dayInt, selectedIds);
+      // daily_cards 확인 후 알고리즘 폴백
+      const dcDocDx = await db.collection('daily_cards').doc(dx.dateStr).get();
+      if (dcDocDx.exists && dcDocDx.data().active && dcDocDx.data().verse_id) {
+        const dcVerse = allVerses.find(x => x.id === dcDocDx.data().verse_id);
+        if (dcVerse) {
+          verse = dcVerse;
+          srcDx = 'daily_card';
+        }
+      }
+      if (!verse) {
+        verse = pickVerse(allVerses, dx.dayInt, selectedIds);
+      }
     }
 
     if (!verse) continue;
     selectedIds.push(verse.id);
     const alts = pickAlternatives(allVerses, dx.dayInt, verse.id, selectedIds);
-    schedules.push({ offset, dateStr: dx.dateStr, dayInt: dx.dayInt, verse, alts });
+    schedules.push({ offset, dateStr: dx.dateStr, dayInt: dx.dayInt, verse, alts, source: srcDx });
   }
 
   // 3. Firestore verse_schedule 업데이트 (D는 read-only 참조용, D+1/D+2는 편집 가능)
@@ -208,8 +232,8 @@ async function runPreview() {
     const ref  = db.collection('verse_schedule').doc(s.dateStr);
     const snap = await ref.get();
 
-    // 이미 override 상태면 그 verse_id 유지, auto만 덮어씀
-    if (snap.exists && snap.data().status === 'override') continue;
+    // 이미 override 또는 daily_card 상태면 그 verse_id 유지, auto/scheduled만 덮어씀
+    if (snap.exists && (snap.data().status === 'override' || snap.data().status === 'daily_card')) continue;
 
     const now = admin.firestore.FieldValue.serverTimestamp();
     const now2 = new Date();
@@ -242,7 +266,8 @@ async function runPreview() {
       alt_1_id:       s.alts[0]?.id || '',
       alt_2_id:       s.alts[1]?.id || '',
       alt_3_id:       s.alts[2]?.id || '',
-      status:         s.offset === 0 ? 'active' : 'scheduled',
+      status:         s.offset === 0 ? 'active' : (s.source === 'daily_card' ? 'daily_card' : 'scheduled'),
+      source:         s.source || 'auto',
       preview_at:     now,
       notes:          '',
     }, { merge: false });
@@ -279,39 +304,58 @@ exports.selectDailyVerse = onSchedule(
 
     // 2. verse_schedule/{today} 먼저 확인 (관리자 선정 또는 미리보기)
     let selected = null;
+    let selectedSource = 'algorithm';
     const scheduleDoc = await db.collection('verse_schedule').doc(dateStr).get();
     if (scheduleDoc.exists) {
       const sData = scheduleDoc.data();
       const scheduledVerse = allVerses.find(v => v.id === sData.verse_id);
       if (scheduledVerse) {
         selected = scheduledVerse;
+        selectedSource = sData.status;
         logger.info(`📋 verse_schedule 사용: ${selected.id} (${sData.status})`);
       }
     }
 
-    // 3. 없으면 알고리즘
+    // 3. daily_cards/{today} 확인 (절기 큐레이션 — verse_schedule 없을 때만)
+    if (!selected) {
+      const dailyCardDoc = await db.collection('daily_cards').doc(dateStr).get();
+      if (dailyCardDoc.exists) {
+        const dcData = dailyCardDoc.data();
+        if (dcData.active && dcData.verse_id) {
+          const dcVerse = allVerses.find(v => v.id === dcData.verse_id);
+          if (dcVerse) {
+            selected = dcVerse;
+            selectedSource = 'daily_card';
+            logger.info(`🎉 daily_card 사용: ${selected.id} (${dcData.event_name || dateStr})`);
+          }
+        }
+      }
+    }
+
+    // 4. 없으면 알고리즘
     if (!selected) {
       selected = pickVerse(allVerses, dayInt, []);
+      selectedSource = 'algorithm';
       logger.info(`🎲 알고리즘 선택: ${selected.id}`);
     }
 
-    // 4. app_config/today_verse 업데이트
+    // 5. app_config/today_verse 업데이트
     await db.collection('app_config').doc('today_verse').set({
       verse_id:     selected.id,
       date:         dateStr,
       reference:    selected.reference    || '',
       verse_short:  verseShort(selected),
       selected_at:  admin.firestore.FieldValue.serverTimestamp(),
-      source:       scheduleDoc.exists ? scheduleDoc.data().status : 'algorithm',
+      source:       selectedSource,
     });
 
-    // 5. verse_schedule 상태 → active
+    // 6. verse_schedule 상태 → active
     await db.collection('verse_schedule').doc(dateStr).set(
       { status: 'active', activated_at: admin.firestore.FieldValue.serverTimestamp() },
       { merge: true }
     ).catch(() => {});
 
-    // 6. show_count 업데이트
+    // 7. show_count 업데이트
     // last_shown을 Timestamp 대신 String "yyyy-MM-dd" (KST)로 저장
     // iOS Verse 구조체가 String? 으로 선언돼 있어 Timestamp이면 Codable 디코딩 실패 → verse 제외됨
     const kstDateStr = new Date(Date.now() + 9*60*60*1000).toISOString().slice(0, 10);
@@ -320,7 +364,7 @@ exports.selectDailyVerse = onSchedule(
       show_count:  admin.firestore.FieldValue.increment(1),
     }).catch(e => logger.warn('show_count 업데이트 실패:', e.message));
 
-    // 7. 미리보기 갱신 (D+1, D+2 스케줄 업데이트)
+    // 8. 미리보기 갱신 (D+1, D+2 스케줄 업데이트)
     try {
       await runPreview();
       logger.info('🔄 미리보기 자동 갱신 완료');
