@@ -125,26 +125,18 @@ class VerseSelector {
         return topVerses[index]
     }
 
-    /// 오늘 날짜(04:00 기준)를 시드로 사용한 결정론적 인덱스 반환
+    /// 오늘 날짜(자정 기준)를 시드로 사용한 결정론적 인덱스 반환
     /// - 같은 날이면 count가 같을 때 항상 동일한 인덱스를 반환
-    /// - 새벽 00–03은 전날로 취급 (DailyVerseCache.isValid와 동일 기준)
+    /// - KST 명시 — Cloud Function 00:00 KST 기준과 dayInt 통일
     private static func dailySeedIndex(count: Int) -> Int {
         guard count > 1 else { return 0 }
-        // KST 명시 — Cloud Function의 04:00 KST 기준과 dayInt 통일
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
         let now = Date()
-        let hour = calendar.component(.hour, from: now)
-        let referenceDate: Date
-        if hour < 4 {
-            referenceDate = calendar.date(byAdding: .day, value: -1, to: now) ?? now
-        } else {
-            referenceDate = now
-        }
         // "yyyyMMdd" 형식 숫자를 시드로 사용
-        let dayInt = calendar.component(.year, from: referenceDate) * 10000
-            + calendar.component(.month, from: referenceDate) * 100
-            + calendar.component(.day, from: referenceDate)
+        let dayInt = calendar.component(.year, from: now) * 10000
+            + calendar.component(.month, from: now) * 100
+            + calendar.component(.day, from: now)
         return dayInt % count
     }
 
