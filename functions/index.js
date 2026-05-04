@@ -1,11 +1,11 @@
 /**
  * morning manna — Firebase Cloud Functions
  *
- * [1] previewDailyVerses  (01:00 KST)
+ * [1] previewDailyVerses  (22:00 KST — 전날 저녁)
  *     D / D+1 / D+2 말씀을 미리 선정하고 Firestore verse_schedule/{date}에 기록.
- *     → 관리자가 Google Sheets VERSE_PREVIEW 탭에서 확인·수정 가능.
+ *     → 관리자가 Google Sheets VERSE_PREVIEW 탭에서 확인·수정 가능 (22:30~23:59, 약 1.5h).
  *
- * [2] selectDailyVerse    (04:00 KST)
+ * [2] selectDailyVerse    (00:00 KST — 자정)
  *     오늘의 말씀을 확정해 app_config/today_verse에 기록.
  *     verse_schedule/{today}가 있으면 그 verse를 사용(관리자 선정 우선).
  *     없으면 알고리즘으로 자동 선택.
@@ -133,11 +133,11 @@ function interpPreview(v) {
   return text.length > 80 ? text.slice(0, 80) + '...' : text;
 }
 
-// ─── [1] previewDailyVerses — 매일 01:00 KST ─────────────────────────────────
+// ─── [1] previewDailyVerses — 매일 22:00 KST ─────────────────────────────────
 
 exports.previewDailyVerses = onSchedule(
   {
-    schedule:  '0 1 * * *',
+    schedule:  '0 22 * * *',
     timeZone:  'Asia/Seoul',
     region:    'asia-northeast3',
     memory:    '256MiB',
@@ -276,11 +276,11 @@ async function runPreview() {
   return schedules;
 }
 
-// ─── [2] selectDailyVerse — 매일 04:00 KST ──────────────────────────────────
+// ─── [2] selectDailyVerse — 매일 00:00 KST ──────────────────────────────────
 
 exports.selectDailyVerse = onSchedule(
   {
-    schedule:  '0 4 * * *',
+    schedule:  '0 0 * * *',
     timeZone:  'Asia/Seoul',
     region:    'asia-northeast3',
     memory:    '256MiB',
