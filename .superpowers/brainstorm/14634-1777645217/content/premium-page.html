@@ -1,0 +1,229 @@
+<h2>Premium 전용 페이지 — 어떤 레이아웃?</h2>
+<p class="subtitle">프로필 탭에서 "Premium 업그레이드" 탭 시 열리는 전용 페이지</p>
+
+<style>
+  .phone-frame {
+    width: 200px;
+    min-height: 400px;
+    background: #0a0e1a;
+    border-radius: 28px;
+    border: 2px solid #2a3050;
+    overflow: hidden;
+    margin: 0 auto 12px;
+    font-family: -apple-system, sans-serif;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-back { color: #C4A84B; font-size: 11px; padding: 12px 14px 4px; }
+  .tag { display: inline-block; background: rgba(255,255,255,0.08); border-radius: 8px; padding: 2px 6px; font-size: 9px; color: rgba(255,255,255,0.55); margin: 1px; }
+
+  /* === Option P1: 스토어 스타일 === */
+  .p1-hero {
+    background: linear-gradient(180deg, #1a0e40 0%, #0a0e1a 100%);
+    padding: 20px 16px 16px;
+    text-align: center;
+    border-bottom: 1px solid rgba(196,168,75,0.15);
+  }
+  .p1-crown { font-size: 32px; margin-bottom: 4px; }
+  .p1-title { color: #C4A84B; font-size: 18px; font-weight: 800; letter-spacing: 1px; margin-bottom: 2px; }
+  .p1-subtitle { color: rgba(255,255,255,0.5); font-size: 10px; }
+  .p1-features { padding: 12px 14px; flex: 1; }
+  .p1-feat { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid rgba(255,255,255,0.06); }
+  .p1-feat-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .p1-feat-text { color: #fff; font-size: 11px; }
+  .p1-feat-sub { color: rgba(255,255,255,0.4); font-size: 9px; }
+  .p1-cta { padding: 12px 14px; background: #0a0e1a; }
+  .p1-btn { background: #C4A84B; color: #1a2240; border-radius: 12px; padding: 11px; font-size: 12px; font-weight: 700; text-align: center; }
+  .p1-restore { color: rgba(255,255,255,0.3); font-size: 9px; text-align: center; margin-top: 5px; }
+
+  /* === Option P2: 비교 테이블 === */
+  .p2-header { padding: 16px 14px 10px; text-align: center; }
+  .p2-title { color: #fff; font-size: 15px; font-weight: 700; }
+  .p2-sub { color: rgba(255,255,255,0.45); font-size: 10px; margin-top: 2px; }
+  .p2-table { margin: 0 10px; border-radius: 12px; overflow: hidden; }
+  .p2-head-row { display: grid; grid-template-columns: 1fr 1fr 1fr; background: #1a2240; }
+  .p2-head-cell { padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); border-right: 0.5px solid rgba(255,255,255,0.07); }
+  .p2-head-cell.premium-col { color: #C4A84B; background: rgba(196,168,75,0.1); }
+  .p2-row { display: grid; grid-template-columns: 1fr 1fr 1fr; background: #131929; border-top: 0.5px solid rgba(255,255,255,0.05); }
+  .p2-cell { padding: 7px 4px; text-align: center; font-size: 10px; color: rgba(255,255,255,0.6); border-right: 0.5px solid rgba(255,255,255,0.05); }
+  .p2-cell.premium-col { background: rgba(196,168,75,0.05); color: #C4A84B; font-weight: 600; }
+  .p2-cta { padding: 10px 14px; }
+  .p2-btn { background: #C4A84B; color: #1a2240; border-radius: 12px; padding: 10px; font-size: 11px; font-weight: 700; text-align: center; }
+
+  /* === Option P3: 감성 카드 스타일 === */
+  .p3-bg {
+    background: linear-gradient(160deg, #0f0820 0%, #0a1830 50%, #0a0e1a 100%);
+    padding: 16px 14px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .p3-verse {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(196,168,75,0.2);
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .p3-verse-text { color: rgba(255,255,255,0.7); font-size: 10px; line-height: 1.5; font-style: italic; }
+  .p3-verse-ref { color: rgba(196,168,75,0.6); font-size: 9px; margin-top: 4px; }
+  .p3-crown { text-align: center; font-size: 24px; margin: 6px 0; }
+  .p3-title { color: #C4A84B; font-size: 15px; font-weight: 800; text-align: center; margin-bottom: 2px; }
+  .p3-desc { color: rgba(255,255,255,0.45); font-size: 9px; text-align: center; margin-bottom: 10px; line-height: 1.4; }
+  .p3-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 10px; }
+  .p3-chip { background: rgba(196,168,75,0.12); border: 1px solid rgba(196,168,75,0.25); color: #C4A84B; font-size: 9px; padding: 3px 8px; border-radius: 20px; }
+  .p3-btn { background: #C4A84B; color: #1a2240; border-radius: 12px; padding: 10px; font-size: 12px; font-weight: 700; text-align: center; }
+  .p3-restore { color: rgba(255,255,255,0.25); font-size: 9px; text-align: center; margin-top: 5px; }
+</style>
+
+<div class="cards" style="grid-template-columns: repeat(3, 1fr); gap: 20px; display: grid;">
+
+  <!-- P1: 스토어 스타일 -->
+  <div class="card" data-choice="p1" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0a0e1a; padding: 16px 8px 8px;">
+      <div class="phone-frame" style="min-height: 420px;">
+        <div class="nav-back">‹ 프로필</div>
+        <div class="p1-hero">
+          <div class="p1-crown">👑</div>
+          <div class="p1-title">PREMIUM</div>
+          <div class="p1-subtitle">말씀과 함께하는 더 깊은 하루</div>
+        </div>
+        <div class="p1-features">
+          <div class="p1-feat">
+            <div class="p1-feat-icon" style="background: rgba(196,168,75,0.15)">∞</div>
+            <div><div class="p1-feat-text">무제한 말씀 아카이브</div><div class="p1-feat-sub">저장 30일 제한 없음</div></div>
+          </div>
+          <div class="p1-feat">
+            <div class="p1-feat-icon" style="background: rgba(94,156,245,0.15)">🎨</div>
+            <div><div class="p1-feat-text">테마 자유 선택</div><div class="p1-feat-sub">알람마다 원하는 테마</div></div>
+          </div>
+          <div class="p1-feat">
+            <div class="p1-feat-icon" style="background: rgba(224,94,94,0.15)">✕</div>
+            <div><div class="p1-feat-text">광고 없음</div><div class="p1-feat-sub">깔끔한 앱 경험</div></div>
+          </div>
+          <div class="p1-feat">
+            <div class="p1-feat-icon" style="background: rgba(94,196,159,0.15)">💧</div>
+            <div><div class="p1-feat-text">카드 워터마크 제거</div></div>
+          </div>
+        </div>
+        <div class="p1-cta">
+          <div class="p1-btn">₩24,500/월 시작하기</div>
+          <div class="p1-restore">구독 복원하기</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>P1 — 스토어 스타일</h3>
+      <p>헤더 + 기능 목록 + CTA. 앱 내 결제 페이지의 정석. 명확하고 직관적.</p>
+      <div style="margin-top:8px">
+        <div class="tag">직관적</div>
+        <div class="tag">기능 강조</div>
+        <div class="tag">구현 단순</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P2: 비교 테이블 -->
+  <div class="card" data-choice="p2" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0a0e1a; padding: 16px 8px 8px;">
+      <div class="phone-frame" style="min-height: 420px;">
+        <div class="nav-back">‹ 프로필</div>
+        <div class="p2-header">
+          <div class="p2-title">Free vs Premium</div>
+          <div class="p2-sub">차이를 직접 확인해보세요</div>
+        </div>
+        <div class="p2-table">
+          <div class="p2-head-row">
+            <div class="p2-head-cell">기능</div>
+            <div class="p2-head-cell">Free</div>
+            <div class="p2-head-cell premium-col">✨ Premium</div>
+          </div>
+          <div class="p2-row">
+            <div class="p2-cell" style="text-align:left;padding-left:8px">아카이브</div>
+            <div class="p2-cell">7일</div>
+            <div class="p2-cell premium-col">무제한</div>
+          </div>
+          <div class="p2-row">
+            <div class="p2-cell" style="text-align:left;padding-left:8px">테마</div>
+            <div class="p2-cell">자동</div>
+            <div class="p2-cell premium-col">자유 선택</div>
+          </div>
+          <div class="p2-row">
+            <div class="p2-cell" style="text-align:left;padding-left:8px">광고</div>
+            <div class="p2-cell">있음</div>
+            <div class="p2-cell premium-col">없음</div>
+          </div>
+          <div class="p2-row">
+            <div class="p2-cell" style="text-align:left;padding-left:8px">워터마크</div>
+            <div class="p2-cell">있음</div>
+            <div class="p2-cell premium-col">없음</div>
+          </div>
+        </div>
+        <div style="padding: 10px 14px;">
+          <div style="background: rgba(196,168,75,0.1); border: 1px solid rgba(196,168,75,0.25); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="color:#C4A84B;font-size:12px;font-weight:700">₩24,500</div>
+              <div style="color:rgba(255,255,255,0.4);font-size:9px">월간 구독</div>
+            </div>
+            <div style="background:#C4A84B;color:#1a2240;font-size:10px;font-weight:700;padding:6px 12px;border-radius:8px">시작하기</div>
+          </div>
+          <div style="color:rgba(255,255,255,0.25);font-size:9px;text-align:center;margin-top:5px">구독 복원하기</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>P2 — Free vs Premium 비교</h3>
+      <p>Free와 Premium을 나란히 비교. 차이를 명확하게 보여줘 전환 동기 강화.</p>
+      <div style="margin-top:8px">
+        <div class="tag">비교 효과</div>
+        <div class="tag">설득력 높음</div>
+        <div class="tag">표 구현 필요</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P3: 감성 카드 -->
+  <div class="card" data-choice="p3" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0a0e1a; padding: 16px 8px 8px;">
+      <div class="phone-frame" style="min-height: 420px;">
+        <div class="nav-back">‹ 프로필</div>
+        <div class="p3-bg">
+          <div class="p3-verse">
+            <div class="p3-verse-text">"두려워하지 말라 내가 너와 함께 함이라"</div>
+            <div class="p3-verse-ref">이사야 41:10</div>
+          </div>
+          <div class="p3-crown">👑</div>
+          <div class="p3-title">PREMIUM</div>
+          <div class="p3-desc">말씀이 쌓여갈수록<br/>더 깊어지는 하루를 경험하세요</div>
+          <div class="p3-chips">
+            <div class="p3-chip">무제한 아카이브</div>
+            <div class="p3-chip">테마 자유 선택</div>
+            <div class="p3-chip">광고 없음</div>
+            <div class="p3-chip">워터마크 제거</div>
+          </div>
+          <div style="flex:1"></div>
+          <div class="p3-btn">₩24,500/월 시작하기</div>
+          <div class="p3-restore">구독 복원하기</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>P3 — 감성 카드 스타일</h3>
+      <p>말씀 인용 + 감성 문구로 브랜드 감성 유지. morning manna 무드와 가장 잘 어울림.</p>
+      <div style="margin-top:8px">
+        <div class="tag">브랜드 일관성</div>
+        <div class="tag">감성적 전환</div>
+        <div class="tag">앱 무드 최적</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top: 16px; padding: 12px 16px; background: rgba(196,168,75,0.08); border-radius: 12px; border-left: 3px solid #C4A84B;">
+  <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0;">
+    💡 <strong style="color: #C4A84B">추천: P3</strong> — morning manna는 감성 앱이므로 말씀 인용 + 감성 문구 방식이 브랜드와 가장 잘 맞습니다. P1은 범용적이고 P2는 설득력이 높아요.
+  </p>
+</div>

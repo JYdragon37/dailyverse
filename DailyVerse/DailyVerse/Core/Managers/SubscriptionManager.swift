@@ -29,9 +29,8 @@ final class SubscriptionManager: ObservableObject {
     /// 앱 업데이트 없이 Firebase 콘솔에서 직접 추가/삭제 가능
     func checkMasterAccount(email: String) async {
         let masterEmails = await FirestoreService().fetchMasterAccounts()
-        if masterEmails.contains(email.lowercased()) {
-            isPremium = true
-        }
+        // 명시적으로 결과를 반영 — 비마스터 계정은 false 보장
+        isPremium = masterEmails.contains(email.lowercased())
     }
 
     func purchase() async {
@@ -51,6 +50,7 @@ final class SubscriptionManager: ObservableObject {
         Task {
             try? await Purchases.shared.logOut()
         }
+        isPremium = false
         subscriptionStatus = "free"
         expirationDate = nil
     }
@@ -60,6 +60,7 @@ final class SubscriptionManager: ObservableObject {
     private func applyCustomerInfo(_ customerInfo: CustomerInfo) {
         let entitlement = customerInfo.entitlements[entitlementID]
         let active = entitlement?.isActive == true
+        isPremium = active
         subscriptionStatus = active ? "premium" : "free"
         expirationDate = entitlement?.expirationDate
     }

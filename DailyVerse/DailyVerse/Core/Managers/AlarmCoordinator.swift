@@ -264,6 +264,8 @@ final class AlarmCoordinator: ObservableObject {
         activeVolume     = 0.8
         activeMode       = AppMode.current()
         snoozeCount = 0
+        // 알람 종료 후 홈 탭으로 이동 (알람 탭이 노출되던 문제 수정)
+        NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
     }
 
     /// Edge Case 7: snoozeCount >= 3 이면 canSnooze == false → 버튼 비활성화

@@ -390,8 +390,10 @@ private struct RecentMeditationRow: View {
 private struct FullHistorySheet: View {
     let entries: [MeditationEntry]
     let onToggleAnswered: (PrayerItem, MeditationEntry) -> Void
+    var viewModel: MeditationViewModel? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     var body: some View {
         NavigationStack {
@@ -411,12 +413,18 @@ private struct FullHistorySheet: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(entries) { entry in
-                                HistoryEntryCard(
-                                    entry: entry,
-                                    onToggleAnswered: { item in
-                                        onToggleAnswered(item, entry)
-                                    }
-                                )
+                                let locked = viewModel?.isLocked(entry, isPremium: subscriptionManager.isPremium) ?? false
+                                if locked {
+                                    // B: 30일+ 잠금 카드
+                                    LockedMeditationCard(entry: entry)
+                                } else {
+                                    HistoryEntryCard(
+                                        entry: entry,
+                                        onToggleAnswered: { item in
+                                            onToggleAnswered(item, entry)
+                                        }
+                                    )
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -436,6 +444,45 @@ private struct FullHistorySheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - B: 30일+ 잠금 카드
+
+private struct LockedMeditationCard: View {
+    let entry: MeditationEntry
+
+    private var formattedDate: String {
+        let p = DateFormatter(); p.dateFormat = "yyyy-MM-dd"
+        let d = DateFormatter(); d.locale = Locale(identifier: "ko_KR"); d.dateFormat = "M월 d일 E"
+        return p.date(from: entry.dateKey).map { d.string(from: $0) } ?? entry.dateKey
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.25))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formattedDate)
+                    .font(.dvCaption)
+                    .foregroundColor(.white.opacity(0.35))
+                Text("지난 묵상을 되돌아보려면 Premium이 필요해요")
+                    .font(.dvCaption)
+                    .foregroundColor(.white.opacity(0.30))
+            }
+            Spacer()
+            Text("Premium")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.dvAccentGold)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(Color.dvAccentGold.opacity(0.15))
+                .clipShape(Capsule())
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.dvBgSurface).overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.05), lineWidth: 1)))
     }
 }
 

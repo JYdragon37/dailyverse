@@ -22,6 +22,11 @@ struct DevotionCompleteView: View {
     @State private var cardOpacity: Double = 0
     // #13: StreakManager 직접 observe → recordMeditation() 후 currentStreak 즉시 반영
     @ObservedObject private var streakManager = StreakManager.shared
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+
+    // C: 스트릭 7일 업셀 — 최초 1회만 표시
+    @AppStorage("hasShownStreak7Upsell") private var hasShownStreak7Upsell = false
+    @State private var showStreak7Upsell = false
 
     // MARK: - Share State
 
@@ -79,11 +84,22 @@ struct DevotionCompleteView: View {
         }
         .onAppear {
             runEntryAnimations()
+            // C: 스트릭 7일 달성 업셀 — 비프리미엄, 최초 1회만
+            if !subscriptionManager.isPremium && !hasShownStreak7Upsell && streakManager.currentStreak == 7 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    showStreak7Upsell = true
+                    hasShownStreak7Upsell = true
+                }
+            }
         }
         .sheet(isPresented: $showShareSheet) {
             if let image = shareImage {
                 ShareSheet(activityItems: [image])
             }
+        }
+        // C: 스트릭 7일 업셀 시트
+        .sheet(isPresented: $showStreak7Upsell) {
+            Streak7UpsellSheet(isPresented: $showStreak7Upsell)
         }
     }
 
@@ -227,6 +243,54 @@ struct DevotionCompleteView: View {
         let image = DevotionShareCardRenderer.render(verse: verse, backgroundImage: bgImage)
         shareImage = image
         showShareSheet = true
+    }
+}
+
+// MARK: - C: 스트릭 7일 업셀 시트
+
+private struct Streak7UpsellSheet: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(spacing: 28) {
+            RoundedRectangle(cornerRadius: 2.5).fill(Color.secondary.opacity(0.4))
+                .frame(width: 36, height: 5).padding(.top, 8)
+
+            Text("🔥").font(.system(size: 56))
+
+            VStack(spacing: 10) {
+                Text("7일 연속 묵상 달성!")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                Text("지난 말씀을 언제든 되돌아보고\n광고 없이 묵상을 이어가세요")
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+
+            VStack(spacing: 12) {
+                Button {
+                    // TODO: Premium 구매 플로우 연결
+                    isPresented = false
+                } label: {
+                    Text("✨ Premium 시작하기")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity).padding(.vertical, 15)
+                        .background(Color.dvAccentGold).cornerRadius(14)
+                }
+                Button { isPresented = false } label: {
+                    Text("나중에")
+                        .font(.dvBody).foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.hidden)
     }
 }
 

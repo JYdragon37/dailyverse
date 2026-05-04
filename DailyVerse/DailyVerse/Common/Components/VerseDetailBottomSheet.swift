@@ -22,6 +22,7 @@ struct VerseDetailBottomSheet: View {
     @Binding var isSaved: Bool
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     var body: some View {
         NavigationStack {
@@ -59,12 +60,13 @@ struct VerseDetailBottomSheet: View {
                             .lineSpacing(5)
                     }
 
-                    // 4. 광고 슬롯 (Medium Rectangle 300×250)
-                    // clipped: AdMob UIKit 뷰가 프레임 밖으로 렌더링되어 actionBar 겹침 방지
-                    BannerAdView()
-                        .frame(width: 300, height: 250)
-                        .clipped()
-                        .padding(.top, 8)
+                    // 4. 광고 슬롯 (Free 유저만)
+                    if !subscriptionManager.isPremium {
+                        BannerAdView()
+                            .frame(width: 300, height: 250)
+                            .clipped()
+                            .padding(.top, 8)
+                    }
 
                     // actionBar 높이 + safeArea 충분히 확보 (minHeight ~140pt)
                     Spacer(minLength: 160)

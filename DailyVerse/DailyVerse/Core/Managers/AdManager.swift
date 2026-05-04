@@ -83,8 +83,11 @@ final class AdManager: ObservableObject {
 
     // MARK: - Interstitial 광고 로드
 
+    @Published var isInterstitialLoading: Bool = false
+
     func loadInterstitialAd() {
         guard interstitialAd == nil else { return }
+        isInterstitialLoading = true
 
         GADInterstitialAd.load(
             withAdUnitID: kInterstitialAdUnitID,
@@ -95,10 +98,12 @@ final class AdManager: ObservableObject {
                 if let ad {
                     self.interstitialAd = ad
                     self.isInterstitialReady = true
+                    self.isInterstitialLoading = false
                 } else {
                     // Q4: 실패 시 3초 후 1회 재시도
                     try? await Task.sleep(for: .seconds(3))
-                    self.interstitialAd = nil  // guard 조건 통과를 위해 nil 보장
+                    self.interstitialAd = nil
+                    self.isInterstitialLoading = false
                     self.loadInterstitialAd()
                 }
             }
@@ -124,6 +129,9 @@ final class AdManager: ObservableObject {
             Task { @MainActor [weak self] in
                 self?.interstitialAd = nil
                 self?.interstitialCoordinator = nil
+                // 광고 종료 즉시 isInterstitialLoading = true 보장
+                // → SavedView onChange 감지 전에 handleCardTap이 호출돼도 스피너 표시
+                self?.isInterstitialLoading = true
                 self?.loadInterstitialAd()
             }
         }

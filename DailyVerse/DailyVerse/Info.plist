@@ -48,8 +48,10 @@
 	<string>$(ADMOB_INTERSTITIAL_ID)</string>
 	<key>ADMOB_REWARDED_ID</key>
 	<string>$(ADMOB_REWARDED_ID)</string>
+	<key>ADMOB_NATIVE_ID</key>
+	<string>$(ADMOB_NATIVE_ID)</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>morning manna를 무료로 유지하기 위해 광고를 사용합니다. 허용하시면 말씀의 감동과 어울리는 광고를 보여드려요.</string>
+	<string>허용하시면 관심사와 맞지 않는 광고 대신, 취향에 맞는 광고만 엄선해서 보여드려요.</string>
 	<key>OPENAI_API_KEY</key>
 	<string>$(OPENAI_API_KEY)</string>
 	<key>NSAppTransportSecurity</key>

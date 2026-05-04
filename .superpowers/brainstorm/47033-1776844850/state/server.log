@@ -1,0 +1,6 @@
+{"type":"server-started","port":58671,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:58671","screen_dir":"/Users/jeongyong/workspace/dailyverse/.superpowers/brainstorm/47033-1776844850/content","state_dir":"/Users/jeongyong/workspace/dailyverse/.superpowers/brainstorm/47033-1776844850/state"}
+{"type":"screen-added","file":"/Users/jeongyong/workspace/dailyverse/.superpowers/brainstorm/47033-1776844850/content/rebrand-overview.html"}
+{"source":"user-event","type":"click","text":"✓\n      \n        진행\n        위 6단계 순서로 바로 구현 시작","choice":"go","id":null,"timestamp":1776844996960}
+{"source":"user-event","type":"click","text":"✓\n      \n        진행\n        위 6단계 순서로 바로 구현 시작","choice":"go","id":null,"timestamp":1776845000243}
+{"type":"screen-added","file":"/Users/jeongyong/workspace/dailyverse/.superpowers/brainstorm/47033-1776844850/content/name-confirmed.html"}
+{"type":"server-stopped","reason":"idle timeout"}

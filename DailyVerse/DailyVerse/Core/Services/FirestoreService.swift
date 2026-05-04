@@ -93,7 +93,7 @@ class FirestoreService {
 
     // MARK: - Today Verse (서버 선택 — app_config/today_verse)
 
-    /// 서버에서 매일 04:00 KST에 결정한 오늘의 verseId 반환
+    /// 서버에서 매일 00:00 KST(자정)에 결정한 오늘의 verseId 반환
     /// Cloud Function이 app_config/today_verse에 기록하면 모든 유저가 동일한 말씀을 봄
     func fetchTodayVerseId() async -> String? {
         // Firestore getDocument() 사용
@@ -360,7 +360,7 @@ class FirestoreService {
         let doc = try await db.collection("app_config").document("content_version").getDocument()
         let data = doc.data()
         let version = data?["current_version"] as? String ?? ""
-        // today_verse_id: Cloud Function이 매일 04:00 KST에 content_version과 함께 기록
+        // today_verse_id: Cloud Function이 매일 00:00 KST(자정)에 content_version과 함께 기록
         let todayVerseId = data?["today_verse_id"] as? String
         let todayVerseDate = data?["today_verse_date"] as? String
         // KST 날짜 체크 — stale 캐시 방어

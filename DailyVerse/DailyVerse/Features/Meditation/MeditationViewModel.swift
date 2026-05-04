@@ -60,11 +60,16 @@ final class MeditationViewModel: ObservableObject {
         streakManager.checkAndResetIfBroken()
         isLoading = false
 
-        // 절기 맵 로드 (28일 윈도우 — 캘린더 그리드 커버)
+        // 절기 맵 로드 — 현재 연도 전체 (1월 1일 ~ 12월 31일)
+        // 연간 절기는 12개뿐이라 전체 로드가 효율적이며 월별 달력 어느 달이든 정상 표시
         Task {
-            let today  = Date()
-            let from28 = Calendar.current.date(byAdding: .day, value: -27, to: today) ?? today
-            if let map = try? await FirestoreService().fetchHolidayMap(from: from28, to: today) {
+            let cal = Calendar.current
+            let year = cal.component(.year, from: Date())
+            var startComps = DateComponents(year: year, month: 1, day: 1)
+            var endComps   = DateComponents(year: year, month: 12, day: 31)
+            guard let yearStart = cal.date(from: startComps),
+                  let yearEnd   = cal.date(from: endComps) else { return }
+            if let map = try? await FirestoreService().fetchHolidayMap(from: yearStart, to: yearEnd) {
                 await MainActor.run { holidayMap = map }
             }
         }
@@ -331,7 +336,13 @@ final class MeditationViewModel: ObservableObject {
     // MARK: - History Access Control (v5.1: 단일플랜 → 항상 잠금 없음)
 
     func isLocked(_ entry: MeditationEntry, isPremium: Bool) -> Bool {
-        return false
+        guard !isPremium else { return false }
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
+        let parser = DateFormatter(); parser.dateFormat = "yyyy-MM-dd"
+        guard let entryDate = parser.date(from: entry.dateKey) else { return false }
+        let days = cal.dateComponents([.day], from: entryDate, to: Date()).day ?? 0
+        return days >= 30
     }
 
     // MARK: - Toast

@@ -10,6 +10,7 @@ struct MeditationEntryDetailView: View {
     let entry: MeditationEntry
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) private var dismiss
 
     // 수정 완료 후 즉시 반영을 위한 live 복사본
@@ -18,6 +19,9 @@ struct MeditationEntryDetailView: View {
     @State private var isSaving = false
     @State private var showSavedToast = false
     @State private var showEditFlow = false
+
+    // D: 누적 수정 횟수 (5회 초과 시 광고)
+    @AppStorage("meditationEditCount") private var editCount: Int = 0
 
     init(entry: MeditationEntry, viewModel: MeditationViewModel) {
         self.entry = entry
@@ -121,8 +125,8 @@ struct MeditationEntryDetailView: View {
         // (Day One, Apple Notes 등 주요 다이어리 앱 표준 패턴)
         .safeAreaInset(edge: .top, spacing: 0) {
             HStack(spacing: 10) {
-                // 수정하기
-                Button { showEditFlow = true } label: {
+                // 수정하기 (D: 누적 5회 초과 시 광고)
+                Button { handleEditTap() } label: {
                     Text("수정하기")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(inkColor.opacity(0.60))
@@ -147,9 +151,9 @@ struct MeditationEntryDetailView: View {
                 }
                 .accessibilityLabel(diaryPrefersDark ? "라이트 모드로 전환" : "다크 모드로 전환")
 
-                // 갤러리 저장
+                // 갤러리 저장 (A: Free 유저 광고)
                 Button {
-                    Task { await saveToGallery() }
+                    Task { await handleSaveTap() }
                 } label: {
                     if isSaving {
                         ProgressView()
@@ -366,6 +370,62 @@ struct MeditationEntryDetailView: View {
         Rectangle()
             .fill(ruleColor)
             .frame(height: 0.7)
+    }
+
+    // MARK: - D: 수정 횟수 광고 헬퍼
+
+    private func handleEditTap() {
+        editCount += 1
+        if !subscriptionManager.isPremium && editCount > 5 {
+            showAdThenEdit()
+        } else {
+            showEditFlow = true
+        }
+    }
+
+    private func showAdThenEdit() {
+        let rootVC = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.rootViewController.flatMap { vc -> UIViewController? in
+                var top = vc
+                while let p = top.presentedViewController { top = p }
+                return top
+            }
+        guard let vc = rootVC else { showEditFlow = true; return }
+        if AdManager.shared.isInterstitialReady {
+            AdManager.shared.showInterstitialAd(from: vc) {
+                Task { @MainActor in self.showEditFlow = true }
+            }
+        } else {
+            AdManager.shared.loadInterstitialAd()
+            showEditFlow = true
+        }
+    }
+
+    // MARK: - A: 갤러리 저장 광고 헬퍼
+
+    @MainActor
+    private func handleSaveTap() async {
+        if subscriptionManager.isPremium {
+            await saveToGallery()
+            return
+        }
+        let rootVC = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.rootViewController.flatMap { vc -> UIViewController? in
+                var top = vc
+                while let p = top.presentedViewController { top = p }
+                return top
+            }
+        guard let vc = rootVC else { await saveToGallery(); return }
+        if AdManager.shared.isInterstitialReady {
+            await withCheckedContinuation { continuation in
+                AdManager.shared.showInterstitialAd(from: vc) { continuation.resume() }
+            }
+        } else {
+            AdManager.shared.loadInterstitialAd()
+        }
+        await saveToGallery()
     }
 
     // MARK: - 갤러리 저장

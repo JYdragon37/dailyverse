@@ -101,7 +101,7 @@ actor VerseRepository {
     /// - 각 await 이후 반드시 캐시를 재확인 (double-check)
     ///   → 동시에 실행 중인 다른 Task가 먼저 캐시를 설정했으면 그 값을 사용
     ///   → 홈/묵상/알람 어느 경로로 호출해도 같은 날 같은 Zone은 같은 말씀 반환
-    /// 오늘의 말씀 — 하루 1회 결정, Zone/유저 무관하게 동일 (04:00 기준)
+    /// 오늘의 말씀 — 하루 1회 결정, Zone/유저 무관하게 동일 (자정 기준)
     /// userId 제외 로직 없음: daily verse는 결정론적이어야 모든 화면이 일치함
     func currentVerse(for mode: AppMode, weather: WeatherData?) async -> Verse {
 
