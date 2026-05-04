@@ -212,8 +212,8 @@ DailyVerse
 ### 모드 전환 규칙
 - 시간대에 따라 레이아웃 구조는 동일, 콘텐츠·이미지 톤만 자동으로 바뀐다
 - 모드 전환 애니메이션: Cross-dissolve 1.0s
-- **모든 유저 동일 말씀**: 서버(Cloud Function)가 매일 04:00 KST에 하루 1개 구절 선택 → `app_config/today_verse` 기록
-- 유저가 앱을 언제 실행하더라도 당일 04:00~다음날 03:59 사이에는 항상 같은 말씀
+- **모든 유저 동일 말씀**: 서버(Cloud Function)가 매일 00:00 KST(자정)에 하루 1개 구절 선택 → `app_config/today_verse` 기록
+- 유저가 앱을 언제 실행하더라도 당일 자정부터 다음날 23:59 사이에는 항상 같은 말씀
 - 홈 / 묵상 / 알람 팝업 모두 동일한 `todayVerseId` 사용
 - 말씀 선택에 날씨·테마·무드·계절 스코어링 없음 (날짜 시드 결정론적 선택)
 
@@ -672,7 +672,7 @@ last_shown: String?, show_count: Int
 
 ### app_config/today_verse
 ```
-verse_id: String             // 오늘의 말씀 ID (Cloud Function이 04:00 KST 기록)
+verse_id: String             // 오늘의 말씀 ID (Cloud Function이 00:00 KST 자정 기록)
 date: String                 // "YYYY-MM-DD" (KST 기준)
 reference: String            // "시편 46:5" (로그용)
 verse_short: String          // 말씀 요약 (로그용)
@@ -681,7 +681,7 @@ pool_size: Int               // cooldown 통과한 후보 수
 total_verses: Int            // 전체 active+curated 수
 index_used: Int              // dayInt % pool_size
 ```
-> Cloud Function `selectDailyVerse` 가 매일 04:00 KST 자동 업데이트.
+> Cloud Function `selectDailyVerse` 가 매일 00:00 KST(자정) 자동 업데이트.
 > 앱은 이 문서를 최우선으로 읽어 모든 유저에게 동일한 말씀을 제공.
 
 ### verse_schedule/{YYYY-MM-DD}
@@ -705,9 +705,9 @@ status: String               // "scheduled" | "override" | "active"
 notes: String                // 관리자 메모
 preview_at: Timestamp        // previewDailyVerses 실행 시각
 ```
-> `previewDailyVerses` Cloud Function이 매일 01:00 KST에 D/D+1/D+2 자동 계산.
+> `previewDailyVerses` Cloud Function이 매일 22:00 KST(전날 저녁)에 D/D+1/D+2 자동 계산.
 > 관리자가 Google Sheets VERSE_PREVIEW 탭에서 검토·수정 후 [적용하기] 버튼으로 override 가능.
-> `selectDailyVerse`(04:00 KST)는 이 컬렉션을 먼저 확인하고, 없으면 알고리즘 사용.
+> `selectDailyVerse`(00:00 KST 자정)는 이 컬렉션을 먼저 확인하고, 없으면 알고리즘 사용.
 
 ### app_config/content_version
 ```
@@ -771,8 +771,8 @@ location: { city: String, lat: Double, lng: Double }
 
 | Function | 트리거 | 스케줄 | 역할 |
 |----------|--------|--------|------|
-| `selectDailyVerse` | Scheduled | 매일 **04:00 KST** | 오늘의 말씀 확정 → `app_config/today_verse` 기록. `verse_schedule/{오늘}` 먼저 확인, 없으면 알고리즘 |
-| `previewDailyVerses` | Scheduled | 매일 **01:00 KST** | D/D+1/D+2 말씀 미리 계산 → `verse_schedule/{date}` 기록. 관리자 검토를 위한 사전 준비 |
+| `selectDailyVerse` | Scheduled | 매일 **00:00 KST** (자정) | 오늘의 말씀 확정 → `app_config/today_verse` 기록. `verse_schedule/{오늘}` 먼저 확인, 없으면 알고리즘 |
+| `previewDailyVerses` | Scheduled | 매일 **22:00 KST** (전날 저녁) | D/D+1/D+2 말씀 미리 계산 → `verse_schedule/{date}` 기록. 관리자 검토를 위한 사전 준비 |
 | `getVerseSchedule` | HTTP GET | 수시 | D/D+1/D+2 스케줄 JSON 반환. Google Sheets Apps Script가 호출하여 VERSE_PREVIEW 탭 갱신 |
 | `applyVerseOverrides` | HTTP POST | 수시 | VERSE_PREVIEW 시트 [적용하기] 버튼 호출. 관리자 선택값을 `verse_schedule`에 override로 저장 |
 | `triggerPreview` | HTTP GET | 수시 | 미리보기 수동 강제 갱신 (즉시 D/D+1/D+2 재계산) |
@@ -786,17 +786,17 @@ location: { city: String, lat: Double, lng: Double }
 
 ### 관리자 말씀 관리 워크플로우
 ```
-매일 01:00 KST → previewDailyVerses 자동 실행
+매일 22:00 KST → previewDailyVerses 자동 실행 (전날 저녁)
   → verse_schedule/{D}, {D+1}, {D+2} 자동 생성
 
-매일 01:30 KST → Apps Script 자동 실행 (시간 기반 트리거)
+매일 22:30 KST → Apps Script 자동 실행 (시간 기반 트리거)
   → VERSE_PREVIEW 탭 자동 갱신
 
-관리자 검토 (01:30 ~ 04:00, 약 2.5시간 여유)
+관리자 검토 (22:30 ~ 23:59, 약 1.5시간 여유)
   → [선택] 컬럼: 1=auto, 2=alt_1, 3=alt_2, 4=alt_3
   → [🔮 말씀 관리] → [적용하기] 버튼 → override 저장
 
-매일 04:00 KST → selectDailyVerse 자동 실행
+매일 00:00 KST → selectDailyVerse 자동 실행 (자정)
   → verse_schedule 확인 → 확정 → app_config/today_verse 기록
 ```
 
@@ -833,7 +833,7 @@ snooze_count: Int16
 
 ### 서버 선택 (정상 경로)
 ```
-Cloud Function (selectDailyVerse) — 매일 04:00 KST 자동 실행
+Cloud Function (selectDailyVerse) — 매일 00:00 KST(자정) 자동 실행
 
 1. Firestore verses 컬렉션에서 status == "active" && curated == true 전체 로드
 2. cooldown_days 기준 eligible 필터 (최근 노출 구절 제외)
@@ -851,7 +851,7 @@ Cloud Function (selectDailyVerse) — 매일 04:00 KST 자동 실행
 
 ### 핵심 원칙
 - **모든 유저 동일**: 같은 날 앱을 열면 언제든 동일한 말씀 표시
-- **04:00 KST 기준**: 00:00~03:59는 전날 말씀, 04:00~23:59는 오늘 말씀
+- **00:00 KST 기준(자정)**: 자정부터 새 말씀 제공, daily_cards 날짜 전환과 일치
 - **다음 말씀 없음**: "다음 말씀" 버튼 제거, 하루 1개 구절만 제공
 
 ---
@@ -1231,7 +1231,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js                 # 생성 후 
 | `STATS` | — | 콘텐츠 현황 대시보드 |
 | `CHANGELOG` | — | DB·스키마·가이드 버전 이력 |
 | `QA_LOG` | — | 콘텐츠 QA 자동 기록 |
-| `VERSE_PREVIEW` | — | **말씀 미리보기·관리자 검토** — D/D+1/D+2 말씀 자동 표시, [선택] 컬럼 수정 후 [적용하기] 버튼으로 override. 매일 01:30 KST 자동 갱신 |
+| `VERSE_PREVIEW` | — | **말씀 미리보기·관리자 검토** — D/D+1/D+2 말씀 자동 표시, [선택] 컬럼 수정 후 [적용하기] 버튼으로 override. 매일 22:30 KST 자동 갱신 |
 | `VERSE_SCRIPT` | — | VERSE_PREVIEW용 Google Apps Script 소스코드 (편집기에 붙여넣기 후 설치) |
 
 ---
@@ -1241,7 +1241,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js                 # 생성 후 
 | 컬렉션 | 범위/수량 | 용도 |
 |--------|---------|------|
 | `verses/` | v_001~v_431 (active **398개**) | 홈화면 + 알람 + 묵상 탭 말씀 + 절기 말씀 |
-| `verse_schedule/` | D/D+1/D+2 날짜별 | 말씀 미리보기·관리자 override — previewDailyVerses가 01:00 KST 자동 생성 |
+| `verse_schedule/` | D/D+1/D+2 날짜별 | 말씀 미리보기·관리자 override — previewDailyVerses가 22:00 KST 자동 생성 |
 | `daily_cards/` | 2026년 12개 절기 | 절기 특별 편성 — 해당 날짜 모든 유저에게 우선 적용 |
 | `alarm_greetings/` | 35개 | 알람 Stage2 팝업 인사말 (Zone별) |
 | `greetings/` | 134개 | 홈화면 Zone 인사말 |
