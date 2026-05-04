@@ -30,7 +30,7 @@ class DailyCacheManager {
 
     // MARK: - Today Verse ID (하루 1개 — 모든 탭 공유)
 
-    /// 오늘의 verse ID 조회 (04:00 기준 일일 고정)
+    /// 오늘의 verse ID 조회 (자정 기준 일일 고정)
     func getTodayVerseId() -> String? {
         guard let cache = loadCache(), DailyVerseCache.isValid(cache) else { return nil }
         return cache.todayVerseId
@@ -108,11 +108,8 @@ class DailyCacheManager {
         guard let entity = try? context.fetch(request).first,
               let json = entity.json,
               let data = json.data(using: .utf8) else { return nil }
-        // TTL: DailyVerseCache.isValid()와 완전히 동일한 04:00 기준 하루
-        // ★ 이전 isSameDay(cachedAt, Date()) 방식은 cachedAt에도 effectiveDay를 적용해
-        //   새벽 0~3시에 저장된 캐시를 같은 날 오후에 만료로 잘못 판단하는 버그가 있었다.
-        //   DailyVerseCache(date: cachedAt)을 임시 생성해 isValid()로 체크하면
-        //   UserDefaults 캐시와 동일한 기준으로 TTL을 판단한다.
+        // TTL: DailyVerseCache.isValid()와 동일한 자정(00:00 KST) 기준 하루
+        // DailyVerseCache(date: cachedAt)을 임시 생성해 isValid()로 체크 → UserDefaults 캐시와 동일 기준
         if let cachedAt = entity.cachedAt {
             let tempCache = DailyVerseCache(date: cachedAt)
             if !DailyVerseCache.isValid(tempCache) {
@@ -156,19 +153,11 @@ class DailyCacheManager {
 
     // MARK: - Private
 
-    /// DailyVerseCache.isValid()와 동일한 04:00 KST 기준 "같은 날" 판단
-    /// - 새벽 00–03 KST은 전날로 취급
+    /// 자정(00:00 KST) 기준 "같은 날" 판단 — DailyVerseCache.isValid()와 동일 기준
     private static func isSameDay(_ date: Date, as reference: Date) -> Bool {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
-        func effectiveDay(_ d: Date) -> Date {
-            let hour = calendar.component(.hour, from: d)
-            if hour < 4 {
-                return calendar.date(byAdding: .day, value: -1, to: d) ?? d
-            }
-            return d
-        }
-        return calendar.isDate(effectiveDay(date), inSameDayAs: effectiveDay(reference))
+        return calendar.isDate(date, inSameDayAs: reference)
     }
 
     private func loadCache() -> DailyVerseCache? {
