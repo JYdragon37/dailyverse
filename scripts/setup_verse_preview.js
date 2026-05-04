@@ -241,6 +241,9 @@ async function setupPreviewTab(sheets) {
 const APPS_SCRIPT_CODE = `
 // morning manna — VERSE_PREVIEW 관리 스크립트
 // Apps Script 편집기에서 실행됩니다.
+// 자동 갱신: 매일 22:30 KST (previewDailyVerses 22:00 실행 후 30분)
+// 관리자 검토 창: 22:30 ~ 23:59 KST (약 1.5시간)
+// selectDailyVerse 확정: 매일 00:00 KST (자정)
 
 const GET_URL   = '${GET_URL}';
 const APPLY_URL = '${APPLY_URL}';
@@ -387,7 +390,7 @@ function onOpen() {
 }
 
 /**
- * 시간 기반 자동 트리거 설정 (매일 01:30 KST)
+ * 시간 기반 자동 트리거 설정 (매일 22:30 KST)
  * 최초 1회 수동 실행 필요
  */
 function setupTimeTrigger() {
@@ -398,15 +401,16 @@ function setupTimeTrigger() {
       ScriptApp.deleteTrigger(t);
     }
   });
-  // 새 트리거 등록 (01:30 KST = 16:30 UTC)
+  // 새 트리거 등록 (22:30 KST = 13:30 UTC)
+  // previewDailyVerses(22:00 KST) 완료 후 30분 뒤 시트 갱신
   ScriptApp.newTrigger('refreshVersePreview')
     .timeBased()
-    .atHour(1)
+    .atHour(22)
     .nearMinute(30)
     .everyDays(1)
     .inTimezone('Asia/Seoul')
     .create();
-  SpreadsheetApp.getUi().alert('✅ 매일 01:30 KST 자동 갱신 트리거 설정 완료');
+  SpreadsheetApp.getUi().alert('✅ 매일 22:30 KST 자동 갱신 트리거 설정 완료');
 }
 `;
 
@@ -459,7 +463,7 @@ async function setupAppsScript(sheets) {
   console.log('   2. VERSE_SCRIPT 탭의 코드를 복사하여 Apps Script 편집기에 붙여넣기');
   console.log('   3. 저장 → 실행 → onOpen (최초 1회 권한 허용)');
   console.log('   4. 시트로 돌아오면 상단에 [🔮 말씀 관리] 메뉴가 생성됨');
-  console.log('   5. [🔮 말씀 관리] → setupTimeTrigger 실행 (매일 01:30 자동 갱신 등록)');
+  console.log('   5. [🔮 말씀 관리] → setupTimeTrigger 실행 (매일 22:30 자동 갱신 등록)');
 }
 
 // ─── 메인 ──────────────────────────────────────────────────────────────────
