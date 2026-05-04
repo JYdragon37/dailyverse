@@ -481,7 +481,7 @@ async function main() {
   console.log('  1. Firebase Functions 배포 (완료 후 자동 실행)');
   console.log('  2. Google Sheets → 확장 프로그램 → Apps Script → VERSE_SCRIPT 탭 코드 붙여넣기');
   console.log('  3. Apps Script에서 onOpen 실행 (최초 권한 허용)');
-  console.log('  4. setupTimeTrigger 실행 (매일 01:30 자동 갱신 등록)');
+  console.log('  4. setupTimeTrigger 실행 (매일 22:30 자동 갱신 등록)');
   process.exit(0);
 }
 
