@@ -6,7 +6,7 @@ import SwiftUI
 struct DailyVerseCache: Codable {
     let date: Date
 
-    // 하루 1개 verse — 04:00에 확정, 모든 탭에서 공유
+    // 하루 1개 verse — 자정(00:00 KST)에 확정, 모든 탭에서 공유
     var todayVerseId: String?
 
     // 기본값 init — date만 필요, 나머지는 nil
@@ -34,20 +34,11 @@ struct DailyVerseCache: Codable {
     var goldenHourImageId: String?
     var windDownImageId: String?
 
-    // 04:00 KST 기준으로 "오늘"을 판단 (새벽 00–03은 전날 취급)
-    // Calendar.current 대신 명시적 KST — Cloud Function 04:00 KST와 기준 통일
+    // 자정(00:00 KST) 기준으로 "오늘"을 판단 — Cloud Function 00:00 KST 기준과 통일
     static func isValid(_ cache: DailyVerseCache) -> Bool {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
-        let now = Date()
-        let hour = calendar.component(.hour, from: now)
-        let referenceDate: Date
-        if hour < 4 {
-            referenceDate = calendar.date(byAdding: .day, value: -1, to: now) ?? now
-        } else {
-            referenceDate = now
-        }
-        return calendar.isDate(cache.date, inSameDayAs: referenceDate)
+        return calendar.isDate(cache.date, inSameDayAs: Date())
     }
 
     // MARK: - Helper
