@@ -17,6 +17,9 @@ struct SavedDetailView: View {
     @State private var isSavingImage = false
     @State private var imageSaveMessage: String? = nil
     @State private var isGeneratingShare = false
+    // safeAreaInset 버그 방지: 뷰 전환 애니메이션 중 버튼 자동 실행 차단
+    // (AlarmStage2View dismissAll() 의 2초 가드와 동일 원인)
+    @State private var buttonsEnabled = false
 
     // MARK: - Computed Properties
 
@@ -287,6 +290,7 @@ struct SavedDetailView: View {
                             .cornerRadius(14)
                     }
                     .foregroundColor(.white)
+                    .disabled(!buttonsEnabled)
                     .accessibilityLabel("이 말씀 저장 해제")
 
                     Button {
@@ -308,7 +312,7 @@ struct SavedDetailView: View {
                         }
                     }
                     .foregroundColor(.white)
-                    .disabled(isGeneratingShare)
+                    .disabled(!buttonsEnabled || isGeneratingShare)
                     .accessibilityLabel("이 말씀 이미지로 공유하기")
                 }
                 .padding(.horizontal, 20)
@@ -362,7 +366,12 @@ struct SavedDetailView: View {
             }
         }
         .presentationDetents([.large])
-        .task { await loadVerseIfNeeded() }
+        .task {
+            await loadVerseIfNeeded()
+            // safeAreaInset 버그: sheet 등장 애니메이션(약 0.4초) 동안 버튼 비활성
+            try? await Task.sleep(for: .milliseconds(600))
+            buttonsEnabled = true
+        }
         .sheet(isPresented: $showVerseDetail) {
             verseDetailSheet
                 .presentationDetents([.medium, .large])

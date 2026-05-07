@@ -241,8 +241,8 @@ struct SavedView: View {
                     }
                     .padding(.bottom, 12)
 
-                    // 청크 뒤 네이티브 광고 (Free 유저만, 마지막 청크도 표시)
-                    if !subscriptionManager.isPremium {
+                    // 청크 뒤 네이티브 광고 (Free 유저만, 청크가 꽉 찬 경우에만 표시)
+                    if !subscriptionManager.isPremium && chunk.count == 6 {
                         if chunkIdx < nativeAdPool.ads.count {
                             NativeAdCardView(nativeAd: nativeAdPool.ads[chunkIdx])
                                 .frame(height: 260)

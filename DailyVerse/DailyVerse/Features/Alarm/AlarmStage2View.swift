@@ -7,7 +7,7 @@ struct AlarmStage2View: View {
     @EnvironmentObject private var greetingService: GreetingService
     @ObservedObject private var nicknameManager = NicknameManager.shared
     // Design Ref: §7-2 — 언어 설정 읽기
-    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
+    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "ko"
     @State private var showLoginPrompt: Bool = false
     @State private var isSavedCurrentVerse: Bool = false
     @State private var heartScale: CGFloat = 1.0
@@ -92,7 +92,7 @@ struct AlarmStage2View: View {
                 if !isVisible { isVisible = true }
             }
             .task {
-                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .ko
                 // 알람 전용 인사말 로드 (alarm_greetings 컬렉션)
                 await greetingService.loadAlarmGreeting(for: alarmMode, language: lang)
             }

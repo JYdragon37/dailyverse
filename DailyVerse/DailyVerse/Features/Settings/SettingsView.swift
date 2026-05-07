@@ -16,7 +16,7 @@ struct SettingsView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
-    @AppStorage("greetingLanguage") private var greetingLanguage: String = "random"
+    @AppStorage("greetingLanguage") private var greetingLanguage: String = "ko"
     @AppStorage("profileEmoji") private var profileEmoji: String = ""
     @AppStorage("meditationReminderEnabled") private var meditationReminderEnabled: Bool = true
     @AppStorage("meditationReminderHour") private var meditationReminderHour: Int = 21
@@ -378,7 +378,6 @@ struct SettingsView: View {
             Picker("인사말 언어", selection: $greetingLanguage) {
                 Text("한국어").tag("ko")
                 Text("English").tag("en")
-                Text("랜덤").tag("random")
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)

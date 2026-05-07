@@ -7,21 +7,18 @@ import FirebaseFirestore
 // MARK: - GreetingLanguage
 
 enum GreetingLanguage: String, CaseIterable {
-    case ko     = "ko"
-    case en     = "en"
-    case random = "random"
+    case ko = "ko"
+    case en = "en"
 
     var displayName: String {
         switch self {
-        case .ko:     return "한국어"
-        case .en:     return "English"
-        case .random: return "랜덤"
+        case .ko: return "한국어"
+        case .en: return "English"
         }
     }
 
-    /// random일 경우 실제 언어 결정
     func resolved() -> String {
-        self == .random ? (Bool.random() ? "ko" : "en") : self.rawValue
+        self.rawValue
     }
 }
 

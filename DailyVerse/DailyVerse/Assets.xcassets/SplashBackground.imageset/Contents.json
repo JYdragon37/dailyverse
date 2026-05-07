@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "splash_ani.png",
+      "filename" : "splash_simple.png",
       "idiom" : "universal",
       "scale" : "1x"
     }

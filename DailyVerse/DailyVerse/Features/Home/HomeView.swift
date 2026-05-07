@@ -10,7 +10,7 @@ struct HomeView: View {
     @EnvironmentObject private var greetingService: GreetingService
     @ObservedObject private var nicknameManager = NicknameManager.shared
     // Design Ref: §7-1 — 언어 설정 읽기
-    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "random"
+    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "ko"
 
     @State private var showVerseDetail = false
     @State private var showLoginPrompt = false
@@ -98,13 +98,13 @@ struct HomeView: View {
             .task { await viewModel.checkIfSaved() }
             .task {
                 // Design Ref: §7-1 — Zone 진입 시 greeting 로드
-                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .ko
                 await greetingService.load(for: viewModel.currentMode, language: lang)
             }
             .onChange(of: viewModel.currentMode) { newMode in
                 // Plan SC: Zone 전환 시 새 greeting 선택
                 Task {
-                    let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .random
+                    let lang = GreetingLanguage(rawValue: greetingLanguagePref) ?? .ko
                     await greetingService.load(for: newMode, language: lang)
                 }
             }

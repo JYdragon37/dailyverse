@@ -2,7 +2,7 @@
 
 > 이 파일은 morning manna 프로젝트의 단일 진실 원본(Single Source of Truth)입니다.
 > 어떤 LLM이든 이 파일 하나를 읽으면 전체 프로젝트를 즉시 파악할 수 있도록 작성되었습니다.
-> 최종 업데이트: 2026-04-25 (브랜딩 리뉴얼 + 콘텐츠 2차 확장 + 절기 시스템 기준)
+> 최종 업데이트: 2026-05-07 (인사말 랜덤 옵션 제거 + 저장탭 광고 노출 조건 업데이트)
 > _(구 앱명: DailyVerse — Xcode 프로젝트·폴더 구조는 DailyVerse 유지)_
 
 ---
@@ -35,7 +35,7 @@
 | 분석 | Firebase Analytics + Crashlytics | |
 | 날씨 | WeatherKit (1차) + OpenWeatherMap (폴백) | 월 50,000콜 무료 |
 | 결제 | StoreKit 2 + RevenueCat | ₩24,500/월 |
-| 광고 | AdMob Rewarded | 저장탭 7~30일 구간 |
+| 광고 | AdMob Native + Interstitial | 저장탭 그리드 삽입(Native) + 상세 진입 시(Interstitial) |
 | 알람 (iOS 26+) | AlarmKit + ActivityKit | 잠금화면 전체화면 + Live Activity |
 | 알람 (iOS 15-25) | UNNotification + AVAudioSession | 백그라운드 오디오 루프 |
 | 로컬 캐시 | Core Data | 오프라인 캐시 |
@@ -106,8 +106,8 @@ DailyVerse/
 │   │   ├── AlarmListView.swift
 │   │   ├── AlarmViewModel.swift
 │   │   ├── AlarmAddEditView.swift
-│   │   ├── AlarmStage1View.swift    # 전체화면 알람
-│   │   └── AlarmStage2View.swift   # 웰컴 스크린
+│   │   ├── AlarmStage1View.swift    # [미사용] Stage 1 제거됨 (2026-04-26), 코드만 보존
+│   │   └── AlarmStage2View.swift   # 웰컴 스크린 (iOS 26+·Legacy 모두 직행)
 │   │
 │   ├── Saved/
 │   │   ├── SavedView.swift
@@ -373,6 +373,16 @@ DailyVerseWidgetsBundle
 - 광고 잠금 카드: 흐림 처리 + "광고 시청 후 열람하기 ▶"
 - Premium 잠금 카드: 🔒 아이콘 + "Premium에서 전체 아카이브를 만나보세요" + [Premium 시작하기]
 
+### 네이티브 광고 삽입 로직 (Free 유저)
+- 말씀 목록을 **6개 단위 청크**로 분할
+- **저장 말씀 1~5개**: 광고 없음 (첫 청크가 미완성)
+- **저장 말씀 6개 이상**: 꽉 찬 청크(6개) 뒤에만 네이티브 광고 1개 삽입
+  - 6~11개: 광고 1개 (첫 청크 뒤)
+  - 12~17개: 광고 2개 (각 청크 뒤)
+  - 이하 동일 패턴
+- 구현 조건: `chunk.count == 6` 일 때만 광고 표시 (`SavedView.swift`)
+- Interstitial 광고: 날짜 잠금 카드(7~30일) 탭 시 노출
+
 ### 카드 워터마크 (브랜딩)
 - **Free 유저**: 각 카드 이미지 우측 하단에 "mm" (DancingScript, opacity 50%) 워터마크 표시
 - **Premium 유저**: 워터마크 없음 (Premium 혜택 중 하나)
@@ -411,8 +421,9 @@ DailyVerseWidgetsBundle
 1. **계정**: Apple ID, 로그아웃, 계정 탈퇴(빨간색)
 2. **구독**: 현재 플랜, [✨ Premium 시작하기 / ₩24,500/월], 플랜 비교
 3. **권한**: 위치 허용 상태 + [재설정], 알림 허용 상태 + [재설정]
-4. **앱 정보**: 버전, 이용약관, 개인정보처리방침, 오픈소스 라이선스
-5. **피드백**: [⭐ 앱 리뷰 남기기], [📨 문의하기]
+4. **앱 설정**: 인사말 언어 선택 `[한국어] [English]` (2026-05-07 랜덤 옵션 제거, 기본값: 한국어)
+5. **앱 정보**: 버전, 이용약관, 개인정보처리방침, 오픈소스 라이선스
+6. **피드백**: [⭐ 앱 리뷰 남기기], [📨 문의하기]
 
 ### 계정 탈퇴 플로우 (4단계)
 1. 경고 바텀시트 표시 ("구독 중이면 App Store에서 별도 해지 필요" 안내)
@@ -475,13 +486,7 @@ Bloom dissolve
 ### Screen 2 — 체험 상세
 
 ```
-Stage 1 시뮬레이션
-  어두운 전체화면 + verse_short_ko
-  [종료] 버튼 탭 유도
-
-       ↓ 탭하면
-
-Stage 2 시뮬레이션
+Stage 2 시뮬레이션 (Stage 1 제거됨 — Stage 2 직행)
   따뜻한 배경 이미지 + verse_full_ko
   날씨 위젯 (mock)
   [저장] [×] 버튼
@@ -521,6 +526,7 @@ Stage 2 시뮬레이션
 "onboardingCompleted"              // Bool
 "locationPermissionRequested"      // Bool
 "notificationPermissionRequested"  // Bool
+"greetingLanguage"                 // String — "ko" | "en" (기본값: "ko", 랜덤 옵션 제거됨)
 ```
 
 ---
