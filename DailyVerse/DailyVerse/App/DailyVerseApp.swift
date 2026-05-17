@@ -25,8 +25,9 @@ struct DailyVerseApp: App {
         // Firebase 초기화
         FirebaseApp.configure()
 
-        // RevenueCat 초기화 (v5.1: 단일 플랜 MVP — 향후 구독 도입 시 실제 키 입력)
-        Purchases.configure(withAPIKey: "")
+        // RevenueCat 초기화
+        // 현재 키: test_ prefix → Sandbox 환경. 출시 전 Production 키로 교체 권장.
+        Purchases.configure(withAPIKey: "test_qLgnYIQVMaVTzEsejPWGaCUQrsu")
         #if DEBUG
         Purchases.logLevel = .debug
         #endif
