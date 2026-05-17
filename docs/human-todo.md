@@ -69,18 +69,9 @@
 
 ## 🟡 콘텐츠
 
-- [ ] **sync_verses.js 실행** — v_200 zone 수정 Firestore 반영
-  ```bash
-  cd scripts && NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js
-  ```
-
-- [ ] **question 필드 생성 여부 확인** — 실행 완료 여부 미확인
-  > Firebase 콘솔 → verses → 임의 문서 열어 `question` 필드 있는지 확인
-  > 없는 문서 많으면: `NODE_TLS_REJECT_UNAUTHORIZED=0 node generate_meditation_questions.js`
-
-- [ ] **application 범용화** — 시간대 언급 제거
-  > content-fixer 에이전트로 `application` 필드 시간대 표현 제거
-  > 수정 후 `sync_verses.js`로 Firestore 동기화
+- [x] **sync_verses.js 실행** — 539개 동기화 완료 (2026-05-17) ✅
+- [x] **question 필드** — active+curated 전체 200개 확인, 미보유 0개 ✅
+- [x] **application 범용화** — 엄격 기준(알람 끄고/퇴근하며/잠들기 전 등) 위반 0개 ✅
 
 ---
 
@@ -99,15 +90,10 @@
 
 ---
 
-## 🟡 코드 정리 (출시 후 가능)
+## 🟡 코드 정리
 
-- [ ] **AlarmStage1View.swift 정리**
-  > Stage 1이 제거됐으나 파일 잔존. 상단에 `// DEPRECATED: Stage 1 removed 2026-04-26` 주석 추가 또는 삭제
-
-- [ ] **앱 종료 시 선택 사운드 미반영 이슈**
-  > 현재 앱이 완전 종료된 상태에서 오는 UNNotification은 항상 `alarm_song.mp3` 재생
-  > (s01~s06 사용자 선택이 killed-state에서는 무시됨)
-  > 개선하려면: LegacyAlarmEngine UNNotification 스케줄 시 선택한 mp3 파일명을 sound로 지정
+- [x] **AlarmStage1View.swift** — DEPRECATED 주석 추가 완료 ✅
+- [x] **앱 종료 시 선택 사운드 미반영** — LegacyAlarmEngine 수정, 선택 음원 우선 적용 ✅
 
 ---
 
@@ -132,8 +118,8 @@
 - [x] **강제 업데이트 메커니즘** — fetchMinimumVersion 구현 ✅
 - [x] **마스터 계정 시스템** — Firestore app_config/master_accounts ✅
 - [x] **PremiumUpgradeView** — SettingsView + SavedView 통합 완료 ✅
-- [x] **알람 사운드 6종 MP3** — 번들 포함 + pbxproj 등록 완료 ✅ (커밋 필요)
-- [x] **SoundPickerSheet** — AlarmAddEditView 통합 완료 ✅ (커밋 필요)
+- [x] **알람 사운드 6종 MP3** — 번들 포함 + pbxproj 등록 + 커밋 완료 ✅
+- [x] **SoundPickerSheet** — AlarmAddEditView 통합 + 커밋 완료 ✅
 - [x] **NSSupportsLiveActivities** — Info.plist 등록 ✅
 - [x] **SKAdNetwork 30개** — Info.plist 등록 ✅
 - [x] **UIBackgroundModes audio** — Info.plist 등록 ✅
