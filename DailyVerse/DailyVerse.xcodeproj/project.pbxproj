@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B1C2D3E4F5A6B1C2D3E4F5AE /* SoundPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5AD /* SoundPickerSheet.swift */; };
+		B1C2D3E4F5A6B1C2D3E4F5A2 /* 01_새벽이슬_Morning_Dew_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A1 /* 01_새벽이슬_Morning_Dew_30sec.mp3 */; };
+		B1C2D3E4F5A6B1C2D3E4F5A4 /* 02_기쁨의_행진_Joyful_March_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A3 /* 02_기쁨의_행진_Joyful_March_30sec.mp3 */; };
+		B1C2D3E4F5A6B1C2D3E4F5A6 /* 03_아침_은혜_Grace_Awake_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A5 /* 03_아침_은혜_Grace_Awake_30sec.mp3 */; };
+		B1C2D3E4F5A6B1C2D3E4F5A8 /* 04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A7 /* 04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3 */; };
+		B1C2D3E4F5A6B1C2D3E4F5AA /* 05_샬롬의_아침_Shalom_Morning_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A9 /* 05_샬롬의_아침_Shalom_Morning_30sec.mp3 */; };
+		B1C2D3E4F5A6B1C2D3E4F5AC /* 06_은혜의_빛_Light_of_Grace_30sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5AB /* 06_은혜의_빛_Light_of_Grace_30sec.mp3 */; };
 		50C4F4512F98E2C44DC6953F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0255BD562184832681E0B7C9 /* PrivacyInfo.xcprivacy */; };
 
 		072B32B990614D39DB0A9B78 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B809E1AFB29CEA77D9A148C7 /* SettingsView.swift */; };
@@ -289,6 +296,13 @@
 		FC1D3512D353F774664EA614 /* DailyVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FED337C2CA0B1EC2040D0DDD /* DailyVerseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyVerseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF36A16544AD1DF97FE9A9D5 /* Animation+DailyVerse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+DailyVerse.swift"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5A1 /* 01_새벽이슬_Morning_Dew_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "01_새벽이슬_Morning_Dew_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5A3 /* 02_기쁨의_행진_Joyful_March_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "02_기쁨의_행진_Joyful_March_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5A5 /* 03_아침_은혜_Grace_Awake_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "03_아침_은혜_Grace_Awake_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5A7 /* 04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5A9 /* 05_샬롬의_아침_Shalom_Morning_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "05_샬롬의_아침_Shalom_Morning_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5AB /* 06_은혜의_빛_Light_of_Grace_30sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "06_은혜의_빛_Light_of_Grace_30sec.mp3"; sourceTree = "<group>"; };
+		B1C2D3E4F5A6B1C2D3E4F5AD /* SoundPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundPickerSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -395,6 +409,7 @@
 		51F353101DD50EB0FD099465 /* Alarm */ = {
 			isa = PBXGroup;
 			children = (
+				B1C2D3E4F5A6B1C2D3E4F5AD /* SoundPickerSheet.swift */,
 				904CF5CF046B0D73EA305693 /* AlarmAddEditView.swift */,
 				B666F0B835ED47E6FFAAF64B /* AlarmListView.swift */,
 				2E40654EE01A18A4FBB44381 /* AlarmStage1View.swift */,
@@ -567,6 +582,12 @@
 				2613FCE9FF92BCB617BD0A18 /* Core */,
 				DEEFF164B9331317976C2B9B /* Features */,
 				BD53E7188CC54A1CB404FEBD /* Dev */,
+				B1C2D3E4F5A6B1C2D3E4F5A1 /* 01_새벽이슬_Morning_Dew_30sec.mp3 */,
+				B1C2D3E4F5A6B1C2D3E4F5A3 /* 02_기쁨의_행진_Joyful_March_30sec.mp3 */,
+				B1C2D3E4F5A6B1C2D3E4F5A5 /* 03_아침_은혜_Grace_Awake_30sec.mp3 */,
+				B1C2D3E4F5A6B1C2D3E4F5A7 /* 04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3 */,
+				B1C2D3E4F5A6B1C2D3E4F5A9 /* 05_샬롬의_아침_Shalom_Morning_30sec.mp3 */,
+				B1C2D3E4F5A6B1C2D3E4F5AB /* 06_은혜의_빛_Light_of_Grace_30sec.mp3 */,
 				8A3130072F80B28E009F815D /* alarm_song.mp3 */,
 				FA001001FA001001FA001001 /* DancingScript.ttf */,
 				FA001003FA001003FA001003 /* NanumPenScript-Regular.ttf */,
@@ -837,6 +858,12 @@
 				50C4F4512F98E2C44DC6953F /* PrivacyInfo.xcprivacy in Resources */,
 				274BB460D4954B8A85B1CAE1 /* Assets.xcassets in Resources */,
 				180ED98051C33A5EB9193A39 /* GoogleService-Info.plist in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5A2 /* 01_새벽이슬_Morning_Dew_30sec.mp3 in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5A4 /* 02_기쁨의_행진_Joyful_March_30sec.mp3 in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5A6 /* 03_아침_은혜_Grace_Awake_30sec.mp3 in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5A8 /* 04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3 in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5AA /* 05_샬롬의_아침_Shalom_Morning_30sec.mp3 in Resources */,
+				B1C2D3E4F5A6B1C2D3E4F5AC /* 06_은혜의_빛_Light_of_Grace_30sec.mp3 in Resources */,
 				8A3130082F80B28E009F815D /* alarm_song.mp3 in Resources */,
 				FA001002FA001002FA001002 /* DancingScript.ttf in Resources */,
 				FA001004FA001004FA001004 /* NanumPenScript-Regular.ttf in Resources */,
@@ -871,6 +898,7 @@
 			files = (
 				FFE350DE5DEFD7FA44AAEF8A /* AdManager.swift in Sources */,
 				2D9B45A27985A88D21366BE7 /* Alarm.swift in Sources */,
+				B1C2D3E4F5A6B1C2D3E4F5AE /* SoundPickerSheet.swift in Sources */,
 				83BCDFD72B9827340708D0E0 /* AlarmAddEditView.swift in Sources */,
 				655F3134A2FCD282261F48A3 /* AlarmCoordinator.swift in Sources */,
 				9EB418FBC0AD2445C81A2501 /* AlarmListView.swift in Sources */,

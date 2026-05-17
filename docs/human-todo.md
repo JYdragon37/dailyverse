@@ -1,132 +1,141 @@
 # 직접 처리해야 할 TODO
 
 > 이 파일은 Claude가 자동으로 처리할 수 없는 작업들을 기록합니다.
-> 카테고리 딥다이브 후 발견된 항목들이 순서대로 추가됩니다.
+> 마지막 코드 검증: 2026-05-17
 > 완료 시 `[x]`로 체크하세요.
 
 ---
 
-## 📖 콘텐츠
+## 🔴 즉시 — 출시 블로커
 
-### 🔴 즉시
+### RevenueCat API 키 미입력 (수익화 완전 불능)
 
-- [ ] **sync_verses.js 실행** — v_200 zone 수정 내용 Firestore에 반영
+- [ ] **DailyVerseApp.swift:29** — `Purchases.configure(withAPIKey: "")` 빈 문자열 교체
+  > RevenueCat 대시보드 → 프로젝트 → API Keys → Public SDK key 복사
+  > `Purchases.configure(withAPIKey: "appl_XXXX...")` 형태로 입력
+
+### 미커밋 파일 커밋 필요
+
+- [ ] **알람 사운드 시스템 커밋** — 새 기능이 git에 없음
   ```bash
-  cd scripts && node sync_verses.js
+  git add \
+    "DailyVerse/DailyVerse/01_새벽이슬_Morning_Dew_30sec.mp3" \
+    "DailyVerse/DailyVerse/02_기쁨의_행진_Joyful_March_30sec.mp3" \
+    "DailyVerse/DailyVerse/03_아침_은혜_Grace_Awake_30sec.mp3" \
+    "DailyVerse/DailyVerse/04_일어나라_빛을_발하라_Arise_and_Shine_30sec.mp3" \
+    "DailyVerse/DailyVerse/05_샬롬의_아침_Shalom_Morning_30sec.mp3" \
+    "DailyVerse/DailyVerse/06_은혜의_빛_Light_of_Grace_30sec.mp3" \
+    DailyVerse/DailyVerse/Features/Alarm/SoundPickerSheet.swift \
+    DailyVerse/DailyVerse/Core/Models/Alarm.swift \
+    DailyVerse/DailyVerse/Core/Services/AlarmKitEngine.swift \
+    DailyVerse/DailyVerse/Core/Services/LegacyAlarmEngine.swift \
+    DailyVerse/DailyVerse/Features/Alarm/AlarmAddEditView.swift \
+    DailyVerse/DailyVerse.xcodeproj/project.pbxproj
+  git commit -m "feat: 알람 사운드 선택 시스템 — 6개 음원 + SoundPickerSheet"
   ```
-  > v_200 mode가 Sheets에서 `first_light,all`로 수정됨. sync하면 Firestore에 반영됨.
 
-- [ ] **Firestore curated 필드 확인** — 현재 Firestore에 `"true"` (문자열)로 저장된 게 있는지 직접 확인
-  > Firebase 콘솔 → Firestore → verses → 문서 몇 개 열어서 `curated` 필드 타입 확인
-  > boolean `true` = 정상 / string `"true"` = sync_verses.js 재실행 필요
+---
 
-### 🟡 단기
+## 🔴 출시 전 필수 (Xcode + App Store Connect)
 
-- [ ] **question 필드 142개 생성**
+- [ ] **PrivacyInfo.xcprivacy Xcode 타겟 포함 확인**
+  > Xcode → DailyVerse 타겟 → Build Phases → Copy Bundle Resources
+  > `PrivacyInfo.xcprivacy` 있는지 확인. 없으면 + 버튼으로 추가.
+
+- [ ] **Distribution Certificate + Provisioning Profile 유효 확인**
+  > Xcode → Signing & Capabilities → Release 설정
+  > "Automatically manage signing" 체크 시 자동 처리됨
+
+- [ ] **Archive → TestFlight 업로드 (첫 빌드 확인)**
+  > Xcode → Product → Archive → Distribute App → App Store Connect
+  > 업로드 완료 후 App Store Connect에서 빌드 처리 대기 (~10분)
+
+- [ ] **App Store Connect — 앱 정보 입력 완료**
+  > 스크린샷 5장 (1290×2796px) 준비 및 업로드
+  > 앱 설명, 키워드, What's New 입력 (`docs/appstore-metadata.md` 참조)
+
+- [ ] **App Store Connect — Privacy Practices 답변**
+  > Data collected: 이름(닉네임), 이메일(Apple Sign-In), 사용 데이터(Analytics)
+  > 서드파티 광고: AdMob (광고 ID 수집 여부 답변 필요)
+
+- [ ] **App Store Connect — Age Rating 설문**
+  > 4+ 선택 (폭력·성인 콘텐츠 없음)
+
+- [ ] **GitHub Pages 활성화 확인** (이미 완료됐을 수 있음)
+  > 저장소 Settings → Pages → Branch: main → /docs → Save
+  > `https://jydragon37.github.io/dailyverse/legal/privacy.html` 접속 확인
+
+---
+
+## 🟡 콘텐츠
+
+- [ ] **sync_verses.js 실행** — v_200 zone 수정 Firestore 반영
   ```bash
-  cd scripts && node generate_meditation_questions.js
+  cd scripts && NODE_TLS_REJECT_UNAUTHORIZED=0 node sync_verses.js
   ```
-  > 생성 후 content-checker로 QA 필수
 
-- [ ] **application 398개 범용화** — content-fixer 에이전트 실행
-  > `application`에서 시간대 언급 제거 (`알람 끄고`, `이제 편히 자`, `퇴근하며` 등)
-  > 범용 표현으로 교체 (docs/contents-guideline.md §4-3 기준)
-  > 수정 후 sync_verses.js로 Firestore 반영
+- [ ] **question 필드 생성 여부 확인** — 실행 완료 여부 미확인
+  > Firebase 콘솔 → verses → 임의 문서 열어 `question` 필드 있는지 확인
+  > 없는 문서 많으면: `NODE_TLS_REJECT_UNAUTHORIZED=0 node generate_meditation_questions.js`
 
-### 🟢 중기
-
-- [ ] **말씀 추가** — 전체 풀 다양성 확보
-  > 현재 active 398개. Zone별 편중 있으나 급하지 않음.
-  > content-writer 에이전트로 생성 → content-checker QA → sync
-  > 목표: 500개+
+- [ ] **application 범용화** — 시간대 언급 제거
+  > content-fixer 에이전트로 `application` 필드 시간대 표현 제거
+  > 수정 후 `sync_verses.js`로 Firestore 동기화
 
 ---
 
-## 🖼 이미지 (카테고리 딥다이브 예정)
+## 🟡 이미지
 
-### 🔴 즉시
+- [ ] **Zone 이미지 부족 보강** — Genspark Pro 생성 후 워크플로우 실행
 
-- [ ] **이미지 부족 Zone 보강** — Genspark Pro로 생성
-  > 아래 Zone이 이미지 부족 (content-schema.md 기준)
+  | Zone | 목표 |
+  |------|------|
+  | peak_mode (09~12시) | 10개 이상 |
+  | recharge (12~15시) | 10개 이상 |
+  | second_wind (15~18시) | 10개 이상 |
+  | golden_hour (18~21시) | 10개 이상 |
 
-  | Zone | 현황 | 목표 |
-  |------|------|------|
-  | peak_mode (09~12시) | 부족 | 10개 이상 |
-  | recharge (12~15시) | 부족 | 10개 이상 |
-  | second_wind (15~18시) | 부족 | 10개 이상 |
-  | golden_hour (18~21시) | 부족 | 10개 이상 |
-
-  > 생성 후 워크플로우:
-  > 1. `design_test/` 폴더에 드롭
-  > 2. Claude Code: "design_test 검수해줘"
-  > 3. `🖼️ 이미지 업로드.command` 더블클릭
+  > 생성 → `design_test/` 폴더 드롭 → Claude: "design_test 검수해줘" → `🖼️ 이미지 업로드.command`
 
 ---
 
-## 📱 디바이스 / iOS 버전
+## 🟡 코드 정리 (출시 후 가능)
 
-### 🟡 단기
+- [ ] **AlarmStage1View.swift 정리**
+  > Stage 1이 제거됐으나 파일 잔존. 상단에 `// DEPRECATED: Stage 1 removed 2026-04-26` 주석 추가 또는 삭제
 
-- [ ] **구형 기기 성능 테스트** — iPhone XR 또는 Instruments Network Link Conditioner
-  > Xcode → Xcode → Open Developer Tool → Instruments → Time Profiler
-  > 또는 Simulator → 추가 설정 → Network Link Conditioner (3G 속도 시뮬레이션)
-  > 확인 항목: 첫 로딩 시 스켈레톤 화면 표시 여부, 감성 이미지 로딩 시 버벅임 여부
-
-- [ ] **다양한 기기 레이아웃 점검** — Xcode 시뮬레이터로 확인
-  > iPhone SE (3세대, 홈 버튼 있음), iPhone 15 Pro Max (Dynamic Island), iPhone 16
-  > 확인 항목: SafeArea 잘림 없는지, 알람 Stage2 레이아웃 정상 여부
+- [ ] **앱 종료 시 선택 사운드 미반영 이슈**
+  > 현재 앱이 완전 종료된 상태에서 오는 UNNotification은 항상 `alarm_song.mp3` 재생
+  > (s01~s06 사용자 선택이 killed-state에서는 무시됨)
+  > 개선하려면: LegacyAlarmEngine UNNotification 스케줄 시 선택한 mp3 파일명을 sound로 지정
 
 ---
 
-## 🔧 출시 전 필수
+## 🟢 운영 (DAU 1,000명 전)
 
-- [x] **Firestore minimum_version 문서 생성** ✅ 완료
-  > `ios: "1.0.0"`, `force_update: false` — 스크립트로 생성됨 (setup_app_config.js)
-
-- [x] **Firestore 마스터 계정 문서 생성** ✅ 완료
-  > `emails: ["huhjungyong@gmail.com", "highkick370@gmail.com"]` — 스크립트로 생성됨
-
-- [x] **이용약관·개인정보처리방침 GitHub Pages 생성 + URL 교체** ✅ 완료
-  > `docs/legal/terms.html`, `docs/legal/privacy.html` 생성 완료
-  > SettingsView URL 교체 완료 → `https://jydragon37.github.io/dailyverse/legal/`
-  > ⚠️ GitHub Pages 활성화 필요: 리포지토리 Settings → Pages → main 브랜치 → /docs 폴더 → Save
-
-- [x] **PrivacyInfo.xcprivacy Xcode 타겟에 추가** ✅ 완료
-  > project.pbxproj Python 스크립트로 자동 추가됨 (괄호 균형 검증 완료)
-
-- [x] **App Store 리뷰 링크 ID 교체** ✅ 완료 — id6763995142
-
-- [x] **Ad Unit ID 교체** ✅ 완료 — Secrets.xcconfig에 실제 ID 등록됨
-  > banner: ca-app-pub-9794385634652581/3762868800
-  > interstitial: ca-app-pub-9794385634652581/8113177357
-  > rewarded: ca-app-pub-9794385634652581/8645239404
-
-- [x] **GADApplicationIdentifier 교체** ✅ 완료 — ca-app-pub-9794385634652581~2135671376
-
-- [x] **isPremium 광고 조건 복구** ✅ 완료 (Category 11에서 처리)
-
-- [ ] **개인정보처리방침 · 이용약관 URL** — `example.com` 플레이스홀더 교체
-  > `SettingsView.swift` 라인 343, 354
-  > 실제 호스팅된 페이지 필요 (notion 공개 페이지도 가능) — 아래 항목과 동일
-
-- [x] **개역한글 출처 표기** ✅ 완료 (Category 10에서 처리)
-
-- [x] **ATT(App Tracking Transparency) 팝업** ✅ 완료 (Category 7에서 처리)
-
-- [ ] **앱스토어 리뷰 URL** 교체
-  > `SettingsView.swift` 내 `https://apps.apple.com/app/id0` → 실제 앱 ID
-
----
-
-## 📊 스케일링 관련 (1만 유저 대비)
-
-- [ ] **Firebase Blaze 플랜 전환** — DAU 1,000명 도달 전
+- [ ] **Firebase Blaze 플랜 전환** — Firestore reads 초과 전
 - [ ] **Firestore 예산 알림 설정** — $50, $100 threshold
 - [ ] **RevenueCat 플랜 확인** — MAU 10,000명 초과 시 유료 전환
-- [ ] **강제 업데이트 메커니즘** — Firestore `app_config/min_version` 문서 추가
-- [ ] **CS 응대 채널** — 이메일 자동화 or 카카오채널 개설
+- [ ] **CS 채널** — 이메일 자동 응답 또는 카카오채널 개설
 
 ---
 
-> 마지막 업데이트: 2026-04-26
-> 카테고리 딥다이브 진행에 따라 항목 추가 예정
+## ✅ 완료 항목 (검증됨, 2026-05-17)
+
+- [x] **앱스토어 리뷰 URL** — `id6763995142` ✅
+- [x] **개인정보처리방침 · 이용약관 URL** — GitHub Pages (jydragon37.github.io) ✅
+- [x] **Ad Unit ID** — Secrets.xcconfig에 실제 ID 등록 ✅
+- [x] **GADApplicationIdentifier** — Info.plist에 등록 ✅
+- [x] **isPremium 광고 조건** — SavedView 5곳 정상 ✅
+- [x] **ATT 팝업** — AppTrackingTransparency 구현 완료 ✅
+- [x] **개역한글 출처 표기** — SettingsView "성경 본문: 개역한글, 대한성서공회" ✅
+- [x] **강제 업데이트 메커니즘** — fetchMinimumVersion 구현 ✅
+- [x] **마스터 계정 시스템** — Firestore app_config/master_accounts ✅
+- [x] **PremiumUpgradeView** — SettingsView + SavedView 통합 완료 ✅
+- [x] **알람 사운드 6종 MP3** — 번들 포함 + pbxproj 등록 완료 ✅ (커밋 필요)
+- [x] **SoundPickerSheet** — AlarmAddEditView 통합 완료 ✅ (커밋 필요)
+- [x] **NSSupportsLiveActivities** — Info.plist 등록 ✅
+- [x] **SKAdNetwork 30개** — Info.plist 등록 ✅
+- [x] **UIBackgroundModes audio** — Info.plist 등록 ✅
+- [x] **Firestore minimum_version 문서** — 스크립트로 생성 ✅
+- [x] **자정 경계 마이그레이션** — Cloud Functions 00:00 KST ✅

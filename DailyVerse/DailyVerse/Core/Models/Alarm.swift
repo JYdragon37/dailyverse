@@ -98,12 +98,7 @@ struct Alarm: Identifiable, Codable, Equatable {
     }
 
     var soundDisplayName: String {
-        switch soundId {
-        case "song":   return "알람송"
-        case "nature": return "자연 소리"
-        case "hymn":   return "찬양 멜로디"
-        default:       return "알람송"
-        }
+        AlarmSound.sound(for: soundId).name
     }
 
     // MARK: - Helpers

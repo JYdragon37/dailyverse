@@ -55,14 +55,8 @@ final class LegacyAlarmEngine: AlarmEngine {
             #endif
         }
 
-        // 번들 오디오 파일 시도
-        let filename: String
-        switch soundId {
-        case "nature": filename = "alarm_nature"
-        case "hymn":   filename = "alarm_hymn"
-        case "song":   filename = "alarm_song"
-        default:       filename = "alarm_song"   // alarm_song이 기본 알람음
-        }
+        // 번들 오디오 파일 — AlarmSound 모델에서 파일명 조회
+        let filename = AlarmSound.sound(for: soundId).filename
 
         // 미디어 볼륨 체크 — 0이면 소리 안 남
         let outputVol = AVAudioSession.sharedInstance().outputVolume
@@ -237,8 +231,11 @@ final class LegacyAlarmEngine: AlarmEngine {
         content.subtitle = verse.verseShortKo          // 말씀 텍스트 (잠금화면 배너 2행)
         content.body     = verse.reference             // 성경 참조 (잠금화면 배너 3행)
         content.interruptionLevel = .timeSensitive
-        // 앱 종료 상태에서 알람 소리 재생: 번들 mp3 우선, 없으면 시스템 기본음
-        if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
+        // 앱 종료 상태 알람 소리: 유저가 선택한 사운드 → 없으면 alarm_song → 시스템 기본음
+        let selectedFilename = AlarmSound.sound(for: alarm.soundId).filename + ".mp3"
+        if Bundle.main.url(forResource: AlarmSound.sound(for: alarm.soundId).filename, withExtension: "mp3") != nil {
+            content.sound = UNNotificationSound(named: UNNotificationSoundName(selectedFilename))
+        } else if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
             content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
         } else {
             content.sound = .default

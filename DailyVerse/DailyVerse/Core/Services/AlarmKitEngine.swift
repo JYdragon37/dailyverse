@@ -168,7 +168,7 @@ final class AlarmKitEngine: AlarmEngine {
             attributes: attributes,
             stopIntent: DVStopAlarmIntent(alarmIdString: a.id.uuidString),
             secondaryIntent: nil,
-            sound: .named("alarm_song.mp3")
+            sound: .named("\(AlarmSound.sound(for: a.soundId).filename).mp3")
         )
 
         // Alarm.ID = Foundation.UUID → a.id 직접 사용

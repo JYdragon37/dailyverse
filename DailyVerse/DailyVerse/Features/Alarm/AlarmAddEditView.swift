@@ -22,6 +22,7 @@ struct AlarmAddEditView: View {
     @State private var volume: Float
     @State private var alertStyle: String
     @State private var isLabelAutoSet: Bool
+    @State private var showSoundPicker: Bool = false
 
     private let dayLabels = ["일", "월", "화", "수", "목", "금", "토"]
 
@@ -50,7 +51,7 @@ struct AlarmAddEditView: View {
             _labelText      = State(initialValue: Alarm.defaultLabel(for: nextHour))
             _snoozeEnabled  = State(initialValue: true)
             _wakeMission    = State(initialValue: "none")
-            _soundId        = State(initialValue: "song")
+            _soundId        = State(initialValue: "s01")
             _volume         = State(initialValue: 0.8)
             _alertStyle     = State(initialValue: "soundAndVibration")
             _isLabelAutoSet = State(initialValue: true)
@@ -105,23 +106,6 @@ struct AlarmAddEditView: View {
                     Text("반복").font(.dvSectionTitle)
                 }
 
-                // ── 웨이크업 미션 ──
-                Section {
-                    Picker("미션", selection: $wakeMission) {
-                        Text("없음").tag("none")
-                        Text("흔들기").tag("shake")
-                        Text("수학 문제").tag("math")
-                        Text("타이핑 ✨").tag("typing")
-                        Text("오늘의 한마디 ✨").tag("word")
-                        Text("아멘 입력 🙏").tag("amen")
-                    }
-                    .pickerStyle(.navigationLink)
-                } header: {
-                    Text("웨이크업 미션").font(.dvSectionTitle)
-                } footer: {
-                    Text("미션을 완료해야 말씀 화면으로 이동합니다").font(.dvCaption).foregroundColor(.secondary)
-                }
-
                 // ── 알림 방식 ──
                 Section {
                     Picker("알림 방식", selection: $alertStyle) {
@@ -134,19 +118,24 @@ struct AlarmAddEditView: View {
                     Text("알림 방식").font(.dvSectionTitle)
                 }
 
-                // ── [항목 6] 알람음 인라인 목록 ──
+                // ── 알람음 (컴팩트 Row → Sheet) ──
                 if alertStyle != "vibration" {
                     Section {
-                        ForEach(soundOptions, id: \.id) { option in
-                            SoundOptionRow(
-                                icon: option.icon,
-                                name: option.name,
-                                soundId: option.id,
-                                isSelected: soundId == option.id
-                            ) {
-                                soundId = option.id
+                        Button { showSoundPicker = true } label: {
+                            HStack {
+                                Text(AlarmSound.sound(for: soundId).name)
+                                    .font(.dvBody)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Text(AlarmSound.sound(for: soundId).category.rawValue)
+                                    .font(.dvCaption)
+                                    .foregroundColor(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.secondary.opacity(0.4))
                             }
                         }
+                        .buttonStyle(.plain)
 
                         // 볼륨 슬라이더
                         VStack(alignment: .leading, spacing: 4) {
@@ -163,7 +152,7 @@ struct AlarmAddEditView: View {
                     }
                 }
 
-                // ── [항목 7] 다시 울림 (스누즈 간소화) ──
+                // ── 다시 울림 ──
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
@@ -180,19 +169,19 @@ struct AlarmAddEditView: View {
                     }
                 }
 
-                // ── 광고 영역 (Free 유저만 표시) ──
+                // ── 광고 영역 (Free 유저만) ──
                 if !subscriptionManager.isPremium {
-                Section {
-                    BannerAdView()
-                        .frame(width: 300, height: 250)
-                        .frame(maxWidth: .infinity)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                } header: { Text("광고").font(.dvSectionTitle) }
-                } // if !subscriptionManager.isPremium
+                    Section {
+                        BannerAdView()
+                            .frame(width: 300, height: 250)
+                            .frame(maxWidth: .infinity)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    } header: { Text("광고").font(.dvSectionTitle) }
+                }
 
-                // ── 주제 (4개 고정, 광고 아래) ──
+                // ── 주제 ──
                 Section {
                     LazyVGrid(
                         columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
@@ -213,10 +202,30 @@ struct AlarmAddEditView: View {
                 } header: {
                     Text("주제").font(.dvSectionTitle)
                 }
+
+                // ── 웨이크업 미션 ──
+                Section {
+                    Picker("미션", selection: $wakeMission) {
+                        Text("없음").tag("none")
+                        Text("흔들기").tag("shake")
+                        Text("수학 문제").tag("math")
+                        Text("타이핑 ✨").tag("typing")
+                        Text("오늘의 한마디 ✨").tag("word")
+                        Text("아멘 입력 🙏").tag("amen")
+                    }
+                    .pickerStyle(.navigationLink)
+                } header: {
+                    Text("웨이크업 미션").font(.dvSectionTitle)
+                } footer: {
+                    Text("미션을 완료해야 말씀 화면으로 이동합니다").font(.dvCaption).foregroundColor(.secondary)
+                }
             }
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle(alarm == nil ? "새 알람" : "알람 수정")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showSoundPicker) {
+                SoundPickerSheet(selectedSoundId: $soundId)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("취소") { dismiss() }.accessibilityLabel("취소")
@@ -288,15 +297,6 @@ struct AlarmAddEditView: View {
         case .windDown:   return .fallbackWindDown
         }
     }
-
-    // MARK: - [항목 6] 알람음 옵션 3개
-
-    private struct SoundOption { let id: String; let name: String; let icon: String }
-    private let soundOptions: [SoundOption] = [
-        .init(id: "song",   name: "새벽 안개",    icon: "cloud.fill"),
-        .init(id: "nature", name: "조용한 시냇가", icon: "water.waves"),
-        .init(id: "hymn",   name: "저녁 종소리",  icon: "bell.and.waveform.fill"),
-    ]
 
     // MARK: - [항목 5] 테마 데이터
 
@@ -392,65 +392,6 @@ private struct ThemeThumbnailCell: View {
     }
 }
 
-// MARK: - 알람음 행 (소리 미리 듣기 포함)
-
-private struct SoundOptionRow: View {
-    let icon: String
-    let name: String
-    let soundId: String
-    let isSelected: Bool
-    let onTap: () -> Void
-
-    @State private var isPlaying = false
-
-    var body: some View {
-        Button(action: {
-            onTap()
-            previewSound()
-        }) {
-            HStack(spacing: 14) {
-                // 재생 중이면 스피커 애니메이션 아이콘, 아니면 기본 아이콘
-                Image(systemName: isPlaying ? "speaker.wave.2.fill" : icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(isPlaying ? .dvAccentGold : .secondary)
-                    .frame(width: 24)
-                Text(name)
-                    .font(.dvBody)
-                    .foregroundColor(.primary)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.dvAccentGold)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(name) \(isSelected ? "선택됨" : "") 탭하면 미리 듣기")
-    }
-
-    private func previewSound() {
-        // 이미 재생 중이면 중단 후 재시작
-        SoundPreviewPlayer.shared.stop()
-        guard !isPlaying else {
-            isPlaying = false
-            return
-        }
-
-        isPlaying = true
-        SoundPreviewPlayer.shared.play(soundId: soundId) {
-            DispatchQueue.main.async { isPlaying = false }
-        }
-        // 2.5초 후 자동 중단
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            SoundPreviewPlayer.shared.stop()
-            isPlaying = false
-        }
-    }
-}
-
-
 // MARK: - 소리 미리 듣기 플레이어
 
 /// 알람음 탭 시 2.5초 짧게 재생하는 싱글턴
@@ -460,12 +401,8 @@ final class SoundPreviewPlayer: NSObject {
     private override init() {}
 
     func play(soundId: String, completion: @escaping () -> Void) {
-        let filename: String
-        switch soundId {
-        case "nature": filename = "alarm_nature"
-        case "hymn":   filename = "alarm_hymn"
-        default:       filename = "alarm_song"
-        }
+        // AlarmSound 모델에서 파일명 조회
+        let filename = AlarmSound.sound(for: soundId).filename
 
         guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3")
                      ?? Bundle.main.url(forResource: filename, withExtension: "caf")

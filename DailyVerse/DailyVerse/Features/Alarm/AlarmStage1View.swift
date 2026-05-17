@@ -1,9 +1,8 @@
 import SwiftUI
 
 // MARK: - AlarmStage1View
-// 알람 발동 시 첫 화면 (v2)
-// 배경: 밝은 안개 mm 로고 이미지 (AlarmStage1BG)
-// 구성: 시간 카드 + 말씀 카드 + snooze / wake up 버튼 (라이트 프로스티드 글라스)
+// DEPRECATED (2026-04-26): Stage 1 제거됨. iOS 26+(AlarmKit)·Legacy 모두 Stage2 직행.
+// AlarmCoordinator.AlarmStage에서 .stage1 케이스 제거됨. 이 파일은 참조용으로만 보존.
 
 struct AlarmStage1View: View {
     @EnvironmentObject private var coordinator: AlarmCoordinator
