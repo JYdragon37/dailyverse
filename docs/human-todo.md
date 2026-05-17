@@ -8,11 +8,12 @@
 
 ## 🔴 즉시 — 출시 블로커
 
-### RevenueCat API 키 미입력 (수익화 완전 불능)
+### RevenueCat API 키 — ⚠️ Production 키 확인 필요
 
-- [ ] **DailyVerseApp.swift:29** — `Purchases.configure(withAPIKey: "")` 빈 문자열 교체
-  > RevenueCat 대시보드 → 프로젝트 → API Keys → Public SDK key 복사
-  > `Purchases.configure(withAPIKey: "appl_XXXX...")` 형태로 입력
+- [x] **DailyVerseApp.swift:29** — `test_qLgnYIQVMaVTzEsejPWGaCUQrsu` 입력 완료 ✅
+- [ ] **출시 전 확인** — `test_` prefix는 Sandbox 환경. RevenueCat 대시보드에서
+  Production / Live 키(`appl_` 또는 다른 prefix)가 별도로 있는지 확인.
+  있다면 교체 후 커밋. 없으면 현재 키로 진행.
 
 ### 미커밋 파일 커밋 필요
 
