@@ -8,11 +8,15 @@
 
 ## 🔴 즉시 — 출시 블로커
 
-### RevenueCat API 키 — ⚠️ Production 키 확인 필요
+### RevenueCat API 키 — ⚠️ Production 키 발급 필요
 
 - [x] **DailyVerseApp.swift:29** — `test_qLgnYIQVMaVTzEsejPWGaCUQrsu` 입력 완료 ✅
-- [x] **RevenueCat 확인 완료** — SDK API keys에 "Test Store"만 존재. iOS 앱 등록 후 `appl_` 키 발급 필요.
-  > App Store Connect에서 번들 ID `com.morningmanna.app`으로 앱 등록 → RevenueCat Configurations에 iOS 앱 추가 → `appl_xxx` 키 발급 → DailyVerseApp.swift:29 교체
+- [ ] **RevenueCat iOS 앱 등록 + appl_ 키 발급** (직접)
+  > 1. RevenueCat 대시보드 → Apps & providers → Configurations → + New → App Store
+  > 2. Bundle ID: `com.morningmanna.app`, App Store Connect Shared Secret 입력
+  > 3. 저장 후 API keys 페이지 → SDK API keys에 `appl_xxx` 키 생성됨
+  > 4. `DailyVerseApp.swift:29` 교체: `Purchases.configure(withAPIKey: "appl_xxx")`
+  > 5. 구독 Entitlement `premium` 생성 → Product ID `com.morningmanna.app.premium.monthly` 연결
 
 ### 미커밋 파일 커밋 필요
 
@@ -38,9 +42,8 @@
 
 ## 🔴 출시 전 필수 (Xcode + App Store Connect)
 
-- [ ] **PrivacyInfo.xcprivacy Xcode 타겟 포함 확인**
-  > Xcode → DailyVerse 타겟 → Build Phases → Copy Bundle Resources
-  > `PrivacyInfo.xcprivacy` 있는지 확인. 없으면 + 버튼으로 추가.
+- [x] **PrivacyInfo.xcprivacy Xcode 타겟 포함 확인** ✅
+  > pbxproj에서 Copy Bundle Resources 포함 확인됨 (2026-05-24)
 
 - [ ] **Distribution Certificate + Provisioning Profile 유효 확인**
   > Xcode → Signing & Capabilities → Release 설정
@@ -71,9 +74,8 @@
 - [ ] **App Store Connect — Age Rating 설문**
   > 4+ 선택 (폭력·성인 콘텐츠 없음)
 
-- [ ] **GitHub Pages 활성화 확인** (이미 완료됐을 수 있음)
-  > 저장소 Settings → Pages → Branch: main → /docs → Save
-  > `https://jydragon37.github.io/dailyverse/legal/privacy.html` 접속 확인
+- [x] **GitHub Pages 활성화 확인** ✅
+  > `https://jydragon37.github.io/dailyverse/legal/privacy.html` HTTP 200 확인됨 (2026-05-24)
 
 ---
 
@@ -115,6 +117,22 @@
 - [ ] **CS 채널** — 이메일 자동 응답 또는 카카오채널 개설
 
 ---
+
+## ✅ 완료 항목 (2026-05-24 추가)
+
+- [x] **영어 KJV 콘텐츠 파이프라인** ✅
+  > Sheets VERSES 탭: verse_full_en, verse_short_en, interpretation_en, application_en 4개 컬럼 추가
+  > active 489개 전체 영어 콘텐츠 생성 + QA 완료
+  > Firestore sync 완료 (488개 active 문서 100%)
+- [x] **iOS 영어 현지화 코드** ✅
+  > Verse 모델 EN 필드, 언어 헬퍼 메서드, 기기 언어 자동 감지
+  > 주요 뷰 전체 한/영 분기 처리 (탭바, 말씀카드, 바텀시트, 알람, 저장 등)
+- [x] **구독 가격 결정** — ₩8,900/월, 연간 ₩49,000 ✅
+- [x] **App Store Connect 구독 상품 생성** — `com.morningmanna.app.premium.monthly` ₩8,900 ✅
+- [x] **PremiumUpgradeView 가격 업데이트** — ₩24,500→₩8,900/월, 왕관 아이콘 수정 ✅
+- [x] **저작권 변경** — © 2026 Orin Company (App Store Connect + 코드) ✅
+- [x] **PrivacyInfo.xcprivacy** — Copy Bundle Resources 포함 확인 ✅
+- [x] **GitHub Pages** — privacy.html HTTP 200 확인 ✅
 
 ## ✅ 완료 항목 (검증됨, 2026-05-17)
 
