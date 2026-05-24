@@ -33,7 +33,7 @@ struct DailyVerseApp: App {
 
         // RevenueCat 초기화
         // 현재 키: test_ prefix → Sandbox 환경. 출시 전 Production 키로 교체 권장.
-        Purchases.configure(withAPIKey: "test_qLgnYIQVMaVTzEsejPWGaCUQrsu")
+        Purchases.configure(withAPIKey: "appl_NYwifHmiOTCjdSvpiariaCBVDCG")
         #if DEBUG
         Purchases.logLevel = .debug
         #endif
