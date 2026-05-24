@@ -12,6 +12,7 @@ struct SavedDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
+    @AppStorage("greetingLanguage") private var appLang: String = "ko"
     @State private var showVerseDetail = false
     @State private var loadedVerse: Verse? = nil
     @State private var isSavingImage = false
@@ -25,10 +26,10 @@ struct SavedDetailView: View {
 
     private var verseText: String {
         // 우선순위: 로드된 말씀 → Core Data 캐시 → 폴백
-        if let v = loadedVerse { return v.verseFullKo }
-        if let v = DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId) { return v.verseFullKo }
-        if let v = Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId }) { return v.verseFullKo }
-        return "말씀을 불러오는 중..."
+        if let v = loadedVerse { return v.verseFull(lang: appLang) }
+        if let v = DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId) { return v.verseFull(lang: appLang) }
+        if let v = Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId }) { return v.verseFull(lang: appLang) }
+        return appLang == "en" ? "Loading verse..." : "말씀을 불러오는 중..."
     }
 
     private var verseReference: String {
@@ -41,14 +42,14 @@ struct SavedDetailView: View {
         let v = loadedVerse
             ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
             ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
-        return v?.interpretation
+        return v?.interpretationText(lang: appLang)
     }
 
     private var verseApplication: String? {
         let v = loadedVerse
             ?? DailyCacheManager.shared.loadCachedVerse(id: savedVerse.verseId)
             ?? Verse.fallbackVerses.first(where: { $0.id == savedVerse.verseId })
-        return v?.application
+        return v?.applicationText(lang: appLang)
     }
 
     private var backgroundGradient: LinearGradient {

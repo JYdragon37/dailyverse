@@ -25,6 +25,8 @@ const ARRAY_FIELDS    = ['mode', 'theme', 'mood', 'season', 'weather', 'avoid_th
 const INT_FIELDS      = ['chapter', 'verse', 'usage_count', 'cooldown_days', 'show_count'];
 const BOOL_FIELDS     = ['curated', 'is_sacred_safe'];
 const NULLABLE_FIELDS = ['alarm_text_ko', 'last_shown', 'notes', 'source_url', 'question', 'alarm_top_ko'];
+// Sheets 내부 수식 컬럼 — Firestore 업로드 제외
+const SKIP_FIELDS     = ['len_verse_full_ko', 'len_verse_short_ko', 'len_interpretation', 'len_application', 'len_alarm_top_ko', 'len_question', 'len_verse_full_en', 'len_verse_short_en', 'len_interpretation_en', 'len_application_en'];
 
 // ─── 초기화 ────────────────────────────────────────────────────────────────
 
@@ -139,6 +141,7 @@ async function main() {
       const docData = {};
       headers.forEach((key, j) => {
         if (!key) return;
+        if (SKIP_FIELDS.includes(key)) return;  // Sheets 수식 컬럼 제외
         const val = convertValue(key, row[j]);
         if (val !== null) docData[key] = val;
       });

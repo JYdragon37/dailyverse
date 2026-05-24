@@ -23,6 +23,7 @@ struct VerseDetailBottomSheet: View {
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @AppStorage("greetingLanguage") private var appLang: String = "ko"
 
     var body: some View {
         NavigationStack {
@@ -38,7 +39,7 @@ struct VerseDetailBottomSheet: View {
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentGold)
 
-                        Text(verse.interpretation)
+                        Text(verse.interpretationText(lang: appLang))
                             .font(.system(size: 17, weight: .regular))
                             .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)
@@ -84,7 +85,7 @@ struct VerseDetailBottomSheet: View {
     }
 
     private var applicationWithNickname: String {
-        "\(nicknameManager.nickname), \(verse.application)"
+        "\(nicknameManager.nickname), \(verse.applicationText(lang: appLang))"
     }
 
     private var actionBar: some View {

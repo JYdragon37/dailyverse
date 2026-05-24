@@ -1,7 +1,7 @@
 # 직접 처리해야 할 TODO
 
 > 이 파일은 Claude가 자동으로 처리할 수 없는 작업들을 기록합니다.
-> 마지막 코드 검증: 2026-05-17
+> 마지막 코드 검증: 2026-05-23
 > 완료 시 `[x]`로 체크하세요.
 
 ---
@@ -11,9 +11,8 @@
 ### RevenueCat API 키 — ⚠️ Production 키 확인 필요
 
 - [x] **DailyVerseApp.swift:29** — `test_qLgnYIQVMaVTzEsejPWGaCUQrsu` 입력 완료 ✅
-- [ ] **출시 전 확인** — `test_` prefix는 Sandbox 환경. RevenueCat 대시보드에서
-  Production / Live 키(`appl_` 또는 다른 prefix)가 별도로 있는지 확인.
-  있다면 교체 후 커밋. 없으면 현재 키로 진행.
+- [x] **RevenueCat 확인 완료** — SDK API keys에 "Test Store"만 존재. iOS 앱 등록 후 `appl_` 키 발급 필요.
+  > App Store Connect에서 번들 ID `com.morningmanna.app`으로 앱 등록 → RevenueCat Configurations에 iOS 앱 추가 → `appl_xxx` 키 발급 → DailyVerseApp.swift:29 교체
 
 ### 미커밋 파일 커밋 필요
 
@@ -48,16 +47,26 @@
   > "Automatically manage signing" 체크 시 자동 처리됨
 
 - [ ] **Archive → TestFlight 업로드 (첫 빌드 확인)**
-  > Xcode → Product → Archive → Distribute App → App Store Connect
+  > ⚠️ Distribution 인증서 없음 — Xcode GUI에서만 가능
+  > Xcode → Product → Archive → Organizer → Distribute App
+  > → App Store Connect → Upload → Automatically manage signing → Upload
+  > Xcode가 Distribution 인증서 자동 생성 및 업로드 처리
   > 업로드 완료 후 App Store Connect에서 빌드 처리 대기 (~10분)
 
-- [ ] **App Store Connect — 앱 정보 입력 완료**
-  > 스크린샷 5장 (1290×2796px) 준비 및 업로드
-  > 앱 설명, 키워드, What's New 입력 (`docs/appstore-metadata.md` 참조)
+- [x] **App Store Connect — 앱 정보 입력 완료** (2026-05-23 확인) ✅
+  > 앱 이름, 부제, 설명, 키워드, 지원 URL, 저작권 모두 입력됨
+  > 스크린샷 10개 업로드됨 (6.5" 기준, 6.9"로 교체 권장)
 
-- [ ] **App Store Connect — Privacy Practices 답변**
-  > Data collected: 이름(닉네임), 이메일(Apple Sign-In), 사용 데이터(Analytics)
-  > 서드파티 광고: AdMob (광고 ID 수집 여부 답변 필요)
+- [ ] **App Store Connect — Privacy Practices 답변** (진행 중)
+  > 3/10 완료 (이름, 이메일, 대략적인 위치)
+  > 남은 7개 직접 입력 필요:
+  > - 사용자 ID: 앱기능 / 연결됨 / 추적안함
+  > - 기기 ID: 타사광고 / 비연결 / 추적함
+  > - 구입 내역: 앱기능 / 연결됨 / 추적안함
+  > - 제품 상호 작용: 분석+앱기능 / 비연결 / 추적안함
+  > - 광고 데이터: 타사광고 / 비연결 / 추적함
+  > - 충돌 데이터: 앱기능 / 비연결 / 추적안함
+  > - 실적 데이터: 앱기능 / 비연결 / 추적안함
 
 - [ ] **App Store Connect — Age Rating 설문**
   > 4+ 선택 (폭력·성인 콘텐츠 없음)

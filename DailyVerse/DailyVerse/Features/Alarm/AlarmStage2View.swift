@@ -253,7 +253,7 @@ struct AlarmStage2View: View {
     private func verseCenter(verse: Verse) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 (verseFullKo)
-            Text(verse.verseFullKo)
+            Text(verse.verseFull(lang: greetingLanguagePref))
                 .font(.custom("PretendardVariable", size: 22).weight(.semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
@@ -273,7 +273,7 @@ struct AlarmStage2View: View {
                     Rectangle()
                         .fill(Color.white.opacity(0.30))
                         .frame(width: 20, height: 1)
-                    Text("말씀 깊게 보기")
+                    Text(greetingLanguagePref == "en" ? "Read More" : "말씀 깊게 보기")
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.white.opacity(0.45))
                     Image(systemName: "chevron.up")
@@ -282,7 +282,7 @@ struct AlarmStage2View: View {
                 }
             }
             .padding(.top, 12)
-            .accessibilityLabel("말씀 해석과 일상 적용 보기")
+            .accessibilityLabel(greetingLanguagePref == "en" ? "View interpretation and application" : "말씀 해석과 일상 적용 보기")
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
@@ -298,9 +298,9 @@ struct AlarmStage2View: View {
                     coordinator.snooze()
                 } label: {
                     VStack(spacing: 2) {
-                        Text("🌙  스누즈")
+                        Text(greetingLanguagePref == "en" ? "🌙  Snooze" : "🌙  스누즈")
                             .font(.system(size: 15, weight: .medium))
-                        Text("\(coordinator.activeSnoozeInterval)분 후")
+                        Text(greetingLanguagePref == "en" ? "in \(coordinator.activeSnoozeInterval) min" : "\(coordinator.activeSnoozeInterval)분 후")
                             .font(.system(size: 11, weight: .regular))
                             .opacity(0.7)
                     }
@@ -317,11 +317,14 @@ struct AlarmStage2View: View {
                     .foregroundColor(.white.opacity(coordinator.canSnooze ? 1.0 : 0.35))
                 }
                 .disabled(!coordinator.canSnooze)
-                .accessibilityLabel(coordinator.canSnooze ? "\(coordinator.activeSnoozeInterval)분 스누즈" : "스누즈 횟수 초과")
+                .accessibilityLabel(coordinator.canSnooze
+                    ? (greetingLanguagePref == "en" ? "Snooze for \(coordinator.activeSnoozeInterval) minutes" : "\(coordinator.activeSnoozeInterval)분 스누즈")
+                    : (greetingLanguagePref == "en" ? "Snooze limit reached" : "스누즈 횟수 초과")
+                )
 
                 // 일어나기
                 Button { coordinator.dismissAll() } label: {
-                    Text("☀️  일어나기")
+                    Text(greetingLanguagePref == "en" ? "☀️  Rise" : "☀️  일어나기")
                         .font(.system(size: 15, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)

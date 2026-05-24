@@ -5,10 +5,12 @@ struct VerseCardView: View {
     var image: VerseImage? = nil
     let onTap: () -> Void
 
+    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 본문 텍스트 — 핵심 메시지, 크게
-            Text(verse.verseShortKo)
+            Text(verse.verseShort(lang: appLang))
                 .font(.system(size: 26, weight: .semibold))
                 .foregroundColor(.white)
                 .lineSpacing(4)
@@ -42,7 +44,7 @@ struct VerseCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { onTap() }
-        .accessibilityLabel("\(verse.verseShortKo). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseShort(lang: appLang)). \(verse.reference)")
         .accessibilityAddTraits(.isButton)
     }
 }

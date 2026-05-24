@@ -22,6 +22,12 @@ struct DailyVerseApp: App {
     @StateObject private var greetingService = GreetingService()
 
     init() {
+        // 최초 실행 시 기기 언어로 자동 설정
+        if UserDefaults.standard.object(forKey: "greetingLanguage") == nil {
+            let langCode = Locale.current.language.languageCode?.identifier ?? "ko"
+            UserDefaults.standard.set(langCode == "ko" ? "ko" : "en", forKey: "greetingLanguage")
+        }
+
         // Firebase 초기화
         FirebaseApp.configure()
 

@@ -7,6 +7,7 @@ struct AlarmListView: View {
     @StateObject private var viewModel = AlarmViewModel()
     @EnvironmentObject private var permissionManager: PermissionManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @AppStorage("greetingLanguage") private var appLang: String = "ko"
 
     @State private var todayVerse: Verse?
     @State private var showMaxAlarmsAlert = false
@@ -187,7 +188,7 @@ struct AlarmListView: View {
                                     .foregroundColor(.dvAccentGold.opacity(0.80))
                                     .tracking(0.8)
 
-                                Text("\u{201C}\(verse.alarmTopKo ?? verse.verseShortKo)\u{201D}")
+                                Text("\u{201C}\(verse.verseShort(lang: appLang))\u{201D}")
                                     .font(.custom("PretendardVariable", size: 15))
                                     .foregroundColor(.white.opacity(0.88))
                                     .lineSpacing(4)

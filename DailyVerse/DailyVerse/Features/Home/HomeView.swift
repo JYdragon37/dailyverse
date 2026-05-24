@@ -241,7 +241,7 @@ struct HomeView: View {
     private func verseCenter(verse: Verse) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // 말씀 텍스트 — 21pt regular (verseFullKo: 긴 텍스트라 lineSpacing 중요)
-            Text(verse.verseFullKo)
+            Text(verse.verseFull(lang: greetingLanguagePref))
                 .font(.custom("PretendardVariable", size: 22).weight(.semibold))
                 .foregroundColor(.white)
                 .lineSpacing(8)
@@ -299,7 +299,7 @@ struct HomeView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.30))
                     .frame(width: 20, height: 1)
-                Text("말씀 깊게 보기")
+                Text(greetingLanguagePref == "en" ? "Read More" : "말씀 깊게 보기")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.white.opacity(0.45))
                 Image(systemName: "chevron.up")
@@ -311,7 +311,7 @@ struct HomeView: View {
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { showVerseDetail = true }
-        .accessibilityLabel("\(verse.verseFullKo). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseFull(lang: greetingLanguagePref)). \(verse.reference)")
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)

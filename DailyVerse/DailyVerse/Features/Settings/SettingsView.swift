@@ -61,7 +61,7 @@ struct SettingsView: View {
                     sectionCard(title: "구독") { subscriptionRows }
 
                     // ── 외관 ────────────────────────────────
-                    sectionCard(title: "외관") { appearanceRows }
+                    sectionCard(title: greetingLanguage == "en" ? "Appearance" : "외관") { appearanceRows }
 
                     // ── 앱 설정 ─────────────────────────────
                     sectionCard(title: "앱 설정") { permissionRows }
@@ -363,11 +363,12 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var appearanceRows: some View {
-        // 인사말 언어
+        let isEn = greetingLanguage == "en"
+        // 언어 / Language
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 14) {
                 iconBadge("text.bubble.fill", color: Color(hex: "#5E9CF5"))
-                Text("인사말 언어")
+                Text("언어 / Language")
                     .font(.dvBody)
                     .foregroundColor(.white)
                 Spacer()
@@ -375,13 +376,19 @@ struct SettingsView: View {
             .padding(.horizontal, 16)
             .padding(.top, 14)
 
-            Picker("인사말 언어", selection: $greetingLanguage) {
+            Picker("언어 / Language", selection: $greetingLanguage) {
                 Text("한국어").tag("ko")
                 Text("English").tag("en")
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
-            .padding(.bottom, 14)
+
+            Text(isEn ? "Tab labels will update after restarting the app."
+                      : "앱을 재시작하면 탭 이름도 변경됩니다.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
         }
 
     }

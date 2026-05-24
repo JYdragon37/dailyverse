@@ -42,8 +42,9 @@ struct PremiumUpgradeView: View {
                 Circle()
                     .fill(Color.dvAccentGold.opacity(0.12))
                     .frame(width: 72, height: 72)
-                Text("👑")
-                    .font(.system(size: 36))
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(Color.dvAccentGold)
             }
             .padding(.top, 40)
 
@@ -173,7 +174,7 @@ struct PremiumUpgradeView: View {
                     VStack(spacing: 3) {
                         Text("Premium 시작하기")
                             .font(.system(size: 16, weight: .bold))
-                        Text("₩24,500/월")
+                        Text("₩8,900/월")
                             .font(.system(size: 13, weight: .medium))
                             .opacity(0.75)
                     }

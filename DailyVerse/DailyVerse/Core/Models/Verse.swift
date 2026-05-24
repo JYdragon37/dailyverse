@@ -25,6 +25,12 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     //              → 모든 화면이 interpretation / application 하나로 통일
     let question: String?                     // 묵상 질문
 
+    // English fields (KJV + generated)
+    let verseShortEn: String?
+    let verseFullEn: String?
+    let interpretationEn: String?
+    let applicationEn: String?
+
     // v5.1 — cooldown 로직용
     let lastShown: String?      // "YYYY-MM-DD"
     let showCount: Int?
@@ -43,6 +49,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case lastShown = "last_shown"
         case showCount = "show_count"
         case cooldownDays = "cooldown_days"
+        case verseShortEn = "verse_short_en"
+        case verseFullEn = "verse_full_en"
+        case interpretationEn = "interpretation_en"
+        case applicationEn = "application_en"
     }
 
     // MARK: - Cooldown 헬퍼
@@ -87,6 +97,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -104,6 +115,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -121,6 +133,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -138,6 +151,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -155,6 +169,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -172,6 +187,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -189,6 +205,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -206,6 +223,7 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
+        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -219,4 +237,19 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         .fallbackDeepDark, .fallbackFirstLight, .fallbackRiseIgnite, .fallbackPeakMode,
         .fallbackRecharge, .fallbackSecondWind, .fallbackGoldenHour, .fallbackWindDown
     ]
+}
+
+extension Verse {
+    func verseShort(lang: String) -> String {
+        lang == "en" ? (verseShortEn ?? verseShortKo) : verseShortKo
+    }
+    func verseFull(lang: String) -> String {
+        lang == "en" ? (verseFullEn ?? verseFullKo) : verseFullKo
+    }
+    func interpretationText(lang: String) -> String {
+        lang == "en" ? (interpretationEn ?? interpretation) : interpretation
+    }
+    func applicationText(lang: String) -> String {
+        lang == "en" ? (applicationEn ?? application) : application
+    }
 }
