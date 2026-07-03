@@ -23,7 +23,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>현재 날씨에 맞는 말씀을 전해드리기 위해 위치 정보가 필요합니다.</string>
 	<key>NSWeatherKitUsageDescription</key>
