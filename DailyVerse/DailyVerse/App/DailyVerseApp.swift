@@ -22,11 +22,7 @@ struct DailyVerseApp: App {
     @StateObject private var greetingService = GreetingService()
 
     init() {
-        // 최초 실행 시 기기 언어로 자동 설정
-        if UserDefaults.standard.object(forKey: "greetingLanguage") == nil {
-            let langCode = Locale.current.language.languageCode?.identifier ?? "ko"
-            UserDefaults.standard.set(langCode == "ko" ? "ko" : "en", forKey: "greetingLanguage")
-        }
+        migrateAppLanguageKeyIfNeeded(defaults: .standard)
 
         // Firebase 초기화
         FirebaseApp.configure()
@@ -169,4 +165,44 @@ struct DailyVerseApp: App {
                     }
         }
     }
+}
+
+// MARK: - AppLanguage
+
+enum AppLanguage: String {
+    case ko, en
+
+    var bundle: Bundle {
+        guard let path = Bundle.main.path(forResource: rawValue, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return .main
+        }
+        return bundle
+    }
+}
+
+/// 현재 선택된 언어(`appLanguage`)에 맞는 String Catalog 값을 명시적으로 조회한다.
+/// 시스템 로케일과 무관하게, 설정 화면에서 사용자가 고른 언어를 그대로 따른다.
+func appLanguageString(_ key: String, args: CVarArg...) -> String {
+    let code = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
+    let lang = AppLanguage(rawValue: code) ?? .ko
+    let format = NSLocalizedString(key, bundle: lang.bundle, comment: "")
+    return args.isEmpty ? format : String(format: format, arguments: args)
+}
+
+/// 구 버전 키(`greetingLanguage`) → 신규 키(`appLanguage`) 마이그레이션.
+/// 신규 키가 이미 있으면 아무것도 하지 않는다. 둘 다 없으면 기기 언어로 자동 감지한다.
+func migrateAppLanguageKeyIfNeeded(
+    defaults: UserDefaults,
+    deviceLanguageCode: String = Locale.current.language.languageCode?.identifier ?? "ko"
+) {
+    if defaults.object(forKey: "appLanguage") != nil {
+        return
+    }
+    if let legacy = defaults.string(forKey: "greetingLanguage") {
+        defaults.set(legacy, forKey: "appLanguage")
+        defaults.removeObject(forKey: "greetingLanguage")
+        return
+    }
+    defaults.set(deviceLanguageCode == "en" ? "en" : "ko", forKey: "appLanguage")
 }
