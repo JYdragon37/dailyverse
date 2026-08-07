@@ -319,7 +319,10 @@ git commit -m "feat: Localizable.xcstrings String Catalog 추가 (탭/알람/말
 
 - [ ] **Step 2: 테스트 실행 → 컴파일 실패 확인**
 
-Run: `xcodebuild test -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:DailyVerseTests 2>&1 | tail -30`
+Run: `xcodebuild test -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' -only-testing:DailyVerseTests GENERATE_INFOPLIST_FILE=YES 2>&1 | tail -30`
+
+> `GENERATE_INFOPLIST_FILE=YES`는 `DailyVerseTests` 타겟에 이 빌드 설정이 원래부터 빠져있던 기존 저장소 버그를 pbxproj를 건드리지 않고 우회하는 커맨드라인 오버라이드다 (모든 `xcodebuild test` 실행에 항상 붙여야 한다).
+
 Expected: 컴파일 에러 — `cannot find 'migrateAppLanguageKeyIfNeeded' in scope`
 
 - [ ] **Step 3: 구현 작성**
@@ -388,7 +391,7 @@ func migrateAppLanguageKeyIfNeeded(
 
 - [ ] **Step 4: 테스트 실행 → 통과 확인**
 
-Run: `xcodebuild test -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:DailyVerseTests 2>&1 | tail -30`
+Run: `xcodebuild test -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' -only-testing:DailyVerseTests GENERATE_INFOPLIST_FILE=YES 2>&1 | tail -30`
 Expected: `** TEST SUCCEEDED **`, 4개 신규 테스트 모두 PASS
 
 - [ ] **Step 5: Commit**
@@ -455,7 +458,7 @@ git commit -m "fix: 최초 실행 언어 자동감지 버그 수정 + appLanguag
 
 - [ ] **Step 4: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
@@ -511,12 +514,12 @@ git commit -m "refactor: greetingLanguage → appLanguage 키 리네임 (VerseCa
 
 - [ ] **Step 2: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 3: 시뮬레이터 수동 확인**
 
-Run: `xcodebuild -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' -configuration Debug build 2>&1 | tail -5 && open -a Simulator`
+Run: `xcodebuild -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' -configuration Debug build 2>&1 | tail -5 && open -a Simulator`
 
 앱을 실행해 설정 > 언어를 English로 바꾼 뒤, 하단 탭바가 Home/Alarm/Verses/Journal/Profile로 표시되는지 확인. 한국어로 되돌리면 홈/알람/말씀들/묵상/프로필로 돌아오는지 확인.
 Expected: 두 언어 모두 정상 표시, 혼용 없음.
@@ -564,7 +567,7 @@ git commit -m "feat: 탭바 라벨을 String Catalog 키로 전환 (tab.home 등
 
 - [ ] **Step 3: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 4: Commit**
@@ -659,7 +662,7 @@ git commit -m "feat: Settings 외관 섹션 타이틀을 String Catalog 키로 �
 
 - [ ] **Step 7: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 8: 시뮬레이터 수동 확인**
@@ -709,7 +712,7 @@ git commit -m "feat: AlarmStage2 버튼/접근성 라벨을 String Catalog 키�
 
 - [ ] **Step 3: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 4: Commit**
@@ -816,7 +819,7 @@ git commit -m "feat: HomeView Read More 라벨을 String Catalog 키로 전환"
 
 - [ ] **Step 9: 빌드 확인**
 
-Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -15`
+Run: `xcodebuild build -project DailyVerse/DailyVerse.xcodeproj -scheme DailyVerse -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' 2>&1 | tail -15`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 10: 시뮬레이터 수동 확인**
