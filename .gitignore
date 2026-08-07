@@ -54,3 +54,6 @@ functions/node_modules/
 
 # 서브에이전트 실행용 워크트리 (superpowers:using-git-worktrees)
 .worktrees/
+
+# subagent-driven-development 진행 기록 (스크래치)
+.superpowers/
