@@ -72,16 +72,15 @@ struct MainTabView: View {
 
 private struct DVTabBar: View {
     @Binding var selectedTab: Int
-    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+    @AppStorage("appLanguage") private var appLang: String = "ko"
 
     private var tabs: [(Int, String, String)] {
-        let isEn = appLang == "en"
-        return [
-            (0, isEn ? "Home"    : "홈",     "house.fill"),
-            (1, isEn ? "Alarm"   : "알람",   "alarm.fill"),
-            (2, isEn ? "Verses"  : "말씀들", "book.closed.fill"),
-            (3, isEn ? "Journal" : "묵상",   "pencil.and.scribble"),
-            (4, isEn ? "Profile" : "프로필", "person.circle"),
+        [
+            (0, appLanguageString("tab.home"),    "house.fill"),
+            (1, appLanguageString("tab.alarm"),   "alarm.fill"),
+            (2, appLanguageString("tab.verses"),  "book.closed.fill"),
+            (3, appLanguageString("tab.journal"), "pencil.and.scribble"),
+            (4, appLanguageString("tab.profile"), "person.circle"),
         ]
     }
 
