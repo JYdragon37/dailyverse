@@ -12,7 +12,7 @@ struct SavedDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
-    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+    @AppStorage("appLanguage") private var appLang: String = "ko"
     @State private var showVerseDetail = false
     @State private var loadedVerse: Verse? = nil
     @State private var isSavingImage = false

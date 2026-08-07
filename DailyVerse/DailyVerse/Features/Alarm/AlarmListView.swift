@@ -7,7 +7,7 @@ struct AlarmListView: View {
     @StateObject private var viewModel = AlarmViewModel()
     @EnvironmentObject private var permissionManager: PermissionManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+    @AppStorage("appLanguage") private var appLang: String = "ko"
 
     @State private var todayVerse: Verse?
     @State private var showMaxAlarmsAlert = false

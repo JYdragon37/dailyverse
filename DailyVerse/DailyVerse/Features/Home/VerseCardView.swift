@@ -5,7 +5,7 @@ struct VerseCardView: View {
     var image: VerseImage? = nil
     let onTap: () -> Void
 
-    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+    @AppStorage("appLanguage") private var appLang: String = "ko"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
