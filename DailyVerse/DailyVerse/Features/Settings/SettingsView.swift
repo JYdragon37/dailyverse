@@ -16,7 +16,7 @@ struct SettingsView: View {
     @EnvironmentObject private var permissionManager: PermissionManager
     @ObservedObject private var nicknameManager = NicknameManager.shared
 
-    @AppStorage("greetingLanguage") private var greetingLanguage: String = "ko"
+    @AppStorage("appLanguage") private var greetingLanguage: String = "ko"
     @AppStorage("profileEmoji") private var profileEmoji: String = ""
     @AppStorage("meditationReminderEnabled") private var meditationReminderEnabled: Bool = true
     @AppStorage("meditationReminderHour") private var meditationReminderHour: Int = 21
@@ -61,7 +61,7 @@ struct SettingsView: View {
                     sectionCard(title: "구독") { subscriptionRows }
 
                     // ── 외관 ────────────────────────────────
-                    sectionCard(title: greetingLanguage == "en" ? "Appearance" : "외관") { appearanceRows }
+                    sectionCard(title: appLanguageString("settings.section.appearance")) { appearanceRows }
 
                     // ── 앱 설정 ─────────────────────────────
                     sectionCard(title: "앱 설정") { permissionRows }
