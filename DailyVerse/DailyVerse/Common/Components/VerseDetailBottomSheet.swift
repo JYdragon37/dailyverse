@@ -23,7 +23,7 @@ struct VerseDetailBottomSheet: View {
 
     @ObservedObject private var nicknameManager = NicknameManager.shared
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @AppStorage("greetingLanguage") private var appLang: String = "ko"
+    @AppStorage("appLanguage") private var appLang: String = "ko"
 
     var body: some View {
         NavigationStack {
@@ -35,7 +35,7 @@ struct VerseDetailBottomSheet: View {
 
                     // 1. 해석
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("해석", systemImage: "text.magnifyingglass")
+                        Label(appLanguageString("verseDetail.interpretation.label"), systemImage: "text.magnifyingglass")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentGold)
 
@@ -50,7 +50,7 @@ struct VerseDetailBottomSheet: View {
 
                     // 2. 일상 적용 (닉네임 포함)
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("오늘의 적용", systemImage: "sparkles")
+                        Label(appLanguageString("verseDetail.application.label"), systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentSky)
 
@@ -99,7 +99,7 @@ struct VerseDetailBottomSheet: View {
                         .font(.system(size: 14))
                         .scaleEffect(isSaved ? 1.3 : 1.0)
                         .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isSaved)
-                    Text(isSaved ? "저장됨 ✓" : "저장")
+                    Text(isSaved ? appLanguageString("verseDetail.save.saved") : appLanguageString("verseDetail.save.button"))
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
@@ -116,14 +116,14 @@ struct VerseDetailBottomSheet: View {
                 .cornerRadius(14)
                 .animation(.easeInOut(duration: 0.3), value: isSaved)
             }
-            .accessibilityLabel("말씀 저장하기")
+            .accessibilityLabel(appLanguageString("verseDetail.save.accessibility"))
 
             // 묵상 버튼 (알람 팝업 컨텍스트에서는 숨김)
             if showMeditationButton { Button(action: onMeditation) {
                 HStack(spacing: 6) {
                     Image(systemName: "pencil.and.scribble")
                         .font(.system(size: 14))
-                    Text("묵상")
+                    Text(appLanguageString("verseDetail.meditation.button"))
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
@@ -138,7 +138,7 @@ struct VerseDetailBottomSheet: View {
                 )
                 .foregroundColor(.white)
             }
-            .accessibilityLabel("묵상 탭으로 이동")
+            .accessibilityLabel(appLanguageString("verseDetail.meditation.accessibility"))
             }   // end if showMeditationButton
 
             // 닫기 버튼
@@ -153,7 +153,7 @@ struct VerseDetailBottomSheet: View {
                     )
                     .foregroundColor(.white.opacity(0.7))
             }
-            .accessibilityLabel("닫기")
+            .accessibilityLabel(appLanguageString("verseDetail.close.accessibility"))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
