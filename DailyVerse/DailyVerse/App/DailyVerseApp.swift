@@ -200,7 +200,7 @@ func migrateAppLanguageKeyIfNeeded(
         return
     }
     if let legacy = defaults.string(forKey: "greetingLanguage") {
-        defaults.set(legacy, forKey: "appLanguage")
+        defaults.set(legacy == "en" ? "en" : "ko", forKey: "appLanguage")
         defaults.removeObject(forKey: "greetingLanguage")
         return
     }

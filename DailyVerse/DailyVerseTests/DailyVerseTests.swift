@@ -55,4 +55,49 @@ struct DailyVerseTests {
         #expect(defaults.string(forKey: "appLanguage") == "ko")
     }
 
+    @Test func normalizesInvalidLegacyGreetingLanguageValue() async throws {
+        let defaults = UserDefaults(suiteName: "test.normalizesInvalidLegacyGreetingLanguageValue")!
+        defaults.removePersistentDomain(forName: "test.normalizesInvalidLegacyGreetingLanguageValue")
+        defaults.set("random", forKey: "greetingLanguage")
+
+        migrateAppLanguageKeyIfNeeded(defaults: defaults)
+
+        #expect(defaults.string(forKey: "appLanguage") == "ko")
+        #expect(defaults.object(forKey: "greetingLanguage") == nil)
+    }
+
+    @Test func allStringCatalogKeysResolveToLocalizedValues() async throws {
+        // Locate Localizable.xcstrings relative to this test file:
+        // .../DailyVerse/DailyVerseTests/DailyVerseTests.swift
+        //   -> .../DailyVerse/DailyVerse/Localizable.xcstrings
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        let catalogURL = testFileURL
+            .deletingLastPathComponent() // DailyVerseTests/
+            .deletingLastPathComponent() // DailyVerse/ (project root)
+            .appendingPathComponent("DailyVerse")
+            .appendingPathComponent("Localizable.xcstrings")
+
+        let data = try Data(contentsOf: catalogURL)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = json?["strings"] as? [String: Any]
+        #expect(strings != nil)
+        let keys = strings?.keys ?? [:].keys
+        #expect(keys.isEmpty == false)
+
+        let previousValue = UserDefaults.standard.object(forKey: "appLanguage")
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+        defer {
+            if let previousValue {
+                UserDefaults.standard.set(previousValue, forKey: "appLanguage")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "appLanguage")
+            }
+        }
+
+        for key in keys {
+            let resolved = appLanguageString(key)
+            #expect(resolved != key, "Key '\(key)' did not resolve to a localized value")
+        }
+    }
+
 }
