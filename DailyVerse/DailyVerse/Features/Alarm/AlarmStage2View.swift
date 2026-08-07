@@ -7,7 +7,7 @@ struct AlarmStage2View: View {
     @EnvironmentObject private var greetingService: GreetingService
     @ObservedObject private var nicknameManager = NicknameManager.shared
     // Design Ref: §7-2 — 언어 설정 읽기
-    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "ko"
+    @AppStorage("appLanguage") private var greetingLanguagePref: String = "ko"
     @State private var showLoginPrompt: Bool = false
     @State private var isSavedCurrentVerse: Bool = false
     @State private var heartScale: CGFloat = 1.0
@@ -273,7 +273,7 @@ struct AlarmStage2View: View {
                     Rectangle()
                         .fill(Color.white.opacity(0.30))
                         .frame(width: 20, height: 1)
-                    Text(greetingLanguagePref == "en" ? "Read More" : "말씀 깊게 보기")
+                    Text(appLanguageString("verse.readMore"))
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.white.opacity(0.45))
                     Image(systemName: "chevron.up")
@@ -282,7 +282,7 @@ struct AlarmStage2View: View {
                 }
             }
             .padding(.top, 12)
-            .accessibilityLabel(greetingLanguagePref == "en" ? "View interpretation and application" : "말씀 해석과 일상 적용 보기")
+            .accessibilityLabel(appLanguageString("verse.readMore.accessibility"))
         }
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
@@ -298,9 +298,9 @@ struct AlarmStage2View: View {
                     coordinator.snooze()
                 } label: {
                     VStack(spacing: 2) {
-                        Text(greetingLanguagePref == "en" ? "🌙  Snooze" : "🌙  스누즈")
+                        Text(appLanguageString("alarm.snooze.button"))
                             .font(.system(size: 15, weight: .medium))
-                        Text(greetingLanguagePref == "en" ? "in \(coordinator.activeSnoozeInterval) min" : "\(coordinator.activeSnoozeInterval)분 후")
+                        Text(appLanguageString("alarm.snooze.interval", args: coordinator.activeSnoozeInterval))
                             .font(.system(size: 11, weight: .regular))
                             .opacity(0.7)
                     }
@@ -318,13 +318,13 @@ struct AlarmStage2View: View {
                 }
                 .disabled(!coordinator.canSnooze)
                 .accessibilityLabel(coordinator.canSnooze
-                    ? (greetingLanguagePref == "en" ? "Snooze for \(coordinator.activeSnoozeInterval) minutes" : "\(coordinator.activeSnoozeInterval)분 스누즈")
-                    : (greetingLanguagePref == "en" ? "Snooze limit reached" : "스누즈 횟수 초과")
+                    ? appLanguageString("alarm.snooze.accessibility", args: coordinator.activeSnoozeInterval)
+                    : appLanguageString("alarm.snooze.limitReached")
                 )
 
                 // 일어나기
                 Button { coordinator.dismissAll() } label: {
-                    Text(greetingLanguagePref == "en" ? "☀️  Rise" : "☀️  일어나기")
+                    Text(appLanguageString("alarm.rise.button"))
                         .font(.system(size: 15, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
