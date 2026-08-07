@@ -1,0 +1,132 @@
+{
+  "sourceLanguage" : "ko",
+  "strings" : {
+    "tab.home" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "홈" } }
+      }
+    },
+    "tab.alarm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Alarm" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "알람" } }
+      }
+    },
+    "tab.verses" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Verses" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "말씀들" } }
+      }
+    },
+    "tab.journal" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Journal" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "묵상" } }
+      }
+    },
+    "tab.profile" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로필" } }
+      }
+    },
+    "settings.section.appearance" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Appearance" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "외관" } }
+      }
+    },
+    "alarm.snooze.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "🌙  Snooze" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "🌙  스누즈" } }
+      }
+    },
+    "alarm.snooze.interval" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "in %d min" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%d분 후" } }
+      }
+    },
+    "alarm.snooze.accessibility" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Snooze for %d minutes" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%d분 스누즈" } }
+      }
+    },
+    "alarm.snooze.limitReached" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Snooze limit reached" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스누즈 횟수 초과" } }
+      }
+    },
+    "alarm.rise.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "☀️  Rise" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "☀️  일어나기" } }
+      }
+    },
+    "verse.readMore" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Read More" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "말씀 깊게 보기" } }
+      }
+    },
+    "verse.readMore.accessibility" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "View interpretation and application" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "말씀 해석과 일상 적용 보기" } }
+      }
+    },
+    "verseDetail.interpretation.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interpretation" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "해석" } }
+      }
+    },
+    "verseDetail.application.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today's Application" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "오늘의 적용" } }
+      }
+    },
+    "verseDetail.save.saved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved ✓" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "저장됨 ✓" } }
+      }
+    },
+    "verseDetail.save.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "저장" } }
+      }
+    },
+    "verseDetail.save.accessibility" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save this verse" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "말씀 저장하기" } }
+      }
+    },
+    "verseDetail.meditation.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Journal" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "묵상" } }
+      }
+    },
+    "verseDetail.meditation.accessibility" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go to Journal tab" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "묵상 탭으로 이동" } }
+      }
+    },
+    "verseDetail.close.accessibility" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Close" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "닫기" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
