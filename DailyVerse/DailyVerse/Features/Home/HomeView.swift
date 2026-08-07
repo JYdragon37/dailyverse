@@ -10,7 +10,7 @@ struct HomeView: View {
     @EnvironmentObject private var greetingService: GreetingService
     @ObservedObject private var nicknameManager = NicknameManager.shared
     // Design Ref: §7-1 — 언어 설정 읽기
-    @AppStorage("greetingLanguage") private var greetingLanguagePref: String = "ko"
+    @AppStorage("appLanguage") private var greetingLanguagePref: String = "ko"
 
     @State private var showVerseDetail = false
     @State private var showLoginPrompt = false
@@ -299,7 +299,7 @@ struct HomeView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.30))
                     .frame(width: 20, height: 1)
-                Text(greetingLanguagePref == "en" ? "Read More" : "말씀 깊게 보기")
+                Text(appLanguageString("verse.readMore"))
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.white.opacity(0.45))
                 Image(systemName: "chevron.up")
