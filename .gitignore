@@ -49,4 +49,8 @@ DailyVerse_iPhone_Wallpapers_*.zip
 
 # API Keys (xcconfig)
 **/Secrets.xcconfig
+*.p8
 functions/node_modules/
+
+# 서브에이전트 실행용 워크트리 (superpowers:using-git-worktrees)
+.worktrees/
