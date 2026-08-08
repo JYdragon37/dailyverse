@@ -100,14 +100,14 @@ struct CoachMarkOverlay: View {
         let (icon, title, desc): (String, String, String) = {
             switch step {
             case .greeting:
-                return ("🌐", "언어를 바꿀 수 있어요",
-                        "프로필 탭에서 인사말 언어를\nKorean / English로 변경할 수 있어요")
+                return ("🌐", appLanguageString("coachMark.greeting.title"),
+                        appLanguageString("coachMark.greeting.desc"))
             case .weather:
-                return ("🌤️", "날씨를 탭해보세요",
-                        "날씨를 누르면 상세 정보와\n시간대별 예보를 확인할 수 있어요")
+                return ("🌤️", appLanguageString("coachMark.weather.title"),
+                        appLanguageString("coachMark.weather.desc"))
             case .verse:
-                return ("📖", "말씀을 탭해보세요",
-                        "'말씀 깊게 보기'를 누르면\n해석과 일상 적용까지 볼 수 있어요")
+                return ("📖", appLanguageString("coachMark.verse.title"),
+                        appLanguageString("coachMark.verse.desc"))
             }
         }()
 
@@ -148,7 +148,7 @@ struct CoachMarkOverlay: View {
                     Spacer()
                     // 다음 / 완료
                     Button(action: advance) {
-                        Text(step == .verse ? "완료" : "다음 →")
+                        Text(step == .verse ? appLanguageString("coachMark.done") : appLanguageString("coachMark.next"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 16)

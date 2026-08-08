@@ -119,7 +119,7 @@ class WeatherService: WeatherServiceProtocol {
         }
 
         let dustGrade = aqiDesc ?? "보통"
-        let cityName = await reverseGeocode(location) ?? "현재 위치"
+        let cityName = await reverseGeocode(location) ?? appLanguageString("weather.currentLocation")
 
         return WeatherData(
             temperature: Int(current.temperature.converted(to: .celsius).value.rounded()),
@@ -441,10 +441,12 @@ class WeatherService: WeatherServiceProtocol {
     // MARK: - Geocoding
 
     private func reverseGeocode(_ location: CLLocation) async -> String? {
+        // appLanguage에 맞는 로케일로 지명 반환 (en → "San Francisco", ko → "서울 강남구")
+        let appLang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
+        let geocodeLocale = Locale(identifier: appLang == "en" ? "en_US" : "ko_KR")
         return await withCheckedContinuation { continuation in
-            // ko_KR locale → 한국어 도시명 반환 (서울, 강남구 등)
             CLGeocoder().reverseGeocodeLocation(location,
-                                                preferredLocale: Locale(identifier: "ko_KR")) { placemarks, _ in
+                                                preferredLocale: geocodeLocale) { placemarks, _ in
                 let name = placemarks?.first.flatMap {
                     [$0.locality, $0.subLocality].compactMap { $0 }.joined(separator: " ")
                 }
