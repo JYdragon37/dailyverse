@@ -544,8 +544,8 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var appInfoRows: some View {
-        Link(destination: URL(string: "https://jydragon37.github.io/dailyverse/legal/terms.html")!) {
-            row(icon: "doc.text.fill", iconColor: Color(hex: "#8B8B9A"), title: "이용약관") {
+        Link(destination: URL(string: greetingLanguage == "en" ? "https://jydragon37.github.io/dailyverse/legal/terms-en.html" : "https://jydragon37.github.io/dailyverse/legal/terms.html")!) {
+            row(icon: "doc.text.fill", iconColor: Color(hex: "#8B8B9A"), title: appLanguageString("settings.legal.terms")) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.25))
@@ -555,8 +555,8 @@ struct SettingsView: View {
 
         rowDivider
 
-        Link(destination: URL(string: "https://jydragon37.github.io/dailyverse/legal/privacy.html")!) {
-            row(icon: "lock.shield.fill", iconColor: Color(hex: "#5E9CF5"), title: "개인정보처리방침") {
+        Link(destination: URL(string: greetingLanguage == "en" ? "https://jydragon37.github.io/dailyverse/legal/privacy-en.html" : "https://jydragon37.github.io/dailyverse/legal/privacy.html")!) {
+            row(icon: "lock.shield.fill", iconColor: Color(hex: "#5E9CF5"), title: appLanguageString("settings.legal.privacy")) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.25))
