@@ -115,7 +115,7 @@ struct DevotionCompleteView: View {
     // MARK: - 2. Completion Message
 
     private var completionMessage: some View {
-        Text("오늘의 묵상을 마쳤어요")
+        Text(appLanguageString("meditation.completedMessage"))
             .font(.system(size: 20, weight: .bold))
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
@@ -124,7 +124,7 @@ struct DevotionCompleteView: View {
     // MARK: - 3. Streak Counter
 
     private var streakCounter: some View {
-        Text("🔥 \(streakManager.currentStreak)일 연속 묵상!")
+        Text(appLanguageString("meditation.streakCounter", args: streakManager.currentStreak))
             .font(.system(size: 22, weight: .semibold))
             .foregroundColor(.dvAccentGold)
             .multilineTextAlignment(.center)
@@ -262,7 +262,7 @@ private struct Streak7UpsellSheet: View {
                 Text("7일 연속 묵상 달성!")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.primary)
-                Text("지난 말씀을 언제든 되돌아보고\n광고 없이 묵상을 이어가세요")
+                Text(appLanguageString("meditation.premiumUpsell"))
                     .font(.system(size: 15))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -281,7 +281,7 @@ private struct Streak7UpsellSheet: View {
                         .background(Color.dvAccentGold).cornerRadius(14)
                 }
                 Button { isPresented = false } label: {
-                    Text("나중에")
+                    Text(appLanguageString("meditation.later"))
                         .font(.dvBody).foregroundColor(.secondary)
                 }
             }

@@ -57,19 +57,19 @@ struct MeditationWriteSheet: View {
                     .padding(.bottom, 60)
                 }
             }
-            .navigationTitle(isEditing ? "묵상 편집" : "오늘의 묵상")
+            .navigationTitle(isEditing ? appLanguageString("meditation.editEntry") : appLanguageString("meditation.today"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("취소") {
+                    Button(appLanguageString("common.cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.white.opacity(0.6))
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("저장") {
+                    Button(appLanguageString("alarmEdit.save")) {
                         handleSave()
                     }
                     .foregroundColor(isSaveDisabled ? .white.opacity(0.25) : .dvAccentGold)
@@ -88,7 +88,7 @@ struct MeditationWriteSheet: View {
 
     private var todayVerseCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("묵상 한 구절")
+            Text(appLanguageString("meditation.versePassage"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.4))
 
@@ -138,12 +138,12 @@ struct MeditationWriteSheet: View {
 
     private var meditationSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("묵상")
+            Text(appLanguageString("tab.journal"))
                 .font(.dvUITitle)
                 .foregroundColor(.white.opacity(0.85))
 
             TextField(
-                "오늘 말씀에서 받은 것, 느낀 것, 기도하고 싶은 것을 자유롭게 적어보세요",
+                appLanguageString("meditation.combinedPlaceholder"),
                 text: $combinedText,
                 axis: .vertical
             )
@@ -164,10 +164,10 @@ struct MeditationWriteSheet: View {
     private var gratitudeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
-                Text("오늘 감사한 것")
+                Text(appLanguageString("meditation.gratitudeToday"))
                     .font(.dvUITitle)
                     .foregroundColor(.white.opacity(0.85))
-                Text("(선택)")
+                Text(appLanguageString("meditation.optional"))
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.35))
                 Spacer()
@@ -178,7 +178,7 @@ struct MeditationWriteSheet: View {
                     .font(.system(size: 16))
                     .padding(.top, 12)
 
-                TextField("감사한 것을 자유롭게 적어보세요", text: $gratitudeText, axis: .vertical)
+                TextField(appLanguageString("meditation.gratitudeFreePlaceholder"), text: $gratitudeText, axis: .vertical)
                     .font(.dvBody)
                     .foregroundColor(.white.opacity(0.85))
                     .tint(.dvAccentGold)

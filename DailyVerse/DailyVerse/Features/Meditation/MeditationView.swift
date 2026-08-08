@@ -15,7 +15,7 @@ struct MeditationView: View {
     var body: some View {
         NavigationStack {
             DevotionHomeView()
-                .navigationTitle("묵상")
+                .navigationTitle(appLanguageString("tab.journal"))
                 .navigationBarTitleDisplayMode(.large)
                 .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
                 .toolbarColorScheme(.dark, for: .navigationBar)
@@ -34,18 +34,18 @@ private struct TodayVerseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("오늘의 묵상")
+            Text(appLanguageString("meditation.today"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.45))
 
             if let verse = verse {
-                Text(verse.verseShortKo)
+                Text(verse.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"))
                     .font(.custom("PretendardVariable", size: 17))
                     .foregroundColor(.white.opacity(0.9))
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(verse.reference)
+                Text(verse.referenceDisplay)
                     .font(.dvCaption)
                     .foregroundColor(.dvAccentGold)
             } else {
@@ -101,12 +101,12 @@ private struct QuickMeditationCard: View {
 
     private var emptyCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("오늘 묵상")
+            Text(appLanguageString("meditation.todayShort"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.45))
 
             // 인라인 TextField
-            TextField("오늘 이 말씀이 어떻게 다가왔나요...", text: $quickText, axis: .vertical)
+            TextField(appLanguageString("meditation.quickPlaceholder"), text: $quickText, axis: .vertical)
                 .font(.dvBody)
                 .foregroundColor(.white)
                 .tint(.dvAccentGold)
@@ -122,7 +122,7 @@ private struct QuickMeditationCard: View {
             HStack {
                 // 읽었어요 (입력 없이 저장)
                 Button(action: onSaveRead) {
-                    Text("읽었어요")
+                    Text(appLanguageString("meditation.readIt"))
                         .font(.dvCaption)
                         .foregroundColor(.white.opacity(0.35))
                 }
@@ -131,7 +131,7 @@ private struct QuickMeditationCard: View {
                 Spacer()
 
                 Button(action: onSave) {
-                    Text("저장")
+                    Text(appLanguageString("alarmEdit.save"))
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(isSaveEnabled ? .dvAccentGold : .dvAccentGold.opacity(0.3))
                 }
@@ -164,7 +164,7 @@ private struct QuickMeditationCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 // 상단: 완료 레이블 + 편집 힌트
                 HStack {
-                    Text("오늘 묵상 ✓")
+                    Text(appLanguageString("meditation.completedToday"))
                         .font(.dvCaption)
                         .foregroundColor(.dvAccentGold)
                     Spacer()
@@ -182,7 +182,7 @@ private struct QuickMeditationCard: View {
                         .fixedSize(horizontal: false, vertical: true)
 
                     if entry.prayerItems.count > 1 {
-                        Text("외 \(entry.prayerItems.count - 1)개 더")
+                        Text(appLanguageString("meditation.andMore", args: entry.prayerItems.count - 1))
                             .font(.dvCaption)
                             .foregroundColor(.white.opacity(0.35))
                     }
@@ -193,7 +193,7 @@ private struct QuickMeditationCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
                             .font(.system(size: 11, weight: .medium))
-                        Text("추가")
+                        Text(appLanguageString("meditation.add"))
                             .font(.dvCaption)
                     }
                     .foregroundColor(.white.opacity(0.45))
@@ -238,7 +238,7 @@ private struct StreakSection: View {
                         .foregroundColor(.dvAccentGold)
                 }
                 Spacer()
-                Text("연속 묵상")
+                Text(appLanguageString("meditation.streak"))
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.45))
             }
@@ -316,12 +316,12 @@ private struct RecentMeditationsSection: View {
         VStack(alignment: .leading, spacing: 12) {
             // 헤더
             HStack {
-                Text("최근 묵상")
+                Text(appLanguageString("meditation.recent"))
                     .font(.dvSectionTitle)
                     .foregroundColor(.white.opacity(0.55))
                 Spacer()
                 Button(action: onShowAll) {
-                    Text("전체보기")
+                    Text(appLanguageString("meditation.viewAll"))
                         .font(.dvCaption)
                         .foregroundColor(.dvAccentGold)
                 }
@@ -405,7 +405,7 @@ private struct FullHistorySheet: View {
                         Image(systemName: "text.book.closed")
                             .font(.system(size: 40))
                             .foregroundColor(.white.opacity(0.25))
-                        Text("아직 지난 묵상이 없어요")
+                        Text(appLanguageString("meditation.noEntries"))
                             .font(.dvBody)
                             .foregroundColor(.white.opacity(0.45))
                     }
@@ -433,13 +433,13 @@ private struct FullHistorySheet: View {
                     }
                 }
             }
-            .navigationTitle("전체 묵상")
+            .navigationTitle(appLanguageString("meditation.allEntries"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.dvBgDeep, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("닫기") { dismiss() }
+                    Button(appLanguageString("verseDetail.close.accessibility")) { dismiss() }
                         .foregroundColor(.dvAccentGold)
                 }
             }
@@ -468,7 +468,7 @@ private struct LockedMeditationCard: View {
                 Text(formattedDate)
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.35))
-                Text("지난 묵상을 되돌아보려면 Premium이 필요해요")
+                Text(appLanguageString("meditation.premiumPrompt"))
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.30))
             }
@@ -516,7 +516,7 @@ private struct HistoryEntryCard: View {
                     .foregroundColor(.white.opacity(0.55))
                 Spacer()
                 if answeredCount > 0 {
-                    Text("응답됨 \(answeredCount)개")
+                    Text(appLanguageString("meditation.answeredCount", args: answeredCount))
                         .font(.dvCaption)
                         .foregroundColor(.dvAccentGold)
                         .padding(.horizontal, 8)

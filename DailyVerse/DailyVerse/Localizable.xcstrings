@@ -2560,6 +2560,726 @@
           }
         }
       }
+    },
+    "meditation.response": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meditation Response"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상 응답"
+          }
+        }
+      }
+    },
+    "meditation.loginToSave": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to save your meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상을 저장하려면 로그인이 필요해요"
+          }
+        }
+      }
+    },
+    "meditation.dailyApplication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌱 Daily Application"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌱 묵상 일상 적용"
+          }
+        }
+      }
+    },
+    "meditation.applicationFallback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where might you recall this verse in your day today?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 이 말씀을 삶 속 어느 순간에 떠올릴 수 있을까요?"
+          }
+        }
+      }
+    },
+    "meditation.question": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💬 Meditation Question"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💬 묵상 질문"
+          }
+        }
+      }
+    },
+    "meditation.questionFallback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How did this verse speak to your life today?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 말씀이 오늘 나의 삶에 어떻게 다가왔나요?"
+          }
+        }
+      }
+    },
+    "meditation.onelinePrayer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🙏 A Short Prayer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🙏 한 줄 기도"
+          }
+        }
+      }
+    },
+    "meditation.prayerPrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a prayer that came to mind during your meditation."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 묵상하며 떠오른 기도를 적어보세요."
+          }
+        }
+      }
+    },
+    "meditation.prayerPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lord, ..."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "주님, ..."
+          }
+        }
+      }
+    },
+    "meditation.charCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / 150 characters"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / 150자"
+          }
+        }
+      }
+    },
+    "meditation.gratitudePrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write 3 things you are grateful for today."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 감사한 것 3가지를 적어보세요."
+          }
+        }
+      }
+    },
+    "meditation.gratitudePlaceholder1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A warm cup of coffee this morning"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 마신 따뜻한 커피 한 잔"
+          }
+        }
+      }
+    },
+    "meditation.gratitudePlaceholder2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A kind word from someone who cared"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나를 걱정해준 누군가의 말 한마디"
+          }
+        }
+      }
+    },
+    "meditation.gratitudePlaceholder3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A day that passed safely and well"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "별 탈 없이 무사히 지낸 하루"
+          }
+        }
+      }
+    },
+    "meditation.editEntry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상 편집"
+          }
+        }
+      }
+    },
+    "meditation.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's Meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 묵상"
+          }
+        }
+      }
+    },
+    "meditation.versePassage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verse for Meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상 한 구절"
+          }
+        }
+      }
+    },
+    "meditation.combinedPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freely write what you received, felt, or want to pray about from today's verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 말씀에서 받은 것, 느낀 것, 기도하고 싶은 것을 자유롭게 적어보세요"
+          }
+        }
+      }
+    },
+    "meditation.gratitudeToday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grateful for Today"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 감사한 것"
+          }
+        }
+      }
+    },
+    "meditation.optional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(Optional)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(선택)"
+          }
+        }
+      }
+    },
+    "meditation.gratitudeFreePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write freely what you are grateful for"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "감사한 것을 자유롭게 적어보세요"
+          }
+        }
+      }
+    },
+    "meditation.todayShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 묵상"
+          }
+        }
+      }
+    },
+    "meditation.quickPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How did this verse speak to you today..."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 이 말씀이 어떻게 다가왔나요..."
+          }
+        }
+      }
+    },
+    "meditation.readIt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked as Read"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "읽었어요"
+          }
+        }
+      }
+    },
+    "meditation.andMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d more"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "외 %d개 더"
+          }
+        }
+      }
+    },
+    "meditation.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "추가"
+          }
+        }
+      }
+    },
+    "meditation.streak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meditation Streak"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연속 묵상"
+          }
+        }
+      }
+    },
+    "meditation.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Meditations"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 묵상"
+          }
+        }
+      }
+    },
+    "meditation.viewAll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View All"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체보기"
+          }
+        }
+      }
+    },
+    "meditation.allEntries": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Meditations"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 묵상"
+          }
+        }
+      }
+    },
+    "meditation.premiumPrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premium is required to look back on past meditations"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지난 묵상을 되돌아보려면 Premium이 필요해요"
+          }
+        }
+      }
+    },
+    "meditation.answeredCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d answered"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "응답됨 %d개"
+          }
+        }
+      }
+    },
+    "meditation.readingPrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How did this verse speak to you today?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 말씀이 오늘 나에게 어떻게 다가왔나요?"
+          }
+        }
+      }
+    },
+    "meditation.readingSection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✏️ Read the Verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✏️ 말씀 읽기"
+          }
+        }
+      }
+    },
+    "meditation.translationCredit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KJV"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개역한글"
+          }
+        }
+      }
+    },
+    "meditation.completedMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've completed today's meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 묵상을 마쳤어요"
+          }
+        }
+      }
+    },
+    "meditation.streakCounter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔥 %d day meditation streak!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔥 %d일 연속 묵상!"
+          }
+        }
+      }
+    },
+    "meditation.premiumUpsell": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look back on past verses anytime\nand keep meditating without ads"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지난 말씀을 언제든 되돌아보고\n광고 없이 묵상을 이어가세요"
+          }
+        }
+      }
+    },
+    "meditation.later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나중에"
+          }
+        }
+      }
+    },
+    "meditation.editedMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your meditation has been updated"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상이 수정됐어요"
+          }
+        }
+      }
+    },
+    "meditation.returningToDiary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heading back to your diary"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다이어리로 돌아갈게요"
+          }
+        }
+      }
+    },
+    "meditation.toast.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📶 You are offline. It will save automatically once reconnected"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📶 오프라인 상태예요. 연결되면 자동으로 저장돼요"
+          }
+        }
+      }
+    },
+    "meditation.toast.stoodBeforeWord": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You stood before the Word again today 🙏"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘도 말씀 앞에 섰어요 🙏"
+          }
+        }
+      }
+    },
+    "meditation.toast.markedRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verse marked as read ✓"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "말씀을 읽었어요 ✓"
+          }
+        }
+      }
+    },
+    "meditation.toast.prayerAnswered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🙏 Your prayer was answered"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🙏 기도에 응답하셨네요"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

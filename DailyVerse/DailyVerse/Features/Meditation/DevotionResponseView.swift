@@ -27,6 +27,7 @@ struct DevotionResponseView: View {
     @State private var gratitude2: String = ""
     @State private var gratitude3: String = ""
     @State private var showComplete: Bool = false
+    @State private var showLoginPrompt: Bool = false   // 비로그인 저장 시도 시 로그인 유도
 
     // MARK: - Body
 
@@ -70,7 +71,7 @@ struct DevotionResponseView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
-                    Text("묵상 응답")
+                    Text(appLanguageString("meditation.response"))
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.white)
                     Text(formattedDate)
@@ -78,6 +79,21 @@ struct DevotionResponseView: View {
                         .foregroundColor(.white.opacity(0.5))
                 }
             }
+        }
+        .sheet(isPresented: $showLoginPrompt) {
+            LoginPromptSheet(
+                onLogin: { Task { await authManager.signIn() } },
+                onDismiss: { showLoginPrompt = false },
+                message: appLanguageString("meditation.loginToSave"),
+                icon: "text.book.closed.fill"
+            )
+        }
+        // 로그인 성공(Apple/Google) 시 시트 닫고 저장 이어서 진행
+        .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+            guard isLoggedIn else { return }
+            let wasPrompting = showLoginPrompt
+            showLoginPrompt = false
+            if wasPrompting { handleComplete() }
         }
         .fullScreenCover(isPresented: $showComplete) {
             if isEditMode {
@@ -97,12 +113,14 @@ struct DevotionResponseView: View {
 
     private var applianceSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("🌱 묵상 일상 적용")
+            sectionHeader(appLanguageString("meditation.dailyApplication"))
 
             VStack(alignment: .leading, spacing: 8) {
+                let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
                 let appliance = verse.flatMap { v in
-                    v.application.isEmpty ? nil : v.application
-                } ?? "오늘 이 말씀을 삶 속 어느 순간에 떠올릴 수 있을까요?"
+                    let text = v.applicationText(lang: lang)
+                    return text.isEmpty ? nil : text
+                } ?? appLanguageString("meditation.applicationFallback")
 
                 // #11: 닉네임 prefix
                 let nickname = NicknameManager.shared.nickname
@@ -127,12 +145,14 @@ struct DevotionResponseView: View {
 
     private var questionSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("💬 묵상 질문")
+            sectionHeader(appLanguageString("meditation.question"))
 
             VStack(alignment: .leading, spacing: 8) {
+                let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
                 let question = verse.flatMap { v in
-                    v.question?.isEmpty == false ? v.question : nil
-                } ?? "이 말씀이 오늘 나의 삶에 어떻게 다가왔나요?"
+                    let text = v.questionText(lang: lang)
+                    return text?.isEmpty == false ? text : nil
+                } ?? appLanguageString("meditation.questionFallback")
 
                 Text(question)
                     .font(.system(size: 16, weight: .regular))
@@ -155,14 +175,14 @@ struct DevotionResponseView: View {
 
     private var prayerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("🙏 한 줄 기도")
+            sectionHeader(appLanguageString("meditation.onelinePrayer"))
 
-            Text("오늘 묵상하며 떠오른 기도를 적어보세요.")
+            Text(appLanguageString("meditation.prayerPrompt"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.55))
 
             VStack(alignment: .trailing, spacing: 6) {
-                TextField("주님, ...", text: $prayer, axis: .vertical)
+                TextField(appLanguageString("meditation.prayerPlaceholder"), text: $prayer, axis: .vertical)
                     .font(.dvBody)
                     .foregroundColor(.white)
                     .tint(.dvAccentGold)
@@ -180,7 +200,7 @@ struct DevotionResponseView: View {
                         }
                     }
 
-                Text("\(prayer.count) / 150자")
+                Text(appLanguageString("meditation.charCount", args: prayer.count))
                     .font(.dvCaption)
                     .foregroundColor(prayer.count > 0 && prayer.count < 5
                                      ? Color.orange.opacity(0.8)
@@ -198,16 +218,16 @@ struct DevotionResponseView: View {
 
     private var gratitudeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("🌿 감사한 것")
+            sectionHeader(appLanguageString("meditation.gratitude"))
 
-            Text("오늘 감사한 것 3가지를 적어보세요.")
+            Text(appLanguageString("meditation.gratitudePrompt"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.55))
 
             VStack(spacing: 8) {
-                gratitudeField(index: 1, text: $gratitude1, focus: .g1, placeholder: "오늘 마신 따뜻한 커피 한 잔")
-                gratitudeField(index: 2, text: $gratitude2, focus: .g2, placeholder: "나를 걱정해준 누군가의 말 한마디")
-                gratitudeField(index: 3, text: $gratitude3, focus: .g3, placeholder: "별 탈 없이 무사히 지낸 하루")
+                gratitudeField(index: 1, text: $gratitude1, focus: .g1, placeholder: appLanguageString("meditation.gratitudePlaceholder1"))
+                gratitudeField(index: 2, text: $gratitude2, focus: .g2, placeholder: appLanguageString("meditation.gratitudePlaceholder2"))
+                gratitudeField(index: 3, text: $gratitude3, focus: .g3, placeholder: appLanguageString("meditation.gratitudePlaceholder3"))
             }
             .padding(12)
             .background(
@@ -245,6 +265,13 @@ struct DevotionResponseView: View {
     // MARK: - Complete Handler
 
     private func handleComplete() {
+        // 묵상 기록은 계정에 저장되는 개인 데이터 → 비로그인 시 로그인 유도
+        // (저장 시점 게이팅 — 열람/작성은 게스트 허용, 저장만 로그인 필요)
+        guard authManager.isLoggedIn, let uid = authManager.userId else {
+            showLoginPrompt = true
+            return
+        }
+
         // 기도 최소 5자 미만이면 빈값으로 처리
         let trimmedPrayer = prayer.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalPrayer = trimmedPrayer.count >= 5 ? trimmedPrayer : ""
@@ -257,7 +284,7 @@ struct DevotionResponseView: View {
 
         Task {
             await viewModel.saveGuided(
-                userId: authManager.userId ?? "local",
+                userId: uid,
                 prayer: finalPrayer,
                 readingText: readingText,
                 prayerItems: prayerItems

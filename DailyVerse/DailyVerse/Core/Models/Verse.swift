@@ -30,6 +30,8 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
     let verseFullEn: String?
     let interpretationEn: String?
     let applicationEn: String?
+    let questionEn: String? = nil
+    let alarmTopEn: String? = nil
 
     // v5.1 — cooldown 로직용
     let lastShown: String?      // "YYYY-MM-DD"
@@ -53,6 +55,8 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         case verseFullEn = "verse_full_en"
         case interpretationEn = "interpretation_en"
         case applicationEn = "application_en"
+        case questionEn = "question_en"
+        case alarmTopEn = "alarm_top_en"
     }
 
     // MARK: - Cooldown 헬퍼
@@ -251,6 +255,12 @@ extension Verse {
     }
     func applicationText(lang: String) -> String {
         lang == "en" ? (applicationEn ?? application) : application
+    }
+    func questionText(lang: String) -> String? {
+        lang == "en" ? (questionEn ?? question) : question
+    }
+    func alarmTopText(lang: String) -> String? {
+        lang == "en" ? (alarmTopEn ?? alarmTopKo) : alarmTopKo
     }
 
     /// reference(예: "갈라디아서 5:22-23")의 영어 버전이 별도 필드로 없어서,

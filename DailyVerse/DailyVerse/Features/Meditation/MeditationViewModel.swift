@@ -136,10 +136,10 @@ final class MeditationViewModel: ObservableObject {
                 applyEntry(existing, userId: uid, recordStreak: false)
             } catch {
                 applyEntry(existing, userId: uid, recordStreak: false)
-                showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
+                showToast(appLanguageString("meditation.toast.offline"))
                 return
             }
-            showToast("오늘도 말씀 앞에 섰어요 🙏")
+            showToast(appLanguageString("meditation.toast.stoodBeforeWord"))
         } else {
             // 없으면 새 MeditationEntry 생성
             let mode = AppMode.current()
@@ -162,10 +162,10 @@ final class MeditationViewModel: ObservableObject {
                 applyEntry(entry, userId: uid)
             } catch {
                 applyEntry(entry, userId: uid)
-                showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
+                showToast(appLanguageString("meditation.toast.offline"))
                 return
             }
-            showToast("오늘도 말씀 앞에 섰어요 🙏")
+            showToast(appLanguageString("meditation.toast.stoodBeforeWord"))
         }
     }
 
@@ -194,7 +194,7 @@ final class MeditationViewModel: ObservableObject {
         } catch {
             applyEntry(entry, userId: uid)
         }
-        showToast("말씀을 읽었어요 ✓")
+        showToast(appLanguageString("meditation.toast.markedRead"))
     }
 
     // MARK: - Full Save (WriteSheet)
@@ -225,10 +225,10 @@ final class MeditationViewModel: ObservableObject {
         do {
             try await repository.save(entry)
             applyEntry(entry, userId: userId)
-            showToast("오늘도 말씀 앞에 섰어요 🙏")
+            showToast(appLanguageString("meditation.toast.stoodBeforeWord"))
         } catch {
             applyEntry(entry, userId: userId)
-            showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
+            showToast(appLanguageString("meditation.toast.offline"))
         }
         showWriteSheet = false
     }
@@ -256,7 +256,7 @@ final class MeditationViewModel: ObservableObject {
             updated.prayerItems[idx].unmarkAnswered()
         } else {
             updated.prayerItems[idx].markAnswered()
-            showToast("🙏 기도에 응답하셨네요")
+            showToast(appLanguageString("meditation.toast.prayerAnswered"))
         }
         updated.updatedAt = Date()
         try? await repository.save(updated)
@@ -287,7 +287,7 @@ final class MeditationViewModel: ObservableObject {
                 applyEntry(existing, userId: uid, recordStreak: false)
             } catch {
                 applyEntry(existing, userId: uid, recordStreak: false)
-                showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
+                showToast(appLanguageString("meditation.toast.offline"))
                 return
             }
         } else {
@@ -310,7 +310,7 @@ final class MeditationViewModel: ObservableObject {
                 applyEntry(entry, userId: uid)
             } catch {
                 applyEntry(entry, userId: uid)
-                showToast("📶 오프라인 상태예요. 연결되면 자동으로 저장돼요")
+                showToast(appLanguageString("meditation.toast.offline"))
                 return
             }
         }

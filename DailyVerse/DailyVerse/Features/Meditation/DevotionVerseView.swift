@@ -62,7 +62,7 @@ struct DevotionVerseView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
-                    Text("오늘의 묵상")
+                    Text(appLanguageString("meditation.today"))
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.white)
                     Text(formattedDate)
@@ -77,7 +77,7 @@ struct DevotionVerseView: View {
 
     private var verseCard: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            Text(verse?.verseShortKo ?? "말씀을 불러오는 중이에요...")
+            Text(verse?.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko") ?? appLanguageString("saved.loading"))
                 .font(contentFont)
                 .foregroundColor(contentColor)
                 .lineSpacing(17 * 0.7)
@@ -94,7 +94,7 @@ struct DevotionVerseView: View {
     // MARK: - 2. 텍스트 입력
 
     private var writingInput: some View {
-        TextField("이 말씀이 오늘 나에게 어떻게 다가왔나요?", text: $readingText, axis: .vertical)
+        TextField(appLanguageString("meditation.readingPrompt"), text: $readingText, axis: .vertical)
             .font(contentFont)
             .foregroundColor(.white)
             .tint(.dvAccentGold)
@@ -116,9 +116,10 @@ struct DevotionVerseView: View {
 
     private var readingSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            verseSectionHeader("✏️ 말씀 읽기")
+            verseSectionHeader(appLanguageString("meditation.readingSection"))
 
-            let readingTarget = verse?.verseFullKo ?? verse?.verseShortKo ?? ""  // 개역한글 원문 통일
+            let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
+            let readingTarget = verse?.verseFull(lang: lang) ?? verse?.verseShort(lang: lang) ?? ""  // 개역한글/KJV 원문 통일
             if !readingTarget.isEmpty {
                 VStack(alignment: .trailing, spacing: 12) {
                     Text(readingTarget)
@@ -130,12 +131,12 @@ struct DevotionVerseView: View {
 
                     // 오늘의 묵상 카드와 동일한 출처 표기
                     VStack(alignment: .trailing, spacing: 4) {
-                        if let reference = verse?.reference {
+                        if let reference = verse?.referenceDisplay {
                             Text("— \(reference)")
                                 .font(.dvReference)
                                 .foregroundColor(.dvAccentGold)
                         }
-                        Text("개역한글")
+                        Text(appLanguageString("meditation.translationCredit"))
                             .font(.dvCaption)
                             .foregroundColor(.white.opacity(0.45))
                     }

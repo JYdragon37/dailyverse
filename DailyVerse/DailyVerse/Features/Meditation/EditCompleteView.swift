@@ -39,10 +39,10 @@ struct EditCompleteView: View {
 
                 // 완료 메시지
                 VStack(spacing: 8) {
-                    Text("묵상이 수정됐어요")
+                    Text(appLanguageString("meditation.editedMessage"))
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
-                    Text("다이어리로 돌아갈게요")
+                    Text(appLanguageString("meditation.returningToDiary"))
                         .font(.system(size: 14))
                         .foregroundColor(.white.opacity(0.45))
                 }
