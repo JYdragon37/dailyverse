@@ -27,7 +27,7 @@ struct SavedView: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 contentBody
-                    .navigationTitle("말씀들")
+                    .navigationTitle(appLanguageString("tab.verses"))
                     .navigationBarTitleDisplayMode(.large)
                     .toolbarColorScheme(.dark, for: .navigationBar)
                     .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
@@ -51,7 +51,7 @@ struct SavedView: View {
                             .progressViewStyle(.circular)
                             .tint(.dvAccentGold)
                             .scaleEffect(1.3)
-                        Text("광고 준비 중...")
+                        Text(appLanguageString("saved.adLoading"))
                             .font(.system(size: 14))
                             .foregroundColor(.white.opacity(0.7))
                     }
@@ -280,7 +280,7 @@ struct SavedView: View {
     private var loadingView: some View {
         VStack(spacing: 16) {
             ProgressView().scaleEffect(1.2)
-            Text("말씀을 불러오는 중이에요")
+            Text(appLanguageString("saved.loading"))
                 .font(.dvBody).foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -300,13 +300,13 @@ struct SavedView: View {
                 .opacity(0.75)
                 .padding(.bottom, 28)
 
-            Text("저장한 말씀이 여기에 모여요")
+            Text(appLanguageString("saved.empty.notLoggedIn.title"))
                 .font(.dvTitle)
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 8)
 
-            Text("로그인하면 말씀을 저장하고\n언제든 다시 꺼내볼 수 있어요")
+            Text(appLanguageString("saved.empty.notLoggedIn.subtitle"))
                 .font(.dvBody)
                 .foregroundColor(.white.opacity(0.5))
                 .multilineTextAlignment(.center)
@@ -318,7 +318,7 @@ struct SavedView: View {
             Button {
                 showLoginPrompt = true
             } label: {
-                Text("로그인 하기")
+                Text(appLanguageString("saved.login"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
@@ -345,18 +345,18 @@ struct SavedView: View {
                 .opacity(0.75)
                 .padding(.bottom, 28)
 
-            Text("아직 저장된 말씀이 없어요")
+            Text(appLanguageString("saved.empty.noSaves.title"))
                 .font(.dvTitle)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
                 .padding(.bottom, 8)
 
-            Text("말씀 카드의 ♥ 를 눌러 저장해보세요")
+            Text(appLanguageString("saved.empty.noSaves.subtitle"))
                 .font(.dvBody).foregroundColor(.secondary)
                 .multilineTextAlignment(.center).padding(.horizontal, 32)
                 .padding(.bottom, 32)
 
-            Button("홈으로 가기") {
+            Button(appLanguageString("saved.empty.goHome")) {
                 NotificationCenter.default.post(name: .dvSwitchToHomeTab, object: nil)
             }
             .buttonStyle(.bordered)
@@ -480,7 +480,7 @@ private struct SavedCardView: View {
         .onTapGesture { onTap() }
         .contextMenu {
             Button(role: .destructive) { onDelete() } label: {
-                Label("삭제", systemImage: "trash")
+                Label(appLanguageString("alarm.delete"), systemImage: "trash")
             }
         }
         .accessibilityLabel("\(formattedDate) 저장된 말씀")

@@ -81,7 +81,7 @@ struct SavedDetailView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "chevron.up")
                         .font(.system(size: 10, weight: .medium))
-                    Text("해석 보기")
+                    Text(appLanguageString("saved.detail.viewInterpretation"))
                         .font(.system(size: 12, weight: .medium))
                 }
                 .foregroundColor(.white.opacity(0.5))
@@ -184,7 +184,7 @@ struct SavedDetailView: View {
                 // 1. 해석
                 if let interpretation = verseInterpretation {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("해석", systemImage: "text.magnifyingglass")
+                        Label(appLanguageString("verseDetail.interpretation.label"), systemImage: "text.magnifyingglass")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentGold)
                         Text(interpretation)
@@ -202,7 +202,7 @@ struct SavedDetailView: View {
                 // 2. 오늘의 적용 (닉네임 포함)
                 if let application = verseApplication {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("오늘의 적용", systemImage: "sparkles")
+                        Label(appLanguageString("verseDetail.application.label"), systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentSky)
                         Text("\(nicknameManager.nickname), \(application)")
@@ -264,7 +264,7 @@ struct SavedDetailView: View {
                     .background(Color.white.opacity(0.18))
                     .clipShape(Circle())
             }
-            .accessibilityLabel("닫기")
+            .accessibilityLabel(appLanguageString("verseDetail.close.accessibility"))
             .padding(.top, 56)
             .padding(.trailing, 20)
         }
@@ -283,7 +283,7 @@ struct SavedDetailView: View {
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     Button { handleDelete() } label: {
-                        Label("저장 해제", systemImage: "heart.slash.fill")
+                        Label(appLanguageString("saved.detail.unsave"), systemImage: "heart.slash.fill")
                             .font(.system(size: 15, weight: .medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
@@ -292,7 +292,7 @@ struct SavedDetailView: View {
                     }
                     .foregroundColor(.white)
                     .disabled(!buttonsEnabled)
-                    .accessibilityLabel("이 말씀 저장 해제")
+                    .accessibilityLabel(appLanguageString("saved.detail.unsave.accessibility"))
 
                     Button {
                         handleShare()
@@ -304,7 +304,7 @@ struct SavedDetailView: View {
                                 .background(Color.white.opacity(0.15))
                                 .cornerRadius(14)
                         } else {
-                            Label("공유", systemImage: "square.and.arrow.up")
+                            Label(appLanguageString("saved.detail.share"), systemImage: "square.and.arrow.up")
                                 .font(.system(size: 15, weight: .medium))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
@@ -314,7 +314,7 @@ struct SavedDetailView: View {
                     }
                     .foregroundColor(.white)
                     .disabled(!buttonsEnabled || isGeneratingShare)
-                    .accessibilityLabel("이 말씀 이미지로 공유하기")
+                    .accessibilityLabel(appLanguageString("saved.detail.share.accessibility"))
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
@@ -334,7 +334,7 @@ struct SavedDetailView: View {
                             } else {
                                 Image(systemName: "square.and.arrow.down").font(.system(size: 13))
                             }
-                            Text(isSavingImage ? "저장 중..." : "이미지 저장")
+                            Text(isSavingImage ? appLanguageString("saved.detail.saving") : appLanguageString("saved.detail.saveImage"))
                                 .font(.dvCaption)
                         }
                         .foregroundColor(.white.opacity(0.6))
@@ -402,7 +402,7 @@ struct SavedDetailView: View {
         Task {
             let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
             guard status == .authorized || status == .limited else {
-                await show(message: "사진 접근 권한이 필요해요. 설정에서 허용해주세요.")
+                await show(message: appLanguageString("saved.detail.photoPermission"))
                 return
             }
             do {
@@ -412,9 +412,9 @@ struct SavedDetailView: View {
                 try await PHPhotoLibrary.shared().performChanges {
                     PHAssetChangeRequest.creationRequestForAsset(from: composited)
                 }
-                await show(message: "사진첩에 저장됐어요 ✓")
+                await show(message: appLanguageString("saved.detail.savedToPhotos"))
             } catch {
-                await show(message: "저장에 실패했어요. 다시 시도해주세요.")
+                await show(message: appLanguageString("saved.detail.saveFailed"))
             }
         }
     }
