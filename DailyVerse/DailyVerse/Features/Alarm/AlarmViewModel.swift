@@ -2,7 +2,6 @@ import SwiftUI
 import Combine
 import AlarmKit
 import FirebaseAnalytics
-import AppTrackingTransparency
 
 @MainActor
 final class AlarmViewModel: ObservableObject {
@@ -36,7 +35,7 @@ final class AlarmViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.toastMessage = "저전력 모드에서는 알람이 작동하지 않을 수 있어요"
+            self?.toastMessage = appLanguageString("alarmVM.lowPowerWarning")
             Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(4))
                 self?.toastMessage = nil
@@ -54,7 +53,6 @@ final class AlarmViewModel: ObservableObject {
 
     func saveAlarm(_ alarm: Alarm) {
         let isNew = !alarms.contains(where: { $0.id == alarm.id })
-        let isFirstEver = isNew && alarms.isEmpty
         do {
             try alarmRepository.save(alarm)
             // Analytics: 신규 생성 vs 수정 구분
@@ -64,9 +62,8 @@ final class AlarmViewModel: ObservableObject {
                 "repeat_days_count": alarm.repeatDays.count
             ])
             let verse = notificationVerse(for: alarm)
-            notificationManager.cancel(alarmId: alarm.id)
+            notificationManager.cancelThenSchedule(alarmId: alarm.id, alarm: alarm, verse: verse)
             if alarm.isEnabled {
-                notificationManager.schedule(alarm, verse: verse)
                 if #available(iOS 26.0, *) {
                     if AlarmManager.shared.authorizationState == .denied {
                         showAlarmKitDeniedAlert = true
@@ -76,15 +73,9 @@ final class AlarmViewModel: ObservableObject {
             AlarmBackgroundService.shared.rescheduleTimers()
             loadAlarms()
             showSavedToast(for: alarm)
-            // ATT 팝업 — 첫 알람 저장 시점 (광고 컨텍스트와 자연스럽게 연결)
-            if isFirstEver, !UserDefaults.standard.bool(forKey: "attRequested") {
-                UserDefaults.standard.set(true, forKey: "attRequested")
-                if #available(iOS 14, *) {
-                    Task { await ATTrackingManager.requestTrackingAuthorization() }
-                }
-            }
+            // ATT 팝업은 온보딩 완료 직후(AppRootView)에서 요청 — 심사자 도달성 확보
         } catch {
-            toastMessage = "알람 저장에 실패했습니다."
+            toastMessage = appLanguageString("alarmVM.saveFailed")
         }
     }
 
@@ -94,13 +85,14 @@ final class AlarmViewModel: ObservableObject {
         guard let alarm = alarms.first(where: { $0.id == id }) else { return }
 
         notificationManager.cancel(alarmId: id)
+        notificationManager.cancelSnooze(alarmId: id)
         alarms.removeAll { $0.id == id }
         // Core Data 즉시 삭제 — onAppear 재로드 시 복구 방지
         try? alarmRepository.delete(id: id)
         AlarmBackgroundService.shared.rescheduleTimers()
         Analytics.logEvent("alarm_deleted", parameters: nil)
         pendingDeleteAlarm = alarm
-        toastMessage = "알람이 삭제되었습니다."
+        toastMessage = appLanguageString("alarmVM.deleted")
 
         undoTask?.cancel()
         undoTask = Task { @MainActor [weak self] in
@@ -124,7 +116,7 @@ final class AlarmViewModel: ObservableObject {
                 notificationManager.schedule(alarm, verse: verse)
             }
         } catch {
-            toastMessage = "되돌리기에 실패했습니다."
+            toastMessage = appLanguageString("alarmVM.undoFailed")
         }
         loadAlarms()
         if toastMessage == nil { toastMessage = nil }
@@ -144,10 +136,12 @@ final class AlarmViewModel: ObservableObject {
             return
         }
 
-        notificationManager.cancel(alarmId: alarm.id)
         if alarm.isEnabled {
             let verse = notificationVerse(for: alarm)
-            notificationManager.schedule(alarm, verse: verse)
+            notificationManager.cancelThenSchedule(alarmId: alarm.id, alarm: alarm, verse: verse)
+        } else {
+            notificationManager.cancel(alarmId: alarm.id)
+            notificationManager.cancelSnooze(alarmId: alarm.id)
         }
         AlarmBackgroundService.shared.rescheduleTimers()
     }
@@ -222,20 +216,21 @@ final class AlarmViewModel: ObservableObject {
 
         let formatter = DateFormatter()
         formatter.dateFormat = "hh:mm a"
-        formatter.locale = Locale(identifier: "ko_KR")
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
+        formatter.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
         let timeStr = formatter.string(from: fireDate)
 
         let mode = AppMode.fromTime(alarm.time)
         let contextMsg: String
         switch mode {
-        case .deepDark:   contextMsg = "이 시간에도 말씀이 함께해요"
-        case .firstLight: contextMsg = "새벽 말씀이 준비됐어요"
-        case .riseIgnite: contextMsg = "새 날이 말씀과 함께 시작됩니다"
-        case .peakMode:   contextMsg = "최고의 순간, 말씀이 함께해요"
-        case .recharge:   contextMsg = "잠깐 쉬며 말씀을 만나봐요"
-        case .secondWind: contextMsg = "오후의 한 호흡, 말씀이 함께해요"
-        case .goldenHour: contextMsg = "하루를 말씀으로 마무리해요"
-        case .windDown:   contextMsg = "오늘도 말씀이 함께했어요"
+        case .deepDark:   contextMsg = appLanguageString("alarmVM.context.deepDark")
+        case .firstLight: contextMsg = appLanguageString("alarmVM.context.firstLight")
+        case .riseIgnite: contextMsg = appLanguageString("alarmVM.context.riseIgnite")
+        case .peakMode:   contextMsg = appLanguageString("alarmVM.context.peakMode")
+        case .recharge:   contextMsg = appLanguageString("alarmVM.context.recharge")
+        case .secondWind: contextMsg = appLanguageString("alarmVM.context.secondWind")
+        case .goldenHour: contextMsg = appLanguageString("alarmVM.context.goldenHour")
+        case .windDown:   contextMsg = appLanguageString("alarmVM.context.windDown")
         }
 
         if isToday {
@@ -243,12 +238,12 @@ final class AlarmViewModel: ObservableObject {
             let hours = Int(totalSeconds / 3600)
             let minutes = Int(totalSeconds.truncatingRemainder(dividingBy: 3600) / 60)
             if hours > 0 {
-                toastMessage = "오늘 \(hours)시간 \(minutes)분 뒤\n\(contextMsg)"
+                toastMessage = appLanguageString("alarmVM.toast.todayHoursMinutes", args: hours, minutes, contextMsg)
             } else {
-                toastMessage = "오늘 \(minutes)분 뒤\n\(contextMsg)"
+                toastMessage = appLanguageString("alarmVM.toast.todayMinutes", args: minutes, contextMsg)
             }
         } else {
-            toastMessage = "내일 \(timeStr)\n\(contextMsg)"
+            toastMessage = appLanguageString("alarmVM.toast.tomorrow", args: timeStr, contextMsg)
         }
 
         // 3초 후 자동 dismiss
@@ -260,7 +255,7 @@ final class AlarmViewModel: ObservableObject {
             if #available(iOS 26.0, *) {
                 self.toastMessage = nil
             } else {
-                self.toastMessage = "앱을 완전히 종료하면\n알람이 울리지 않을 수 있어요"
+                self.toastMessage = appLanguageString("alarmVM.forceQuitWarning")
                 do { try await Task.sleep(for: .seconds(3)) } catch { return }
                 self.toastMessage = nil
             }

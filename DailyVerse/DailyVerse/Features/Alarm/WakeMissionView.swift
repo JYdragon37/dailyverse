@@ -41,7 +41,7 @@ struct WakeMissionView: View {
 
                 // 건너뛰기
                 Button(action: onSkip) {
-                    Text("건너뛰기")
+                    Text(appLanguageString("wakeMission.skip"))
                         .font(.dvCaption)
                         .foregroundColor(.dvTextMuted)
                 }
@@ -71,7 +71,7 @@ struct WakeMissionView: View {
         default:
             // "none" — 즉시 완료 버튼
             Button(action: onComplete) {
-                Text("말씀 보기")
+                Text(appLanguageString("wakeMission.viewVerse"))
                     .font(.dvUISubtitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
@@ -88,23 +88,23 @@ struct WakeMissionView: View {
 
     private var missionTitle: String {
         switch mission {
-        case "shake":  return "폰을 흔들어 깨어나세요"
-        case "math":   return "간단한 수학 문제를 풀어요"
-        case "typing": return "말씀을 직접 타이핑해요"
-        case "word":   return "오늘의 한마디 ✨"
-        case "amen":   return "아멘으로 응답하세요"
-        default:       return "준비되셨나요?"
+        case "shake":  return appLanguageString("wakeMission.title.shake")
+        case "math":   return appLanguageString("wakeMission.title.math")
+        case "typing": return appLanguageString("wakeMission.title.typing")
+        case "word":   return appLanguageString("wakeMission.title.word")
+        case "amen":   return appLanguageString("wakeMission.title.amen")
+        default:       return appLanguageString("wakeMission.title.none")
         }
     }
 
     private var missionDescription: String {
         switch mission {
-        case "shake":  return "3번 세게 흔들면 오늘의 말씀이 열립니다"
-        case "math":   return "정답을 맞히면 오늘의 말씀을 만납니다"
-        case "typing": return "손으로 직접 쓰며 말씀을 마음에 새겨요"
-        case "word":   return "오늘의 한 문장을 그대로 따라 적어보세요"
-        case "amen":   return "'아멘'을 입력하면 말씀 화면으로 넘어갑니다"
-        default:       return "오늘의 말씀이 기다리고 있어요 🌿"
+        case "shake":  return appLanguageString("wakeMission.desc.shake")
+        case "math":   return appLanguageString("wakeMission.desc.math")
+        case "typing": return appLanguageString("wakeMission.desc.typing")
+        case "word":   return appLanguageString("wakeMission.desc.word")
+        case "amen":   return appLanguageString("wakeMission.desc.amen")
+        default:       return appLanguageString("wakeMission.desc.none")
         }
     }
 }
@@ -139,7 +139,9 @@ private struct ShakeMissionContent: View {
                 }
             }
 
-            Text(detector.shakeCount >= requiredShakes ? "완료! 🎉" : "흔들기 \(requiredShakes - detector.shakeCount)번 남았어요")
+            Text(detector.shakeCount >= requiredShakes
+                 ? appLanguageString("wakeMission.shake.done")
+                 : appLanguageString("wakeMission.shake.remaining", args: requiredShakes - detector.shakeCount))
                 .font(.dvBody)
                 .foregroundColor(detector.shakeCount >= requiredShakes ? .dvAccentGold : .dvTextSecondary)
         }
@@ -200,7 +202,7 @@ private struct MathMissionContent: View {
 
             // 답 입력
             VStack(spacing: 8) {
-                TextField("답을 입력하세요", text: $answer)
+                TextField(appLanguageString("wakeMission.math.placeholder"), text: $answer)
                     .font(.system(size: 28, weight: .semibold, design: .rounded))
                     .multilineTextAlignment(.center)
                     .keyboardType(.numberPad)
@@ -211,14 +213,14 @@ private struct MathMissionContent: View {
                     .padding(.horizontal, 48)
 
                 if isWrong {
-                    Text("틀렸어요, 다시 해봐요!")
+                    Text(appLanguageString("wakeMission.math.wrong"))
                         .font(.dvCaption)
                         .foregroundColor(.red.opacity(0.8))
                 }
             }
 
             Button(action: checkAnswer) {
-                Text("확인")
+                Text(appLanguageString("common.confirm"))
                     .font(.dvUISubtitle)
                     .frame(width: 160)
                     .padding(.vertical, 16)
@@ -279,7 +281,8 @@ private struct TypingMissionContent: View {
     private var targetText: String {
         // useShortText: 오늘의 한마디 미션 — 짧은 핵심 문장
         // 기본 typing 미션과 동일하게 verseShortKo 사용
-        verse?.verseShortKo ?? "두려워하지 말라 내가 너와 함께 함이라"
+        verse?.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko")
+            ?? appLanguageString("wakeMission.typing.fallbackVerse")
     }
 
     private var progress: Double {
@@ -317,7 +320,7 @@ private struct TypingMissionContent: View {
             .padding(.horizontal, 32)
 
             // 입력 필드
-            TextField("위 말씀을 타이핑하세요", text: $typedText, axis: .vertical)
+            TextField(appLanguageString("wakeMission.typing.placeholder"), text: $typedText, axis: .vertical)
                 .font(.dvBody)
                 .foregroundColor(.white)
                 .padding(14)
@@ -347,7 +350,7 @@ private struct AmenMissionContent: View {
                 .font(.system(size: 64))
 
             VStack(spacing: 8) {
-                TextField("아멘", text: $amenInput)
+                TextField(appLanguageString("wakeMission.amen.placeholder"), text: $amenInput)
                     .font(.system(size: 28, weight: .medium, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundColor(.white)
@@ -364,14 +367,14 @@ private struct AmenMissionContent: View {
                     .onSubmit { checkAmen() }
 
                 if isWrong {
-                    Text("다시 입력해주세요")
+                    Text(appLanguageString("wakeMission.amen.wrong"))
                         .font(.dvCaption)
                         .foregroundColor(.red.opacity(0.8))
                 }
             }
 
             Button(action: checkAmen) {
-                Text("확인")
+                Text(appLanguageString("common.confirm"))
                     .font(.dvUISubtitle)
                     .frame(width: 140)
                     .padding(.vertical, 16)
@@ -385,7 +388,9 @@ private struct AmenMissionContent: View {
     }
 
     private func checkAmen() {
-        if amenInput.trimmingCharacters(in: .whitespacesAndNewlines) == "아멘" {
+        let expected = appLanguageString("wakeMission.amen.placeholder")
+        let trimmed = amenInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.caseInsensitiveCompare(expected) == .orderedSame || trimmed == "아멘" {
             onComplete()
         } else {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { isWrong = true }

@@ -338,7 +338,7 @@ struct AlarmStage2View: View {
                         )
                         .foregroundColor(.dvAccentGold)
                 }
-                .accessibilityLabel("알람 종료")
+                .accessibilityLabel(appLanguageString("alarmStage2.a11y.stopAlarm"))
             }
         }
         .padding(.horizontal, 20)
@@ -389,9 +389,9 @@ struct AlarmStage2View: View {
             guard let uid = authManager.userId else { return }
             do {
                 try await FirestoreService().saveVerse(savedVerse, userId: uid)
-                showToast("말씀이 저장되었습니다")
+                showToast(appLanguageString("alarmStage2.toast.saved"))
             } catch {
-                showToast("저장에 실패했습니다. 다시 시도해주세요")
+                showToast(appLanguageString("alarmStage2.toast.saveFailed"))
             }
         }
     }
@@ -417,4 +417,130 @@ struct AlarmStage2View: View {
     return AlarmStage2View()
         .environmentObject(coordinator)
         .environmentObject(AuthManager())
+}
+
+// MARK: - VerseReadView
+// Live Activity "말씀 보기" 탭 시 표시 — 알람은 이미 종료됨
+// Stage 2와 동일한 레이아웃이지만 스누즈/일어나기 없이 말씀 + 닫기만
+
+struct VerseReadView: View {
+    @EnvironmentObject private var coordinator: AlarmCoordinator
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var greetingService: GreetingService
+    @AppStorage("greetingLanguage") private var langPref: String = "ko"
+
+    @State private var showVerseDetail = false
+    @State private var isSaved = false
+    @State private var toastMessage: String? = nil
+
+    private var verse: Verse? { coordinator.activeVerse }
+    private var mode: AppMode { coordinator.activeMode }
+
+    var body: some View {
+        backgroundView
+            .overlay { gradientOverlay }
+            .overlay(alignment: .topTrailing) {
+                Button { coordinator.dismissVerseRead() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(20)
+                }
+                .padding(.top, 50)
+            }
+            .overlay {
+                if let verse {
+                    GeometryReader { geo in
+                        let hPad = max(geo.size.width * 0.13, 40.0)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Spacer().frame(height: geo.size.height * 0.35)
+                            ScrollView(.vertical, showsIndicators: false) {
+                                verseCard(verse: verse)
+                                    .padding(.horizontal, hPad)
+                                    .padding(.bottom, 40)
+                            }
+                        }
+                        .frame(width: geo.size.width, height: geo.size.height)
+                    }
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if let message = toastMessage {
+                    ToastView(message: message)
+                        .padding(.bottom, 40)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .sheet(isPresented: $showVerseDetail) {
+                if let verse {
+                    VerseDetailBottomSheet(
+                        verse: verse,
+                        onSave: {},
+                        onMeditation: { showVerseDetail = false },
+                        onClose: { showVerseDetail = false },
+                        showMeditationButton: false,
+                        isSaved: $isSaved
+                    )
+                }
+            }
+            .toolbar(.hidden, for: .tabBar)
+            .navigationBarHidden(true)
+    }
+
+    @ViewBuilder
+    private func verseCard(verse: Verse) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(verse.verseFullKo)
+                .font(.system(size: 20, weight: .light))
+                .foregroundColor(.white)
+                .lineSpacing(6)
+
+            Text(verse.reference)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white.opacity(0.65))
+
+            Button {
+                showVerseDetail = true
+            } label: {
+                HStack(spacing: 4) {
+                    Text(langPref == "en" ? "─ Read More" : "─ 말씀 깊게 보기")
+                        .font(.system(size: 13, weight: .medium))
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.55))
+            }
+            .padding(.top, 4)
+        }
+        .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 3)
+    }
+
+    private var backgroundView: some View {
+        Color.clear.ignoresSafeArea()
+            .background {
+                Group {
+                    if let urlStr = coordinator.activeImage?.storageUrl,
+                       let url = URL(string: urlStr) {
+                        RemoteImageView(url: url) { fallbackGradient }
+                    } else { fallbackGradient }
+                }
+                .ignoresSafeArea()
+            }
+    }
+
+    private var fallbackGradient: some View {
+        LinearGradient(colors: mode.gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+            .ignoresSafeArea()
+    }
+
+    private var gradientOverlay: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [Color.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 200)
+            Spacer()
+            LinearGradient(colors: [.clear, Color.black.opacity(0.65)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 280)
+        }
+        .ignoresSafeArea()
+    }
 }

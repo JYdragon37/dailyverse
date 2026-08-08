@@ -127,7 +127,7 @@ struct AlarmAddEditView: View {
                     Section {
                         Button { showSoundPicker = true } label: {
                             HStack {
-                                Text(AlarmSound.sound(for: soundId).name)
+                                Text(AlarmSound.sound(for: soundId).displayName)
                                     .font(.dvBody)
                                     .foregroundColor(.primary)
                                 Spacer()
@@ -207,22 +207,8 @@ struct AlarmAddEditView: View {
                     Text(appLanguageString("alarmEdit.section.theme")).font(.dvSectionTitle)
                 }
 
-                // ── 웨이크업 미션 ──
-                Section {
-                    Picker("미션", selection: $wakeMission) {
-                        Text("없음").tag("none")
-                        Text("흔들기").tag("shake")
-                        Text("수학 문제").tag("math")
-                        Text("타이핑 ✨").tag("typing")
-                        Text("오늘의 한마디 ✨").tag("word")
-                        Text("아멘 입력 🙏").tag("amen")
-                    }
-                    .pickerStyle(.navigationLink)
-                } header: {
-                    Text("웨이크업 미션").font(.dvSectionTitle)
-                } footer: {
-                    Text("미션을 완료해야 말씀 화면으로 이동합니다").font(.dvCaption).foregroundColor(.secondary)
-                }
+                // 웨이크업 미션: 실제 동작 미구현(WakeMissionView 미연결)이라 이번 버전에서 숨김.
+                // wakeMission 값은 "none"으로 저장되며, 기능 완성 시 Section 복원 예정. (심사 2.1 대응)
             }
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle(alarm == nil ? appLanguageString("alarmEdit.title.new") : appLanguageString("alarmEdit.title.edit"))

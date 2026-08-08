@@ -4096,6 +4096,742 @@
           }
         }
       }
+    },
+    "alarmStage2.a11y.stopAlarm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Alarm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람 종료"
+          }
+        }
+      }
+    },
+    "alarmStage2.toast.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verse saved"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "말씀이 저장되었습니다"
+          }
+        }
+      }
+    },
+    "alarmStage2.toast.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save. Please try again"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장에 실패했습니다. 다시 시도해주세요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.deepDark": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Word is with you, even at this hour"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 시간에도 말씀이 함께해요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.firstLight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your dawn verse is ready"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새벽 말씀이 준비됐어요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.goldenHour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End your day with the Word"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하루를 말씀으로 마무리해요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.peakMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At your best moment, the Word is with you"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최고의 순간, 말씀이 함께해요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.recharge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a break and meet the Word"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠깐 쉬며 말씀을 만나봐요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.riseIgnite": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new day begins with the Word"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 날이 말씀과 함께 시작됩니다"
+          }
+        }
+      }
+    },
+    "alarmVM.context.secondWind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A breath in the afternoon, with the Word"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오후의 한 호흡, 말씀이 함께해요"
+          }
+        }
+      }
+    },
+    "alarmVM.context.windDown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Word was with you today too"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘도 말씀이 함께했어요"
+          }
+        }
+      }
+    },
+    "alarmVM.deleted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm deleted."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람이 삭제되었습니다."
+          }
+        }
+      }
+    },
+    "alarmVM.forceQuitWarning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you force-quit the app,\nthe alarm may not go off"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱을 완전히 종료하면\n알람이 울리지 않을 수 있어요"
+          }
+        }
+      }
+    },
+    "alarmVM.lowPowerWarning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarms may not work in Low Power Mode"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저전력 모드에서는 알람이 작동하지 않을 수 있어요"
+          }
+        }
+      }
+    },
+    "alarmVM.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save the alarm."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람 저장에 실패했습니다."
+          }
+        }
+      }
+    },
+    "alarmVM.toast.todayHoursMinutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %d hr %d min today\n%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 %d시간 %d분 뒤\n%@"
+          }
+        }
+      }
+    },
+    "alarmVM.toast.todayMinutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %d min today\n%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 %d분 뒤\n%@"
+          }
+        }
+      }
+    },
+    "alarmVM.toast.tomorrow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow %@\n%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내일 %@\n%@"
+          }
+        }
+      }
+    },
+    "alarmVM.undoFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to undo."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "되돌리기에 실패했습니다."
+          }
+        }
+      }
+    },
+    "common.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인"
+          }
+        }
+      }
+    },
+    "soundPicker.category.ccm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCM"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCM"
+          }
+        }
+      }
+    },
+    "soundPicker.category.instrumental": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrumental"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연주"
+          }
+        }
+      }
+    },
+    "soundPicker.category.nature": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nature"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자연"
+          }
+        }
+      }
+    },
+    "soundPicker.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm Sound"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람음"
+          }
+        }
+      }
+    },
+    "wakeMission.amen.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아멘"
+          }
+        }
+      }
+    },
+    "wakeMission.amen.wrong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please try again"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 입력해주세요"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.amen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter 'Amen' to move to the verse screen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "'아멘'을 입력하면 말씀 화면으로 넘어갑니다"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.math": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get it right to meet today's verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정답을 맞히면 오늘의 말씀을 만납니다"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's verse is waiting for you 🌿"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 말씀이 기다리고 있어요 🌿"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.shake": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake 3 times hard to reveal today's verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3번 세게 흔들면 오늘의 말씀이 열립니다"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.typing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write it by hand and etch the Word in your heart"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "손으로 직접 쓰며 말씀을 마음에 새겨요"
+          }
+        }
+      }
+    },
+    "wakeMission.desc.word": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy today's sentence exactly as shown"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 한 문장을 그대로 따라 적어보세요"
+          }
+        }
+      }
+    },
+    "wakeMission.math.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your answer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "답을 입력하세요"
+          }
+        }
+      }
+    },
+    "wakeMission.math.wrong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrong, try again!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "틀렸어요, 다시 해봐요!"
+          }
+        }
+      }
+    },
+    "wakeMission.shake.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done! 🎉"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "완료! 🎉"
+          }
+        }
+      }
+    },
+    "wakeMission.shake.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d more shakes to go"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "흔들기 %d번 남았어요"
+          }
+        }
+      }
+    },
+    "wakeMission.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "건너뛰기"
+          }
+        }
+      }
+    },
+    "wakeMission.title.amen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respond with Amen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아멘으로 응답하세요"
+          }
+        }
+      }
+    },
+    "wakeMission.title.math": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solve a simple math problem"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "간단한 수학 문제를 풀어요"
+          }
+        }
+      }
+    },
+    "wakeMission.title.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "준비되셨나요?"
+          }
+        }
+      }
+    },
+    "wakeMission.title.shake": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake your phone to wake up"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "폰을 흔들어 깨어나세요"
+          }
+        }
+      }
+    },
+    "wakeMission.title.typing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type out the verse yourself"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "말씀을 직접 타이핑해요"
+          }
+        }
+      }
+    },
+    "wakeMission.title.word": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's Word ✨"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 한마디 ✨"
+          }
+        }
+      }
+    },
+    "wakeMission.typing.fallbackVerse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do not fear, for I am with you"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "두려워하지 말라 내가 너와 함께 함이라"
+          }
+        }
+      }
+    },
+    "wakeMission.typing.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the verse above"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "위 말씀을 타이핑하세요"
+          }
+        }
+      }
+    },
+    "wakeMission.viewVerse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "말씀 보기"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

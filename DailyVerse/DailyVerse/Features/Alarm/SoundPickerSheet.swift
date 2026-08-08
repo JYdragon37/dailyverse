@@ -6,27 +6,40 @@ import AVFoundation
 struct AlarmSound: Identifiable, Equatable {
     let id: String          // "s01" ~ "s06"
     let name: String        // 한국어 표시명
+    let nameEn: String      // 영어 표시명
     let filename: String    // 번들 파일명 (확장자 제외)
     let category: AlarmSoundCategory
+
+    var displayName: String {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en" ? nameEn : name
+    }
 }
 
 enum AlarmSoundCategory: String, CaseIterable {
     case instrumental = "연주"
     case ccm          = "CCM"
     case nature       = "자연"
+
+    var displayName: String {
+        switch self {
+        case .instrumental: return appLanguageString("soundPicker.category.instrumental")
+        case .ccm:           return appLanguageString("soundPicker.category.ccm")
+        case .nature:        return appLanguageString("soundPicker.category.nature")
+        }
+    }
 }
 
 extension AlarmSound {
     static let all: [AlarmSound] = [
         // 연주
-        .init(id: "s01", name: "새벽이슬",           filename: "01_새벽이슬_Morning_Dew_30sec",                      category: .instrumental),
-        .init(id: "s02", name: "기쁨의 행진",         filename: "02_기쁨의_행진_Joyful_March_30sec",                  category: .instrumental),
+        .init(id: "s01", name: "새벽이슬",           nameEn: "Morning Dew",         filename: "01_새벽이슬_Morning_Dew_30sec",                      category: .instrumental),
+        .init(id: "s02", name: "기쁨의 행진",         nameEn: "Joyful March",        filename: "02_기쁨의_행진_Joyful_March_30sec",                  category: .instrumental),
         // CCM
-        .init(id: "s03", name: "아침 은혜",           filename: "03_아침_은혜_Grace_Awake_30sec",                     category: .ccm),
-        .init(id: "s04", name: "일어나라 빛을 발하라", filename: "04_일어나라_빛을_발하라_Arise_and_Shine_30sec",       category: .ccm),
+        .init(id: "s03", name: "아침 은혜",           nameEn: "Grace Awake",         filename: "03_아침_은혜_Grace_Awake_30sec",                     category: .ccm),
+        .init(id: "s04", name: "일어나라 빛을 발하라", nameEn: "Arise and Shine",     filename: "04_일어나라_빛을_발하라_Arise_and_Shine_30sec",       category: .ccm),
         // 자연
-        .init(id: "s05", name: "샬롬의 아침",         filename: "05_샬롬의_아침_Shalom_Morning_30sec",                category: .nature),
-        .init(id: "s06", name: "은혜의 빛",           filename: "06_은혜의_빛_Light_of_Grace_30sec",                  category: .nature),
+        .init(id: "s05", name: "샬롬의 아침",         nameEn: "Shalom Morning",      filename: "05_샬롬의_아침_Shalom_Morning_30sec",                category: .nature),
+        .init(id: "s06", name: "은혜의 빛",           nameEn: "Light of Grace",      filename: "06_은혜의_빛_Light_of_Grace_30sec",                  category: .nature),
     ]
 
     static func sound(for id: String) -> AlarmSound {
@@ -58,7 +71,7 @@ struct SoundPickerSheet: View {
                 .padding(.bottom, 16)
 
             // ── 헤더 ──
-            Text("알람음")
+            Text(appLanguageString("soundPicker.title"))
                 .font(.dvTitle)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
@@ -95,7 +108,7 @@ struct SoundPickerSheet: View {
                     SoundPreviewPlayer.shared.stop()
                     playingSoundId = nil
                 } label: {
-                    Text(category.rawValue)
+                    Text(category.displayName)
                         .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
                         .foregroundColor(isSelected ? .dvAccentGold : .secondary)
                         .frame(maxWidth: .infinity)
@@ -180,7 +193,7 @@ private struct SoundRow: View {
                 }
                 .frame(width: 28, height: 28)
 
-                Text(sound.name)
+                Text(sound.displayName)
                     .font(.dvBody)
                     .foregroundColor(isSelected ? .primary : .secondary.opacity(0.85))
 
