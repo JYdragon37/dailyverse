@@ -131,7 +131,7 @@ struct AlarmAddEditView: View {
                                     .font(.dvBody)
                                     .foregroundColor(.primary)
                                 Spacer()
-                                Text(AlarmSound.sound(for: soundId).category.rawValue)
+                                Text(AlarmSound.sound(for: soundId).category.displayName)
                                     .font(.dvCaption)
                                     .foregroundColor(.secondary)
                                 Image(systemName: "chevron.right")
