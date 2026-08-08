@@ -158,4 +158,29 @@ extension Alarm {
         default:            return theme.capitalized
         }
     }
+
+    /// theme ID → 현재 appLanguage에 맞는 표시 이름
+    var themeDisplayName: String {
+        guard UserDefaults.standard.string(forKey: "appLanguage") == "en" else { return themeKorean }
+        switch theme {
+        case "hope":        return "Hope"
+        case "courage":     return "Courage"
+        case "strength":    return "Strength"
+        case "renewal":     return "Renewal"
+        case "wisdom":      return "Wisdom"
+        case "focus":       return "Focus"
+        case "patience":    return "Patience"
+        case "gratitude":   return "Gratitude"
+        case "peace":       return "Peace"
+        case "comfort":     return "Comfort"
+        case "reflection":  return "Reflection"
+        case "rest":        return "Rest"
+        case "faith":       return "Faith"
+        case "grace":       return "Grace"
+        case "trust":       return "Trust"
+        case "stillness":   return "Stillness"
+        case "surrender":   return "Surrender"
+        default:            return theme.capitalized
+        }
+    }
 }

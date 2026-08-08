@@ -31,7 +31,7 @@ struct AlarmListView: View {
                     }
                 }
             }
-            .navigationTitle("알람")
+            .navigationTitle(appLanguageString("tab.alarm"))
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.85), for: .navigationBar)
@@ -42,7 +42,7 @@ struct AlarmListView: View {
                             Image(systemName: "plus")
                                 .font(.system(size: 17, weight: .semibold))
                         }
-                        .accessibilityLabel("새 알람 추가")
+                        .accessibilityLabel(appLanguageString("alarm.add.accessibility"))
                     }
                 }
             }
@@ -64,11 +64,11 @@ struct AlarmListView: View {
         .onReceive(NotificationCenter.default.publisher(for: .dvAlarmSaved)) { _ in
             viewModel.loadAlarms()
         }
-        .alert("알람 권한 제한", isPresented: $viewModel.showAlarmKitDeniedAlert) {
-            Button("설정 열기") { permissionManager.openAppSettings() }
-            Button("확인", role: .cancel) {}
+        .alert(appLanguageString("alarm.permission.title"), isPresented: $viewModel.showAlarmKitDeniedAlert) {
+            Button(appLanguageString("alarm.permission.openSettings")) { permissionManager.openAppSettings() }
+            Button(appLanguageString("common.ok"), role: .cancel) {}
         } message: {
-            Text("AlarmKit 권한이 거부되어 있어요.\n앱을 완전히 종료하면 알람이 울리지 않을 수 있어요.\n설정 앱에서 morning manna → 알람 권한을 허용해주세요.")
+            Text(appLanguageString("alarm.permission.message"))
         }
     }
 
@@ -112,8 +112,8 @@ struct AlarmListView: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
                             viewModel.deleteAlarm(id: alarm.id)
-                            viewModel.toastMessage = "알람이 삭제되었습니다"
-                        } label: { Label("삭제", systemImage: "trash") }
+                            viewModel.toastMessage = appLanguageString("alarm.toast.deleted")
+                        } label: { Label(appLanguageString("alarm.delete"), systemImage: "trash") }
                     }
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -141,7 +141,7 @@ struct AlarmListView: View {
     @ViewBuilder
     private var upcomingAlarmSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("다가오는 알람")
+            Text(appLanguageString("alarm.upcoming.title"))
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.secondary)
 
@@ -224,7 +224,7 @@ struct AlarmListView: View {
                 )
             } else {
                 // 활성 알람 없을 때
-                Text("활성화된 알람이 없어요")
+                Text(appLanguageString("alarm.upcoming.none"))
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
                     .padding(.vertical, 12)
@@ -258,8 +258,8 @@ struct AlarmListView: View {
         let interval = fire.timeIntervalSinceNow
         let hours = Int(interval / 3600)
         let mins = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
-        if hours > 0 { return "\(hours)시간 \(mins)분 후 알람이 울립니다" }
-        return "\(mins)분 후 알람이 울립니다"
+        if hours > 0 { return appLanguageString("alarm.countdown.hoursMinutes", args: hours, mins) }
+        return appLanguageString("alarm.countdown.minutes", args: mins)
     }
 
     // MARK: - 정렬
@@ -286,7 +286,7 @@ struct AlarmListView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill").font(.system(size: 16, weight: .semibold))
-                        Text("새 알람 추가").font(.dvBody)
+                        Text(appLanguageString("alarm.add.accessibility")).font(.dvBody)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
@@ -302,10 +302,10 @@ struct AlarmListView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 72)
                 }
-                .accessibilityLabel(viewModel.alarms.count >= 3 ? "알람 최대 3개 도달" : "새 알람 추가")
-                .alert("알람은 최대 3개까지\n설정할 수 있어요", isPresented: $showMaxAlarmsAlert) {
-                    Button("확인", role: .cancel) {}
-                } message: { Text("기존 알람을 삭제한 뒤 새 알람을 추가해주세요.") }
+                .accessibilityLabel(viewModel.alarms.count >= 3 ? appLanguageString("alarm.add.maxReached.accessibility") : appLanguageString("alarm.add.accessibility"))
+                .alert(appLanguageString("alarm.add.maxReached.title"), isPresented: $showMaxAlarmsAlert) {
+                    Button(appLanguageString("common.ok"), role: .cancel) {}
+                } message: { Text(appLanguageString("alarm.add.maxReached.message")) }
             }
         }
     }
@@ -319,7 +319,7 @@ struct AlarmListView: View {
                 Spacer()
                 HStack(spacing: 12) {
                     Text(message).font(.dvBody).foregroundColor(.white)
-                    Button("되돌리기") {
+                    Button(appLanguageString("alarm.undo")) {
                         withAnimation(.dvSheetAppear) { viewModel.undoDelete() }
                     }
                     .font(.dvBody.weight(.semibold))
@@ -352,7 +352,7 @@ private struct AlarmCardRow: View {
                 HStack(spacing: 6) {
                     Text(alarm.repeatSummary).font(.dvCaption).foregroundColor(Color.dvTextSecondary)
                     Text("·").font(.dvCaption).foregroundColor(Color.dvTextSecondary)
-                    Text(alarm.themeKorean)
+                    Text(alarm.themeDisplayName)
                         .font(.dvCaption).foregroundColor(.dvGold)
                         .padding(.horizontal, 8).padding(.vertical, 2)
                         .background(Capsule().fill(Color.dvGold.opacity(0.15)))
@@ -368,7 +368,7 @@ private struct AlarmCardRow: View {
             Toggle("", isOn: Binding(get: { alarm.isEnabled }, set: { _ in onToggle() }))
                 .labelsHidden()
                 .tint(Color.dvGold)
-                .accessibilityLabel("\(formattedTime) 알람 \(alarm.isEnabled ? "켜짐" : "꺼짐")")
+                .accessibilityLabel("\(formattedTime) \(appLanguageString("alarm.card.alarmWord")) \(appLanguageString(alarm.isEnabled ? "alarm.card.on" : "alarm.card.off"))")
         }
         .padding(.vertical, 12).padding(.horizontal, 16)
         .background(
@@ -385,17 +385,17 @@ private struct AlarmCardRow: View {
     }
 
     private func nextFireText(for alarm: Alarm) -> String {
-        guard alarm.isEnabled else { return "꺼져 있음" }
+        guard alarm.isEnabled else { return appLanguageString("alarm.card.off") }
         let cal = Calendar.current
         var comp = cal.dateComponents([.hour, .minute], from: alarm.time); comp.second = 0
         guard let fire = cal.nextDate(after: Date(), matching: comp, matchingPolicy: .nextTime) else { return "" }
         let interval = fire.timeIntervalSinceNow
         if cal.isDateInToday(fire) {
             let h = Int(interval / 3600); let m = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
-            if h > 0 { return "오늘 \(h)시간 \(m)분 뒤" }
-            return "오늘 \(m)분 뒤"
+            if h > 0 { return appLanguageString("alarm.card.todayHoursMinutes", args: h, m) }
+            return appLanguageString("alarm.card.todayMinutes", args: m)
         }
-        return "내일"
+        return appLanguageString("alarm.card.tomorrow")
     }
 
     private func nextFireColor(for alarm: Alarm) -> Color {
@@ -413,9 +413,9 @@ private struct NotificationPermissionBanner: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "bell.slash.fill").foregroundColor(.orange).accessibilityHidden(true)
-            Text("알림 권한이 없어요. 설정에서 허용해주세요").font(.dvCaption).foregroundColor(.primary)
+            Text(appLanguageString("alarm.notification.banner")).font(.dvCaption).foregroundColor(.primary)
             Spacer()
-            Button("설정") {
+            Button(appLanguageString("common.settings")) {
                 if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
             }
             .font(.dvCaption.weight(.semibold)).foregroundColor(.orange)
@@ -435,14 +435,14 @@ private struct AlarmEmptyStateView: View {
             Spacer()
             Image(systemName: "alarm").font(.system(size: 64, weight: .thin)).foregroundColor(Color.dvTextHint).accessibilityHidden(true)
             VStack(spacing: 8) {
-                Text("아직 알람이 없어요").font(.dvTitle).foregroundColor(.white)
-                Text("알람을 설정하면 매일 말씀과 함께\n하루를 시작할 수 있어요")
+                Text(appLanguageString("alarm.empty.title")).font(.dvTitle).foregroundColor(.white)
+                Text(appLanguageString("alarm.empty.subtitle"))
                     .font(.dvBody).foregroundColor(Color.dvTextSecondary).multilineTextAlignment(.center)
             }
             Button { onAdd() } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus.circle.fill")
-                    Text("첫 알람 추가하기").font(.dvBody.weight(.semibold))
+                    Text(appLanguageString("alarm.empty.addButton")).font(.dvBody.weight(.semibold))
                 }
                 .frame(maxWidth: 240).padding(.vertical, 14)
                 .background(RoundedRectangle(cornerRadius: 14).fill(LinearGradient(colors: [Color.dvGold, Color.dvGold.opacity(0.75)], startPoint: .topLeading, endPoint: .bottomTrailing)))

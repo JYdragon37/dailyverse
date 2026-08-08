@@ -24,7 +24,11 @@ struct AlarmAddEditView: View {
     @State private var isLabelAutoSet: Bool
     @State private var showSoundPicker: Bool = false
 
-    private let dayLabels = ["일", "월", "화", "수", "목", "금", "토"]
+    private var dayLabels: [String] {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en"
+            ? ["S", "M", "T", "W", "T", "F", "S"]
+            : ["일", "월", "화", "수", "목", "금", "토"]
+    }
 
     // MARK: Init
 
@@ -84,7 +88,7 @@ struct AlarmAddEditView: View {
                         .padding(.vertical, 6)
                         .listRowSeparator(.hidden)
                 } header: {
-                    Text("시간").font(.dvSectionTitle)
+                    Text(appLanguageString("alarmEdit.section.time")).font(.dvSectionTitle)
                 }
 
                 // [항목 4] 알람 이름 Section 삭제됨
@@ -92,9 +96,9 @@ struct AlarmAddEditView: View {
                 // ── 반복 요일 ──
                 Section {
                     HStack(spacing: 8) {
-                        QuickDayChip(label: "매일", isSelected: isAllDays) { selectAllDays() }
-                        QuickDayChip(label: "주중", isSelected: isWeekdays) { selectWeekdays() }
-                        QuickDayChip(label: "주말", isSelected: isWeekends) { selectWeekends() }
+                        QuickDayChip(label: appLanguageString("alarmEdit.days.every"), isSelected: isAllDays) { selectAllDays() }
+                        QuickDayChip(label: appLanguageString("alarmEdit.days.weekdays"), isSelected: isWeekdays) { selectWeekdays() }
+                        QuickDayChip(label: appLanguageString("alarmEdit.days.weekends"), isSelected: isWeekends) { selectWeekends() }
                         Spacer()
                     }
                     .padding(.vertical, 4).listRowSeparator(.hidden)
@@ -103,19 +107,19 @@ struct AlarmAddEditView: View {
                         .font(.dvCaption).foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center).listRowSeparator(.hidden)
                 } header: {
-                    Text("반복").font(.dvSectionTitle)
+                    Text(appLanguageString("alarmEdit.section.repeat")).font(.dvSectionTitle)
                 }
 
                 // ── 알림 방식 ──
                 Section {
-                    Picker("알림 방식", selection: $alertStyle) {
-                        Label("소리 + 진동", systemImage: "bell.and.waveform.fill").tag("soundAndVibration")
-                        Label("소리만", systemImage: "bell.fill").tag("sound")
-                        Label("진동만", systemImage: "iphone.radiowaves.left.and.right").tag("vibration")
+                    Picker(appLanguageString("alarmEdit.alertStyle"), selection: $alertStyle) {
+                        Label(appLanguageString("alarmEdit.alertStyle.soundAndVibration"), systemImage: "bell.and.waveform.fill").tag("soundAndVibration")
+                        Label(appLanguageString("alarmEdit.alertStyle.soundOnly"), systemImage: "bell.fill").tag("sound")
+                        Label(appLanguageString("alarmEdit.alertStyle.vibrationOnly"), systemImage: "iphone.radiowaves.left.and.right").tag("vibration")
                     }
                     .pickerStyle(.navigationLink)
                 } header: {
-                    Text("알림 방식").font(.dvSectionTitle)
+                    Text(appLanguageString("alarmEdit.alertStyle")).font(.dvSectionTitle)
                 }
 
                 // ── 알람음 (컴팩트 Row → Sheet) ──
@@ -140,7 +144,7 @@ struct AlarmAddEditView: View {
                         // 볼륨 슬라이더
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Text("볼륨").font(.dvBody)
+                                Text(appLanguageString("alarmEdit.volume")).font(.dvBody)
                                 Spacer()
                                 Text("\(Int(volume * 100))%").font(.dvCaption).foregroundColor(.secondary)
                             }
@@ -148,7 +152,7 @@ struct AlarmAddEditView: View {
                         }
                         .padding(.top, 4)
                     } header: {
-                        Text("알람음").font(.dvSectionTitle)
+                        Text(appLanguageString("alarmEdit.section.sound")).font(.dvSectionTitle)
                     }
                 }
 
@@ -156,9 +160,9 @@ struct AlarmAddEditView: View {
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("다시 울림")
+                            Text(appLanguageString("alarmEdit.snooze.title"))
                                 .font(.dvBody)
-                            Text("부드러운 5분 간격")
+                            Text(appLanguageString("alarmEdit.snooze.subtitle"))
                                 .font(.dvCaption)
                                 .foregroundColor(.secondary)
                         }
@@ -178,7 +182,7 @@ struct AlarmAddEditView: View {
                             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                    } header: { Text("광고").font(.dvSectionTitle) }
+                    } header: { Text(appLanguageString("alarmEdit.section.ad")).font(.dvSectionTitle) }
                 }
 
                 // ── 주제 ──
@@ -200,7 +204,7 @@ struct AlarmAddEditView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 } header: {
-                    Text("주제").font(.dvSectionTitle)
+                    Text(appLanguageString("alarmEdit.section.theme")).font(.dvSectionTitle)
                 }
 
                 // ── 웨이크업 미션 ──
@@ -221,17 +225,17 @@ struct AlarmAddEditView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle(alarm == nil ? "새 알람" : "알람 수정")
+            .navigationTitle(alarm == nil ? appLanguageString("alarmEdit.title.new") : appLanguageString("alarmEdit.title.edit"))
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showSoundPicker) {
                 SoundPickerSheet(selectedSoundId: $soundId)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") { dismiss() }.accessibilityLabel("취소")
+                    Button(appLanguageString("common.cancel")) { dismiss() }.accessibilityLabel(appLanguageString("common.cancel"))
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("저장하기") { handleSave() }
+                    Button(appLanguageString("alarmEdit.save")) { handleSave() }
                         .font(.dvBody.weight(.semibold))
                         .disabled(selectedDays.isEmpty)
                 }
@@ -272,10 +276,10 @@ struct AlarmAddEditView: View {
 
     private var repeatSummaryText: String {
         let days = Array(selectedDays).sorted()
-        if days.count == 7 { return "매일" }
-        if Set(days) == Set([1,2,3,4,5]) { return "주중" }
-        if Set(days) == Set([0,6]) { return "주말" }
-        if days.isEmpty { return "반복 없음" }
+        if days.count == 7 { return appLanguageString("alarmEdit.days.every") }
+        if Set(days) == Set([1,2,3,4,5]) { return appLanguageString("alarmEdit.days.weekdays") }
+        if Set(days) == Set([0,6]) { return appLanguageString("alarmEdit.days.weekends") }
+        if days.isEmpty { return appLanguageString("alarmEdit.days.none") }
         return days.map { dayLabels[$0] }.joined(separator: ", ")
     }
 
@@ -307,6 +311,9 @@ struct AlarmAddEditView: View {
         let icon: String
         let topColor: Color
         let bottomColor: Color
+
+        var displayName: String { appLanguageString("alarmTheme.\(id).name") }
+        var displaySubtitle: String { appLanguageString("alarmTheme.\(id).subtitle") }
     }
 
     private let themeDataList: [ThemeInfo] = [
@@ -353,10 +360,10 @@ private struct ThemeThumbnailCell: View {
                         .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.white.opacity(0.9))
                     Spacer()
-                    Text(info.name)
+                    Text(info.displayName)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
-                    Text(info.subtitle)
+                    Text(info.displaySubtitle)
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.75))
                         .lineLimit(1)
@@ -387,7 +394,7 @@ private struct ThemeThumbnailCell: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(info.name) 테마 \(isSelected ? "선택됨" : "")")
+        .accessibilityLabel("\(info.displayName) \(appLanguageString("alarmEdit.theme.word")) \(isSelected ? appLanguageString("alarmEdit.theme.selected") : "")")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -434,7 +441,11 @@ final class SoundPreviewPlayer: NSObject {
 
 private struct WeekdaySelector: View {
     @Binding var selectedDays: Set<Int>
-    private let dayLabels = ["일", "월", "화", "수", "목", "금", "토"]
+    private var dayLabels: [String] {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en"
+            ? ["S", "M", "T", "W", "T", "F", "S"]
+            : ["일", "월", "화", "수", "목", "금", "토"]
+    }
 
     var body: some View {
         HStack(spacing: 6) {
