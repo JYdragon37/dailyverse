@@ -89,10 +89,10 @@ struct AuthWelcomeView: View {
             Spacer().frame(height: 44)
 
             VStack(spacing: 4) {
-                Text("하나님 말씀으로")
+                Text(appLanguageString("auth.welcome.line1"))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
-                Text("하루를 맞이할 준비 되셨나요?")
+                Text(appLanguageString("auth.welcome.line2"))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
             }
@@ -123,7 +123,7 @@ struct AuthWelcomeView: View {
 
             // 로그인 없이 둘러보기 — 텍스트 링크
             Button(action: { onSkip() }) {
-                Text("로그인 없이 둘러보기")
+                Text(appLanguageString("auth.welcome.browseWithoutLogin"))
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.70))
                     .padding(.vertical, 12)
@@ -155,7 +155,7 @@ struct AuthWelcomeView: View {
                         .foregroundColor(Color(hex: "#4285F4"))
                         .frame(width: 20)
                 }
-                Text("Google로 시작하기")
+                Text(appLanguageString("auth.welcome.startWithGoogle"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.black)
             }
@@ -191,7 +191,7 @@ struct AuthWelcomeView: View {
                         .font(.system(size: 16, weight: .medium))
                         .frame(width: 20)
                 }
-                Text("Apple로 시작하기")
+                Text(appLanguageString("auth.welcome.startWithApple"))
                     .font(.system(size: 16, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
@@ -211,7 +211,7 @@ struct AuthWelcomeView: View {
     // MARK: - 이용약관 섹션
 
     private var termsSection: some View {
-        Text("시작하면 이용약관 및 개인정보처리방침에 동의하게 됩니다")
+        Text(appLanguageString("auth.welcome.termsNotice"))
             .font(.dvCaption)
             .foregroundColor(.white.opacity(0.25))
             .multilineTextAlignment(.center)

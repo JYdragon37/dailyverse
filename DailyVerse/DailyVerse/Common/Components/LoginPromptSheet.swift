@@ -4,6 +4,8 @@ import Combine
 struct LoginPromptSheet: View {
     let onLogin: () -> Void
     let onDismiss: () -> Void
+    var message: String = appLanguageString("loginPrompt.message")
+    var icon: String = "bookmark.fill"
 
     @EnvironmentObject private var authManager: AuthManager
 
@@ -16,16 +18,16 @@ struct LoginPromptSheet: View {
                 .padding(.top, 8)
 
             // 아이콘
-            Image(systemName: "bookmark.fill")
+            Image(systemName: icon)
                 .font(.system(size: 44))
                 .foregroundColor(.dvAccent)
 
             VStack(spacing: 8) {
-                Text("말씀을 저장하려면 로그인이 필요해요")
+                Text(message)
                     .font(.dvTitle)
                     .multilineTextAlignment(.center)
 
-                Text("Apple 또는 Google 계정으로 간편하게 시작하세요")
+                Text(appLanguageString("loginPrompt.subtitle"))
                     .font(.dvBody)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -38,7 +40,7 @@ struct LoginPromptSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "apple.logo")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("Apple로 시작하기")
+                        Text(appLanguageString("auth.welcome.startWithApple"))
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
@@ -47,7 +49,7 @@ struct LoginPromptSheet: View {
                     .foregroundColor(Color.black)
                     .cornerRadius(12)
                 }
-                .accessibilityLabel("Apple 계정으로 로그인")
+                .accessibilityLabel(appLanguageString("loginPrompt.appleAccessibility"))
 
                 // Google 로그인
                 Button {
@@ -56,7 +58,7 @@ struct LoginPromptSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "globe")
                             .font(.system(size: 16, weight: .medium))
-                        Text("Google로 시작하기")
+                        Text(appLanguageString("auth.welcome.startWithGoogle"))
                             .font(.system(size: 16, weight: .medium))
                     }
                     .frame(maxWidth: .infinity)
@@ -65,14 +67,14 @@ struct LoginPromptSheet: View {
                     .foregroundColor(.primary)
                     .cornerRadius(12)
                 }
-                .accessibilityLabel("Google 계정으로 로그인")
+                .accessibilityLabel(appLanguageString("loginPrompt.googleAccessibility"))
 
                 Button(action: onDismiss) {
-                    Text("나중에")
+                    Text(appLanguageString("meditation.later"))
                         .font(.dvBody)
                         .foregroundColor(.secondary)
                 }
-                .accessibilityLabel("로그인 건너뛰기")
+                .accessibilityLabel(appLanguageString("loginPrompt.skipAccessibility"))
             }
             .padding(.horizontal, 24)
 

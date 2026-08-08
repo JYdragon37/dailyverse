@@ -9,13 +9,20 @@ struct PremiumUpgradeView: View {
         let premium: String
     }
 
-    private let features: [FeatureRow] = [
-        FeatureRow(title: "말씀 아카이브",  free: "7일",    premium: "무제한"),
-        FeatureRow(title: "알람 테마",      free: "자동",   premium: "자유 선택"),
-        FeatureRow(title: "광고",          free: "있음",   premium: "없음"),
-        FeatureRow(title: "카드 워터마크", free: "있음",   premium: "없음"),
-        FeatureRow(title: "묵상 기록",     free: "무제한", premium: "무제한"),
-    ]
+    private var features: [FeatureRow] {
+        [
+            FeatureRow(title: appLanguageString("premium.feature.archive"),
+                       free: appLanguageString("premium.value.sevenDays"), premium: appLanguageString("premium.value.unlimited")),
+            FeatureRow(title: appLanguageString("premium.feature.alarmTheme"),
+                       free: appLanguageString("premium.value.auto"), premium: appLanguageString("premium.value.freeChoice")),
+            FeatureRow(title: appLanguageString("premium.feature.ads"),
+                       free: appLanguageString("premium.value.yes"), premium: appLanguageString("premium.value.no")),
+            FeatureRow(title: appLanguageString("premium.feature.watermark"),
+                       free: appLanguageString("premium.value.yes"), premium: appLanguageString("premium.value.no")),
+            FeatureRow(title: appLanguageString("premium.feature.meditationLog"),
+                       free: appLanguageString("premium.value.unlimited"), premium: appLanguageString("premium.value.unlimited")),
+        ]
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -55,7 +62,7 @@ struct PremiumUpgradeView: View {
                 .tracking(3)
 
             // 부제
-            Text("하루의 말씀이 더 깊어집니다")
+            Text(appLanguageString("premium.subtitle"))
                 .font(.dvSubtitle)
                 .foregroundColor(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
@@ -70,7 +77,7 @@ struct PremiumUpgradeView: View {
         VStack(spacing: 0) {
             // 헤더 행
             HStack(spacing: 0) {
-                Text("기능")
+                Text(appLanguageString("premium.featureColumn"))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.35))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -154,7 +161,7 @@ struct PremiumUpgradeView: View {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 20))
                         .foregroundColor(Color.dvAccentGold)
-                    Text("이미 Premium이에요")
+                    Text(appLanguageString("premium.alreadySubscribed"))
                         .font(.dvSubtitle)
                         .foregroundColor(.white)
                 }
@@ -172,9 +179,9 @@ struct PremiumUpgradeView: View {
                     Task { await subscriptionManager.purchase() }
                 } label: {
                     VStack(spacing: 3) {
-                        Text("Premium 시작하기")
+                        Text(appLanguageString("settings.premiumUpgrade"))
                             .font(.system(size: 16, weight: .bold))
-                        Text("₩8,900/월")
+                        Text(appLanguageString("premium.price"))
                             .font(.system(size: 13, weight: .medium))
                             .opacity(0.75)
                     }
@@ -189,14 +196,14 @@ struct PremiumUpgradeView: View {
                 Button {
                     Task { await subscriptionManager.restore() }
                 } label: {
-                    Text("구독 복원하기")
+                    Text(appLanguageString("premium.restore"))
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white.opacity(0.35))
                 }
             }
 
             // 안내 문구
-            Text("구독은 App Store에서 언제든지 해지할 수 있습니다")
+            Text(appLanguageString("premium.cancelAnytime"))
                 .font(.system(size: 11))
                 .foregroundColor(.white.opacity(0.25))
                 .multilineTextAlignment(.center)

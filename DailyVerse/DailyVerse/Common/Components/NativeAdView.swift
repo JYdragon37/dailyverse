@@ -90,7 +90,7 @@ struct NativeAdCardView: UIViewRepresentable {
 
         // ── 광고 배지 ─────────────────────────────────────────────
         let badge = UILabel()
-        badge.text = "광고"
+        badge.text = appLanguageString("ad.badge")
         badge.font = .systemFont(ofSize: 10, weight: .semibold)
         badge.textColor = UIColor(white: 1, alpha: 0.45)
         badge.backgroundColor = UIColor(white: 1, alpha: 0.12)
@@ -205,7 +205,7 @@ struct NativeAdPlaceholder: View {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.white.opacity(0.05))
             .overlay(
-                Text("광고 로드 중...")
+                Text(appLanguageString("ad.loading"))
                     .font(.system(size: 12))
                     .foregroundColor(.white.opacity(0.2))
             )

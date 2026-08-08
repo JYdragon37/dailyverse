@@ -29,9 +29,9 @@ struct UpsellBottomSheet: View {
 
             // 혜택 목록
             VStack(alignment: .leading, spacing: 12) {
-                benefitRow(icon: "infinity", text: "말씀 무제한 + 전 테마")
-                benefitRow(icon: "archivebox.fill", text: "전체 아카이브 열람")
-                benefitRow(icon: "xmark.circle.fill", text: "광고 없음")
+                benefitRow(icon: "infinity", text: appLanguageString("upsell.benefit.unlimitedThemes"))
+                benefitRow(icon: "archivebox.fill", text: appLanguageString("upsell.benefit.fullArchive"))
+                benefitRow(icon: "xmark.circle.fill", text: appLanguageString("upsell.benefit.noAds"))
             }
             .padding(.horizontal, 32)
 
@@ -42,9 +42,9 @@ struct UpsellBottomSheet: View {
                     dismiss()
                 } label: {
                     VStack(spacing: 2) {
-                        Text("Premium 시작하기")
+                        Text(appLanguageString("settings.premiumUpgrade"))
                             .font(.dvSubtitle)
-                        Text("₩24,500/월")
+                        Text(appLanguageString("upsell.price"))
                             .font(.dvCaption)
                     }
                     .frame(maxWidth: .infinity)
@@ -53,17 +53,17 @@ struct UpsellBottomSheet: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
-                .accessibilityLabel("Premium 구독 시작하기 월 24500원")
+                .accessibilityLabel(appLanguageString("upsell.cta.accessibility"))
 
                 Button {
                     upsellManager.shouldShow = false
                     dismiss()
                 } label: {
-                    Text("나중에")
+                    Text(appLanguageString("meditation.later"))
                         .font(.dvBody)
                         .foregroundColor(.secondary)
                 }
-                .accessibilityLabel("업셀 닫기")
+                .accessibilityLabel(appLanguageString("upsell.dismiss.accessibility"))
             }
             .padding(.horizontal, 24)
 

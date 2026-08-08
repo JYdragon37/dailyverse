@@ -23,7 +23,7 @@ struct NicknameSetupView: View {
     }
 
     private var hintText: String {
-        "한글 5자 / 영어·숫자 8자 이내 · \(nickname.count)/\(maxLength)"
+        appLanguageString("auth.nickname.hint", args: nickname.count, maxLength)
     }
 
     // MARK: - Body
@@ -44,7 +44,7 @@ struct NicknameSetupView: View {
                 Spacer().frame(height: 20)
 
                 // 타이틀
-                Text("어떻게 불러드릴까요?")
+                Text(appLanguageString("auth.nickname.title"))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -52,7 +52,7 @@ struct NicknameSetupView: View {
                 Spacer().frame(height: 8)
 
                 // 서브타이틀
-                Text("함께 말씀을 묵상할 이름을 알려주세요")
+                Text(appLanguageString("auth.nickname.subtitle"))
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.55))
                     .multilineTextAlignment(.center)
@@ -61,7 +61,7 @@ struct NicknameSetupView: View {
 
                 // MARK: - 닉네임 입력 필드
                 VStack(spacing: 8) {
-                    TextField("닉네임", text: $nickname)
+                    TextField(appLanguageString("auth.nickname.placeholder"), text: $nickname)
                         .font(.system(size: 22, weight: .regular))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -110,7 +110,7 @@ struct NicknameSetupView: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text("시작하기")
+                                Text(appLanguageString("common.getStarted"))
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(isValid ? .white : .white.opacity(0.4))
                             }
@@ -131,7 +131,7 @@ struct NicknameSetupView: View {
                     Button {
                         onComplete()
                     } label: {
-                        Text("나중에")
+                        Text(appLanguageString("meditation.later"))
                             .font(.system(size: 14))
                             .foregroundColor(.white.opacity(0.4))
                             .padding(.vertical, 16)

@@ -37,7 +37,7 @@ final class SavedViewModel: ObservableObject {
             let verses = try await savedVerseRepository.fetchAll(userId: userId)
             savedVerses = verses.sorted { $0.savedAt > $1.savedAt }
         } catch {
-            showToast("말씀을 불러오지 못했어요. 잠시 후 다시 시도해주세요.")
+            showToast(appLanguageString("saved.error.loadFailed"))
         }
         isLoading = false
     }
@@ -49,7 +49,7 @@ final class SavedViewModel: ObservableObject {
             try await savedVerseRepository.delete(id: savedVerse.id, userId: userId)
             savedVerses.removeAll { $0.id == savedVerse.id }
         } catch {
-            showToast("삭제 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.")
+            showToast(appLanguageString("saved.error.deleteFailed"))
         }
     }
 

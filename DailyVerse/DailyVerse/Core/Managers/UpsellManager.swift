@@ -12,10 +12,10 @@ enum UpsellTrigger: String {
 
     var message: String {
         switch self {
-        case .saveVerse:   return "이 말씀을 간직하고 싶으신가요?"
-        case .savedAd:     return "광고 없이 모든 기록을 되돌아보세요"
-        case .savedLocked: return "모든 말씀 기록을 되돌아보세요"
-        case .alarmTheme:  return "지금 필요한 말씀을 직접 고르세요"
+        case .saveVerse:   return appLanguageString("upsell.trigger.saveVerse")
+        case .savedAd:     return appLanguageString("upsell.trigger.savedAd")
+        case .savedLocked: return appLanguageString("upsell.trigger.savedLocked")
+        case .alarmTheme:  return appLanguageString("upsell.trigger.alarmTheme")
         }
     }
 }
