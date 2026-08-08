@@ -32,6 +32,11 @@ struct SettingsView: View {
     @State private var editingNickname = ""
     @State private var deleteErrorMessage: String? = nil
 
+    // 숨겨진 관리자 메뉴 — 버전 텍스트 5회 연속 탭으로 활성화
+    @State private var versionTapCount = 0
+    @State private var showAdminMenu = false
+    @AppStorage("onboardingV2Completed") private var onboardingCompletedAdmin = false
+
     #if DEBUG
     @State private var showOnboardingPreview = false
     @State private var showSplashPreview = false
@@ -58,22 +63,23 @@ struct SettingsView: View {
                         .padding(.top, 4)
 
                     // ── 구독 ─────────────────────────────────
-                    sectionCard(title: "구독") { subscriptionRows }
+                    // Premium 판매는 이번 버전에서 숨김 (구매 플로우 미구현 → 심사 2.1 대응)
+                    // sectionCard(title: "구독") { subscriptionRows }
 
                     // ── 외관 ────────────────────────────────
                     sectionCard(title: appLanguageString("settings.section.appearance")) { appearanceRows }
 
                     // ── 앱 설정 ─────────────────────────────
-                    sectionCard(title: "앱 설정") { permissionRows }
+                    sectionCard(title: appLanguageString("settings.section.appSettings")) { permissionRows }
 
                     // ── 묵상 리마인더 ────────────────────────
-                    sectionCard(title: "묵상 리마인더") { meditationReminderRows }
+                    sectionCard(title: appLanguageString("settings.section.meditationReminder")) { meditationReminderRows }
 
                     // ── 앱 정보 ─────────────────────────────
-                    sectionCard(title: "앱 정보") { appInfoRows }
+                    sectionCard(title: appLanguageString("settings.section.appInfo")) { appInfoRows }
 
                     // ── 피드백 ──────────────────────────────
-                    sectionCard(title: "피드백") { feedbackRows }
+                    sectionCard(title: appLanguageString("settings.section.feedback")) { feedbackRows }
 
                     // ── 광고 배너 (Free 유저만 표시) ──
                     if !subscriptionManager.isPremium {
@@ -86,7 +92,7 @@ struct SettingsView: View {
 
                     // ── 계정 관리 (로그인 시만, 최하단) ────
                     if authManager.isLoggedIn {
-                        sectionCard(title: "계정 관리") { accountRows }
+                        sectionCard(title: appLanguageString("settings.section.account")) { accountRows }
                     }
 
                     #if DEBUG
@@ -105,7 +111,7 @@ struct SettingsView: View {
                 }
             }
             .background(Color.dvBgDeep.ignoresSafeArea())
-            .navigationTitle("설정")
+            .navigationTitle(appLanguageString("settings.title"))
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.dvBgDeep.opacity(0.95), for: .navigationBar)
@@ -113,21 +119,21 @@ struct SettingsView: View {
         .task { await permissionManager.checkAll() }
         .task { await permissionManager.checkAlarmKit() }
         // ── Alerts ──────────────────────────────────────
-        .alert("잠깐만요 🙏", isPresented: $showRetentionAlert) {
-            Button("그래도 탈퇴할게요", role: .destructive) { showDeleteAccountAlert = true }
-            Button("머물게요", role: .cancel) {}
+        .alert(appLanguageString("settings.retention.title"), isPresented: $showRetentionAlert) {
+            Button(appLanguageString("settings.retention.leaveAnyway"), role: .destructive) { showDeleteAccountAlert = true }
+            Button(appLanguageString("settings.retention.stay"), role: .cancel) {}
         } message: {
-            Text("지금까지 쌓아온 말씀과 묵상 기록이 모두 사라져요.\n정말 떠나실 건가요?")
+            Text(appLanguageString("settings.retention.message"))
         }
-        .alert("로그아웃", isPresented: $showSignOutAlert) {
-            Button("로그아웃", role: .destructive) {
+        .alert(appLanguageString("settings.signOut.title"), isPresented: $showSignOutAlert) {
+            Button(appLanguageString("settings.signOut.title"), role: .destructive) {
                 subscriptionManager.logOut()  // isPremium 리셋
                 authManager.signOut()
             }
-            Button("취소", role: .cancel) {}
-        } message: { Text("로그아웃 하시겠어요?") }
-        .alert("계정을 탈퇴하시겠어요?", isPresented: $showDeleteAccountAlert) {
-            Button("탈퇴하기", role: .destructive) {
+            Button(appLanguageString("common.cancel"), role: .cancel) {}
+        } message: { Text(appLanguageString("settings.signOut.message")) }
+        .alert(appLanguageString("settings.deleteAccount.title"), isPresented: $showDeleteAccountAlert) {
+            Button(appLanguageString("settings.deleteAccount.confirm"), role: .destructive) {
                 Task {
                     do {
                         try await authManager.deleteAccount(subscriptionManager: subscriptionManager)
@@ -136,29 +142,29 @@ struct SettingsView: View {
                            || error.code == ASAuthorizationError.canceled.rawValue {
                     } catch {
                         let msg = error.localizedDescription
-                        deleteErrorMessage = msg.isEmpty ? "탈퇴 중 오류가 발생했습니다. 다시 시도해주세요." : msg
+                        deleteErrorMessage = msg.isEmpty ? appLanguageString("settings.deleteAccount.genericError") : msg
                     }
                 }
             }
-            Button("취소", role: .cancel) {}
+            Button(appLanguageString("common.cancel"), role: .cancel) {}
         } message: {
-            Text("Apple 계정 인증 후 탈퇴가 진행됩니다.\n구독 중이라면 App Store에서 별도 해지해주세요.\n저장된 모든 말씀이 삭제됩니다.")
+            Text(appLanguageString("settings.deleteAccount.message"))
         }
-        .alert("탈퇴 실패", isPresented: .init(
+        .alert(appLanguageString("settings.deleteAccount.failedTitle"), isPresented: .init(
             get: { deleteErrorMessage != nil },
             set: { if !$0 { deleteErrorMessage = nil } }
         )) {
-            Button("확인", role: .cancel) { deleteErrorMessage = nil }
+            Button(appLanguageString("common.ok"), role: .cancel) { deleteErrorMessage = nil }
         } message: { Text(deleteErrorMessage ?? "") }
-        .alert("닉네임 변경", isPresented: $showNicknameEdit) {
-            TextField("한글 5자 / 영어 8자 이내", text: $editingNickname)
-            Button("저장") {
+        .alert(appLanguageString("settings.nickname.title"), isPresented: $showNicknameEdit) {
+            TextField(appLanguageString("settings.nickname.placeholder"), text: $editingNickname)
+            Button(appLanguageString("alarmEdit.save")) {
                 Task {
                     await nicknameManager.setNickname(editingNickname, userId: authManager.userId)
                 }
             }
-            Button("취소", role: .cancel) {}
-        } message: { Text("한글 5자 또는 영어·숫자 8자 이내로 입력해주세요") }
+            Button(appLanguageString("common.cancel"), role: .cancel) {}
+        } message: { Text(appLanguageString("settings.nickname.message")) }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet {
                 showLoginPrompt = false
@@ -219,7 +225,7 @@ struct SettingsView: View {
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
-                        Text("안녕하세요, \(nicknameManager.nickname)")
+                        Text(appLanguageString("settings.greeting", args: nicknameManager.nickname))
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                         Text("👋").font(.system(size: 15))
@@ -238,11 +244,11 @@ struct SettingsView: View {
                         }
                     }
                     if authManager.isLoggedIn {
-                        Text(authManager.user?.email ?? "Apple 계정")
+                        Text(authManager.user?.email ?? appLanguageString("settings.appleAccount"))
                             .font(.system(size: 13))
                             .foregroundColor(.white.opacity(0.50))
                     } else {
-                        Text("닉네임 변경")
+                        Text(appLanguageString("settings.editNickname"))
                             .font(.system(size: 13))
                             .foregroundColor(.white.opacity(0.50))
                     }
@@ -270,7 +276,7 @@ struct SettingsView: View {
                 Button {
                     showLoginPrompt = true
                 } label: {
-                    Text("로그인")
+                    Text(appLanguageString("saved.login"))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color(hex: "#1A2340"))
                         .padding(.horizontal, 12)
@@ -315,11 +321,11 @@ struct SettingsView: View {
             HStack(spacing: 14) {
                 iconBadge("checkmark.seal.fill", color: Color.dvAccentGold)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Premium 구독 중")
+                    Text(appLanguageString("settings.premiumActive"))
                         .font(.dvBody)
                         .foregroundColor(.white)
                     if let expDate = subscriptionManager.expirationDate {
-                        Text("갱신일: \(expDate.formatted(date: .abbreviated, time: .omitted))")
+                        Text(appLanguageString("settings.renewalDate", args: expDate.formatted(date: .abbreviated, time: .omitted)))
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.40))
                     }
@@ -340,10 +346,10 @@ struct SettingsView: View {
                 HStack(spacing: 14) {
                     iconBadge("star.fill", color: Color.dvAccentGold)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Premium 업그레이드")
+                        Text(appLanguageString("settings.premiumUpgrade"))
                             .font(.dvBody)
                             .foregroundColor(.white)
-                        Text("무제한 아카이브 · 광고 없음 · 테마 자유 선택")
+                        Text(appLanguageString("settings.premiumBenefits"))
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.45))
                     }
@@ -363,7 +369,6 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var appearanceRows: some View {
-        let isEn = greetingLanguage == "en"
         // 언어 / Language
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 14) {
@@ -382,13 +387,7 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
-
-            Text(isEn ? "Tab labels will update after restarting the app."
-                      : "앱을 재시작하면 탭 이름도 변경됩니다.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 14)
+            .padding(.bottom, 14)
         }
 
     }
@@ -398,21 +397,21 @@ struct SettingsView: View {
     @ViewBuilder
     private var permissionRows: some View {
         permissionRow(icon: "bell.fill", iconColor: Color(hex: "#E05E5E"),
-                      title: "알림", statusText: permissionManager.notificationStatusText,
+                      title: appLanguageString("settings.permission.notifications"), statusText: permissionManager.notificationStatusText,
                       isGranted: permissionManager.notificationAuthorized)
         rowDivider
         permissionRow(icon: "location.fill", iconColor: Color(hex: "#5E9CF5"),
-                      title: "위치", statusText: permissionManager.locationStatusText,
+                      title: appLanguageString("settings.permission.location"), statusText: permissionManager.locationStatusText,
                       isGranted: permissionManager.locationAuthorized)
         if #available(iOS 26.0, *) {
             rowDivider
             permissionRow(icon: "alarm.fill", iconColor: Color(hex: "#E0965E"),
-                          title: "알람", statusText: permissionManager.alarmKitStatus,
+                          title: appLanguageString("tab.alarm"), statusText: permissionManager.alarmKitStatusDisplay,
                           isGranted: permissionManager.alarmKitAuthorized)
         }
         rowDivider
-        row(icon: "waveform", iconColor: Color(hex: "#5EC49F"), title: "실시간 활동") {
-            Button("설정 열기") { permissionManager.openAppSettings() }
+        row(icon: "waveform", iconColor: Color(hex: "#5EC49F"), title: appLanguageString("settings.liveActivity")) {
+            Button(appLanguageString("settings.openSettings")) { permissionManager.openAppSettings() }
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(Color.dvAccentGold)
         }
@@ -426,10 +425,10 @@ struct SettingsView: View {
         HStack(spacing: 14) {
             iconBadge("bell.badge.fill", color: Color(hex: "#9B7FD4"))
             VStack(alignment: .leading, spacing: 2) {
-                Text("묵상 알림")
+                Text(appLanguageString("settings.meditationAlert"))
                     .font(.dvBody)
                     .foregroundColor(.white)
-                Text("오늘 묵상을 기록하지 않았을 때 알려드려요")
+                Text(appLanguageString("settings.meditationAlert.desc"))
                     .font(.system(size: 12))
                     .foregroundColor(.white.opacity(0.45))
             }
@@ -456,7 +455,7 @@ struct SettingsView: View {
             } label: {
                 HStack(spacing: 14) {
                     iconBadge("clock.fill", color: Color(hex: "#6B6B9A"))
-                    Text("알림 시간")
+                    Text(appLanguageString("settings.reminderTime"))
                         .font(.dvBody)
                         .foregroundColor(.white)
                     Spacer()
@@ -486,12 +485,12 @@ struct SettingsView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 20)
 
-            Text("알림 시간 설정")
+            Text(appLanguageString("settings.reminderTimeSetting"))
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.white)
                 .padding(.bottom, 8)
 
-            Text("묵상을 기록하지 않았을 때 이 시간에 알려드려요")
+            Text(appLanguageString("settings.reminderTimeDesc"))
                 .font(.system(size: 13))
                 .foregroundColor(.white.opacity(0.50))
                 .padding(.bottom, 24)
@@ -523,7 +522,7 @@ struct SettingsView: View {
                 NotificationManager.shared.scheduleMeditationEveningReminder()
                 showReminderTimePicker = false
             } label: {
-                Text("저장")
+                Text(appLanguageString("alarmEdit.save"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Color(hex: "#1A2340"))
                     .frame(maxWidth: .infinity)
@@ -566,17 +565,27 @@ struct SettingsView: View {
 
         rowDivider
 
-        row(icon: "info.circle.fill", iconColor: Color(hex: "#6B6B7A"), title: "버전") {
+        row(icon: "info.circle.fill", iconColor: Color(hex: "#6B6B7A"), title: appLanguageString("settings.version")) {
             Text(appVersion)
                 .font(.system(size: 13))
                 .foregroundColor(.white.opacity(0.40))
+                .onTapGesture {
+                    versionTapCount += 1
+                    if versionTapCount >= 5 {
+                        versionTapCount = 0
+                        showAdminMenu = true
+                    }
+                }
+        }
+        .sheet(isPresented: $showAdminMenu) {
+            adminMenuSheet
         }
 
         rowDivider
 
         // 개역한글 성경 출처 표기 (저작권 의무 표기)
-        row(icon: "book.fill", iconColor: Color(hex: "#6B6B7A"), title: "성경 본문") {
-            Text("개역한글, 대한성서공회")
+        row(icon: "book.fill", iconColor: Color(hex: "#6B6B7A"), title: appLanguageString("settings.scriptureText")) {
+            Text(appLanguageString("meditation.translationSource"))
                 .font(.system(size: 12))
                 .foregroundColor(.white.opacity(0.35))
         }
@@ -591,7 +600,7 @@ struct SettingsView: View {
                 UIApplication.shared.open(url)
             }
         } label: {
-            row(icon: "star.fill", iconColor: Color(hex: "#E0B85E"), title: "앱 리뷰 남기기") {
+            row(icon: "star.fill", iconColor: Color(hex: "#E0B85E"), title: appLanguageString("settings.rateApp")) {
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.25))
@@ -602,7 +611,7 @@ struct SettingsView: View {
         rowDivider
 
         Link(destination: URL(string: "mailto:morningmanna.app@gmail.com")!) {
-            row(icon: "envelope.fill", iconColor: Color(hex: "#5E9CF5"), title: "문의하기") {
+            row(icon: "envelope.fill", iconColor: Color(hex: "#5E9CF5"), title: appLanguageString("settings.contactUs")) {
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.25))
@@ -617,7 +626,7 @@ struct SettingsView: View {
     private var accountRows: some View {
         Button { showSignOutAlert = true } label: {
             row(icon: "rectangle.portrait.and.arrow.right",
-                iconColor: Color(hex: "#8B8B9A"), title: "로그아웃") {
+                iconColor: Color(hex: "#8B8B9A"), title: appLanguageString("settings.signOut.title")) {
                 EmptyView()
             }
         }
@@ -628,7 +637,7 @@ struct SettingsView: View {
         Button { showRetentionAlert = true } label: {
             HStack(spacing: 14) {
                 iconBadge("person.fill.xmark", color: Color(hex: "#E05E5E").opacity(0.85))
-                Text("계정 탈퇴")
+                Text(appLanguageString("settings.deleteAccountLabel"))
                     .font(.dvBody)
                     .foregroundColor(Color(red: 0.88, green: 0.37, blue: 0.37))
                 Spacer()
@@ -742,7 +751,7 @@ struct SettingsView: View {
                     .font(.system(size: 16))
                     .foregroundColor(Color(hex: "#5EC49F"))
             } else {
-                Button("설정") { permissionManager.openAppSettings() }
+                Button(appLanguageString("common.settings")) { permissionManager.openAppSettings() }
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color.dvAccentGold)
             }
@@ -792,7 +801,7 @@ struct SettingsView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 20)
 
-                Text("이모지 선택")
+                Text(appLanguageString("settings.chooseEmoji"))
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.white)
                     .padding(.bottom, 20)
@@ -811,7 +820,7 @@ struct SettingsView: View {
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.white)
                         }
-                        Text("이니셜로 돌아가기")
+                        Text(appLanguageString("settings.returnToInitial"))
                             .font(.system(size: 14))
                             .foregroundColor(.white.opacity(0.7))
                         Spacer()
@@ -820,8 +829,8 @@ struct SettingsView: View {
                     .padding(.bottom, 16)
                 }
 
-                emojiSection(title: "남성", emojis: emojiMale)
-                emojiSection(title: "여성", emojis: emojiFemale)
+                emojiSection(title: appLanguageString("settings.male"), emojis: emojiMale)
+                emojiSection(title: appLanguageString("settings.female"), emojis: emojiFemale)
 
                 Spacer(minLength: 24)
             }
@@ -865,6 +874,39 @@ struct SettingsView: View {
             .padding(.horizontal, 24)
         }
         .padding(.bottom, 20)
+    }
+}
+
+// MARK: - 관리자 메뉴 (숨겨진 — 버전 5탭으로 진입)
+
+extension SettingsView {
+    @ViewBuilder
+    var adminMenuSheet: some View {
+        NavigationStack {
+            List {
+                Section(appLanguageString("settings.admin.devOptions")) {
+                    Button {
+                        onboardingCompletedAdmin = false
+                        showAdminMenu = false
+                    } label: {
+                        Label(appLanguageString("settings.admin.replayOnboarding"), systemImage: "arrow.counterclockwise")
+                            .foregroundColor(.primary)
+                    }
+                }
+                Section {
+                    Text(appLanguageString("settings.admin.description"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle(appLanguageString("settings.admin.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(appLanguageString("common.close")) { showAdminMenu = false }
+                }
+            }
+        }
     }
 }
 

@@ -96,7 +96,17 @@ class PermissionManager: NSObject, ObservableObject {
         locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
     }
 
+    private var isEnglish: Bool { UserDefaults.standard.string(forKey: "appLanguage") == "en" }
+
     var notificationStatusText: String {
+        if isEnglish {
+            switch notificationStatus {
+            case .authorized: return "Allowed"
+            case .denied: return "Denied"
+            case .provisional: return "Provisionally Allowed"
+            default: return "Not Set"
+            }
+        }
         switch notificationStatus {
         case .authorized: return "허용됨"
         case .denied: return "거부됨"
@@ -106,10 +116,28 @@ class PermissionManager: NSObject, ObservableObject {
     }
 
     var locationStatusText: String {
+        if isEnglish {
+            switch locationStatus {
+            case .authorizedWhenInUse, .authorizedAlways: return "Allowed"
+            case .denied, .restricted: return "Denied"
+            default: return "Not Set"
+            }
+        }
         switch locationStatus {
         case .authorizedWhenInUse, .authorizedAlways: return "허용됨"
         case .denied, .restricted: return "거부됨"
         default: return "미설정"
+        }
+    }
+
+    /// alarmKitStatus(내부 비교용 한국어 토큰)의 표시 전용 영어 변환
+    var alarmKitStatusDisplay: String {
+        guard isEnglish else { return alarmKitStatus }
+        switch alarmKitStatus {
+        case "허용됨": return "Allowed"
+        case "거부됨": return "Denied"
+        case "미지원": return "Unsupported"
+        default: return "Not Set"
         }
     }
 
