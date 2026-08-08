@@ -2336,6 +2336,230 @@
           }
         }
       }
+    },
+    "meditation.reflection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reflection"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "묵상 소감"
+          }
+        }
+      }
+    },
+    "meditation.prayer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prayer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기도"
+          }
+        }
+      }
+    },
+    "meditation.savedToGallery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📷 Saved to Gallery"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📷 갤러리에 저장됐어요"
+          }
+        }
+      }
+    },
+    "meditation.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수정하기"
+          }
+        }
+      }
+    },
+    "meditation.switchToLight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to Light Mode"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "라이트 모드로 전환"
+          }
+        }
+      }
+    },
+    "meditation.switchToDark": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to Dark Mode"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다크 모드로 전환"
+          }
+        }
+      }
+    },
+    "meditation.saveAsImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as Image"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지로 저장"
+          }
+        }
+      }
+    },
+    "meditation.gratitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grateful For"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "감사한 것"
+          }
+        }
+      }
+    },
+    "meditation.noEntries": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No meditation entries yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 묵상 기록이 없어요"
+          }
+        }
+      }
+    },
+    "meditation.todaysVerse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's verse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's verse"
+          }
+        }
+      }
+    },
+    "meditation.completedToday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meditation Completed Today ✓"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 묵상 완료 ✓"
+          }
+        }
+      }
+    },
+    "meditation.startToday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready for a moment of reflection today?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘도 묵상 진행해볼까?"
+          }
+        }
+      }
+    },
+    "meditation.collapse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "접기"
+          }
+        }
+      }
+    },
+    "meditation.fullCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Calendar"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 달력"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

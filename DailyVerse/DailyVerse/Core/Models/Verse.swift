@@ -252,4 +252,48 @@ extension Verse {
     func applicationText(lang: String) -> String {
         lang == "en" ? (applicationEn ?? application) : application
     }
+
+    /// reference(예: "갈라디아서 5:22-23")의 영어 버전이 별도 필드로 없어서,
+    /// 책 이름 접두어만 클라이언트에서 매핑해 생성한다 (장:절 부분은 공통 표기라 그대로 사용).
+    private static let bookNameEn: [(ko: String, en: String)] = [
+        ("창세기", "Genesis"), ("출애굽기", "Exodus"), ("레위기", "Leviticus"), ("신명기", "Deuteronomy"),
+        ("여호수아", "Joshua"), ("사사기", "Judges"), ("룻기", "Ruth"),
+        ("사무엘상", "1 Samuel"), ("사무엘하", "2 Samuel"),
+        ("열왕기상", "1 Kings"), ("열왕기하", "2 Kings"),
+        ("역대상", "1 Chronicles"), ("역대하", "2 Chronicles"),
+        ("에스라", "Ezra"), ("느헤미야", "Nehemiah"), ("에스더", "Esther"),
+        ("욥기", "Job"), ("시편", "Psalm"), ("잠언", "Proverbs"), ("전도서", "Ecclesiastes"),
+        ("아가", "Song of Solomon"), ("이사야", "Isaiah"), ("예레미야애가", "Lamentations"), ("예레미야", "Jeremiah"),
+        ("에스겔", "Ezekiel"), ("다니엘", "Daniel"),
+        ("호세아", "Hosea"), ("요엘", "Joel"), ("아모스", "Amos"), ("오바댜", "Obadiah"),
+        ("요나", "Jonah"), ("미가", "Micah"), ("나훔", "Nahum"), ("하박국", "Habakkuk"),
+        ("스바냐", "Zephaniah"), ("학개", "Haggai"), ("스가랴", "Zechariah"), ("말라기", "Malachi"),
+        ("마태복음", "Matthew"), ("마가복음", "Mark"), ("누가복음", "Luke"), ("요한복음", "John"),
+        ("사도행전", "Acts"), ("로마서", "Romans"),
+        ("고린도전서", "1 Corinthians"), ("고린도후서", "2 Corinthians"),
+        ("갈라디아서", "Galatians"), ("에베소서", "Ephesians"), ("빌립보서", "Philippians"),
+        ("골로새서", "Colossians"),
+        ("데살로니가전서", "1 Thessalonians"), ("데살로니가후서", "2 Thessalonians"),
+        ("디모데전서", "1 Timothy"), ("디모데후서", "2 Timothy"),
+        ("디도서", "Titus"), ("빌레몬서", "Philemon"), ("히브리서", "Hebrews"),
+        ("야고보서", "James"), ("베드로전서", "1 Peter"), ("베드로후서", "2 Peter"),
+        ("요한일서", "1 John"), ("요한이서", "2 John"), ("요한삼서", "3 John"),
+        ("유다서", "Jude"), ("요한계시록", "Revelation"),
+    ]
+
+    /// 어떤 "책이름 장:절" 형식 한국어 문자열에도 적용 가능한 정적 변환 함수
+    /// (MeditationEntry처럼 과거 시점에 저장된 참조 문자열에도 사용)
+    static func translateReferenceToEnglish(_ koReference: String) -> String {
+        for (ko, en) in bookNameEn where koReference.hasPrefix(ko) {
+            return en + koReference.dropFirst(ko.count)
+        }
+        return koReference
+    }
+
+    var referenceEn: String { Verse.translateReferenceToEnglish(reference) }
+
+    /// 현재 appLanguage에 맞는 참조 표기 (홈/알람/저장/묵상 등 전체 화면 공통 사용)
+    var referenceDisplay: String {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en" ? referenceEn : reference
+    }
 }

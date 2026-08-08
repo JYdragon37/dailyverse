@@ -75,12 +75,12 @@ struct MeditationEntryDetailView: View {
                     rule.padding(.horizontal, 28).padding(.top, 20)
 
                     if let reading = liveEntry.readingText, !reading.isEmpty {
-                        diarySection(icon: "✍️", label: "묵상 소감", body: reading)
+                        diarySection(icon: "✍️", label: appLanguageString("meditation.reflection"), body: reading)
                         rule.padding(.horizontal, 28)
                     }
 
                     if let prayer = liveEntry.prayer, !prayer.isEmpty {
-                        diarySection(icon: "🙏", label: "기도", body: prayer)
+                        diarySection(icon: "🙏", label: appLanguageString("meditation.prayer"), body: prayer)
                         rule.padding(.horizontal, 28)
                     }
 
@@ -109,7 +109,7 @@ struct MeditationEntryDetailView: View {
             if showSavedToast {
                 VStack {
                     Spacer()
-                    Text("📷 갤러리에 저장됐어요")
+                    Text(appLanguageString("meditation.savedToGallery"))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
@@ -127,7 +127,7 @@ struct MeditationEntryDetailView: View {
             HStack(spacing: 10) {
                 // 수정하기 (D: 누적 5회 초과 시 광고)
                 Button { handleEditTap() } label: {
-                    Text("수정하기")
+                    Text(appLanguageString("meditation.edit"))
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(inkColor.opacity(0.60))
                         .padding(.horizontal, 12)
@@ -149,7 +149,7 @@ struct MeditationEntryDetailView: View {
                         .background(inkColor.opacity(0.08))
                         .clipShape(Circle())
                 }
-                .accessibilityLabel(diaryPrefersDark ? "라이트 모드로 전환" : "다크 모드로 전환")
+                .accessibilityLabel(diaryPrefersDark ? appLanguageString("meditation.switchToLight") : appLanguageString("meditation.switchToDark"))
 
                 // 갤러리 저장 (A: Free 유저 광고)
                 Button {
@@ -171,7 +171,7 @@ struct MeditationEntryDetailView: View {
                             .clipShape(Circle())
                     }
                 }
-                .accessibilityLabel("이미지로 저장")
+                .accessibilityLabel(appLanguageString("meditation.saveAsImage"))
                 .disabled(isSaving)
 
                 // 닫기
@@ -183,7 +183,7 @@ struct MeditationEntryDetailView: View {
                         .background(inkColor.opacity(0.08))
                         .clipShape(Circle())
                 }
-                .accessibilityLabel("닫기")
+                .accessibilityLabel(appLanguageString("verseDetail.close.accessibility"))
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
@@ -202,7 +202,7 @@ struct MeditationEntryDetailView: View {
                 )
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("닫기") { showEditFlow = false }
+                        Button(appLanguageString("verseDetail.close.accessibility")) { showEditFlow = false }
                             .foregroundColor(.white.opacity(0.7))
                     }
                 }
@@ -245,7 +245,7 @@ struct MeditationEntryDetailView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("묵상")
+            Text(appLanguageString("tab.journal"))
                 .font(.system(size: 34, weight: .bold, design: .serif))
                 .foregroundColor(inkColor)
 
@@ -259,7 +259,7 @@ struct MeditationEntryDetailView: View {
 
     private var verseSection: some View {
         VStack(spacing: 14) {
-            Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "말씀을 불러오는 중이에요")
+            Text(verse?.verseFull(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko") ?? appLanguageString("saved.loading"))
                 .font(.system(size: 18, weight: .regular, design: .serif))
                 .italic()
                 .foregroundColor(inkColor.opacity(0.85))
@@ -268,7 +268,7 @@ struct MeditationEntryDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity)
 
-            Text("— \(liveEntry.verseReference)")
+            Text("— \(UserDefaults.standard.string(forKey: "appLanguage") == "en" ? Verse.translateReferenceToEnglish(liveEntry.verseReference) : liveEntry.verseReference)")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(goldColor)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -304,7 +304,7 @@ struct MeditationEntryDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Text("🌿").font(.system(size: 18))
-                Text("감사한 것")
+                Text(appLanguageString("meditation.gratitude"))
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(goldColor)
                     .tracking(0.8)
@@ -356,7 +356,7 @@ struct MeditationEntryDetailView: View {
     // MARK: - 빈 상태
 
     private var emptyState: some View {
-        Text("아직 묵상 기록이 없어요")
+        Text(appLanguageString("meditation.noEntries"))
             .font(.system(size: 15, weight: .regular, design: .serif))
             .italic()
             .foregroundColor(inkFaint)
@@ -515,7 +515,7 @@ private struct DiarySnapshotView: View {
 
             // 헤더
             VStack(alignment: .leading, spacing: 5) {
-                Text("묵상")
+                Text(appLanguageString("tab.journal"))
                     .font(.system(size: 34, weight: .bold, design: .serif))
                     .foregroundColor(inkColor)
                 Text(formattedDate)
@@ -529,7 +529,7 @@ private struct DiarySnapshotView: View {
 
             // 말씀
             VStack(spacing: 14) {
-                Text(verse?.verseFullKo ?? verse?.verseShortKo ?? "")
+                Text(verse?.verseFull(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko") ?? "")
                     .font(.system(size: 18, weight: .regular, design: .serif))
                     .italic()
                     .foregroundColor(inkColor.opacity(0.85))
@@ -537,7 +537,7 @@ private struct DiarySnapshotView: View {
                     .lineSpacing(8)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity)
-                Text("— \(entry.verseReference)")
+                Text("— \(UserDefaults.standard.string(forKey: "appLanguage") == "en" ? Verse.translateReferenceToEnglish(entry.verseReference) : entry.verseReference)")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(goldColor)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -548,11 +548,11 @@ private struct DiarySnapshotView: View {
             snapRule.padding(.horizontal, 28)
 
             if let reading = entry.readingText, !reading.isEmpty {
-                snapSection(icon: "✍️", label: "묵상 소감", body: reading)
+                snapSection(icon: "✍️", label: appLanguageString("meditation.reflection"), body: reading)
                 snapRule.padding(.horizontal, 28)
             }
             if let prayer = entry.prayer, !prayer.isEmpty {
-                snapSection(icon: "🙏", label: "기도", body: prayer)
+                snapSection(icon: "🙏", label: appLanguageString("meditation.prayer"), body: prayer)
                 snapRule.padding(.horizontal, 28)
             }
             if !entry.prayerItems.isEmpty {
@@ -611,7 +611,7 @@ private struct DiarySnapshotView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Text("🌿").font(.system(size: 18))
-                Text("감사한 것")
+                Text(appLanguageString("meditation.gratitude"))
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(goldColor)
                     .tracking(0.8)

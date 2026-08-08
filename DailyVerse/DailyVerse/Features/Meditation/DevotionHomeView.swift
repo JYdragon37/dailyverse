@@ -28,15 +28,24 @@ struct DevotionHomeView: View {
     private var greeting: (icon: String, text: String) {
         let hour = Calendar.current.component(.hour, from: Date())
         let name = nicknameManager.nickname
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         switch hour {
         case 5..<12:
-            return ("sun.max.fill", "\(name), 좋은 아침이야. 오늘 하루를 말씀과 함께 시작해볼까?")
+            return ("sun.max.fill", isEnglish
+                ? "\(name), good morning. Ready to start your day with a verse?"
+                : "\(name), 좋은 아침이야. 오늘 하루를 말씀과 함께 시작해볼까?")
         case 12..<18:
-            return ("cloud.sun.fill", "\(name), 잠깐 쉬어가자. 바쁜 하루 중에 잠시 멈추는 시간.")
+            return ("cloud.sun.fill", isEnglish
+                ? "\(name), take a break. A quiet moment in a busy day."
+                : "\(name), 잠깐 쉬어가자. 바쁜 하루 중에 잠시 멈추는 시간.")
         case 18..<23:
-            return ("moon.fill", "\(name), 오늘 하루도 벌써 해가지고 저녁 시간이네. 고생 많았어.")
+            return ("moon.fill", isEnglish
+                ? "\(name), the day is winding down into evening. You've done well."
+                : "\(name), 오늘 하루도 벌써 해가지고 저녁 시간이네. 고생 많았어.")
         default:
-            return ("sparkles", "\(name), 늦은 밤이네. 오늘 하루를 말씀으로 마무리해볼까.")
+            return ("sparkles", isEnglish
+                ? "\(name), it's late. Want to close out the day with the Word?"
+                : "\(name), 늦은 밤이네. 오늘 하루를 말씀으로 마무리해볼까.")
         }
     }
 
@@ -144,19 +153,19 @@ struct DevotionHomeView: View {
             // 말씀 내용
             VStack(alignment: .leading, spacing: 10) {
                 // Today's verse 레이블
-                Text("Today's verse")
+                Text(appLanguageString("meditation.todaysVerse"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.dvAccentGold.opacity(0.80))
                     .tracking(0.8)
 
                 if let verse = viewModel.todayVerse {
-                    Text(verse.verseShortKo)
+                    Text(verse.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"))
                         .font(.custom("PretendardVariable", size: 17))
                         .foregroundColor(.white.opacity(0.92))
                         .fixedSize(horizontal: false, vertical: true)
                         .lineSpacing(6)
 
-                    Text(verse.reference)
+                    Text(verse.referenceDisplay)
                         .font(.dvCaption)
                         .foregroundColor(.dvAccentGold)
                 } else {
@@ -210,7 +219,7 @@ struct DevotionHomeView: View {
             // 완료 상태
             HStack {
                 Spacer()
-                Text("오늘 묵상 완료 ✓")
+                Text(appLanguageString("meditation.completedToday"))
                     .font(.system(size: 17, weight: .bold))
                     .foregroundColor(.white.opacity(0.45))
                 Spacer()
@@ -229,7 +238,7 @@ struct DevotionHomeView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text("오늘도 묵상 진행해볼까?")
+                    Text(appLanguageString("meditation.startToday"))
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.black)
                     Spacer()
@@ -274,7 +283,7 @@ struct DevotionHomeView: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(isCalendarExpanded ? "접기" : "전체 달력")
+                        Text(isCalendarExpanded ? appLanguageString("meditation.collapse") : appLanguageString("meditation.fullCalendar"))
                             .font(.dvCaption)
                             .foregroundColor(.dvAccentGold)
                         Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
@@ -380,7 +389,11 @@ private struct DevotionCompactGrid: View {
     private static let iso: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
     }()
-    private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
+    private static var weekdays: [String] {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en"
+            ? ["S", "M", "T", "W", "T", "F", "S"]
+            : ["일", "월", "화", "수", "목", "금", "토"]
+    }
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
     private var last14Days: [(dateKey: String, dayNum: Int)] {
@@ -440,7 +453,11 @@ private struct DevotionCalendarGrid: View {
     private static let isoFormatter: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
     }()
-    private static let weekdayNames = ["일", "월", "화", "수", "목", "금", "토"]
+    private static var weekdayNames: [String] {
+        UserDefaults.standard.string(forKey: "appLanguage") == "en"
+            ? ["S", "M", "T", "W", "T", "F", "S"]
+            : ["일", "월", "화", "수", "목", "금", "토"]
+    }
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
     private var todayKey: String { MeditationEntry.todayKey() }
