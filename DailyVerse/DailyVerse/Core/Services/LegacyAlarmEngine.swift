@@ -13,10 +13,12 @@ private let bgLog = Logger(subsystem: "com.morningmanna.app", category: "AlarmBa
 ///
 /// 동작 방식:
 /// 1. UNUserNotificationCenter로 30초 간격 로컬 알림 10개를 연속 예약 → 연속 알람 효과
+///    (.timeSensitive + 커스텀 사운드 → 앱이 백그라운드/종료 상태여도 알림 배너로 알람 발동)
 /// 2. 앱이 포그라운드로 올 때 AppDelegate/NotificationDelegate에서 AVAudioPlayer로 전환
-/// 3. Info.plist Background Modes → audio 필수
 ///
-/// 한계: 앱이 완전 종료 상태면 시스템 알림 소리만 울림 (DND는 .timeSensitive로 관통)
+/// 참고: audio 백그라운드 모드는 App Store 심사(2.5.4) 준수를 위해 제거됨.
+///       → 백그라운드 무음 루프 keep-alive 대신 UNNotification(.timeSensitive)에 의존.
+///       → 앱이 활성 상태일 때만 AVAudioSession .playback로 무음 스위치 관통 재생.
 final class LegacyAlarmEngine: AlarmEngine {
 
     // MARK: - AVAudio (포그라운드 전환 시)
@@ -227,9 +229,10 @@ final class LegacyAlarmEngine: AlarmEngine {
 
     private func makeContent(alarm: Alarm, verse: Verse) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
+        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
         content.title    = "mm"
-        content.subtitle = verse.verseShortKo          // 말씀 텍스트 (잠금화면 배너 2행)
-        content.body     = verse.reference             // 성경 참조 (잠금화면 배너 3행)
+        content.subtitle = verse.verseShort(lang: lang)  // 말씀 텍스트 (잠금화면 배너 2행)
+        content.body     = verse.referenceDisplay        // 성경 참조 (잠금화면 배너 3행)
         content.interruptionLevel = .timeSensitive
         // 앱 종료 상태 알람 소리: 유저가 선택한 사운드 → 없으면 alarm_song → 시스템 기본음
         let selectedFilename = AlarmSound.sound(for: alarm.soundId).filename + ".mp3"
@@ -248,8 +251,8 @@ final class LegacyAlarmEngine: AlarmEngine {
             "sound_id":       alarm.soundId,
             "volume":         alarm.volume,
             "alert_style":    alarm.alertStyle,
-            "verse_short_ko": verse.verseShortKo,  // 백업 알림 배너용
-            "verse_reference": verse.reference      // 백업 알림 배너용
+            "verse_short_ko": verse.verseShort(lang: lang),  // 백업 알림 배너용
+            "verse_reference": verse.referenceDisplay         // 백업 알림 배너용
         ]
         return content
     }
@@ -328,8 +331,12 @@ final class LegacyAlarmEngine: AlarmEngine {
         }
     }
 
+    /// 알람의 메인/백업 알림만 취소한다. 대기 중인 스누즈(`_snooze`)는 건드리지 않음 —
+    /// 콘텐츠 버전 재등록·다른 저장/토글 시에도 호출되므로, 여기서 스누즈까지 지우면
+    /// 유저가 스누즈 대기 중 앱을 여는 것만으로 재알람이 사라지는 버그가 된다.
+    /// 스누즈까지 함께 취소해야 하는 경우(알람 삭제/비활성화)는 `cancelSnooze(alarmId:)`를 별도 호출한다.
     func cancel(alarmId: UUID) async throws {
-        var ids = ["\(alarmId.uuidString)_once", "\(alarmId.uuidString)_snooze"]
+        var ids = ["\(alarmId.uuidString)_once"]
         for day in 0...6 {
             ids.append("\(alarmId.uuidString)_day\(day)")
             ids.append("\(alarmId.uuidString)_day\(day)_backup1")
@@ -341,6 +348,13 @@ final class LegacyAlarmEngine: AlarmEngine {
         // iOS 26 포그라운드 트리거 일회성
         ids.append("\(alarmId.uuidString)_fg")
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    /// 대기 중인 스누즈 알림만 취소 (알람 삭제/비활성화 시 호출)
+    func cancelSnooze(alarmId: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: ["\(alarmId.uuidString)_snooze"]
+        )
     }
 
     // MARK: - Helpers
@@ -423,8 +437,7 @@ final class AlarmBackgroundService {
             } else {
                 verse = OfflineFallbackManager.shared.fallbackVerse(for: mode)
             }
-            NotificationManager.shared.cancel(alarmId: alarm.id)
-            NotificationManager.shared.schedule(alarm, verse: verse)
+            NotificationManager.shared.cancelThenSchedule(alarmId: alarm.id, alarm: alarm, verse: verse)
         }
         UserDefaults.standard.set(currentVersion, forKey: "alarmNotificationRegisteredVersion")
         bgLog.info("✅ [BgService] 알람 알림 재등록 완료 — \(alarms.count)개 알람, version: \(currentVersion)")

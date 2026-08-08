@@ -115,10 +115,30 @@ final class NotificationManager: NSObject {
         }
     }
 
+    /// 취소 후 재등록을 같은 Task 안에서 순차 실행한다.
+    /// `cancel()`과 `schedule()`을 각각 독립된 Task로 호출하면 실행 순서가 보장되지 않아,
+    /// 나중에 실행된 취소가 방금 등록한 새 알림을 지워버려 알람이 안 울리는 레이스가 생길 수 있다.
+    /// 알람을 수정/토글할 때는 반드시 이 함수를 사용한다.
+    func cancelThenSchedule(alarmId: UUID, alarm: Alarm?, verse: Verse?) {
+        Task {
+            try? await engine.cancel(alarmId: alarmId)
+            guard let alarm, let verse, alarm.isEnabled else { return }
+            try? await engine.schedule(alarm: DailyVerseAlarm(alarm: alarm, verse: verse))
+            if #available(iOS 26.0, *) {
+                scheduleForegroundTrigger(alarm, verse: verse)
+            }
+        }
+    }
+
     func cancelAll() {
         Task {
             try? await engine.cancelAll()
         }
+    }
+
+    /// 대기 중인 스누즈만 취소 (알람 삭제/비활성화 시에만 호출 — `cancel()`은 스누즈를 보존함)
+    func cancelSnooze(alarmId: UUID) {
+        engine.cancelSnooze(alarmId: alarmId)
     }
 
     // MARK: - 고아 알림 정리
@@ -155,7 +175,8 @@ final class NotificationManager: NSObject {
     func rescheduleSnooze(alarmId: UUID, verse: Verse, minutes: Int = 5) {
         let content = UNMutableNotificationContent()
         content.title = "mm"
-        content.body = "\"\(verse.verseShortKo)\"\n\(verse.reference)"
+        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"
+        content.body = "\"\(verse.verseShort(lang: lang))\"\n\(verse.referenceDisplay)"
         if Bundle.main.url(forResource: "alarm_song", withExtension: "mp3") != nil {
             content.sound = UNNotificationSound(named: UNNotificationSoundName("alarm_song.mp3"))
         } else {
@@ -215,7 +236,7 @@ final class NotificationManager: NSObject {
         let center = UNUserNotificationCenter.current()
         let content = UNMutableNotificationContent()
         content.title = "mm"
-        content.body = "📿 오늘 묵상을 아직 기록하지 않으셨어요"
+        content.body = appLanguageString("notification.meditationReminder.body")
         content.sound = .default
 
         var components = DateComponents()

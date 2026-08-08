@@ -1,19 +1,17 @@
 import SwiftUI
 import UserNotifications
+import AppTrackingTransparency
 
 struct AppRootView: View {
     // v2 신규 온보딩 키 — 기존 onboardingCompleted(v1) 유저도 새 온보딩 경험
     @AppStorage("onboardingV2Completed") private var onboardingCompleted = false
+    @AppStorage("authWelcomeSkipped") private var authWelcomeSkipped = false  // 레거시, 미사용
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var alarmCoordinator: AlarmCoordinator
     @EnvironmentObject private var loadingCoordinator: AppLoadingCoordinator
 
-    /// 현재 세션에서 AuthWelcomeView를 보여줄지 여부
-    /// - 로그인된 상태라면 false (스킵)
-    @State private var showAuthWelcome: Bool = false
-    /// 세션 내에서만 유지되는 게스트 모드 플래그
-    /// - 앱 재실행 시 초기화됨 (영구 저장 안 함)
-    @State private var guestModeActive: Bool = false
+    @State private var showAuthWelcome: Bool = false  // 레거시, 항상 false
+    @State private var guestModeActive: Bool = false  // 레거시, 미사용
     // NOTE: showNicknameSetup 제거 — 닉네임 입력은 온보딩(ONBNicknameView)에서 처리
 
     var body: some View {
@@ -59,16 +57,6 @@ struct AppRootView: View {
                 // 온보딩 미완료 → 항상 온보딩 먼저 (로그인 여부 무관)
                 OnboardingContainerView()
                     .transition(.opacity)
-            } else if showAuthWelcome && !authManager.isLoggedIn && !guestModeActive {
-                // 온보딩 완료 + 미로그인 → 로그인 유도
-                AuthWelcomeView(onSkip: {
-                    guestModeActive = true
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        showAuthWelcome = false
-                    }
-                })
-                .transition(.opacity)
-                .zIndex(5)
             } else {
                 // 온보딩 완료 + 로그인 or 게스트 → 메인
                 MainTabView()
@@ -80,6 +68,13 @@ struct AppRootView: View {
                 AlarmStage2View()
                     .transition(.dvFade)
                     .zIndex(31)
+            }
+
+            // MARK: - VerseRead — Live Activity "말씀 보기" 탭 시 (스누즈/일어나기 없음)
+            if alarmCoordinator.stage == .verseRead {
+                VerseReadView()
+                    .transition(.dvFade)
+                    .zIndex(30)
             }
 
             #if DEBUG
@@ -94,32 +89,17 @@ struct AppRootView: View {
         .animation(.dvStageTransition, value: alarmCoordinator.stage)
         .animation(.easeInOut(duration: 0.4), value: loadingCoordinator.state == .ready)
         // MARK: - 탈퇴 완료 알림 (SettingsView 소멸 후에도 표시)
-        .alert("탈퇴 완료", isPresented: .init(
+        .alert(appLanguageString("appRoot.deletionComplete.title"), isPresented: .init(
             get: { authManager.deletionCompleteMessage != nil },
             set: { if !$0 { authManager.deletionCompleteMessage = nil } }
         )) {
-            Button("확인") { authManager.deletionCompleteMessage = nil }
+            Button(appLanguageString("common.ok")) { authManager.deletionCompleteMessage = nil }
         } message: {
             Text(authManager.deletionCompleteMessage ?? "")
         }
         // MARK: - 앱 시작 시 로딩 플로우 시작
         .task {
-            showAuthWelcome = false
-            // 비회원(미로그인) 유저는 매 세션 온보딩부터 시작
-            // start() 전에 설정해야 state=.ready 시 즉시 OnboardingContainerView가 표시됨
-            // (후에 설정하면 MainTabView가 잠깐 렌더링되어 온보딩 콘텐츠가 깨짐)
-            if !authManager.isLoggedIn {
-                onboardingCompleted = false
-            }
             await loadingCoordinator.start()
-            // AuthWelcomeView 표시 여부 결정:
-            // - 이미 로그인된 경우 → 스킵
-            // - 그 외 미로그인 → 온보딩 완료 후 표시 (게스트 모드 선택 시 세션 내 스킵)
-            if !authManager.isLoggedIn {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showAuthWelcome = true
-                }
-            }
             // 알림 권한: 온보딩 완료 유저만 여기서 확인
             // (미완료 유저는 온보딩 Screen 4에서 처리)
             if onboardingCompleted {
@@ -127,6 +107,8 @@ struct AppRootView: View {
                 if settings.authorizationStatus == .notDetermined {
                     _ = await NotificationManager.shared.requestPermission()
                 }
+                // ATT: 이미 온보딩 완료한 기존 유저도 최초 1회 요청 (아직 미요청 시)
+                requestTrackingIfNeeded()
             }
 
             // AlarmKit 콜드런치 대응 — 로딩 완료 + onboardingCompleted 확정 후 처리
@@ -150,7 +132,7 @@ struct AppRootView: View {
         // MARK: - 오프라인 토스트 (3초 후 자동 해제)
         .overlay(alignment: .bottom) {
             if loadingCoordinator.isOffline {
-                ToastView(message: "오프라인 상태입니다. 저장된 말씀을 표시해요")
+                ToastView(message: appLanguageString("appRoot.offlineToast"))
                     .padding(.bottom, 100)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .onAppear {
@@ -164,22 +146,19 @@ struct AppRootView: View {
             }
         }
         // MARK: - 강제 업데이트 알럿
-        .alert("업데이트 필요", isPresented: $loadingCoordinator.showForceUpdate) {
-            Button("App Store 열기") {
+        .alert(appLanguageString("appRoot.forceUpdate.title"), isPresented: $loadingCoordinator.showForceUpdate) {
+            Button(appLanguageString("appRoot.forceUpdate.openAppStore")) {
                 if let url = URL(string: "https://apps.apple.com/app/id6763995142") {
                     UIApplication.shared.open(url)
                 }
             }
         } message: {
-            Text("더 나은 서비스를 위해 최신 버전으로 업데이트가 필요합니다.")
+            Text(appLanguageString("appRoot.forceUpdate.message"))
         }
-        // MARK: - 온보딩 완료 → 인증 화면 트리거
-        // 온보딩이 방금 완료됐고 아직 미로그인이면 AuthWelcomeView 표시
         .onChange(of: onboardingCompleted) { completed in
-            if completed && !authManager.isLoggedIn {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showAuthWelcome = true
-                }
+            if completed {
+                // ATT: 온보딩 완료 직후 요청 — 심사자가 확실히 도달하는 시점
+                requestTrackingIfNeeded()
             }
         }
         // MARK: - 로그인/로그아웃 감지
@@ -213,6 +192,19 @@ struct AppRootView: View {
             Task {
                 await alarmCoordinator.handleNotification(from: userInfo)
             }
+        }
+    }
+
+    // MARK: - App Tracking Transparency
+    /// 온보딩 완료 직후 ATT 권한을 최초 1회 요청.
+    /// 앱이 active 상태에서 UI가 안정된 뒤 호출해야 시스템 팝업이 확실히 표시됨.
+    private func requestTrackingIfNeeded() {
+        guard #available(iOS 14, *) else { return }
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        Task {
+            // UI 전환 안정화 대기 → active 상태 보장 (팝업 유실 방지)
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            _ = await ATTrackingManager.requestTrackingAuthorization()
         }
     }
 }

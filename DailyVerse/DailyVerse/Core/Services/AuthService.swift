@@ -11,12 +11,12 @@ class AuthService: NSObject {
 
     // signInWithApple()과 reauthenticate()가 같은 delegate를 공유하므로
     // 두 흐름을 구분하기 위해 별도 continuation을 사용
-    private var signInContinuation: CheckedContinuation<FirebaseAuth.User, Error>?
+    private var signInContinuation: CheckedContinuation<AuthDataResult, Error>?
     private var reauthContinuation: CheckedContinuation<Void, Error>?
 
     // MARK: - Sign In
 
-    func signInWithApple() async throws -> FirebaseAuth.User {
+    func signInWithApple() async throws -> AuthDataResult {
         return try await withCheckedThrowingContinuation { continuation in
             self.signInContinuation = continuation
             let nonce = randomNonceString()
@@ -72,7 +72,7 @@ class AuthService: NSObject {
         }
         guard let rootVC else {
             throw NSError(domain: "AuthService", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "화면을 찾을 수 없어요"])
+                          userInfo: [NSLocalizedDescriptionKey: appLanguageString("auth.error.screenNotFound")])
         }
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
@@ -171,7 +171,7 @@ extension AuthService: ASAuthorizationControllerDelegate {
             Task {
                 do {
                     let result = try await Auth.auth().signIn(with: credential)
-                    continuation.resume(returning: result.user)
+                    continuation.resume(returning: result)
                 } catch {
                     continuation.resume(throwing: error)
                 }

@@ -44,7 +44,7 @@ struct AlarmStage2View: View {
         let g = greetingService.currentAlarmGreeting.isEmpty
             ? (greetingLanguagePref == "ko" ? alarmMode.alarmGreetingKr : alarmMode.alarmGreetingEn)
             : greetingService.currentAlarmGreeting
-        let name = nicknameManager.nickname
+        let name = nicknameManager.displayName
         let lastChar = g.last
         if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
             return "\(g) \(name)"
@@ -261,7 +261,7 @@ struct AlarmStage2View: View {
                 .shadow(color: .black.opacity(0.85), radius: 8, x: 0, y: 3)
 
             // 성경 참조
-            Text(verse.reference)
+            Text(verse.referenceDisplay)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.white.opacity(0.8))
                 .fixedSize(horizontal: false, vertical: true)
@@ -490,12 +490,12 @@ struct VerseReadView: View {
     @ViewBuilder
     private func verseCard(verse: Verse) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verse.verseFullKo)
+            Text(verse.verseFull(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"))
                 .font(.system(size: 20, weight: .light))
                 .foregroundColor(.white)
                 .lineSpacing(6)
 
-            Text(verse.reference)
+            Text(verse.referenceDisplay)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.white.opacity(0.65))
 

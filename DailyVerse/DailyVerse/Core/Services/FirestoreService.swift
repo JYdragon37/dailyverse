@@ -260,7 +260,7 @@ class FirestoreService {
 
     // MARK: - User
 
-    func createUser(uid: String, email: String, displayName: String, nickname: String = "친구") async throws {
+    func createUser(uid: String, email: String, displayName: String, nickname: String = "그대") async throws {
         let userData: [String: Any] = [
             "email": email,
             "display_name": displayName,

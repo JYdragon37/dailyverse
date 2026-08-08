@@ -19,7 +19,7 @@ struct VerseCardView: View {
 
             // 출처 + 테마
             HStack(spacing: 8) {
-                Text(verse.reference)
+                Text(verse.referenceDisplay)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
 
@@ -44,7 +44,7 @@ struct VerseCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { onTap() }
-        .accessibilityLabel("\(verse.verseShort(lang: appLang)). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseShort(lang: appLang)). \(verse.referenceDisplay)")
         .accessibilityAddTraits(.isButton)
     }
 }

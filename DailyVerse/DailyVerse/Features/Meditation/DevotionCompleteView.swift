@@ -84,22 +84,12 @@ struct DevotionCompleteView: View {
         }
         .onAppear {
             runEntryAnimations()
-            // C: 스트릭 7일 달성 업셀 — 비프리미엄, 최초 1회만
-            if !subscriptionManager.isPremium && !hasShownStreak7Upsell && streakManager.currentStreak == 7 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                    showStreak7Upsell = true
-                    hasShownStreak7Upsell = true
-                }
-            }
+            // Premium 판매를 이번 버전에서 숨김 → 스트릭 7일 업셀 비활성화 (심사 2.1 대응)
         }
         .sheet(isPresented: $showShareSheet) {
             if let image = shareImage {
                 ShareSheet(activityItems: [image])
             }
-        }
-        // C: 스트릭 7일 업셀 시트
-        .sheet(isPresented: $showStreak7Upsell) {
-            Streak7UpsellSheet(isPresented: $showStreak7Upsell)
         }
     }
 
@@ -135,7 +125,7 @@ struct DevotionCompleteView: View {
     private var verseCard: some View {
         VStack(alignment: .trailing, spacing: 10) {
             if let verse = verse {
-                Text(verse.verseShortKo)
+                Text(verse.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"))
                     .font(.custom("PretendardVariable", size: 16))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
@@ -143,7 +133,7 @@ struct DevotionCompleteView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(4)
 
-                Text("— \(verse.reference)")
+                Text("— \(verse.referenceDisplay)")
                     .font(.dvReference)
                     .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -166,7 +156,7 @@ struct DevotionCompleteView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text("📤 카드로 공유하기")
+                    Text(appLanguageString("meditation.complete.shareCard"))
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.black)
                     Spacer()
@@ -185,7 +175,7 @@ struct DevotionCompleteView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text("✏️ 묵상 수정하기")
+                    Text(appLanguageString("meditation.complete.edit"))
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white.opacity(0.75))
                     Spacer()
@@ -209,7 +199,7 @@ struct DevotionCompleteView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text("🏠 홈으로 돌아가기")
+                    Text(appLanguageString("meditation.complete.goHome"))
                         .font(.system(size: 15, weight: .regular))
                         .foregroundColor(.white.opacity(0.45))
                     Spacer()

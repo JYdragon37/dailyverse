@@ -25,7 +25,8 @@ struct DailyVerseAlarmMetadata: AlarmMetadata {
 
 @available(iOS 26.0, *)
 struct DVStopAlarmIntent: AppIntent, LiveActivityIntent {
-    static var title: LocalizedStringResource = "알람 종료"
+    // AppIntents 메타데이터 정적 분석 요구사항 — 리터럴만 허용 (동적 문자열 불가)
+    static var title: LocalizedStringResource = "Stop Alarm"
 
     // ★ 핵심: .foreground(.immediate) = 앱을 반드시 포그라운드로 열고 나서 perform() 실행
     // ForegroundContinuableIntent의 requestToContinueInForeground()는 "요청"이라 거부 가능
@@ -106,7 +107,7 @@ final class AlarmKitEngine: AlarmEngine {
 
         // 스누즈 버튼 (텍스트는 "스누즈" — 시간은 countdownDuration.postAlert로 지정)
         let snoozeButton = AlarmButton(
-            text: "스누즈",
+            text: LocalizedStringResource(String.LocalizationValue(appLanguageString("alarmKit.snooze"))),
             textColor: .white,
             systemImageName: "repeat.circle.fill"
         )
@@ -123,7 +124,7 @@ final class AlarmKitEngine: AlarmEngine {
             )
         } else {
             let stopButton = AlarmButton(
-                text: "종료",
+                text: LocalizedStringResource(String.LocalizationValue(appLanguageString("alarmKit.stop"))),
                 textColor: .white,
                 systemImageName: "xmark.circle.fill"
             )
@@ -202,7 +203,13 @@ final class AlarmKitEngine: AlarmEngine {
 
     func cancel(alarmId: UUID) async throws {
         // manager.cancel(id:) → throws (not async)
-        try? manager.cancel(id: alarmId)
+        // ★ try?로 삼키지 않고 로그 남김 — 실패 시 시스템에 알람이 고아로 남아
+        //   "설정한 적 없는 알람이 뜬다"는 증상으로 이어질 수 있음 (cleanupOrphanedAlarms 참고)
+        do {
+            try manager.cancel(id: alarmId)
+        } catch {
+            kitLog.error("❌ [AlarmKit] cancel 실패 — id: \(alarmId), error: \(error)")
+        }
         // Legacy UNNotification 백업도 취소
         try await LegacyAlarmEngine().cancel(alarmId: alarmId)
     }
@@ -215,6 +222,24 @@ final class AlarmKitEngine: AlarmEngine {
         }
         try await LegacyAlarmEngine().cancelAll()
         kitLog.info("🗑 [AlarmKit] 전체 취소 완료")
+    }
+
+    /// 시스템에 등록된 AlarmKit 알람 중 Core Data(AlarmRepository)에 없는 것(고아)을 정리한다.
+    /// cancel()이 과거에 실패했거나 앱 삭제 없이 데이터만 초기화된 경우, 시스템 알람만 남아서
+    /// 앱의 알람 탭에는 아무것도 없는데 알람이 울리는 증상으로 이어질 수 있다.
+    func cleanupOrphanedAlarms() {
+        guard let registered = try? manager.alarms, !registered.isEmpty else { return }
+        let validIds = Set(AlarmRepository().fetchAll().map { $0.id })
+        let orphans = registered.filter { !validIds.contains($0.id) }
+        guard !orphans.isEmpty else { return }
+        kitLog.warning("🧹 [AlarmKit] 고아 알람 \(orphans.count)개 발견 — 취소 진행")
+        for alarm in orphans {
+            do {
+                try manager.cancel(id: alarm.id)
+            } catch {
+                kitLog.error("❌ [AlarmKit] 고아 알람 취소 실패 — id: \(alarm.id), error: \(error)")
+            }
+        }
     }
 
     // MARK: - Schedule Builder

@@ -46,7 +46,7 @@ class AuthManager: ObservableObject {
     /// Google Sign-In (GoogleSignIn-iOS SDK + Firebase Auth)
     func signInWithGoogle() async {
         guard let clientID = FirebaseApp.app()?.options.clientID else {
-            authError = "Google 클라이언트 ID를 찾을 수 없어요."
+            authError = appLanguageString("auth.error.googleClientId")
             return
         }
         // Google Sign-In 설정
@@ -56,14 +56,14 @@ class AuthManager: ObservableObject {
         // 최상위 ViewController 가져오기
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootVC = windowScene.windows.first?.rootViewController else {
-            authError = "화면을 찾을 수 없어요."
+            authError = appLanguageString("auth.error.screenNotFound")
             return
         }
 
         do {
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
             guard let idToken = result.user.idToken?.tokenString else {
-                authError = "Google 인증 토큰을 받지 못했어요."
+                authError = appLanguageString("auth.error.googleTokenMissing")
                 return
             }
             let credential = GoogleAuthProvider.credential(
@@ -73,7 +73,7 @@ class AuthManager: ObservableObject {
             let authResult = try await Auth.auth().signIn(with: credential)
             // 신규 유저면 Firestore 문서 생성
             if authResult.additionalUserInfo?.isNewUser == true {
-                let displayName = result.user.profile?.name ?? "친구"
+                let displayName = result.user.profile?.name ?? appLanguageString("auth.defaultFriendName")
                 let email = result.user.profile?.email ?? ""
                 try? await FirestoreService().createUser(uid: authResult.user.uid, email: email, displayName: displayName)
             }
@@ -84,7 +84,7 @@ class AuthManager: ObservableObject {
         } catch let error as NSError {
             // 동일 이메일로 다른 인증 방식이 이미 존재하는 경우 (Firebase 에러 코드 17012)
             if error.code == 17012 {
-                authError = "이미 다른 방법으로 가입된 이메일이에요. 기존 로그인 방식을 사용해주세요"
+                authError = appLanguageString("auth.error.duplicateEmail")
             } else {
                 authError = error.localizedDescription
             }
@@ -97,15 +97,22 @@ class AuthManager: ObservableObject {
         isLoading = true
         errorMessage = nil
         do {
-            let firebaseUser = try await authService.signInWithApple()
-            let currentNickname = NicknameManager.shared.nickname
-            try await firestoreService.createUser(
-                uid: firebaseUser.uid,
-                email: firebaseUser.email ?? "",
-                displayName: firebaseUser.displayName ?? "",
-                nickname: currentNickname
-            )
-            // v5.1: 로그인 후 닉네임 Firestore 동기화
+            let result = try await authService.signInWithApple()
+            let firebaseUser = result.user
+            // 신규 유저만 Firestore 문서 생성.
+            // 기존 유저 재로그인 시 createUser(setData merge)는 email/nickname/created_at을
+            // 건드려 users 업데이트 규칙(허용 필드 제한)에 걸림 → 재로그인 실패 원인이었음.
+            // 또한 Firestore 쓰기 실패가 로그인 자체를 막지 않도록 비치명적(try?)으로 처리.
+            if result.additionalUserInfo?.isNewUser == true {
+                let currentNickname = NicknameManager.shared.nickname
+                try? await firestoreService.createUser(
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email ?? "",
+                    displayName: firebaseUser.displayName ?? "",
+                    nickname: currentNickname
+                )
+            }
+            // v5.1: 로그인 후 닉네임 Firestore 동기화 (읽기 전용 — 비치명적)
             await NicknameManager.shared.syncWithFirestore(userId: firebaseUser.uid)
             // Q1+Q2: 유저 ID 설정 (크래시/이벤트 귀속용)
             Crashlytics.crashlytics().setUserID(firebaseUser.uid)
@@ -130,7 +137,7 @@ class AuthManager: ObservableObject {
         do {
             try authService.signOut()
         } catch {
-            errorMessage = "로그아웃 중 오류가 발생했습니다."
+            errorMessage = appLanguageString("auth.error.signOutFailed")
         }
     }
 
@@ -156,7 +163,7 @@ class AuthManager: ObservableObject {
     func deleteAccount(subscriptionManager: SubscriptionManager) async throws {
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "AuthManager", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "로그인 상태가 아닙니다."])
+                          userInfo: [NSLocalizedDescriptionKey: appLanguageString("auth.error.notLoggedIn")])
         }
         let uid = currentUser.uid
         let provider = currentUser.providerData.first?.providerID ?? ""
@@ -191,7 +198,7 @@ class AuthManager: ObservableObject {
         }
 
         Analytics.logEvent("account_deleted", parameters: nil)
-        deletionCompleteMessage = "계정이 삭제되었습니다.\n그동안 함께해서 감사했어요 🙏"
+        deletionCompleteMessage = appLanguageString("appRoot.deletionComplete.message")
     }
 
     // MARK: - Error Handling
@@ -199,11 +206,11 @@ class AuthManager: ObservableObject {
     private func handleSignInError(_ error: NSError) -> String {
         switch error.code {
         case -1009, URLError.notConnectedToInternet.rawValue:
-            return "인터넷 연결을 확인해주세요"
+            return appLanguageString("auth.error.noInternet")
         case 17995:
-            return "설정을 확인해주세요"
+            return appLanguageString("auth.error.checkSettings")
         default:
-            return "다시 시도해주세요"
+            return appLanguageString("auth.error.tryAgain")
         }
     }
 }

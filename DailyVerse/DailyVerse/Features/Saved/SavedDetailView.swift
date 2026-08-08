@@ -95,7 +95,7 @@ struct SavedDetailView: View {
         var parts = [String]()
         parts.append("\"\(verseText)\"")
         if !verseReference.isEmpty { parts.append(verseReference) }
-        parts.append(""); parts.append("morning manna")
+        parts.append(""); parts.append("마이만나")
         return parts.joined(separator: "\n")
     }
 
@@ -205,7 +205,7 @@ struct SavedDetailView: View {
                         Label(appLanguageString("verseDetail.application.label"), systemImage: "sparkles")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.dvAccentSky)
-                        Text("\(nicknameManager.nickname), \(application)")
+                        Text("\(nicknameManager.displayName), \(application)")
                             .font(.system(size: 17, weight: .regular))
                             .foregroundColor(.white.opacity(0.88))
                             .fixedSize(horizontal: false, vertical: true)

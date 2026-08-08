@@ -4,7 +4,7 @@ import Combine
 /// v5.1 — 닉네임 시스템
 /// - UserDefaults: 즉시 반영 (오프라인 포함)
 /// - Firestore users/{uid}.nickname: 로그인 유저 동기화
-/// - 기본값: "beloved"
+/// - 기본값: "그대"
 @MainActor
 final class NicknameManager: ObservableObject {
     static let shared = NicknameManager()
@@ -23,13 +23,18 @@ final class NicknameManager: ObservableObject {
     private init() {
         // _nickname으로 Published 내부 저장소에 직접 접근 → didSet 미호출
         // (nickname = ... 방식은 didSet을 트리거해서 nicknameSet = true가 잘못 저장됨)
-        _nickname = Published(initialValue: UserDefaults.standard.string(forKey: Self.nicknameKey) ?? "beloved")
+        _nickname = Published(initialValue: UserDefaults.standard.string(forKey: Self.nicknameKey) ?? "그대")
     }
 
     /// 유저가 명시적으로 닉네임을 설정했는지 여부
-    /// - nicknameSet 플래그가 true이고 닉네임이 기본값("beloved")이 아닌 경우만 true
+    /// - nicknameSet 플래그가 true이고 닉네임이 기본값("그대")이 아닌 경우만 true
     var isSet: Bool {
-        UserDefaults.standard.bool(forKey: Self.nicknameSetKey) && nickname != "beloved"
+        UserDefaults.standard.bool(forKey: Self.nicknameSetKey) && nickname != "그대"
+    }
+
+    /// UI 표시 전용 — 기본값("그대")일 때만 언어별로 치환. 저장값(nickname)은 항상 "그대" 유지.
+    var displayName: String {
+        nickname == "그대" ? appLanguageString("onboarding.nickname.defaultDisplay") : nickname
     }
 
     // MARK: - 닉네임 설정
@@ -44,7 +49,7 @@ final class NicknameManager: ObservableObject {
     func setNickname(_ name: String, userId: String? = nil) async {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let limit = Self.maxLength(for: trimmed)
-        nickname = trimmed.isEmpty ? "beloved" : String(trimmed.prefix(limit))
+        nickname = trimmed.isEmpty ? "그대" : String(trimmed.prefix(limit))
 
         if let uid = userId {
             try? await firestoreService.updateNickname(nickname, userId: uid)
@@ -53,7 +58,7 @@ final class NicknameManager: ObservableObject {
 
     /// 로그아웃/탈퇴 시 닉네임 초기화 (다음 로그인 계정 오염 방지)
     func reset() {
-        _nickname = Published(initialValue: "beloved")
+        _nickname = Published(initialValue: "그대")
         UserDefaults.standard.removeObject(forKey: Self.nicknameKey)
         UserDefaults.standard.set(false, forKey: Self.nicknameSetKey)
     }
@@ -61,12 +66,12 @@ final class NicknameManager: ObservableObject {
     /// 로그인 후 Firestore와 동기화 (서버 값 우선)
     func syncWithFirestore(userId: String) async {
         if let user = try? await firestoreService.fetchUser(uid: userId),
-           !user.nickname.isEmpty, user.nickname != "beloved" {
+           !user.nickname.isEmpty, user.nickname != "그대" {
             // Firestore 값이 있으면 → 로컬 업데이트
             nickname = user.nickname
             UserDefaults.standard.set(nickname, forKey: Self.nicknameKey)
         }
-        // else: 신규 유저면 로컬 "beloved"(reset 후 상태) 유지, Firestore 저장 안 함
+        // else: 신규 유저면 로컬 "그대"(reset 후 상태) 유지, Firestore 저장 안 함
         // (온보딩에서 직접 닉네임 입력 후 저장)
     }
 }

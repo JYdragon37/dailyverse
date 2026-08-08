@@ -157,7 +157,7 @@ final class HomeViewModel: ObservableObject {
                     try? await repo.delete(id: target.id, userId: userId)
                 }
                 Analytics.logEvent("verse_unsaved", parameters: ["verse_id": verse.id])
-                showToast("저장이 취소되었습니다")
+                showToast(appLanguageString("home.toast.unsaved"))
             }
         } else {
             // 저장
@@ -168,10 +168,10 @@ final class HomeViewModel: ObservableObject {
                     let repo = SavedVerseRepository()
                     try await repo.save(savedVerse, userId: userId)
                     Analytics.logEvent("verse_saved", parameters: ["verse_id": verse.id])
-                    showToast("저장되었습니다")
+                    showToast(appLanguageString("home.toast.saved"))
                 } catch {
                     isSavedCurrentVerse = wasSaved  // 실패 시 롤백
-                    showToast("저장에 실패했어요. 다시 시도해주세요")
+                    showToast(appLanguageString("home.toast.saveFailed"))
                     Crashlytics.crashlytics().record(error: error)
                 }
             }
@@ -192,9 +192,9 @@ final class HomeViewModel: ObservableObject {
                 let repo = SavedVerseRepository()
                 try await repo.save(savedVerse, userId: userId)
                 isSavedCurrentVerse = true
-                showToast("저장되었습니다")
+                showToast(appLanguageString("home.toast.saved"))
             } catch {
-                showToast("저장에 실패했어요. 다시 시도해주세요")
+                showToast(appLanguageString("home.toast.saveFailed"))
             }
         }
     }

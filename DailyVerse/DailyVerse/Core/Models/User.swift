@@ -123,7 +123,7 @@ struct DVUser: Codable, Equatable {
         email: String,
         displayName: String,
         createdAt: Date = Date(),
-        nickname: String = "친구",
+        nickname: String = "그대",
         subscriptionStatus: String = "free",
         subscriptionExpireAt: Date? = nil,
         settings: UserSettings = .default,

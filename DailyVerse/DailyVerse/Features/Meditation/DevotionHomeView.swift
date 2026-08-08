@@ -27,7 +27,7 @@ struct DevotionHomeView: View {
 
     private var greeting: (icon: String, text: String) {
         let hour = Calendar.current.component(.hour, from: Date())
-        let name = nicknameManager.nickname
+        let name = nicknameManager.displayName
         let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         switch hour {
         case 5..<12:
@@ -253,7 +253,7 @@ struct DevotionHomeView: View {
 
             // 첫 방문 힌트 — 묵상 기록이 한 번도 없는 유저에게만 표시
             if viewModel.history.isEmpty {
-                Text("💡 처음이라면, 마음에 걸리는 한 단어만 적어도 돼요")
+                Text(appLanguageString("meditation.firstTimeHint"))
                     .font(.system(size: 12))
                     .foregroundColor(.white.opacity(0.40))
                     .multilineTextAlignment(.center)
@@ -396,21 +396,25 @@ private struct DevotionCompactGrid: View {
     }
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
-    private var last14Days: [(dateKey: String, dayNum: Int)] {
-        let cal = Calendar.current
-        return (0..<14).reversed().map { offset in
-            let date = cal.date(byAdding: .day, value: -offset, to: Date())!
-            return (Self.iso.string(from: date), cal.component(.day, from: date))
+    // 지난 주 일요일부터 이번 주 토요일까지 14일 (일요일 시작 고정)
+    private var last14Days: [(dateKey: String, dayNum: Int, isFuture: Bool)] {
+        var cal = Calendar.current
+        cal.firstWeekday = 1  // 일요일
+        let today = Date()
+        var comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)
+        comps.weekday = 1
+        guard let thisWeekSunday = cal.date(from: comps),
+              let lastWeekSunday = cal.date(byAdding: .weekOfYear, value: -1, to: thisWeekSunday) else { return [] }
+        return (0..<14).map { offset in
+            let date = cal.date(byAdding: .day, value: offset, to: lastWeekSunday)!
+            let key = Self.iso.string(from: date)
+            let day = cal.component(.day, from: date)
+            let isFuture = cal.compare(date, to: today, toGranularity: .day) == .orderedDescending
+            return (key, day, isFuture)
         }
     }
 
-    private var weekdayLabels: [String] {
-        let cal = Calendar.current
-        return (0..<7).map { col in
-            let date = cal.date(byAdding: .day, value: -(13 - col), to: Date())!
-            return Self.weekdays[cal.component(.weekday, from: date) - 1]
-        }
-    }
+    private var weekdayLabels: [String] { Self.weekdays }  // 일~토 고정
 
     private var todayKey: String { MeditationEntry.todayKey() }
 
@@ -423,19 +427,26 @@ private struct DevotionCompactGrid: View {
                     .frame(maxWidth: .infinity)
             }
             ForEach(last14Days, id: \.dateKey) { item in
-                let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
-                let isToday     = item.dateKey == todayKey
-                DevotionDayDotCell(
-                    dayNum: item.dayNum,
-                    isMeditated: isMeditated,
-                    isToday: isToday,
-                    eventName: holidayMap[item.dateKey],
-                    onMeditationTap: {
-                        meditationLog.info("🗓️ cell tapped: \(item.dateKey) isMeditated=\(isMeditated)")
-                        onPendingTap?(item.dateKey)
-                    }
-                )
-                .frame(maxWidth: .infinity)
+                if item.isFuture {
+                    Text("\(item.dayNum)")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.18))
+                        .frame(maxWidth: .infinity)
+                } else {
+                    let isMeditated = streakManager.meditatedDatesThisMonth.contains(item.dateKey)
+                    let isToday     = item.dateKey == todayKey
+                    DevotionDayDotCell(
+                        dayNum: item.dayNum,
+                        isMeditated: isMeditated,
+                        isToday: isToday,
+                        eventName: holidayMap[item.dateKey],
+                        onMeditationTap: {
+                            meditationLog.info("🗓️ cell tapped: \(item.dateKey) isMeditated=\(isMeditated)")
+                            onPendingTap?(item.dateKey)
+                        }
+                    )
+                    .frame(maxWidth: .infinity)
+                }
             }
         }
     }

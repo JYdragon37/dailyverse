@@ -12,7 +12,7 @@ struct Alarm: Identifiable, Codable, Equatable {
     var snoozeInterval: Int     // 스누즈 간격 분 (1/3/5/10 중 선택, 기본값: 5)
     var maxSnoozeCount: Int     // 최대 스누즈 횟수 (0~10, 기본값: 3)
     var wakeMission: String     // "none" | "shake" | "math" | "typing"
-    var soundId: String         // "piano" | "nature" | "hymn"
+    var soundId: String         // AlarmSound.id, "s01"~"s06" (SoundPickerSheet.swift 참고)
     var volume: Float           // 0.0~1.0 (기본값: 0.8)
     var alertStyle: String      // "sound" | "vibration" | "soundAndVibration"
 
@@ -27,7 +27,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         snoozeInterval: Int = 5,
         maxSnoozeCount: Int = 3,
         wakeMission: String = "none",
-        soundId: String = "song",
+        soundId: String = "s02",
         volume: Float = 0.8,
         alertStyle: String = "soundAndVibration"
     ) {
@@ -61,7 +61,7 @@ struct Alarm: Identifiable, Codable, Equatable {
         snoozeInterval   = try container.decodeIfPresent(Int.self,    forKey: .snoozeInterval)   ?? 5
         maxSnoozeCount   = try container.decodeIfPresent(Int.self,    forKey: .maxSnoozeCount)   ?? 3
         wakeMission      = try container.decodeIfPresent(String.self, forKey: .wakeMission)      ?? "none"
-        soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "song"
+        soundId          = try container.decodeIfPresent(String.self, forKey: .soundId)          ?? "s02"
         volume           = try container.decodeIfPresent(Float.self,  forKey: .volume)           ?? 0.8
         alertStyle       = try container.decodeIfPresent(String.self, forKey: .alertStyle)       ?? "soundAndVibration"
     }
@@ -69,12 +69,15 @@ struct Alarm: Identifiable, Codable, Equatable {
     // MARK: - Computed Properties
 
     var repeatSummary: String {
-        if repeatDays.count == 7 { return "매일" }
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
+        if repeatDays.count == 7 { return appLanguageString("alarmEdit.days.every") }
         let weekdays = [1, 2, 3, 4, 5]
         let weekends = [0, 6]
-        if Set(repeatDays) == Set(weekdays) { return "주중" }
-        if Set(repeatDays) == Set(weekends) { return "주말" }
-        let names = ["일", "월", "화", "수", "목", "금", "토"]
+        if Set(repeatDays) == Set(weekdays) { return appLanguageString("alarmEdit.days.weekdays") }
+        if Set(repeatDays) == Set(weekends) { return appLanguageString("alarmEdit.days.weekends") }
+        let names = isEnglish
+            ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            : ["일", "월", "화", "수", "목", "금", "토"]
         return repeatDays.sorted().map { names[$0] }.joined(separator: " ")
     }
 
@@ -90,15 +93,15 @@ struct Alarm: Identifiable, Codable, Equatable {
 
     var wakeMissionDisplayName: String {
         switch wakeMission {
-        case "shake":  return "흔들기"
-        case "math":   return "수학 문제"
-        case "typing": return "타이핑"
-        default:       return "없음"
+        case "shake":  return appLanguageString("alarmEdit.wakeMission.shake")
+        case "math":   return appLanguageString("alarmEdit.wakeMission.math")
+        case "typing": return appLanguageString("alarmEdit.wakeMission.typing")
+        default:       return appLanguageString("alarmEdit.wakeMission.none")
         }
     }
 
     var soundDisplayName: String {
-        AlarmSound.sound(for: soundId).name
+        AlarmSound.sound(for: soundId).displayName
     }
 
     // MARK: - Helpers
@@ -106,14 +109,14 @@ struct Alarm: Identifiable, Codable, Equatable {
     static func defaultLabel(for time: Date) -> String {
         let mode = AppMode.fromTime(time)
         switch mode {
-        case .deepDark:   return "Deep Dark의 말씀"
-        case .firstLight: return "새벽 말씀"
-        case .riseIgnite: return "아침의 말씀"
-        case .peakMode:   return "집중의 말씀"
-        case .recharge:   return "점심 말씀"
-        case .secondWind: return "오후의 말씀"
-        case .goldenHour: return "저녁의 말씀"
-        case .windDown:   return "밤의 말씀"
+        case .deepDark:   return appLanguageString("alarm.defaultLabel.deepDark")
+        case .firstLight: return appLanguageString("alarm.defaultLabel.firstLight")
+        case .riseIgnite: return appLanguageString("alarm.defaultLabel.riseIgnite")
+        case .peakMode:   return appLanguageString("alarm.defaultLabel.peakMode")
+        case .recharge:   return appLanguageString("alarm.defaultLabel.recharge")
+        case .secondWind: return appLanguageString("alarm.defaultLabel.secondWind")
+        case .goldenHour: return appLanguageString("alarm.defaultLabel.goldenHour")
+        case .windDown:   return appLanguageString("alarm.defaultLabel.windDown")
         }
     }
 

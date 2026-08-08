@@ -47,6 +47,7 @@ struct ONBAlarmPermissionView: View {
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 .colorScheme(.dark)
+                .environment(\.locale, Locale(identifier: UserDefaults.standard.string(forKey: "appLanguage") == "en" ? "en_US" : "ko_KR"))
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
 

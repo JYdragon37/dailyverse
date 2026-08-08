@@ -173,7 +173,7 @@ struct HomeView: View {
         let g = greetingService.currentGreeting.isEmpty
             ? viewModel.currentMode.greeting
             : greetingService.currentGreeting
-        let name = nicknameManager.nickname
+        let name = nicknameManager.displayName
         let lastChar = g.last
         if lastChar == "." || lastChar == "!" || lastChar == "?" || lastChar == "," {
             return "\(g) \(name)"
@@ -252,7 +252,7 @@ struct HomeView: View {
             // 성경 참조 + 하트 + 인덱스 + 화살표
             HStack(alignment: .center, spacing: 8) {
                 // 출처: 항상 전체 표시 (lineLimit 없음, 좌측 우선)
-                Text(verse.reference)
+                Text(verse.referenceDisplay)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
@@ -312,7 +312,7 @@ struct HomeView: View {
         .padding(.vertical, 4)
         .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 2)
         .onTapGesture { showVerseDetail = true }
-        .accessibilityLabel("\(verse.verseFull(lang: greetingLanguagePref)). \(verse.reference)")
+        .accessibilityLabel("\(verse.verseFull(lang: greetingLanguagePref)). \(verse.referenceDisplay)")
         .accessibilityAddTraits(.isButton)
         .transition(.dvScaleAndFade)
         .animation(.dvCardExpand, value: viewModel.currentVerse?.id)

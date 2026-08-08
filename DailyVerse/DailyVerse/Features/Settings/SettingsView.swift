@@ -202,7 +202,7 @@ struct SettingsView: View {
                             )
                         )
                     if profileEmoji.isEmpty {
-                        Text(String(nicknameManager.nickname.prefix(1)))
+                        Text(String(nicknameManager.displayName.prefix(1)))
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
                     } else {
@@ -225,7 +225,7 @@ struct SettingsView: View {
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
-                        Text(appLanguageString("settings.greeting", args: nicknameManager.nickname))
+                        Text(appLanguageString("settings.greeting", args: nicknameManager.displayName))
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                         Text("👋").font(.system(size: 15))
@@ -516,6 +516,7 @@ struct SettingsView: View {
             .datePickerStyle(.wheel)
             .labelsHidden()
             .colorScheme(.dark)
+            .environment(\.locale, Locale(identifier: UserDefaults.standard.string(forKey: "appLanguage") == "en" ? "en_US" : "ko_KR"))
             .padding(.horizontal, 24)
 
             Button {
@@ -816,7 +817,7 @@ struct SettingsView: View {
                             Circle()
                                 .fill(Color.white.opacity(profileEmoji.isEmpty ? 0.25 : 0.08))
                                 .frame(width: 44, height: 44)
-                            Text(String(nicknameManager.nickname.prefix(1)))
+                            Text(String(nicknameManager.displayName.prefix(1)))
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.white)
                         }

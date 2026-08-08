@@ -193,7 +193,7 @@ struct AlarmListView: View {
                                     .foregroundColor(.white.opacity(0.88))
                                     .lineSpacing(4)
 
-                                Text(verse.reference)
+                                Text(verse.referenceDisplay)
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(.dvGold.opacity(0.75))
                             }

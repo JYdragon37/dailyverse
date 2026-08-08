@@ -85,7 +85,7 @@ struct VerseDetailBottomSheet: View {
     }
 
     private var applicationWithNickname: String {
-        "\(nicknameManager.nickname), \(verse.applicationText(lang: appLang))"
+        "\(nicknameManager.displayName), \(verse.applicationText(lang: appLang))"
     }
 
     private var actionBar: some View {

@@ -73,6 +73,7 @@ struct AlarmAddEditView: View {
                     DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
                         .datePickerStyle(.wheel)
                         .labelsHidden()
+                        .environment(\.locale, Locale(identifier: UserDefaults.standard.string(forKey: "appLanguage") == "en" ? "en_US" : "ko_KR"))
                         .frame(maxWidth: .infinity, maxHeight: 160, alignment: .center)
                         .clipped()
                         .onChange(of: selectedTime) { newTime in
@@ -80,7 +81,7 @@ struct AlarmAddEditView: View {
                         }
 
                     // 오늘의 말씀 — 골드, 볼드, 16pt, 따옴표 포함
-                    Text("\u{201C}\(previewVerse.verseShortKo)\u{201D}")
+                    Text("\u{201C}\(previewVerse.verseShort(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko"))\u{201D}")
                         .font(.custom("PretendardVariable", size: 16).weight(.semibold))
                         .foregroundColor(.dvAccentGold)
                         .multilineTextAlignment(.center)
