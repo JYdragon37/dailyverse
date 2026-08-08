@@ -71,7 +71,7 @@ struct WeatherWidgetView: View {
                     .padding(.horizontal, 12)
 
                 VStack(alignment: .center, spacing: 4) {
-                    Text("내일 아침")
+                    Text(appLanguageString("home.weather.tomorrowMorning"))
                         .font(.dvCaption)
                         .foregroundColor(.secondary)
 
@@ -98,7 +98,7 @@ struct WeatherWidgetView: View {
             ProgressView()
                 .progressViewStyle(.circular)
                 .scaleEffect(0.8)
-            Text("날씨 정보를 불러오는 중...")
+            Text(appLanguageString("home.weather.loading"))
                 .font(.dvCaption)
                 .foregroundColor(.secondary)
         }
@@ -111,7 +111,7 @@ struct WeatherWidgetView: View {
                 .font(.system(size: 11))
                 .foregroundColor(.white.opacity(0.4))
                 .accessibilityHidden(true)
-            Text("날씨 정보 없음  —")
+            Text(appLanguageString("home.weather.unavailable"))
                 .font(.dvCaption)
                 .foregroundColor(.white.opacity(0.45))
         }
@@ -144,6 +144,39 @@ struct WeatherWidgetView: View {
             desc += " 내일 아침 \(temp)도"
         }
         return desc
+    }
+}
+
+// MARK: - Apple Weather 출처 표기 (WeatherKit 필수 — Guideline 5.2.5)
+//
+// WeatherKit 사용 앱은 날씨 데이터가 표시되는 곳에
+// (1) Apple Weather 상표 " Weather" 와
+// (2) 법적 출처 링크(https://weatherkit.apple.com/legal-attribution.html) 를 노출해야 한다.
+// - full:    날씨 상세 화면 하단 (상표 + "기타 데이터 출처" 링크)
+// - compact: 홈 등 좁은 영역 (상표만, 탭 시 법적 페이지)
+struct AppleWeatherAttribution: View {
+    var compact: Bool = false
+    var tint: Color = .white
+
+    private let legalURL = URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+
+    var body: some View {
+        Link(destination: legalURL) {
+            HStack(spacing: 4) {
+                Image(systemName: "apple.logo")
+                    .font(.system(size: compact ? 10 : 12, weight: .medium))
+                Text("Weather")
+                    .font(.system(size: compact ? 11 : 13, weight: .medium))
+                if !compact {
+                    Text("·").font(.system(size: 13))
+                    Text(appLanguageString("home.weather.otherSources"))
+                        .font(.system(size: 13))
+                        .underline()
+                }
+            }
+            .foregroundColor(tint.opacity(compact ? 0.55 : 0.7))
+        }
+        .accessibilityLabel(appLanguageString("home.weather.attributionAccessibility"))
     }
 }
 

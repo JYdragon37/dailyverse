@@ -231,6 +231,7 @@ struct HomeView: View {
                         .foregroundColor(.white.opacity(0.6))
                 }
             }
+
         }
         .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 2)
     }
@@ -494,7 +495,7 @@ struct WeatherDetailSheet: View {
 
                         // 위치 + 온도 헤더
                         VStack(spacing: 4) {
-                            Text("나의 위치")
+                            Text(appLanguageString("home.weather.myLocation"))
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.55))
                             Text(weather.cityName)
@@ -504,12 +505,12 @@ struct WeatherDetailSheet: View {
                                 .font(.system(size: 96, weight: .thin))
                                 .foregroundColor(.white)
                                 .padding(.vertical, -8)
-                            Text(weather.conditionKo)
+                            Text(UserDefaults.standard.string(forKey: "appLanguage") == "en" ? weather.condition : weather.conditionKo)
                                 .font(.system(size: 20))
                                 .foregroundColor(.white.opacity(0.8))
                             HStack(spacing: 4) {
-                                Text("최고:\(weather.highTemp.map { "\($0)°" } ?? "--")")
-                                Text("최저:\(weather.lowTemp.map { "\($0)°" } ?? "--")")
+                                Text(appLanguageString("home.weather.high", args: weather.highTemp.map { "\($0)°" } ?? "--"))
+                                Text(appLanguageString("home.weather.low", args: weather.lowTemp.map { "\($0)°" } ?? "--"))
                             }
                             .font(.system(size: 17, weight: .medium))
                             .foregroundColor(.white.opacity(0.6))
@@ -527,30 +528,41 @@ struct WeatherDetailSheet: View {
 
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             WeatherDetailTile(icon: "drop.fill", color: .cyan,
-                                              label: "습도", value: "\(weather.humidity)%")
+                                              label: appLanguageString("home.weather.humidity"), value: "\(weather.humidity)%")
                             WeatherDetailTile(
                                 icon: "cloud.rain.fill",
                                 color: precipTileColor(weather.precipitationProbability ?? 0),
-                                label: "강수",
+                                label: appLanguageString("home.weather.precipitation"),
                                 value: weather.precipitationDisplay,
                                 subtitle: weather.precipitationAdvice
                             )
                             WeatherDetailTile(
                                 icon: "sun.max.fill",
                                 color: uvTileColor(weather.uvIndex),
-                                label: "자외선",
+                                label: appLanguageString("home.weather.uv"),
                                 value: weather.uvDisplayValue,
                                 subtitle: weather.uvAdvice
                             )
                             WeatherDetailTile(
                                 icon: "aqi.low",
                                 color: dustTileColor(weather.dustGrade),
-                                label: "미세먼지",
+                                label: appLanguageString("home.weather.dust"),
                                 value: weather.dustDisplayValue,
                                 subtitle: weather.dustAdvice
                             )
                         }
                         .padding(.horizontal, 16)
+
+                        // WeatherKit 필수 출처 표기 (Apple Weather 상표 + 법적 링크)
+                        VStack(spacing: 4) {
+                            AppleWeatherAttribution()
+                            // 우리 소스 명시 (에어코리아·OpenWeather 약관 충족 — 심사 필수는 아님)
+                            Text(appLanguageString("home.weather.attribution"))
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, 8)
 
                         Spacer(minLength: 32)
                     }
@@ -1008,7 +1020,7 @@ private struct GPTWeatherAdviceCard: View {
                 Text(adviceTitle)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.white.opacity(0.6))
-                Text(isLoading ? "날씨 정보 분석 중..." : advice)
+                Text(isLoading ? appLanguageString("home.weather.analyzing") : advice)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1033,9 +1045,9 @@ private struct GPTWeatherAdviceCard: View {
 
     private var adviceTitle: String {
         switch zone {
-        case "golden_hour", "wind_down": return "내일 날씨 미리보기"
-        case "deep_dark", "first_light": return "오늘 하루 날씨"
-        default: return "오늘의 날씨 팁"
+        case "golden_hour", "wind_down": return appLanguageString("home.weather.tomorrowPreview")
+        case "deep_dark", "first_light": return appLanguageString("home.weather.todayWeather")
+        default: return appLanguageString("home.weather.tipTitle")
         }
     }
 
@@ -1132,7 +1144,7 @@ private struct DailyForecastRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(isToday ? "오늘" : dayString(day.date))
+            Text(isToday ? appLanguageString("home.weather.today") : dayString(day.date))
                 .font(.system(size: 17, weight: isToday ? .semibold : .regular))
                 .foregroundColor(.white)
                 .frame(width: 44, alignment: .leading)
@@ -1185,7 +1197,7 @@ private struct DailyForecastRow: View {
 
     private func dayString(_ date: Date) -> String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
+        f.locale = Locale(identifier: UserDefaults.standard.string(forKey: "appLanguage") == "en" ? "en_US" : "ko_KR")
         f.dateFormat = "E"
         return f.string(from: date)
     }
@@ -1197,7 +1209,17 @@ private struct AQICard: View {
     let weather: WeatherData
 
     private var aqiNum: Int { weather.aqi ?? weather.dustGradeToAqi }
-    private var aqiDesc: String { weather.aqiDescription ?? weather.dustGrade }
+    private var aqiDesc: String {
+        let raw = weather.aqiDescription ?? weather.dustGrade
+        guard UserDefaults.standard.string(forKey: "appLanguage") == "en" else { return raw }
+        switch raw {
+        case "좋음":    return "Good"
+        case "보통":    return "Moderate"
+        case "나쁨":    return "Poor"
+        case "매우나쁨": return "Very Poor"
+        default:      return raw
+        }
+    }
     /// aqi 필드가 실제 API 데이터인지 여부
     private var isRealAQI: Bool { weather.aqi != nil }
 
@@ -1207,7 +1229,7 @@ private struct AQICard: View {
             HStack {
                 Image(systemName: "aqi.low")
                     .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
-                Text("대기질")
+                Text(appLanguageString("home.weather.airQuality"))
                     .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
                 Spacer()
             }
@@ -1218,7 +1240,7 @@ private struct AQICard: View {
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(.white)
                 if !isRealAQI {
-                    Text("추정값")
+                    Text(appLanguageString("home.weather.estimated"))
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.45))
                 }
@@ -1247,7 +1269,7 @@ private struct AQICard: View {
             .frame(height: 14)
 
             // 설명 텍스트
-            Text("현재 대기질 지수는 \(aqiNum) 수준으로 \(aqiDesc)입니다.")
+            Text(appLanguageString("home.weather.aqiSummary", args: aqiNum, aqiDesc))
                 .font(.system(size: 13))
                 .foregroundColor(.white.opacity(0.7))
                 .fixedSize(horizontal: false, vertical: true)
@@ -1271,13 +1293,13 @@ private struct HourlyForecastCard: View {
             HStack {
                 Image(systemName: "clock")
                     .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
-                Text("시간별 일기예보")
+                Text(appLanguageString("home.weather.hourlyForecast"))
                     .font(.system(size: 12)).foregroundColor(.white.opacity(0.6))
                 Spacer()
             }
 
             if weather.hourlyForecast.isEmpty {
-                Text("시간별 예보 정보를 불러오는 중...")
+                Text(appLanguageString("home.weather.hourlyLoading"))
                     .font(.system(size: 13))
                     .foregroundColor(.white.opacity(0.5))
                     .padding(.vertical, 8)
@@ -1316,14 +1338,15 @@ private struct HourlyItem: View {
     let isNow: Bool
 
     private var timeLabel: String {
-        if isNow { return "지금" }
+        if isNow { return appLanguageString("home.weather.now") }
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
+        f.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
         // "오전 1시" → 잘림 방지: "오전\n1시" 두 줄로 표시
         f.dateFormat = "a"
-        let ampm = f.string(from: item.time)  // "오전" or "오후"
-        f.dateFormat = "h시"
-        let hour = f.string(from: item.time)  // "1시"
+        let ampm = f.string(from: item.time)  // "오전"/"오후" or "AM"/"PM"
+        f.dateFormat = isEnglish ? "h" : "h시"
+        let hour = f.string(from: item.time)  // "1시" or "1"
         return "\(ampm)\n\(hour)"
     }
 

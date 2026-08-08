@@ -107,24 +107,33 @@ struct WeatherData: Codable, Equatable {
     /// 0% + mm   → "0% · 0.0mm"
     /// >0% + nil → "X%"
     /// >0% + mm  → "X% · Y.Zmm"
+    private var isEnglish: Bool { UserDefaults.standard.string(forKey: "appLanguage") == "en" }
+
     var precipitationDisplay: String {
         let prob = precipitationProbability ?? 0
+        let noRain = isEnglish ? "No rain" : "비 없음"
         if let mm = precipitationAmountMM {
             // 강수량 0mm = 비 없음 처리 (WeatherKit이 맑은 날 0.0 반환)
             if mm <= 0 {
-                return prob == 0 ? "비 없음" : "\(prob)%"
+                return prob == 0 ? noRain : "\(prob)%"
             }
             let mmStr = mm.truncatingRemainder(dividingBy: 1) == 0
                 ? "\(Int(mm))mm" : String(format: "%.1fmm", mm)
             return prob == 0 ? "\(mmStr)" : "\(prob)% · \(mmStr)"
         }
-        if prob == 0 { return "비 없음" }
+        if prob == 0 { return noRain }
         return "\(prob)%"
     }
 
     /// 강수 타일 subtitle — 강수 있을 때만 표시
     var precipitationAdvice: String? {
         let prob = precipitationProbability ?? 0
+        if isEnglish {
+            if prob >= 70 { return "Don't forget your umbrella" }
+            if prob >= 40 { return "You'll probably want an umbrella" }
+            if prob >= 20 { return "Maybe bring a light umbrella" }
+            return nil
+        }
         if prob >= 70 { return "우산을 꼭 챙기세요" }
         if prob >= 40 { return "우산 챙기는 게 좋아요" }
         if prob >= 20 { return "가볍게 우산 챙겨요" }
@@ -133,6 +142,15 @@ struct WeatherData: Codable, Equatable {
 
     /// PM2.5 기준 미세먼지 상세 설명 (일반인 친화적)
     var dustDescription: String {
+        if isEnglish {
+            switch dustGrade {
+            case "좋음":    return "Good · Great for outdoor activity"
+            case "보통":    return "Moderate · Caution for sensitive groups"
+            case "나쁨":    return "Poor · Limit time outdoors"
+            case "매우나쁨": return "Very Poor · Avoid going outside"
+            default:      return dustGrade
+            }
+        }
         switch dustGrade {
         case "좋음":    return "좋음 · 야외활동 최적"
         case "보통":    return "보통 · 민감군 주의"
@@ -149,7 +167,16 @@ struct WeatherData: Codable, Equatable {
     }
 
     var uvIndexDescription: String {
-        guard let uv = uvIndex else { return "정보 없음" }
+        guard let uv = uvIndex else { return isEnglish ? "No info" : "정보 없음" }
+        if isEnglish {
+            switch uv {
+            case 0...2:  return "Low"
+            case 3...5:  return "Moderate"
+            case 6...7:  return "High"
+            case 8...10: return "Very High"
+            default:     return "Extreme"
+            }
+        }
         switch uv {
         case 0...2:  return "낮음"
         case 3...5:  return "보통"
@@ -162,6 +189,15 @@ struct WeatherData: Codable, Equatable {
     /// UV 표시값 — "등급 · 숫자" 형식, nil 시 시간대 기반 처리
     var uvDisplayValue: String {
         if let uv = uvIndex {
+            if isEnglish {
+                switch uv {
+                case 0...2:  return "Low · \(uv)"
+                case 3...5:  return "Moderate · \(uv)"
+                case 6...7:  return "High · \(uv)"
+                case 8...10: return "Very High · \(uv)"
+                default:     return "Extreme · \(uv)"
+                }
+            }
             switch uv {
             case 0...2:  return "낮음 · \(uv)"
             case 3...5:  return "보통 · \(uv)"
@@ -171,14 +207,26 @@ struct WeatherData: Codable, Equatable {
             }
         }
         let hour = Calendar.current.component(.hour, from: Date())
-        if hour >= 20 || hour < 6 { return "없음" }
+        if hour >= 20 || hour < 6 { return isEnglish ? "None" : "없음" }
         // 낮인데 uvIndex nil이면 날씨 조건 기반 추정
+        if isEnglish {
+            return condition == "rainy" || condition == "cloudy" ? "Est. Low" : "Est. Moderate"
+        }
         return condition == "rainy" || condition == "cloudy" ? "낮음 추정" : "보통 추정"
     }
 
     /// UV 권고 문구 — nil이면 subtitle 미표시
     var uvAdvice: String? {
         if let uv = uvIndex {
+            if isEnglish {
+                switch uv {
+                case 0...2:  return "No special protection needed"
+                case 3...5:  return "Long sleeves or a hat recommended"
+                case 6...7:  return "Sunscreen essential, avoid 11am-3pm"
+                case 8...10: return "Minimize time outside 11am-3pm"
+                default:     return "Please avoid going outside"
+                }
+            }
             switch uv {
             case 0...2:  return "외출 시 특별한 보호 불필요"
             case 3...5:  return "긴 소매나 모자 권장"
@@ -188,19 +236,41 @@ struct WeatherData: Codable, Equatable {
             }
         }
         let hour = Calendar.current.component(.hour, from: Date())
-        return (hour >= 20 || hour < 6) ? "야간에는 자외선이 없어요" : nil
+        guard hour >= 20 || hour < 6 else { return nil }
+        return isEnglish ? "No UV at night" : "야간에는 자외선이 없어요"
     }
 
     /// 미세먼지 표시값 — "등급 · 수치㎍" (pm25 없으면 등급만)
     var dustDisplayValue: String {
+        let grade = isEnglish ? dustGradeEn : dustGrade
         if let pm25 {
-            return "\(dustGrade) · \(Int(pm25.rounded()))㎍"
+            return "\(grade) · \(Int(pm25.rounded()))㎍"
         }
-        return dustGrade
+        return grade
+    }
+
+    /// dustGrade(한국어 등급값) → 영어 등급 표시
+    var dustGradeEn: String {
+        switch dustGrade {
+        case "좋음":    return "Good"
+        case "보통":    return "Moderate"
+        case "나쁨":    return "Poor"
+        case "매우나쁨": return "Very Poor"
+        default:      return dustGrade
+        }
     }
 
     /// 미세먼지 권고 문구
     var dustAdvice: String {
+        if isEnglish {
+            switch dustGrade {
+            case "좋음":    return "A good day to be outside"
+            case "보통":    return "Sensitive groups should wear a mask"
+            case "나쁨":    return "Wear a mask, limit time outside"
+            case "매우나쁨": return "Please avoid going outside"
+            default:      return ""
+            }
+        }
         switch dustGrade {
         case "좋음":    return "외출하기 좋은 날이에요"
         case "보통":    return "민감한 분은 마스크 권장"
