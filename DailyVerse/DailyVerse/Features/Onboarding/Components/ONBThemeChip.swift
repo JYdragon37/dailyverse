@@ -75,7 +75,9 @@ struct ONBThemeChip: View {
         .buttonStyle(.plain)
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isDisabled)
-        .accessibilityLabel("\(label) 테마 \(isSelected ? "선택됨" : "선택 안됨")")
+        .accessibilityLabel(appLanguageString(
+            isSelected ? "onboarding.themeChip.a11ySelected" : "onboarding.themeChip.a11yNotSelected",
+            args: label))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

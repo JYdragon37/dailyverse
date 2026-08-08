@@ -22,14 +22,14 @@ struct ONBAlarmPermissionView: View {
 
                 // 헤더
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(vm.nicknameDisplay), 첫 알람을")
+                    Text(appLanguageString("onboarding.alarmPermission.header1", args: vm.nicknameDisplay))
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
-                    Text("설정해볼까요?")
+                    Text(appLanguageString("onboarding.alarmPermission.header2"))
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     Spacer().frame(height: 4)
-                    Text("내일 아침, 이 시간에 말씀이 함께 울려요")
+                    Text(appLanguageString("onboarding.alarmPermission.subtitle"))
                         .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.75))
                 }
@@ -57,7 +57,7 @@ struct ONBAlarmPermissionView: View {
                     Image(systemName: "repeat")
                         .font(.system(size: 13))
                         .foregroundColor(.white.opacity(0.55))
-                    Text("매일 반복 · 반복 요일은 알람 탭에서 수정할 수 있어요")
+                    Text(appLanguageString("onboarding.alarmPermission.repeatHint"))
                         .font(.system(size: 13))
                         .foregroundColor(.white.opacity(0.55))
                 }
@@ -86,7 +86,7 @@ struct ONBAlarmPermissionView: View {
                     vm.completeOnboarding()
                 }
             } label: {
-                Text("알람 설정 완료")
+                Text(appLanguageString("onboarding.alarmPermission.cta"))
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(Color(hex: "#1A2340"))
                     .frame(maxWidth: .infinity)
@@ -96,20 +96,20 @@ struct ONBAlarmPermissionView: View {
                             .fill(Color.white)
                     )
             }
-            .accessibilityLabel("알림 허용 후 온보딩 완료")
+            .accessibilityLabel(appLanguageString("onboarding.alarmPermission.cta.accessibility"))
 
             // 나중에 하기
             Button {
                 vm.completeOnboardingSkipAlarm()
             } label: {
-                Text("나중에 하기")
+                Text(appLanguageString("onboarding.alarmPermission.later"))
                     .font(.system(size: 15))
                     .foregroundColor(.white.opacity(0.55))
                     .padding(.vertical, 8)
             }
 
             // 수정 가능 안내
-            Text("언제든 알람 탭에서 수정할 수 있어요")
+            Text(appLanguageString("onboarding.alarmPermission.editHint"))
                 .font(.system(size: 13))
                 .foregroundColor(.white.opacity(0.5))
         }

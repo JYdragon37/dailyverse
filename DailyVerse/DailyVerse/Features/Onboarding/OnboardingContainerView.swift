@@ -1,14 +1,14 @@
 import SwiftUI
 
-// MARK: - OnboardingContainerView v2.2
+// MARK: - OnboardingContainerView v2.3
 //
-// 전환 방식: offset 기반 (ZStack 내 4개 뷰 항상 존재)
+// 전환 방식: offset 기반 (ZStack 내 3개 뷰 항상 존재)
 // → transition 방식 대비 배경 노출 완전 방지
 //
-// 핵심 수정사항:
-//   - spring → easeInOut(0.28s): 오버슈팅 제거 (spring 오버슈팅 → 뷰 간 gap → 배경 노출)
-//   - ONBExperienceView opacity: currentPage==2 → nearPage(2): 전환 중 즉시 사라짐 방지
-//   - withAnimation 제거: ZStack의 .animation modifier가 단일 소스로 관리
+// v2.3 변경 (2026-07-13):
+//   - 4단계 → 3단계: ONBExperienceView(알람체험 시뮬레이션) 제거
+//   - 새 순서: 공감(0) / 닉네임(1) / 알람설정(2)
+//   - totalPages = 3 (OnboardingViewModel)
 
 struct OnboardingContainerView: View {
     @StateObject private var vm = OnboardingViewModel()
@@ -32,15 +32,9 @@ struct OnboardingContainerView: View {
                 .offset(x: pageOffset(for: 1))
                 .opacity(nearPage(1) ? 1 : 0)
 
-            // nearPage(2) 사용: currentPage==2 에서 변경
-            // 이유: currentPage==2 조건이면 전환 시작 즉시 opacity=0 → 배경 노출
-            ONBExperienceView(vm: vm)
+            ONBAlarmPermissionView(vm: vm)
                 .offset(x: pageOffset(for: 2))
                 .opacity(nearPage(2) ? 1 : 0)
-
-            ONBAlarmPermissionView(vm: vm)
-                .offset(x: pageOffset(for: 3))
-                .opacity(nearPage(3) ? 1 : 0)
         }
         // easeInOut: 오버슈팅 없음 → 두 인접 페이지가 전환 중 항상 화면 전체를 커버
         .animation(.easeInOut(duration: 0.28), value: vm.currentPage)
@@ -69,7 +63,7 @@ struct OnboardingContainerView: View {
                         .foregroundColor(.white.opacity(0.8))
                         .padding(8)
                 }
-                .accessibilityLabel("이전 단계")
+                .accessibilityLabel(appLanguageString("onboarding.a11y.previousStep"))
             } else {
                 Color.clear.frame(width: 32, height: 32)
             }

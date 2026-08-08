@@ -25,11 +25,12 @@ struct ONBExperienceView: View {
 
     // MARK: - 시뮬레이션 콘텐츠
 
-    private let verseShort     = "아침에 나로 하여금\n주의 인자한 말씀을 듣게 하소서"
-    private let verseFull      = "아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서\n내가 주를 의뢰함이니이다\n내가 다닐 길을 알게 하소서\n내가 내 영혼을 주께 드림이니이다"
-    private let reference      = "시편 143:8"
-    private let interpretation = "다윗이 원수들에게 쫓겨 영혼이 짓눌린 상황에서 드린 기도야. '인자한 말씀'은 변하지 않는 하나님의 사랑과 신실함을 가리켜 — 어떤 아침이든 그 사랑이 먼저 도착해 있어. 하루를 시작하기 전, 말씀을 여는 것 자체가 이미 하나님을 의뢰하는 행동이야."
-    private let application    = "오늘 아침 눈을 뜨자마자 \"주님, 오늘도 말씀으로 시작할게요\"라고 한 마디 건네봐."
+    private var isEnglish: Bool { UserDefaults.standard.string(forKey: "appLanguage") == "en" }
+    private var verseShort: String { appLanguageString("onboarding.experience.verseShort") }
+    private var verseFull: String { appLanguageString("onboarding.experience.verseFull") }
+    private var reference: String { appLanguageString("onboarding.experience.reference") }
+    private var interpretation: String { appLanguageString("onboarding.experience.interpretation") }
+    private var application: String { appLanguageString("onboarding.experience.application") }
 
     // MARK: - Body
 
@@ -108,7 +109,7 @@ struct ONBExperienceView: View {
             HStack(spacing: 6) {
                 Image(systemName: "alarm.fill")
                     .font(.system(size: 11))
-                Text("morning manna")
+                Text("마이만나")
                     .font(.dvCaption)
             }
             .foregroundColor(.white.opacity(0.80))
@@ -139,7 +140,7 @@ struct ONBExperienceView: View {
                 Text("✝")
                     .font(.system(size: 13))
                     .foregroundColor(.white.opacity(0.88))
-                Text("오늘도 힘차게 일어나요!")
+                Text(appLanguageString("onboarding.experience.wakeUpMessage"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.88))
             }
@@ -156,8 +157,8 @@ struct ONBExperienceView: View {
 
     private var alarmDateString: String {
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ko_KR")
-        df.dateFormat = "M월 d일 EEEE"
+        df.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
+        df.dateFormat = isEnglish ? "MMM d, EEEE" : "M월 d일 EEEE"
         return df.string(from: Date())
     }
 
@@ -232,12 +233,12 @@ struct ONBExperienceView: View {
                     Spacer().frame(height: 32)
 
                     // 해석 섹션
-                    contentSection(icon: "💡", title: "해석", body: interpretation)
+                    contentSection(icon: "💡", title: appLanguageString("verseDetail.interpretation.label"), body: interpretation)
 
                     Spacer().frame(height: 20)
 
                     // 일상 적용 섹션 — {name}, 으로 시작
-                    contentSection(icon: "🌱", title: "일상 적용",
+                    contentSection(icon: "🌱", title: appLanguageString("verseDetail.application.label"),
                                    body: "\(vm.nicknameDisplay), " + application)
 
                     Spacer().frame(height: 100)
@@ -288,10 +289,10 @@ struct ONBExperienceView: View {
                     .foregroundColor(.white)
                     .padding(.top, 3)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("잘 잤어요?")
+                    Text(appLanguageString("onboarding.experience.greeting1"))
                         .font(.system(size: 29, weight: .bold))
                         .foregroundColor(.white.opacity(0.88))
-                    Text("힘차게 기지개 펴요, \(vm.nicknameDisplay)")
+                    Text(appLanguageString("onboarding.experience.greeting2", args: vm.nicknameDisplay))
                         .font(.system(size: 29, weight: .bold))
                         .foregroundColor(.white)
                         .minimumScaleFactor(0.75)
@@ -306,7 +307,7 @@ struct ONBExperienceView: View {
                 Text("·").foregroundColor(.white.opacity(0.4))
                 HStack(spacing: 5) {
                     Image(systemName: "sun.max.fill").font(.system(size: 15))
-                    Text("서울 18°C · 맑음").font(.system(size: 16, weight: .medium))
+                    Text(appLanguageString("onboarding.experience.weatherSample")).font(.system(size: 16, weight: .medium))
                 }
                 .foregroundColor(.white.opacity(0.95))
             }
@@ -343,7 +344,7 @@ struct ONBExperienceView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.25))
                     .frame(height: 0.6)
-                Text("말씀 깊게 보기")
+                Text(appLanguageString("verse.readMore"))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.60))
                     .fixedSize()
@@ -370,19 +371,19 @@ struct ONBExperienceView: View {
                     Button { transitionToStage2() } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "alarm").accessibilityHidden(true)
-                            Text("스누즈").font(.system(size: 17, weight: .medium))
+                            Text(appLanguageString("onboarding.experience.snooze")).font(.system(size: 17, weight: .medium))
                         }
                         .frame(maxWidth: .infinity).padding(.vertical, 16)
                         .background(Color.white.opacity(0.15))
                         .foregroundColor(.white).cornerRadius(14)
                     }
                     Button { transitionToStage2() } label: {
-                        Text("종료").font(.system(size: 17, weight: .semibold))
+                        Text(appLanguageString("onboarding.experience.end")).font(.system(size: 17, weight: .semibold))
                             .frame(maxWidth: .infinity).padding(.vertical, 16)
                             .background(Color.dvAccentGold)
                             .foregroundColor(.dvPrimaryDeep).cornerRadius(14)
                     }
-                    .accessibilityLabel("알람 종료 후 말씀 화면으로")
+                    .accessibilityLabel(appLanguageString("onboarding.experience.end.accessibility"))
                 }
                 .padding(.horizontal, 24).padding(.vertical, 12).padding(.bottom, 8)
                 .opacity(isVisible ? 1 : 0)
@@ -391,7 +392,7 @@ struct ONBExperienceView: View {
                 // 말씀 깊게 보기 → Stage 3으로
                 Button { transitionToStage3() } label: {
                     HStack(spacing: 6) {
-                        Text("말씀 깊게 보기")
+                        Text(appLanguageString("verse.readMore"))
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.dvPrimaryDeep)
                         Image(systemName: "chevron.up")
@@ -411,7 +412,7 @@ struct ONBExperienceView: View {
 
             case .stage3:
                 Button { vm.next() } label: {
-                    Text("다음 →")
+                    Text(appLanguageString("coachMark.next"))
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.dvPrimaryDeep)
                         .frame(maxWidth: .infinity).frame(height: 60)

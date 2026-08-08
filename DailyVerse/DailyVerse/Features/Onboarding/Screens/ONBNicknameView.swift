@@ -22,7 +22,7 @@ struct ONBNicknameView: View {
                 // ── 타이틀 ──
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        Text("처음 오셨군요!")
+                        Text(appLanguageString("onboarding.nickname.welcome"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white.opacity(0.85))
                         Image(systemName: "hand.wave.fill")
@@ -30,10 +30,10 @@ struct ONBNicknameView: View {
                             .foregroundColor(Color(red: 0.97, green: 0.67, blue: 0.28))
                     }
                     Spacer().frame(height: 4)
-                    Text("매일 어떻게")
+                    Text(appLanguageString("onboarding.nickname.prompt1"))
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
-                    Text("불러드릴까요?")
+                    Text(appLanguageString("onboarding.nickname.prompt2"))
                         .font(.system(size: 28, weight: .heavy))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
@@ -45,7 +45,7 @@ struct ONBNicknameView: View {
 
                 // ── 입력 영역 ──
                 VStack(alignment: .leading, spacing: 12) {
-                    TextField("beloved", text: $vm.nicknameInput)
+                    TextField(appLanguageString("onboarding.nickname.defaultDisplay"), text: $vm.nicknameInput)
                         .font(.system(size: 38, weight: .bold))
                         .foregroundColor(.white)
                         .tint(.dvAccentGold)
@@ -73,7 +73,7 @@ struct ONBNicknameView: View {
                         Image(systemName: "pencil")
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.55))
-                        Text("탭해서 수정할 수 있어요")
+                        Text(appLanguageString("onboarding.nickname.editHint"))
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.white.opacity(0.55))
                     }
@@ -88,11 +88,11 @@ struct ONBNicknameView: View {
             VStack(spacing: 0) {
                 Button {
                     if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        vm.nicknameInput = "beloved"
+                        vm.nicknameInput = "그대"
                     }
                     vm.next()
                 } label: {
-                    Text("기상 알람 보기 →")
+                    Text(appLanguageString("onboarding.nickname.cta"))
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(Color(hex: "#1A2340"))
                         .frame(maxWidth: .infinity)
@@ -106,13 +106,13 @@ struct ONBNicknameView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
             .padding(.top, 12)
-            .accessibilityLabel("이름 입력 완료, 다음으로")
+            .accessibilityLabel(appLanguageString("onboarding.nickname.cta.accessibility"))
         }
         .onAppear {
             withAnimation(.easeIn(duration: 0.5)) { contentOpacity = 1 }
             // 기본값 설정
             if vm.nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                vm.nicknameInput = "beloved"
+                vm.nicknameInput = "그대"
             }
         }
         .onTapGesture { isFocused = false }

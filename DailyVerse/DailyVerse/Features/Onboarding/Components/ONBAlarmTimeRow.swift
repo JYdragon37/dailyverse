@@ -18,7 +18,7 @@ struct ONBAlarmTimeRow: View {
                 .frame(width: 34)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(label) 알람")
+                Text(appLanguageString("onboarding.alarmTimeRow.label", args: label))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(isEnabled ? .white : .white.opacity(0.4))
 
@@ -36,7 +36,9 @@ struct ONBAlarmTimeRow: View {
             Toggle("", isOn: $isEnabled)
                 .tint(.dvAccentGold)
                 .labelsHidden()
-                .accessibilityLabel("\(label) 알람 \(isEnabled ? "켜짐" : "꺼짐")")
+                .accessibilityLabel(appLanguageString(
+                    isEnabled ? "onboarding.alarmTimeRow.a11yOn" : "onboarding.alarmTimeRow.a11yOff",
+                    args: label))
         }
         .padding(20)
         .background(

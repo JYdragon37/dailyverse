@@ -9,7 +9,7 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - 네비게이션
     @Published var currentPage: Int = 0
-    static let totalPages = 4  // 공감 / 닉네임 / 체험 / 알람설정
+    static let totalPages = 3  // 공감 / 닉네임 / 알람설정 (2026-07-13: 알람체험 시뮬레이션 제거)
 
     // MARK: - UserDefaults 키
     // v2 신규 온보딩 키 사용 (AppRootView와 동일한 키)
@@ -25,10 +25,10 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 닉네임
     @Published var nicknameInput: String = ""
 
-    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값 "beloved" 표시
+    /// 뷰에서 인사말 조합용 — 빈 값이면 기본값("그대"/"dear") 표시. 저장값은 항상 "그대"(NicknameManager 내부 토큰).
     var nicknameDisplay: String {
         let t = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? "beloved" : t
+        return t.isEmpty ? appLanguageString("onboarding.nickname.defaultDisplay") : t
     }
 
     // MARK: - Screen 3: 알람 설정 (단일 알람 — 기본 07:00)
@@ -52,7 +52,9 @@ final class OnboardingViewModel: ObservableObject {
         self.notificationManager = .shared
 
         if !onboardingCompleted {
-            currentPage = savedPage
+            // 4→3단계 축소(2026-07-13) 대응: 구 빌드에서 저장된 savedPage(최대 3)가
+            // 범위를 넘지 않도록 clamp. 초과 시 마지막 페이지로 진입(빈 화면 방지).
+            currentPage = min(max(savedPage, 0), Self.totalPages - 1)
         }
         // 온보딩에서는 항상 빈 입력으로 시작 — stranger가 placeholder로 표시됨
         nicknameInput = ""
@@ -120,7 +122,7 @@ final class OnboardingViewModel: ObservableObject {
         let trimmed = nicknameInput.trimmingCharacters(in: .whitespacesAndNewlines)
         nicknameSet = true
         Task {
-            await NicknameManager.shared.setNickname(trimmed.isEmpty ? "친구" : trimmed)
+            await NicknameManager.shared.setNickname(trimmed.isEmpty ? "그대" : trimmed)
         }
     }
 
@@ -147,8 +149,7 @@ final class OnboardingViewModel: ObservableObject {
             alarm.time = morningAlarmTime
             alarm.isEnabled = true
             try? alarmRepository.update(alarm)
-            notificationManager.cancel(alarmId: alarm.id)
-            notificationManager.schedule(alarm, verse: Verse.fallbackRiseIgnite)
+            notificationManager.cancelThenSchedule(alarmId: alarm.id, alarm: alarm, verse: Verse.fallbackRiseIgnite)
         }
 
         // 백그라운드 타이머 갱신 + 알람 탭이 이미 열려있는 경우 즉시 반영

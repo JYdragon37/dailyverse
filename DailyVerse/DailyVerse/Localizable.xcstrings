@@ -4832,6 +4832,678 @@
           }
         }
       }
+    },
+    "onboarding.a11y.previousStep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous Step"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 단계"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.cta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish Setting Alarm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람 설정 완료"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.cta.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow notifications and finish onboarding"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알림 허용 후 온보딩 완료"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.editHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can change this anytime in the Alarm tab"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언제든 알람 탭에서 수정할 수 있어요"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.header1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, let's set your"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, 첫 알람을"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.header2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "first alarm?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정해볼까요?"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do it later"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나중에 하기"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.repeatHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeats daily · You can change the days in the Alarm tab"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "매일 반복 · 반복 요일은 알람 탭에서 수정할 수 있어요"
+          }
+        }
+      }
+    },
+    "onboarding.alarmPermission.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Word will ring with you tomorrow morning, at this time"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내일 아침, 이 시간에 말씀이 함께 울려요"
+          }
+        }
+      }
+    },
+    "onboarding.alarmTimeRow.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Alarm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 알람"
+          }
+        }
+      }
+    },
+    "onboarding.alarmTimeRow.a11yOn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ alarm on"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 알람 켜짐"
+          }
+        }
+      }
+    },
+    "onboarding.alarmTimeRow.a11yOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ alarm off"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 알람 꺼짐"
+          }
+        }
+      }
+    },
+    "onboarding.experience.application": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As soon as you open your eyes this morning, say \"Lord, I'll start today with Your Word too.\""
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 아침 눈을 뜨자마자 \"주님, 오늘도 말씀으로 시작할게요\"라고 한 마디 건네봐."
+          }
+        }
+      }
+    },
+    "onboarding.experience.end": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "종료"
+          }
+        }
+      }
+    },
+    "onboarding.experience.end.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop alarm and go to verse screen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알람 종료 후 말씀 화면으로"
+          }
+        }
+      }
+    },
+    "onboarding.experience.greeting1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Did you sleep well?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잘 잤어요?"
+          }
+        }
+      }
+    },
+    "onboarding.experience.greeting2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rise and shine, %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "힘차게 기지개 펴요, %@"
+          }
+        }
+      }
+    },
+    "onboarding.experience.interpretation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "David prayed this while his soul was crushed, pursued by enemies. \"Loving-kindness\" points to God's unchanging love and faithfulness — that love arrives before any morning does. Opening the Word before the day begins is already an act of trusting God."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다윗이 원수들에게 쫓겨 영혼이 짓눌린 상황에서 드린 기도야. '인자한 말씀'은 변하지 않는 하나님의 사랑과 신실함을 가리켜 — 어떤 아침이든 그 사랑이 먼저 도착해 있어. 하루를 시작하기 전, 말씀을 여는 것 자체가 이미 하나님을 의뢰하는 행동이야."
+          }
+        }
+      }
+    },
+    "onboarding.experience.reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Psalm 143:8"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시편 143:8"
+          }
+        }
+      }
+    },
+    "onboarding.experience.snooze": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snooze"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스누즈"
+          }
+        }
+      }
+    },
+    "onboarding.experience.verseFull": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let me hear Your loving-kindness in the morning,\nfor I trust in You;\nteach me the way I should go,\nfor I lift up my soul to You."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서\n내가 주를 의뢰함이니이다\n내가 다닐 길을 알게 하소서\n내가 내 영혼을 주께 드림이니이다"
+          }
+        }
+      }
+    },
+    "onboarding.experience.verseShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let me hear Your loving-kindness\nin the morning, for I trust in You"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아침에 나로 하여금\n주의 인자한 말씀을 듣게 하소서"
+          }
+        }
+      }
+    },
+    "onboarding.experience.wakeUpMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rise up strong today!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘도 힘차게 일어나요!"
+          }
+        }
+      }
+    },
+    "onboarding.experience.weatherSample": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seoul 18°C · Sunny"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서울 18°C · 맑음"
+          }
+        }
+      }
+    },
+    "onboarding.intro.badgeSubtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first moment of the day, with the Lord"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하루의 첫 순간, 주님과 함께"
+          }
+        }
+      }
+    },
+    "onboarding.intro.cta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get Started →"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시작하기 →"
+          }
+        }
+      }
+    },
+    "onboarding.intro.cta.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start onboarding"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "온보딩 시작하기"
+          }
+        }
+      }
+    },
+    "onboarding.intro.tagline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The best alarm app for Christians"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크리스천을 위한 최고의 알람 앱"
+          }
+        }
+      }
+    },
+    "onboarding.intro.typing.line1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A loud alarm blaring every morning"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "매일 아침 시끄럽게 울리는 알람"
+          }
+        }
+      }
+    },
+    "onboarding.intro.typing.line2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barely dragging yourself to turn it off..?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "겨우 겨우 억지로 끄기 바쁘시죠..?"
+          }
+        }
+      }
+    },
+    "onboarding.intro.typing.line3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now,\ninstead of that meaningless alarm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이제,\n이런 무의미한 알람 대신"
+          }
+        }
+      }
+    },
+    "onboarding.intro.typing.line4a": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "with the Word of God"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하나님의 말씀으로"
+          }
+        }
+      }
+    },
+    "onboarding.intro.typing.line4b": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "start your day in reverence!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하루를 경건하게 시작하세요!"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.cta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See Wake Alarm →"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기상 알람 보기 →"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.cta.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name entered, continue"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이름 입력 완료, 다음으로"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.defaultDisplay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dear"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "그대"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.editHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to edit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탭해서 수정할 수 있어요"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.prompt1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What should we"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "매일 어떻게"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.prompt2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "call you each day?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "불러드릴까요?"
+          }
+        }
+      }
+    },
+    "onboarding.nickname.welcome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "처음 오셨군요!"
+          }
+        }
+      }
+    },
+    "onboarding.themeChip.a11ySelected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ theme selected"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 테마 선택됨"
+          }
+        }
+      }
+    },
+    "onboarding.themeChip.a11yNotSelected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ theme not selected"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 테마 선택 안됨"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

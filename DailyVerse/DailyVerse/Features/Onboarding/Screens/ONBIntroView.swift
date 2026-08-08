@@ -31,6 +31,12 @@ struct ONBIntroView: View {
 
     enum ActiveText { case temp1, temp2, line3, line4a, line4b, none }
 
+    private var typingLine1: String { appLanguageString("onboarding.intro.typing.line1") }
+    private var typingLine2: String { appLanguageString("onboarding.intro.typing.line2") }
+    private var typingLine3: String { appLanguageString("onboarding.intro.typing.line3") }
+    private var typingLine4a: String { appLanguageString("onboarding.intro.typing.line4a") }
+    private var typingLine4b: String { appLanguageString("onboarding.intro.typing.line4b") }
+
     // MARK: - Body
 
     var body: some View {
@@ -179,7 +185,7 @@ struct ONBIntroView: View {
                                 .frame(height: 1.2)
                                 .offset(y: -6)
                         }
-                    Text("크리스천을 위한 최고의 알람 앱")
+                    Text(appLanguageString("onboarding.intro.tagline"))
                         .font(.dvCaption)
                         .foregroundColor(.white.opacity(0.75))
                         .kerning(0.5)
@@ -202,7 +208,7 @@ struct ONBIntroView: View {
                 .frame(height: 0.7)
 
             VStack(spacing: 5) {
-                Text("하루의 첫 순간, 주님과 함께")
+                Text(appLanguageString("onboarding.intro.badgeSubtitle"))
                     .font(.dvCaption)
                     .foregroundColor(.white.opacity(0.70))
                     .kerning(1.2)
@@ -224,7 +230,7 @@ struct ONBIntroView: View {
 
     private var ctaButton: some View {
         Button { vm.next() } label: {
-            Text("시작하기 →")
+            Text(appLanguageString("onboarding.intro.cta"))
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(Color(hex: "#1A1030"))
                 .frame(maxWidth: .infinity)
@@ -244,7 +250,7 @@ struct ONBIntroView: View {
         .padding(.top, 12)
         .opacity(ctaVisible ? 1 : 0)
         .animation(.easeIn(duration: 0.4), value: ctaVisible)
-        .accessibilityLabel("온보딩 시작하기")
+        .accessibilityLabel(appLanguageString("onboarding.intro.cta.accessibility"))
     }
 
     // MARK: - 애니메이션 (90ms 타이핑)
@@ -262,7 +268,7 @@ struct ONBIntroView: View {
 
             // ── 1번: 타이핑 후 유지 ──
             activeText = .temp1
-            for ch in "매일 아침 시끄럽게 울리는 알람" {
+            for ch in typingLine1 {
                 guard !Task.isCancelled else { return }
                 tempLine1.append(ch)
                 guard await sleep(90) else { return }
@@ -271,7 +277,7 @@ struct ONBIntroView: View {
 
             // ── 2번: 줄바꿈 타이핑 후 유지 ──
             activeText = .temp2
-            for ch in "겨우 겨우 억지로 끄기 바쁘시죠..?" {
+            for ch in typingLine2 {
                 guard !Task.isCancelled else { return }
                 tempLine2.append(ch)
                 guard await sleep(90) else { return }
@@ -283,25 +289,25 @@ struct ONBIntroView: View {
             activeText = .line3
             withAnimation(.easeOut(duration: 0.40)) { tempLinesOpacity = 0 }
 
-            for ch in "이제,\n이런 무의미한 알람 대신" {
+            for ch in typingLine3 {
                 guard !Task.isCancelled else { return }
                 line3.append(ch)
                 guard await sleep(88) else { return }
             }
             guard await sleep(350) else { return }
 
-            // ── 4a: 빈줄 후 "하나님의 말씀으로" ──
+            // ── 4a: 빈줄 후 카피 ──
             activeText = .line4a
-            for ch in "하나님의 말씀으로" {
+            for ch in typingLine4a {
                 guard !Task.isCancelled else { return }
                 line4a.append(ch)
                 guard await sleep(88) else { return }
             }
             guard await sleep(280) else { return }
 
-            // ── 4b: "하루를 경건하게 시작하세요!" ──
+            // ── 4b: 마지막 카피 ──
             activeText = .line4b
-            for ch in "하루를 경건하게 시작하세요!" {
+            for ch in typingLine4b {
                 guard !Task.isCancelled else { return }
                 line4b.append(ch)
                 guard await sleep(82) else { return }
@@ -329,9 +335,9 @@ struct ONBIntroView: View {
         animationTask?.cancel()
         animationTask = nil
         tempLinesOpacity = 0
-        line3 = "이제,\n이런 무의미한 알람 대신"
-        line4a = "하나님의 말씀으로"
-        line4b = "하루를 경건하게 시작하세요!"
+        line3 = typingLine3
+        line4a = typingLine4a
+        line4b = typingLine4b
         activeText = .none
         withAnimation(.easeIn(duration: 0.3)) { topLabelOpacity = 1 }
         withAnimation(.spring(response: 0.65, dampingFraction: 0.78)) {
