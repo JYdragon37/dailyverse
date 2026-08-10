@@ -6832,6 +6832,54 @@
           }
         }
       }
+    },
+    "meditation.complete.shareCard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📤 Share as Card"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📤 카드로 공유하기"
+          }
+        }
+      }
+    },
+    "meditation.complete.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✏️ Edit Meditation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✏️ 묵상 수정하기"
+          }
+        }
+      }
+    },
+    "meditation.complete.goHome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏠 Go Home"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏠 홈으로 돌아가기"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
