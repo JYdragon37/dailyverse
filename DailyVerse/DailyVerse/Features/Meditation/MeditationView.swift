@@ -233,7 +233,7 @@ private struct StreakSection: View {
                 HStack(spacing: 6) {
                     Text("🔥")
                         .font(.system(size: 24))
-                    Text("\(streakManager.currentStreak)일")
+                    Text(appLanguageString("meditation.streakDays", args: streakManager.currentStreak))
                         .font(.dvTitle)
                         .foregroundColor(.dvAccentGold)
                 }

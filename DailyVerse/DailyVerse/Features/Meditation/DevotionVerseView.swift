@@ -34,14 +34,14 @@ struct DevotionVerseView: View {
                     readingSection
                     dashedDivider
 
-                    let interp = verse?.interpretation ?? ""
+                    let interp = verse?.interpretationText(lang: UserDefaults.standard.string(forKey: "appLanguage") ?? "ko") ?? ""
                     if !interp.isEmpty {
-                        verseSectionHeader("💡 해석")
+                        verseSectionHeader("💡 " + appLanguageString("verseDetail.interpretation.label"))
                         interpretationText(interp)
                         dashedDivider
                     }
 
-                    verseSectionHeader("📖 오늘의 묵상")
+                    verseSectionHeader("📖 " + appLanguageString("meditation.today"))
                     verseCard
                     writingInput
 
@@ -192,7 +192,7 @@ struct DevotionVerseView: View {
                     isEditMode: editMode
                 )
             ) {
-                Text(editMode ? "✅ 묵상 수정 응답 쓰기" : "✨ 묵상 응답 쓰기")
+                Text(editMode ? appLanguageString("meditation.editResponse") : appLanguageString("meditation.writeResponse"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)
@@ -239,9 +239,10 @@ struct DevotionVerseView: View {
     }
 
     private var formattedDate: String {
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일"
+        formatter.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
+        formatter.dateFormat = isEnglish ? "MMM d" : "M월 d일"
         return formatter.string(from: Date())
     }
 }

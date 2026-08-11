@@ -9,6 +9,7 @@ struct DevotionResponseView: View {
     let readingText: String
     @ObservedObject var viewModel: MeditationViewModel
     @EnvironmentObject private var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
 
     // 수정 모드 pre-fill 값 (기본값: 빈 문자열)
     var prefillPrayer: String = ""
@@ -68,7 +69,19 @@ struct DevotionResponseView: View {
             if gratitude2.isEmpty, prefillGratitude.count > 1 { gratitude2 = prefillGratitude[1] }
             if gratitude3.isEmpty, prefillGratitude.count > 2 { gratitude3 = prefillGratitude[2] }
         }
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text(appLanguageString("common.back"))
+                    }
+                    .foregroundColor(.dvAccentGold)
+                }
+            }
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
                     Text(appLanguageString("meditation.response"))
@@ -123,7 +136,7 @@ struct DevotionResponseView: View {
                 } ?? appLanguageString("meditation.applicationFallback")
 
                 // #11: 닉네임 prefix
-                let nickname = NicknameManager.shared.nickname
+                let nickname = NicknameManager.shared.displayName
                 let prefixed = "\(nickname), \(appliance)"
 
                 Text(prefixed)
@@ -314,9 +327,10 @@ struct DevotionResponseView: View {
     }
 
     private var formattedDate: String {
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "M월 d일"
+        f.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
+        f.dateFormat = isEnglish ? "MMM d" : "M월 d일"
         return f.string(from: Date())
     }
 
@@ -332,7 +346,7 @@ struct DevotionResponseView: View {
             .allowsHitTesting(false)
 
             Button { handleComplete() } label: {
-                Text(isEditMode ? "✅ 묵상 수정 완료" : "✨ 묵상 마치기")
+                Text(isEditMode ? appLanguageString("meditation.editComplete") : appLanguageString("meditation.finish"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.dvAccentGold)
                     .frame(maxWidth: .infinity)

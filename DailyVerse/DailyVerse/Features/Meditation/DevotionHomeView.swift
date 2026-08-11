@@ -272,7 +272,7 @@ struct DevotionHomeView: View {
                 HStack(spacing: 6) {
                     Text("🔥")
                         .font(.system(size: 24))
-                    Text("\(displayedStreak)일")
+                    Text(appLanguageString("meditation.streakDays", args: displayedStreak))
                         .font(.dvTitle)
                         .foregroundColor(.dvAccentGold)
                 }
@@ -475,9 +475,10 @@ private struct DevotionCalendarGrid: View {
 
     // 표시 중인 월의 헤더 텍스트 "2026년 4월"
     private var monthTitle: String {
+        let isEnglish = UserDefaults.standard.string(forKey: "appLanguage") == "en"
         let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "yyyy년 M월"
+        f.locale = Locale(identifier: isEnglish ? "en_US" : "ko_KR")
+        f.dateFormat = isEnglish ? "MMMM yyyy" : "yyyy년 M월"
         return f.string(from: viewModel.calendarMonth)
     }
 
