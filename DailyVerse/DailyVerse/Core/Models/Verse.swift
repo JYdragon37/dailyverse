@@ -101,7 +101,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "If I take the wings of the morning, and dwell in the uttermost parts of the sea",
+        verseFullEn: "If I take the wings of the morning, and dwell in the uttermost parts of the sea; even there shall thy hand lead me, and thy right hand shall hold me.",
+        interpretationEn: "Wherever you are, whatever the hour, God's hand is already there with you.",
+        applicationEn: "In this quiet, wakeful hour, remember that His hand is holding you.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -119,7 +122,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "My voice shalt thou hear in the morning, O LORD",
+        verseFullEn: "My voice shalt thou hear in the morning, O LORD; in the morning will I direct my prayer unto thee, and will look up.",
+        interpretationEn: "David's confidence that God hears the prayers we raise in the early morning.",
+        applicationEn: "Before the world wakes up, seek God first in this hour.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -137,7 +143,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "Fear thou not; for I am with thee",
+        verseFullEn: "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.",
+        interpretationEn: "God's own promise to be with you, personally and directly.",
+        applicationEn: "Start today remembering that you are not alone.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -155,7 +164,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "I can do all things through Christ which strengtheneth me",
+        verseFullEn: "I know both how to be abased, and I know how to abound: every where and in all things I am instructed both to be full and to be hungry, both to abound and to suffer need. I can do all things through Christ which strengtheneth me.",
+        interpretationEn: "A declaration of living not by your own strength, but by the strength Christ supplies.",
+        applicationEn: "In this focused hour, connect with the One who gives you strength.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -173,7 +185,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "Wisdom calls to you: walk in my ways",
+        verseFullEn: "Wisdom calls to you: walk in my ways, and your steps will multiply, and your path will be made level.",
+        interpretationEn: "When you walk in the path of wisdom, the way ahead opens up.",
+        applicationEn: "It's okay to rest a moment — this pause is held in God too.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -191,7 +206,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "Be of good cheer; I have overcome the world",
+        verseFullEn: "These things I have spoken unto you, that in me ye might have peace. In the world ye shall have tribulation: but be of good cheer; I have overcome the world.",
+        interpretationEn: "Because Jesus has already overcome the world, we too can be of good cheer.",
+        applicationEn: "Even if you feel the afternoon fatigue, remember you're standing in a battle already won.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -209,7 +227,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "The LORD is my shepherd; I shall not want",
+        verseFullEn: "The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures: he leadeth me beside the still waters.",
+        interpretationEn: "A confession of trust that God cares for us the way a shepherd cares for his sheep.",
+        applicationEn: "You worked hard today. Look back on all He provided.",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
@@ -227,7 +248,10 @@ struct Verse: Identifiable, Codable, Equatable, Hashable {
         curated: true, status: "active", usageCount: 0,
         notes: nil, alarmTopKo: nil,
         question: nil,
-        verseShortEn: nil, verseFullEn: nil, interpretationEn: nil, applicationEn: nil,
+        verseShortEn: "Casting all your care upon him; for he careth for you",
+        verseFullEn: "Casting all your care upon him; for he careth for you.",
+        interpretationEn: "Peter wrote this to people scattered from their homes as Nero's persecution began. His message: don't carry the whole weight alone — just cast it off. God is already caring for you.",
+        applicationEn: "Now that you're home, think of the heaviest worry from today and quietly say, 'I'm letting this go.'",
         lastShown: nil, showCount: 0, cooldownDays: 7
     )
 
