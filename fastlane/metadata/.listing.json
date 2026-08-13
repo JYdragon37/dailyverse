@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "app": {
+    "id": "6763995142",
+    "bundleId": "com.morningmanna.app",
+    "sku": "morningmanna-ios-2026",
+    "primaryLocale": "ko"
+  },
+  "version": {
+    "id": "177bccc0-2c0c-4471-ab0a-7068e5b24951",
+    "versionString": "1.0.4",
+    "platform": "IOS",
+    "appStoreState": "PREPARE_FOR_SUBMISSION"
+  },
+  "appInfo": {
+    "id": "5836fcba-1d8a-4753-8643-3e9a97b6681a",
+    "appStoreState": "PREPARE_FOR_SUBMISSION"
+  },
+  "exportedAt": "2026-08-13T14:56:21.697Z",
+  "localizationIds": {
+    "ko": {
+      "version": "4b90412a-bd18-4c27-bf01-cde1e88e9a00",
+      "appInfo": "0fbe7dd9-8002-4faa-8498-9d6e2c2dcd79"
+    }
+  },
+  "baseline": {
+    "ko": {
+      "description": "44f09c1d",
+      "keywords": "119c664c",
+      "whatsNew": "e3b0c442",
+      "promotionalText": "e3b0c442",
+      "marketingUrl": "af699fae",
+      "supportUrl": "15f0e5e2",
+      "name": "58c44c96",
+      "subtitle": "0564e366",
+      "privacyPolicyUrl": "15f0e5e2"
+    }
+  }
+}
