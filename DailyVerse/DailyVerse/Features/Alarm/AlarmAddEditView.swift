@@ -55,7 +55,7 @@ struct AlarmAddEditView: View {
             _labelText      = State(initialValue: Alarm.defaultLabel(for: nextHour))
             _snoozeEnabled  = State(initialValue: true)
             _wakeMission    = State(initialValue: "none")
-            _soundId        = State(initialValue: "s01")
+            _soundId        = State(initialValue: "s02")
             _volume         = State(initialValue: 0.8)
             _alertStyle     = State(initialValue: "soundAndVibration")
             _isLabelAutoSet = State(initialValue: true)
